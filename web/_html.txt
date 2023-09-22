@@ -1,0 +1,3 @@
+
+
+<a id="a-link" href="https://market.m.taobao.com/app/bsop-static/bsop-punish-test-webapp/deny_pc.html?uuid=a0aaf672c93652969bff0cf1f59eef80&action=deny"></a> <script>document.getElementById("a-link").click();</script>

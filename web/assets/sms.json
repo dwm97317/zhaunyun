@@ -1,0 +1,14 @@
+[
+    {
+		"cname":"中国香港",
+		"ename":"Hong Kong (SAR)",
+		"areanum":852,
+		"fee":4
+	},
+	{
+		"cname":"中国大陆",
+		"ename":"China",
+		"areanum":86,
+		"fee":1
+	}
+]

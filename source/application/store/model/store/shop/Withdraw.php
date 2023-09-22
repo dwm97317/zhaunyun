@@ -1,0 +1,194 @@
+<?php
+
+namespace app\store\model\store\shop;
+
+use app\common\enum\user\balanceLog\Scene as SceneEnum;
+use app\store\model\User as UserModel;
+use app\store\model\store\Shop as ShopModel;
+use app\store\model\Wxapp as WxappModel;
+use app\common\model\store\shop\Withdraw as WithdrawModel;
+use app\common\library\wechat\WxPay;
+use app\common\service\Order as OrderService;
+use app\common\service\Message as MessageService;
+use app\common\enum\dealer\withdraw\ApplyStatus as ApplyStatusEnum;
+use app\store\model\user\BalanceLog as BalanceLogModel;
+/**
+ * 分销商提现明细模型
+ * Class Withdraw
+ * @package app\store\model\dealer
+ */
+class Withdraw extends WithdrawModel
+{
+    /**
+     * 获取器：申请时间
+     * @param $value
+     * @return false|string
+     */
+    public function getAuditTimeAttr($value)
+    {
+        return $value > 0 ? date('Y-m-d H:i:s', $value) : 0;
+    }
+
+    /**
+     * 获取器：打款方式
+     * @param $value
+     * @return mixed
+     */
+    public function getPayTypeAttr($value)
+    {
+        return ['text' => ApplyStatusEnum::data()[$value]['name'], 'value' => $value];
+    }
+
+    /**
+     * 获取分销商提现列表
+     * @param null $shop_id
+     * @param int $apply_status
+     * @param int $pay_type
+     * @param string $search
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getList($shop_id = null, $apply_status = -1, $pay_type = -1, $search = '')
+    {
+        // 构建查询规则
+        $this->alias('withdraw')
+            ->with(['shop.logo'])
+            ->field('withdraw.*, sp.shop_name')
+            ->join('store_shop sp', 'sp.shop_id = withdraw.shop_id')
+            ->order(['withdraw.create_time' => 'desc']);
+        // 查询条件
+        $shop_id > 0 && $this->where('withdraw.shop_id', '=', $shop_id);
+        $apply_status > 0 && $this->where('withdraw.apply_status', '=', $apply_status);
+        $pay_type > 0 && $this->where('withdraw.pay_type', '=', $pay_type);
+        // 获取列表数据
+        return $this->paginate(15, false, [
+            'query' => \request()->request()
+        ]);
+    }
+
+    /**
+     * 分销商提现审核
+     * @param $data
+     * @return bool
+     */
+    public function submit($data)
+    {
+        if (
+            $data['apply_status'] == ApplyStatusEnum::AUDIT_REJECT
+            && empty($data['reject_reason'])
+        ) {
+            $this->error = '请填写驳回原因';
+            return false;
+        } 
+      
+        $this->transaction(function () use ($data) {
+            // 更新申请记录
+            $data['audit_time'] = time();
+            $this->allowField(true)->save($data);
+            // 提现驳回：解冻分销商资金
+            if (intval($data['apply_status']) == ApplyStatusEnum::AUDIT_REJECT) {
+                ShopModel::backFreezeMoney($this['shop_id'], $this['money']);
+            }
+            // 发送消息通知
+            // MessageService::send('dealer.withdraw', [
+            //     'withdraw' => $this,
+            //     'user' => UserModel::detail($this['user_id']),
+            // ]);
+        });
+        return true;
+    }
+
+    /**
+     * 确认已打款
+     * @return bool
+     */
+    public function money()
+    {
+        $this->transaction(function () {
+            // 更新申请状态
+            $this->allowField(true)->save([
+                'apply_status' => 40,
+                'audit_time' => time(),
+            ]);
+            // 更新加盟商累积提现佣金
+            ShopModel::totalMoney($this['shop_id'], $this['money']);
+            // 记录分销商资金明细
+            Capital::add([
+                'shop_id' => $this['shop_id'],
+                'flow_type' => 30,
+                'money' => -$this['money'],
+                'describe' => '申请提现',
+            ]);
+        });
+        return true;
+    }
+
+    /**
+     * 分销商提现：微信支付企业付款
+     * @return bool
+     * @throws \app\common\exception\BaseException
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function wechatPay()
+    {
+        // 微信用户信息
+        
+        $shopDetail = ShopModel::detail($this['shop_id']);
+        $user = UserModel::detail($shopDetail['user_id']);
+        // 生成付款订单号
+        $orderNO = OrderService::createOrderNo();
+        // 付款描述
+        $desc = '加盟商提现付款';
+        // 微信支付api：企业付款到零钱
+        $wxConfig = WxappModel::getWxappCache();
+        $WxPay = new WxPay($wxConfig);
+        // 请求付款api
+        if ($WxPay->transfers($orderNO, $user['open_id'], $this['money'], $desc)) {
+            // 确认已打款
+            $this->money();
+            return true;
+        }
+        return false;
+    }
+    
+     /**
+     * 分销商提现：付款到用户余额
+     * @return bool
+     * @throws \app\common\exception\BaseException
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function payToMoney()
+    {
+            $this->transaction(function () {
+            // 更新申请状态
+            $this->allowField(true)->save([
+                'apply_status' => 40,
+                'audit_time' => time(),
+            ]);
+            // 更新分销商累积提现佣金
+            User::totalMoney($this['user_id'], $this['money']);
+            // 记录分销商资金明细
+            Capital::add([
+                'user_id' => $this['user_id'],
+                'flow_type' => 20,
+                'money' => -$this['money'],
+                'describe' => '申请提现',
+            ]);
+            //更新用户余额
+            (new ShopModel())->BanlanceChange('add', $this['user_id'],$this['money'],"分销佣金提现到余额");
+            //增加用户余额记录
+              
+            BalanceLogModel::add(SceneEnum::FENXIAO,[
+                'user_id' => $this['user_id'],
+                'money' => $this['money'],
+                'remark' =>"分销佣金提现到余额",
+                'create_time'=>time(),
+                'sence_type' => 1,
+            ],['describe'=> "分销提现"]);
+        });
+        return true;
+    }
+
+}

@@ -1,0 +1,285 @@
+{extend name="layout" /}
+{block name="body"}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <form class="list-form" method="get" action="{:siteUrl('web/taker/index')}">
+                    <h4 class="list-shaixuan-header">高级筛选</h4>
+                    <div class="shuaixuan-form">
+                        <div class="shuixuan-block">
+                            <label for="">时间段查询</label>
+                            <div class="shuaixuan-group">
+                                <div class="inline-block">
+                                    <input class="form-control js-datepicker" type="text" id="start-date" name="start_time" placeholder="yyyy-mm-dd" value="{$where['start_time']??''}" data-date-format="yyyy-mm-dd">
+                                </div>
+                                <div class="inline-block">
+                                    <input class="form-control js-datepicker" type="text" id="end-date" name="end_time" placeholder="yyyy-mm-dd" value="{$where['end_time']??''}" data-date-format="yyyy-mm-dd">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-submit">
+                        <button type="button" class="btn btn-primary ajax-post" target-form="add-form">确 定</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-toolbar clearfix">
+                    <div class="toolbar-btn-action">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>
+                                    <label class="lyear-checkbox checkbox-primary">
+                                        <input type="checkbox" id="check-all"><span></span>
+                                    </label>
+                                </th>
+                                <th>编号</th>
+                                <th width="100">充值单号</th>
+                                <th>充值金额</th>
+                                <th>充值人</th>
+                                <th>充值方式</th>
+                                <th>充值状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {if condition="isset($list[0]['taker_name'])"}
+                            {volist name='list' id="v"}
+                            <tr>
+                                <td>
+                                    <label class="lyear-checkbox checkbox-primary">
+                                        <input type="checkbox" name="ids[]" value="{$v['taker_id']}"><span></span>
+                                    </label>
+                                </td>
+                                <td>{$key+1}</td>
+                                <td>{$v['order_sn']}</td>
+                                <td>{$v['amount']}</td>
+                                <td>{$v['taker_name']}</td>
+                                <td>{$v['pay_type_cn']}</td>
+                                <td>{eq name="$v['status']" value='1'}待支付{/eq}{eq name="$v['status']" value='2'}已支付{/eq}</td>
+                                <td>{$v['created_time']}</td>
+                                <td>
+                                    <div class="btn-group">
+                                    </div>
+                                </td>
+                            </tr>
+                            {/volist}
+                            {else/}
+                            <tr>
+                                <td colspan="13">暂无数据</td>
+                            </tr>
+                            {/if}
+                            </tbody>
+                        </table>
+                    </div>
+                    <ul class="pagination">
+                        {$page|raw}
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{/block}
+{block name="script"}
+<script>
+    $('.ajax-post').click(function(){
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        var params = [];
+        for (var i=0;i<vars.length;i++) {
+            var pair = vars[i].split("=");
+            params[pair[0]] = pair[1];
+        }
+        var t = $('.list-form').serializeArray();
+        for (var i=0; i<t.length;i++){
+            for(k in params) {
+                if (k== t[i]['name']){
+                    params[k] = t[i]['value'];
+                }else{
+                    params[t[i]['name']] = t[i]['value'];
+                }
+            }
+        }
+        var params_query = Object.keys(params).map(function (key) {
+            return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+        }).join("&");
+        var request_uri = window.location.href.substring(0,window.location.href.indexOf('?'));
+        window.location.href = request_uri+"?"+params_query;
+    })
+
+    // 组件工具配置
+    var bindtools_config = {
+        del:{
+            url:"{:siteUrl('web/taker/takerdels')}",
+        },
+    };
+
+    // 组件工具
+    var bindtools = {
+        type:'',
+        ids:[],
+        submit:true,
+        ajaxLoading:function () {
+            var ajax_layer = document.getElementsByClassName('ajax_layer')[0];
+            if (ajax_layer){
+                var ajax_layer_con = document.getElementById('load');
+                document.body.removeChild(ajax_layer_con);
+                document.body.removeChild(ajax_layer);
+                return;
+            }
+            var ajax_layer = document.createElement('div');
+            ajax_layer.className = 'ajax_layer';
+            document.body.appendChild(ajax_layer);
+            setTimeout(function () {
+                var ajaxTips = document.createElement('div');
+                ajaxTips.id = 'load';
+                ajaxTips.className = 'ajax_loading_tips';
+                ajaxTips.innerHTML = '<div class="sk-fading-circle">\n' +
+                    '    <div class="sk-circle sk-circle-1"></div>\n' +
+                    '    <div class="sk-circle sk-circle-2"></div>\n' +
+                    '    <div class="sk-circle sk-circle-3"></div>\n' +
+                    '    <div class="sk-circle sk-circle-4"></div>\n' +
+                    '    <div class="sk-circle sk-circle-5"></div>\n' +
+                    '    <div class="sk-circle sk-circle-6"></div>\n' +
+                    '    <div class="sk-circle sk-circle-7"></div>\n' +
+                    '    <div class="sk-circle sk-circle-8"></div>\n' +
+                    '    <div class="sk-circle sk-circle-9"></div>\n' +
+                    '    <div class="sk-circle sk-circle-10"></div>\n' +
+                    '    <div class="sk-circle sk-circle-11"></div>\n' +
+                    '    <div class="sk-circle sk-circle-12"></div>\n' +
+                    '  </div>\n' +
+                    '     <div class="ajax_loading_text">\n' +
+                    '          <h5>提示</h5>\n' +
+                    '          <p>正在处理中，请稍后</p>\n' +
+                    '     </div>'
+                document.body.appendChild(ajaxTips);
+                setTimeout(function () {
+                    ajaxTips.style.right = 0;
+                },10);
+            },10);
+        },
+        dialogShow:function(html,type=1){
+            var ajax_layer = document.getElementsByClassName('ajax_layer')[0];
+            if (ajax_layer){
+                $('.ajax_loading_tips').remove();
+                document.body.removeChild(ajax_layer);
+                return;
+            }
+            var ajax_layer = document.createElement('div');
+            ajax_layer.className = 'ajax_layer';
+            document.body.appendChild(ajax_layer);
+            switch (type) {
+                case 1:
+                    type = 'warn';
+                    break;
+                case 2:
+                    type = 'success';
+                    break;
+                case 3:
+                    type = 'fail';
+                    break;
+            }
+            setTimeout(function () {
+                var ajaxTips = document.createElement('div');
+                ajaxTips.className = 'ajax_loading_tips';
+                ajaxTips.innerHTML = '<div class="ajax_loading-icon '+type+'">\n' +
+                    '\n' +
+                    '     </div>\n' +
+                    '     <div class="ajax_loading_text">\n' +
+                    '          <h5>提示</h5>\n' +
+                    '          <p>'+html+'</p>\n' +
+                    '     </div>'
+                document.body.appendChild(ajaxTips);
+                setTimeout(function () {
+                    ajaxTips.style.right = 0;
+                    setTimeout(function () {
+                        ajaxTips.style.right = -250+'px';
+                        setTimeout(function () {
+                            document.body.removeChild(ajaxTips);
+                            document.body.removeChild(ajax_layer);
+                        },400);
+                    },2000);
+                },10);
+            },400);
+        },
+        ajaxRequest:function(){
+            this.ajaxLoading();
+            var that = this;
+            $.ajax({
+                type:"POST",
+                data:{ids:this.ids},
+                url: bindtools_config[this.type]['url'],
+                dataType:"json",
+                success:function (res) {
+                    that.ajaxLoading();
+                    that.fn(res);
+                }
+            })
+        },
+        fn:function(res){
+            if (res.code){
+                this.dialogShow(res.msg,2);
+                setTimeout(function () {
+                    window.location.reload();
+                },3000);
+            }else{
+                this.dialogShow(res.msg,1);
+            }
+        },
+        checkRadio:function(){
+            var that = this;
+            $('input[type="checkbox"]:checked').each(function(index,value) {
+                if($(value).val() != 'on') {
+                    that.ids.push($(this).val());
+                }
+            });
+            if (this.ids.length <= 0){
+                this.dialogShow('请先选择项目');
+                this.submit = false;
+                return;
+            }
+        },
+        init:function (_this) {
+            this.ids = [];
+            this.submit = true;
+            var dataType = _this.getAttribute('data-action');
+            var id = _this.getAttribute("data-id");
+            this.type = dataType;
+            if (id){
+                this.ids.push(id);
+            }else{
+                this.checkRadio();
+            }
+            if (!this.submit){
+                return false;
+            }
+            var that = this;
+            //询问框
+            layer.confirm('请确定操作？', {
+                btn: ['确定','取消'] //按钮
+            }, function(){
+                layer.close(layer.index);
+                that.ajaxRequest();
+            }, function(){
+
+            });
+        }
+    }
+</script>
+{/block}

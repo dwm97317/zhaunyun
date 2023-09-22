@@ -1,0 +1,1904 @@
+<?php
+namespace app\store\controller;
+use app\api\model\Logistics;
+use app\store\model\Inpack;
+use app\store\model\Package;
+use app\store\model\PackageItem;
+use app\store\model\Line;
+use app\store\model\ShelfUnitItem;
+use app\store\model\Comment as CommentModel;
+use app\store\model\Express as ExpressModel;
+use app\store\model\Ditch as DitchModel;
+use app\common\model\User;
+use app\common\service\Message;
+use app\store\model\User as UserModel;
+use app\store\model\store\Shop as ShopModel;
+use app\common\model\Setting;
+use app\store\model\InpackService;
+use app\api\model\Setting as SettingModel;
+use app\store\model\user\UserLine;
+use app\store\model\UserAddress;
+use app\common\model\Setting as SettingModelPlus;
+use app\store\model\sharing\SharingOrder;
+use app\store\model\sharing\SharingOrderItem;
+use app\store\model\PackageService;
+use app\common\model\store\shop\Capital;
+use app\store\model\store\shop\ShopBonus;
+use app\store\model\store\shop\Clerk;
+/**
+ * 订单管理
+ * Class Order
+ * @package app\store\controller
+ */
+class TrOrder extends Controller
+{
+    /**
+     * 待查验订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function verify_list()
+    {
+        return $this->getList('待查验订单列表', 'verify');
+    }
+
+    /**
+     * 待支付订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function pay_list()
+    {
+        
+        return $this->getNoPayList('待支付订单列表', 'pay');
+    }
+
+    /**
+     * 待发货订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function payed_list()
+    {
+        return $this->getList('待发货订单列表', 'payed');
+    }
+
+    /**
+     * 转运中订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function sending()
+    {
+        return $this->getList('已发货订单列表', 'sending');
+    }
+    
+    /**
+     * 转运中订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function sended()
+    {
+        return $this->getList('已到货订单列表', 'sended');
+    }
+    
+    /**
+     * 转运中订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function complete()
+    {
+        return $this->getList('已完成订单列表', 'complete');
+    }
+    
+    public function package($id){
+         // 订单详情
+        $detail = Inpack::details($id);
+        $list = (new Package())->with("packageimage.file")->where('id','in',explode(',',$detail['pack_ids']))->select();
+       
+        foreach ($list as $k => $v){
+            $list[$k]['shelf'] = (new ShelfUnitItem())->getShelfUnitByPackId($v['id']);
+            $list[$k]['pakitem'] = (new PackageItem())->where('order_id',$v['id'])->select();
+        }
+        //   dump($list->toarray());die;
+        return $this->fetch('package', compact('list','id'));
+    }
+    
+    
+    /**
+     * 集运单详情
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function orderdetail($id){
+        $packageItem = [];
+        $line = (new Line())->getList([]);
+        // 订单详情
+        $detail = Inpack::details($id);
+        // dump($detail->toArray());die;
+        if ($detail['status']>=2){
+            $detail['total'] = $detail['free']+$detail['pack_free']+$detail['other_free'];
+        }
+        $packages = explode(",",$detail['pack_ids']);
+        
+        foreach($packages as $key => $value){
+           $package[$key] = (new Package())->where("id",$value)->find();
+           $packageItems[$key] = (new PackageItem())->where("order_id",$value)->find();
+           if(!empty($packageItems[$key])){
+               $packageItem[$key] = $packageItems[$key];
+           }
+        }
+        $packageService = (new PackageService())->getList([]);
+        $detail['service'] = (new InpackService())->with('service')->where('inpack_id',$id)->select();
+        // dump($PackageItem);die;
+        //获取订单日志记录
+        $detail['log'] = (new Logistics())->where('order_sn',$detail['order_sn'])->select();
+        //获取到用户信息
+        $detail['user'] = (new UserModel())->where('user_id',$detail['member_id'])->find();
+        //获取到仓库信息
+        $detail['storage'] = (new ShopModel())->where('shop_id',$detail['storage_id'])->find();
+        $set = Setting::detail('store')['values'];
+        return $this->fetch('orderdetail', compact(
+            'detail','line','package','packageItem','packageService','set'
+        ));
+    }
+
+     /**
+     * 后台批量修改集运单状态
+     * @param $selectIds
+     * @param $status
+     * @return false|int
+     * @throws \think\exception\DbException
+     */
+    public function upsatatus(){
+       $ids = $this->postData('selectIds')[0];
+       $status = $this->postData('pack')['status'];
+       
+       $noticesetting = SettingModelPlus::getItem('notice');
+       $idsArr = explode(',',$ids);
+       $model = new Inpack();
+       //循环处理订单状态
+       foreach ($idsArr as $v){
+           $order =  $model->where(['id'=>$v])->find($v);
+           $userData = (new User())->where('user_id',$order['member_id'])->find();
+           $pack_ids = explode(',',$order['pack_ids']);
+           $_up = [
+             'status' => $status
+           ];
+           
+           $status_map = [
+               5 => '8',
+               6 => '9',
+               7 => '10',
+               8 => '11',
+           ];
+           if($status==5){
+               $_up['status'] = 3;
+           }
+           if($status==7){
+               $_up['shoprk_time'] = getTime();
+           }
+           if($status==8){
+               $_up['receipt_time'] = getTime();
+           }
+           $model->where(['id'=>$v])->update($_up);
+           (new Package())->where('id','in',$pack_ids)->update(['status'=>$status_map[$status]]);
+           if(strpos($noticesetting['dosend']['describe'],'code')){
+                 $dosend = str_ireplace('{code}', $order['t_order_sn'], $noticesetting['dosend']['describe']);
+            }else{
+                 $dosend = $noticesetting['dosend']['describe'];
+            }
+           $status_remark = [
+               5=> "退回到待发货状态，修改发货单号",
+               6 => $dosend,
+               7 => $noticesetting['reach']['describe'],
+               8 => $noticesetting['take']['describe'],
+           ];
+           
+           
+           //处理模板消息
+           $data['order_sn'] = $order['order_sn'];
+           $data['order'] = $order;
+           $data['order']['total_free'] = $order['free'];
+           $data['order']['userName'] = $userData['nickName'];
+           $data['order_type'] = 10;
+           $data['order']['remark'] = $status_remark[$status];
+           Logistics::addInpackLogs($order['order_sn'],$status_remark[$status]);
+           Message::send('order.payment',$data);
+       }    
+       return $this->renderSuccess('更新成功');
+    }
+    
+   /**
+     * 已完成订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function complete_list()
+    {
+        return $this->getList('转运中订单列表', 'intransit');
+    }
+
+    /**
+     * 已取消订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function cancel_list()
+    {
+        return $this->getList('已取消订单列表', 'cancel');
+    }
+
+    /**
+     * 全部订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function all_list()
+    {
+        return $this->getList('全部订单列表', "all");
+    }
+    
+    public function edit($id){
+        $line = (new Line())->getListAll([]);
+        // 订单详情
+        $detail = Inpack::details($id);
+        $detail['total'] = $detail['free']+$detail['pack_free']+$detail['other_free'];
+        $set = Setting::detail('store')['values'];
+      
+        return $this->fetch('detail', compact('detail','line','set'));
+    }
+    
+    
+    /**
+     * 点击编辑集运单，修改保存的函数
+     * 2022年11月5日 增加图片增删功能
+    */
+    public function modify_save(){
+       $model = (new Inpack());
+       if ($model->edit($this->postData('data'))){
+             return $this->renderSuccess('操作成功','javascript:history.back(1)');
+       } 
+       return $this->renderError($model->getError() ?: '操作失败');
+    }
+    
+    //获取订单金额和用户余额
+    public function balanceAndPrice(){
+       $data = $this->request->param(); 
+       $model = new Inpack();
+       $user =  new UserModel;
+       $inpackdata = $model::details($data['id']);
+       $userdata = User::detail($data['user_id']);
+       $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free'];
+       return  $this->renderSuccess('操作成功','',$result=['price' =>  $payprice ,'balance' =>$userdata['balance']]);
+    }
+    
+    
+    
+    //使用余额抵扣集运单费用
+    public function payyue(){
+        $data = $this->request->param();
+        $model = new Inpack();
+        $user =  new UserModel;
+        $inpackdata = $model::details($data['id']);
+        $userdata = User::detail($data['user_id']);
+        
+        $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free'];
+      
+        if(($userdata['balance'] < $payprice) || $payprice==0){
+            return $this->renderError('用户余额不足');
+        }
+        //   dump($userdata['balance'] < $payprice);die;
+        //扣除余额，并产生一天用户的消费记录；减少用户余额；
+        $res = $user->banlanceUpdate('remove',$data['user_id'],$payprice,date("Y-m-d H:i:s").',集运单'.$inpackdata['order_sn'].'消费余额'.$payprice);
+        if(!$res){
+            //累计消费金额
+            $user->setIncPayMoney($payprice);
+            return $this->renderError($user->getError() ?: '操作失败');
+        }
+        //修改集运单状态何支付状态
+        if($inpackdata['status']==2){
+            $inpackdata->where('id',$data['id'])->update(['status'=>3,'is_pay'=>1,'is_pay_type'=>0,'pick_time'=>date('Y-m-d H:i:s',time())]);
+        }else{
+            $inpackdata->where('id',$data['id'])->update(['is_pay'=>1,'is_pay_type'=>0,'pick_time'=>date('Y-m-d H:i:s',time())]);
+        }
+        return $this->renderSuccess('操作成功');
+    }
+
+    /**
+     * 物流更新 
+     * */
+    public function logistics($id){
+        $sendOrder = (new Inpack())->details($id);
+        if (!$this->request->isAjax()){
+            return $this->fetch('send_order_logistics', compact('sendOrder'));
+        }
+        $order_logic = json_decode($sendOrder['logistics'],true);
+        $order_logic[] = $this->postData('sendOrder')['logistics'];
+        //发送用户以及用户信息
+            $userId = $sendOrder['member_id'];
+            $data['code'] = $id;
+            $data['logistics_describe']= $this->postData('sendOrder')['logistics'];
+            $user = User::detail($userId);
+            if($user['email']){
+                $this->sendemail($user,$data,$type=1);
+            }
+            //发送订阅消息，模板消息
+            $data['order_sn'] = $sendOrder['order_sn'];
+            $data['order'] = $sendOrder;
+            $data['order']['total_free'] = $sendOrder['free'];
+            $data['order']['userName'] = $user['nickName'];
+            $data['order_type'] = 10;
+            $data['order']['remark'] =$data['logistics_describe'] ;
+            Message::send('order.payment',$data);
+             $res = Logistics::addLog($sendOrder['order_sn'],$this->postData('sendOrder')['logistics'],$this->postData('sendOrder')['created_time']);
+             if (!$res){
+                return $this->renderError('物流更新失败');
+            }
+            
+        return $this->renderSuccess('物流更新成功');
+    }
+    
+    
+    /**
+     * 批量物流更新 
+     * 2022年5月11日
+     * */
+    public function alllogistics(){
+        $data = input();
+        if(!$data['logistics_describe']){
+             return $this->renderError('请输入订单物流信息');
+        }
+        
+        $selectids = explode(',',$data['selectIds']);
+        
+        foreach ($selectids as $key =>$val){
+            $sendOrder = (new Inpack())->details($val);
+            //发送用户以及用户信息
+            $userId = $sendOrder['member_id'];
+            $data['code'] = $val;
+            $user = User::detail($userId);
+            
+            //发送订阅消息，模板消息
+            $data['order_sn'] = $sendOrder['order_sn'];
+            $data['order'] = $sendOrder;
+            $data['order']['total_free'] = $sendOrder['free'];
+            $data['order']['userName'] = $user['nickName'];
+            $data['order_type'] = 10;
+            $data['order']['remark'] =$data['logistics_describe'] ;
+            Message::send('order.payment',$data);
+            
+            //邮件通知
+            if($user['email']){
+                $this->sendemail($user,$data,$type=1);
+            }
+             $res = Logistics::addLog($sendOrder['order_sn'],$data['logistics_describe'],$data['created_time']);
+             if (!$res){
+                return $this->renderError('物流更新失败');
+                 }
+        }
+       
+        return $this->renderSuccess('物流更新成功');
+    }
+    
+
+
+
+    /**
+     * 订单详情
+     * @param $order_id
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function detail($order_id)
+    {
+        // 订单详情
+        $detail = OrderModel::detail($order_id);
+        // 物流公司列表
+        $expressList = ExpressModel::getAll();
+        // 门店店员列表
+        $shopClerkList = (new ShopClerkModel)->getList(true);
+        return $this->fetch('detail', compact(
+            'detail',
+            'expressList',
+            'shopClerkList'
+        ));
+    }
+    
+    // 发货物流
+    public function delivery($id){
+        $detail = Inpack::details($id);
+        $ExpressModel = new ExpressModel();
+        $DitchModel = new DitchModel();
+        $track = $ExpressModel->getTypeList($type = 1);
+        $ditchlist = $DitchModel->getAll();
+        return $this->fetch('delivery', compact(
+            'detail','track','ditchlist'
+        ));
+    }
+    
+    // 发货物流
+    public function changesn($id){
+        $detail = Inpack::details($id);
+        $ExpressModel = new ExpressModel();
+        $DitchModel = new DitchModel();
+        $track = $ExpressModel->getTypeList($type = 1);
+        $ditchlist = $DitchModel->getAll();
+        return $this->fetch('changesn', compact(
+            'detail','track','ditchlist'
+        ));
+    }
+    
+    // 打印面单
+    public function printOrder($id){
+        $detail = Inpack::details($id);
+        return $this->fetch('orderPrint', compact(
+            'detail'
+        ));
+    }
+    
+    // 发货物流
+    public function deliverySave(){
+       $model = (new Inpack());
+       if ($model->modify($this->postData('delivery'))){
+           return $this->renderSuccess('操作成功');
+       } 
+       return $this->renderError($model->getError() ?: '操作失败');
+    }
+
+    /**
+     * 修改订单价格
+     * @param $order_id
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function updatePrice($order_id)
+    {
+        $model = OrderModel::detail($order_id);
+        if ($model->updatePrice($this->postData('order'))) {
+            return $this->renderSuccess('修改成功');
+        }
+        return $this->renderError($model->getError() ?: '修改失败');
+    }
+    
+    
+    //问题件删除
+    public function orderdelete($id){
+        $model = Inpack::details($id);
+        $package_ids = $model['pack_ids'];
+        $pack = explode(',',$package_ids);
+        // dump($pack);die;
+        if(!empty($pack)){
+          foreach ($pack as $key => $val){
+            (new Package())->where('id',$val)->update(['status' => 2]);
+          }  
+        }
+        if ($model->removedelete($id)) {
+            return $this->renderSuccess('删除成功');
+        }
+        return $this->renderError($model->getError() ?: '删除失败');
+    }
+    
+     //集运单删除
+    public function delete($id){
+        $model = Inpack::details($id);
+        //找到集运单所有的包裹单号，循环设置状态为2；
+        $package_ids = $model['pack_ids'];
+        $pack = explode(',',$package_ids);
+        foreach ($pack as $key => $val){
+            (new Package())->where('id',$val)->update(['status' => 2]);
+        }
+        if ($model->removedelete($id)) {
+            return $this->renderSuccess('删除成功');
+        }
+        return $this->renderError($model->getError() ?: '删除失败');
+    }
+
+    /**
+     * 订单列表
+     * @param string $title
+     * @param string $dataType
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    private function getList($title, $dataType)
+    {
+        // 订单列表
+        $model = new Inpack;
+        $Line = new Line;
+        $Clerk = new Clerk;
+        $set = Setting::detail('store')['values'];
+        $userclient =  Setting::detail('userclient')['values'];
+        $list = $model->getList($dataType, $this->request->param());
+        $servicelist = $Clerk->where('FIND_IN_SET(:ids,clerk_type)', ['ids' => 7])->select();
+        $pintuanlist = (new SharingOrder())->getList([]);
+        $shopList = ShopModel::getAllList();
+        $lineList = $Line->getListAll();
+        foreach ($list as &$value) {
+            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['down_shelf'] = 0;
+            $value['inpack'] = 0;
+           if ($dataType=='payed'){
+                $value['down_shelf'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
+                $value['inpack'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',8)->count();
+           }
+        }
+
+        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient'));
+    }
+    
+    
+    /**
+     * 订单列表
+     * @param string $title
+     * @param string $dataType
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    private function getNoPayList($title, $dataType)
+    {
+        // 订单列表
+        $model = new Inpack;
+        $set = Setting::detail('store')['values'];
+        $list = $model->getNoPayList($dataType, $this->request->param());
+        foreach ($list as &$value) {
+            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['down_shelf'] = 0;
+            $value['inpack'] = 0;
+           if ($dataType=='payed'){
+                $value['down_shelf'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
+                $value['inpack'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',8)->count();
+           }
+        }
+
+        return $this->fetch('index', compact('list','dataType','set'));
+    }
+    
+    
+    /***
+     * 从集运单剔除包裹
+     * 剔除的包裹恢复到待打包状态
+     * 2022年5月8日  重构
+     */
+    public function delete_package(){
+          $model = new Inpack();
+          //单个移出集运单
+          if(input('value') && input('id')){
+              $detail = $model->find(input('value'));
+              $package_ids = explode(',',$detail['pack_ids']);
+              $key = array_search(input('id'),$package_ids);
+              if ($key!==false){
+                  unset($package_ids[$key]);
+              }
+              $update['status'] = 2;
+             (new Package())->where('id',input('id'))->update($update);
+              $inpackUpdate['pack_ids'] = implode(',',$package_ids);
+              $res = $model->where(['id'=>input('value')])->update($inpackUpdate);
+          
+              if ($res){
+                   return $this->renderSuccess('修改成功');
+              }
+              return $this->renderError($model->getError() ?: '修改失败');
+          }
+          
+          
+          //批量移出集运单
+          $ids= input("post.selectId/a");  //需要去除的包裹id；
+          $item =input("post.selectItem"); // 集运单编号
+          $detail = $model->find($item);
+          $package_ids = explode(',',$detail['pack_ids']);
+          //移除数组
+ 
+          $package_ids = array_diff($package_ids,$ids);
+          //循环更新包裹状态为已入库，可打包状态
+          $update['status'] = 2;
+          foreach($ids as $key => $val){
+             (new Package())->where('id',$val)->update($update);    
+          } 
+          //更新集运单的包裹
+
+          $inpackUpdate['pack_ids'] = implode(',',$package_ids);
+          $res = $model->where(['id'=>$item])->update($inpackUpdate);
+          
+          if ($res){
+               return $this->renderSuccess('修改成功');
+          }
+          return $this->renderError($model->getError() ?: '修改失败');
+    }
+    
+    // 添加快递进入集运单 
+    public function add(){
+        $order_id = $this->getData('id');
+        $Inpack = new Inpack();
+        $model = $Inpack::details($order_id);
+
+        if (!$this->request->isAjax()){
+            return $this->fetch('appendchild', compact('model'));
+        }
+    
+        if ($Inpack->appendData($this->postData('delivery'))) {
+            return $this->renderSuccess('修改成功','javascript:history.back(1)');
+        }
+        return $this->renderError($model->getError() ?: '修改失败');
+    }
+    
+    // 计算价格
+    public function caleamount(){
+        $data = $this->postData();
+        $line_id = $data['line_id'];
+        $pakdata = Inpack::details($data['pid']);
+        $line = (new Line())->find($line_id);
+        if (!$line){
+            return $this->renderError('线路不存在,请重新选择');
+        }
+
+        $free_rule = json_decode($line['free_rule'],true);
+        $price = 0; // 总运费
+        $allWeigth = 0;
+        $caleWeigth = 0;
+        $volumn = 0;
+        $setting = SettingModel::getItem('store',$pakdata['wxapp_id']);
+            if($setting['is_discount']==1){
+                $UserLine =  (new UserLine());
+                $linedata= $UserLine->where('user_id',$pakdata['member_id'])->where('line_id',$line['id'])->find();
+                    if($linedata){
+                       $value['discount']  = $linedata['discount'];
+                    }else{
+                       $value['discount'] =1;
+                    }
+            }else{
+                $value['discount'] =1;
+            }
+          
+            
+        // 计算体检重
+        $weigthV = round(($data['length']*$data['width']*$data['height'])/$line['volumeweight'],2);
+        if(!empty($data['length']) && !empty($data['width']) && !empty($data['height']) && $line['volumeweight_type']==20){
+            $weigthV = round(($data['weight'] + (($data['length']*$data['width']*$data['height'])/$line['volumeweight'] - $data['weight'])*$line['bubble_weight']/100),2);
+        }
+        // 取两者中 较重者 
+        $oWeigth = $weigthV>$data['weight']?$weigthV:$data['weight'];
+        if($line['line_type']==1){
+            $oWeigth = round(($data['length']*$data['width']*$data['height'])/$line['volumeweight'],2);
+        }
+        //关税和增值服务费用
+        $otherfree = $line['service_route'];
+        $reprice=0;  
+        $lines['predict'] = [
+              'weight' => $oWeigth,
+              'price' => '包裹重量超限',
+           ]; 
+        switch ($line['free_mode']) {
+            case '1':
+               $free_rule = json_decode($line['free_rule'],true);
+               $size = sizeof($free_rule);    
+               if(($oWeigth>= $free_rule[0]['weight'][0]) && ($oWeigth<= $free_rule[$size-1]['weight'][1])){
+   
+                  foreach ($free_rule as $k => $v) {
+                      if ($oWeigth>$v['weight'][1]){
+                            $reprice += ($v['weight'][1] - $v['weight'][0])*$v['weight_price'];
+                            continue;
+                      }else{
+                           $reprice += ($oWeigth - $v['weight'][0])*$v['weight_price'];
+                           break;
+                      }
+                  }
+                  $lines['predict'] = [
+                    'weight' => $oWeigth,
+                    'price' => ($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0]+$otherfree)*$value['discount'],
+                    'rule' => $free_rule
+                  ];         
+               }else{
+                    break;
+               }
+               break;
+            case '2':
+                //首重价格+续重价格*（总重-首重）
+               $free_rule = json_decode($line['free_rule'],true);
+               foreach ($free_rule as $k => $v) {
+                          $lines['predict'] = [
+                              'weight' => $oWeigth,
+                              'price' => ($v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree)*$value['discount'],
+                              'rule' => $v
+                          ];   
+               }
+                break;
+            case '3':
+                $free_rule = json_decode($line['free_rule'],true);
+                              
+               foreach ($free_rule as $k => $v) {
+                   
+                   if ($oWeigth >= $v['weight'][0]){
+                      if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
+                          $lines['predict'] = [
+                              'weight' => $oWeigth,
+                              'price' => ($v['weight_price'] + $otherfree)*$value['discount'],
+                              'rule' => $v
+                          ];   
+                      }
+                   }
+                  
+               }
+
+               break;
+               
+            case '4':
+                $free_rule = json_decode($line['free_rule'],true);
+                // dump($value['free_rule']);
+               foreach ($free_rule as $k => $v) {
+                   
+                   if ($oWeigth >= $v['weight'][0]){
+                      if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
+                          !isset($v['weight_unit']) && $v['weight_unit']=1;
+                        //   $lines['sortprice'] =(floatval($v['weight_price']) * floatval($oWeigth)/floatval($v['weight_unit']) + floatval($otherfree))*$value['discount'] ;
+                          $lines['predict'] = [
+                              'weight' => $oWeigth,
+                              'price' => (floatval($v['weight_price']) * floatval($oWeigth)/floatval($v['weight_unit']) + floatval($otherfree))*$value['discount'],
+                              'rule' => $v,
+                              'service' =>0,
+                          ]; 
+            
+                      }
+                   }
+               }
+               
+               break;
+        }
+        //  dump(($lines['predict']['price']));die;
+        // if(is_string($lines['predict']['price'])){
+        //   number_format($lines['predict']['price']);
+        // }
+        
+        $settingdata  = SettingModel::getItem('store',$line['wxapp_id']);
+        if($settingdata['is_auto_free']==0){
+           $lines['predict']['price'] = 0;
+        }
+       
+        return $this->renderSuccess(['oWeigth'=>$oWeigth,'price'=>round($lines['predict']['price'],2),'weightV'=>$weigthV]);
+    }
+    
+    /**
+     * 评价列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function comment()
+    {
+        $model = new CommentModel;
+        $list = $model->getList();
+        // dump($list->toArray());die;
+        foreach ($list as $k =>$v){
+              $list[$k]["score"] = json_decode($v['score'],true);
+        }
+        return $this->fetch('tr_order/comment', compact('list'));
+    }
+    
+        /**
+     * 评价详情
+     * @param $comment_id
+     * @return array|mixed
+     * @throws \think\exception\DbException
+     */
+    public function commentdetail($comment_id)
+    {
+        // 评价详情
+
+        $model = CommentModel::detail($comment_id);
+        $model['score']=json_decode($model['score'],true);
+        // dump($model->toArray());die;
+        if (!$this->request->isAjax()) {
+            return $this->fetch('comment_detail', compact('model'));
+        }
+        // 更新记录
+        if ($model->edit($this->postData('comment'))) {
+            return $this->renderSuccess('更新成功', url('tr_order/comment'));
+        }
+        return $this->renderError($model->getError() ?: '更新失败');
+    }
+    
+    /**
+     * 合并订单
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+     
+     public function hedan()
+    {
+       $model = new Inpack();
+       $ids= input();
+       $ids = array_keys($ids);
+       $idsArr = explode(',',$ids[0]);
+       $arruser = [];
+       $packids = null;
+
+       //判断所有包裹是否同一用户
+      foreach($idsArr as $key =>$val ){
+           $pack = $model->where('id',$val)->find();
+           $arruser[] = $pack['member_id'];
+           $packids = $packids.",".$pack['pack_ids'];
+      }
+      if(count(array_unique($arruser))>1){
+          return $this->renderError('请选择相同用户的集运单');
+      }
+       //将包裹的packids合并在一个集运单中，并将另外一个集运单状态设置为isdelete；
+       //合并包裹思路一：将其他集运单状态改为删除，将快递单id添加到第一个集运单中；
+       //合并包裹思路二：新创建新的集运单，之前的集运单全部改为删除状态；此方案可用于创建多用户拼邮；
+       $packids = explode(',',$packids,2)[1];
+      //思路一
+            //   foreach($idsArr as $key =>$val ){
+            //     if($key ==0){
+            //         $res = $model->where('id',$val)->update(['pack_ids' => $packids ]);
+            //         if(!$res){
+            //              return $this->renderError('合并失败');
+            //         }
+            //     }else{
+            //         $res = $model->where('id',$val)->update(['is_delete' => 1 ]);
+            //         if(!$res){
+            //              return $this->renderError('合并失败');
+            //         }
+            //     }
+            //   }
+        //思路二 随意找到集运单的一个基本信息，去除id即可使用基础数据，创建新的order_sn即可
+           foreach($idsArr as $key =>$val ){
+                  $res = $model->where('id',$val)->update(['is_delete' => 1 ]);
+                  if(!$res){
+                    return $this->renderError('合并失败');
+                  }
+            }     
+        
+          $newpack = $model->find($idsArr[0]);
+          $newpack['pack_ids'] = $packids;
+          unset($newpack['id']);
+          $newpack['order_sn'] = createSn();
+          $newpack['updated_time'] = getTime();
+          $newpack['created_time'] = getTime();
+          $newpack['is_delete'] = 0;
+          $result = $model->insert($newpack->toArray());
+          if (!$result){
+              return $this->renderSuccess('合并失败');
+          }
+       //返回成功状态并提示合并成功；
+       return $this->renderSuccess('合并成功');
+    }
+
+    /**
+     * 拆包合包
+     * 将拆出的包裹合并成新的集运单
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+     
+     public function packageinout()
+    {
+         $model = new Inpack();
+        //批量移出集运单
+          $ids= input("post.selectId/a");  //需要移出的包裹id；
+          $item =input("post.selectItem"); // 集运单编号
+          $detail = $model->find($item);
+          $package_ids = explode(',',$detail['pack_ids']);
+          //移除数组
+          $package_ids = array_diff($package_ids,$ids);
+          //更新集运单的包裹
+          $inpackUpdate['pack_ids'] = implode(',',$package_ids);
+          $res = $model->where(['id'=>$item])->update($inpackUpdate);
+          
+          if (!$res){
+              return $this->renderSuccess('拆包失败');
+          }
+          //将选中的包裹单号合并为packs_id需要的数据类型
+          $newpack = $detail;
+          $newpack['pack_ids'] = implode(',',$ids); 
+          unset($newpack['id']);
+          $newpack['order_sn'] = createSn();
+        //   dump($detail->toArray());die;
+          $result = $model->insert($newpack->toArray());
+        //   dump($model->getLastsql());die;
+          if ($result){
+              return $this->renderSuccess('拆包合包成功');
+          }
+          return $this->renderError($model->getError() ?: '拆包合包失败');
+    }
+    
+    
+    /**
+     * 加入拼团订单
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+     
+    public function pintuan()
+    {
+       $model = new Inpack();
+       $pintuan_id= input('pintuan_id');
+       $selectIds = input('selectIds');
+       $idsArray = explode(',',$selectIds);
+       if(empty($pintuan_id)){
+           return $this->renderError($model->getError() ?: '请选择拼团订单');
+       }
+       $SharingOrderItem = new SharingOrderItem();
+       $res= $SharingOrderItem->insertInpack($idsArray,$pintuan_id);
+        if(!$res){
+            return $this->renderError($SharingOrderItem->getError() ?: '添加失败');
+        }
+        return $this->renderSuccess('添加成功');
+    }
+    
+    
+    // 打印面单
+    public function expressBill(){
+       $id = $this->request->param('id');    
+       $inpack = (new Inpack());
+       $data = $inpack::details($id);
+       if(!$data['t_order_sn']){
+           return $this->renderError('转运单号为空');
+       }
+
+       $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
+       $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
+       $data['barcode'] = $generatorSVG->getBarcode($data['t_order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor = 1.5, $totalHeight = 40);
+       echo $this->fill($data);
+    }
+    
+     // 打印标签
+    public function expressLabel(){
+       $id = $this->request->param('id');    
+       $inpack = (new Inpack());
+       $data = $inpack->getExpressData($id);
+       if(!$data['order_sn']){
+           return $this->renderError('转运单号为空');
+       }
+    //   dump($data);die;
+       $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
+ 
+       $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
+       $data['barcode'] = $generatorSVG->getBarcode($data['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =1.5, $totalHeight = 40);
+       echo $this->label($data);
+    }
+    
+         // 打印账单
+    public function freelistLabel(){
+       $id = $this->request->param('id');    
+       $inpack = (new Inpack());
+       $data = $inpack->getExpressData($id);
+       
+    //   dump($data);die;
+       $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
+       $data['total_free'] = $data['free']+$data['other_free']+$data['pack_free'];
+       echo $this->free($data);
+    }
+    
+    public function free($data){
+    return  $html = '<style>
+	* {
+		margin: 0;
+		padding: 0
+	}
+
+	table {
+		margin-top: -1px;
+		font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
+		border-collapse: collapse
+	}
+
+	table.container {
+    	margin-top:10px;
+		width: 375px;
+		border: 1px solid #000;
+		border-bottom: 0;
+		padding:20px;
+	}
+
+	table td.center {
+		text-align: center
+	}
+
+	table td{
+		border: 1px solid #000
+	}
+	.font_xxl {
+		font-size: 18px;
+		font-weight: bold
+	}
+	.font_xl {
+		font-size: 14px;
+		font-weight: bold
+	}
+
+	.font_xxxl {
+		font-size: 32px;
+		font-weight: bold
+	}
+	.font_12{font-size: 12px;font-weight: bold;}
+</style>
+<table class="container">
+	<tr>
+		<td width="152" height="46" class="pl center font_xxl">
+		    收费项目
+		</td>
+		<td width="240" class="center font_xxl">
+		    费用（￥）
+		</td>
+	</tr>
+	<tr>
+		<td width="152" height="36" class="pl center font_xl">
+		    渠道路线费
+		</td>
+		<td width="240" class="center font_xl">
+		    '.$data['free'].'
+		</td>
+	</tr>
+	<tr>
+		<td width="152" height="36" class="pl center font_xl">
+		    附加费用
+		</td>
+		<td width="240" class="center font_xl">
+		    '.$data['other_free'].'
+		</td>
+	</tr>
+	<tr>
+		<td width="152" height="36" class="pl center font_xl">
+		    服务项目费
+		</td>
+		<td width="240" class="center font_xl">
+		     '.$data['pack_free'].'
+		</td>
+	</tr>
+	<tr>
+		<td width="152" height="36" class="pl center font_xl">
+		    总计
+		</td>
+		<td width="240" class="center font_xl">
+		   '.$data['total_free'].'
+		</td>
+	</tr>
+</table>';
+    }
+    
+    
+    
+        // 渲染标签生成网页数据
+    public function label($data){
+      return  $html = '<style>
+	* {
+		margin: 0;
+		padding: 0
+	}
+
+	table {
+		margin-top: -1px;
+		font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
+		border-collapse: collapse
+	}
+
+	table.container {
+		width: 375px;
+		border: 1px solid #000;
+		border-bottom: 0
+	}
+
+	table td {
+		border-top: 1px solid #000;
+		border-bottom: 1px solid #000
+	}
+
+	table.nob {
+		width: 100%
+	}
+
+	table.nob td {
+		border: 0
+	}
+
+	table td.center {
+		text-align: center
+	}
+
+	table td.right {
+		text-align: right
+	}
+
+	table td.pl {
+		padding-left: 5px
+	}
+
+	table td.br {
+		border-right: 1px solid #000
+	}
+
+	table.nobt,
+	table td.nobt {
+		border-top: 0
+	}
+
+	table.nobb,
+	table td.nobb {
+		border-bottom: 0
+	}
+
+	.font_s {
+		font-size: 10px;
+		-webkit-transform: scale(0.84, 0.84);
+		*font-size: 10px
+	}
+
+	.font_m {
+		font-size: 16px
+	}
+
+	.font_l {
+		font-size: 16px;
+		font-weight: bold
+	}
+
+	.font_xl {
+		font-size: 18px;
+		font-weight: bold
+	}
+
+	.font_xxl {
+		font-size: 28px;
+		font-weight: bold
+	}
+
+	.font_xxxl {
+		font-size: 32px;
+		font-weight: bold
+	}
+	.country{
+    	font-size: 37px;
+        padding: 0px;
+        margin: 0px;
+        font-weight: bold;
+        width: 100px;
+	}
+	.barcode{text-align:center;}
+	.font_12{font-size: 12px;font-weight: bold;}
+</style>
+<table class="container">
+	<tr>
+		<td width="152" height="76" class="pl center font_xxl">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_xxl ">'.$data['setting']['name'].'</td>
+		        </tr>
+		        <tr>
+		            <td>'.$data['setting']['desc'].'</td>
+		        </tr>
+		    </table>
+		</td>
+		<td width="240" class="center">
+			<table class="nob">
+				<tr>
+					<td class="barcode">'.$data['barcode'].'</td>
+					
+				</tr>
+				<tr>
+					<td class="center font_12">'.$data['order_sn'].'</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td class="font_xxxl pl">
+		   目的地： '.$data['country'].'
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td>
+			<table class="nob">
+				<tr>
+					<td class="pl" width="65" height="24">件数：</td>
+					<td width="60">1</td>
+					<td width="80">重：</td>
+					<td>'.$data['cale_weight'].'</td>
+				</tr>
+				<tr>
+					<td class="pl" height="50" valign="top">配货信息：</td>
+					<td colspan="3"></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+';
+    }
+    
+    // 渲染面单生成网页数据
+    public function fill($data){
+      return  $html = '<style>
+	* {
+		margin: 0;
+		padding: 0
+	}
+
+	table {
+		margin-top: -1px;
+		font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
+		border-collapse: collapse
+	}
+
+	table.container {
+		width: 375px;
+		border: 1px solid #000;
+		border-bottom: 0
+	}
+
+	table td {
+		border-top: 1px solid #000;
+		border-bottom: 1px solid #000
+	}
+
+	table.nob {
+		width: 100%
+	}
+
+	table.nob td {
+		border: 0
+	}
+
+	table td.center {
+		text-align: center
+	}
+
+	table td.right {
+		text-align: right
+	}
+
+	table td.pl {
+		padding-left: 5px
+	}
+
+	table td.br {
+		border-right: 1px solid #000
+	}
+
+	table.nobt,
+	table td.nobt {
+		border-top: 0
+	}
+
+	table.nobb,
+	table td.nobb {
+		border-bottom: 0
+	}
+
+	.font_s {
+		font-size: 10px;
+		-webkit-transform: scale(0.84, 0.84);
+		*font-size: 10px
+	}
+
+	.font_m {
+		font-size: 16px
+	}
+
+	.font_l {
+		font-size: 16px;
+		font-weight: bold
+	}
+
+	.font_xl {
+		font-size: 18px;
+		font-weight: bold
+	}
+
+	.font_xxl {
+		font-size: 28px;
+		font-weight: bold
+	}
+
+	.font_xxxl {
+		font-size: 32px;
+		font-weight: bold
+	}
+	.country{
+    	font-size: 37px;
+        padding: 0px;
+        margin: 0px;
+        font-weight: bold;
+        width: 100px;
+	}
+	.barcode{text-align:center;}
+</style>
+<table class="container">
+	<tr>
+		<td width="140" height="76" class="pl center font_xxl">'.$data['setting']['name'].'</td>
+		<td width="252" class="center">
+			<table class="nob">
+				<tr>
+					<td>'.$data['barcode'].'
+					</td>
+				</tr>
+				<tr>
+					<td class="center font_l">'.$data['t_order_sn'].'</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td height="56">
+			<table class="nob">
+				<tr>
+					<td class="pl" height="28">寄件：</td>
+					<td>'. $data['storage']['linkman'].'
+						'.$data['storage']['phone'].'('.$data['storage']['shop_name'].')</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>'.$data['storage']['address'].'</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container nobb">
+	<tr>
+		<td height="66" class="nobb">
+			<table class="nob">
+				<tr>
+					<td class="pl" height="28">收件：</td>
+					<td><strong>'.$data['address']['name'].  '+'.$data['address']['tel_code'].'  '.$data['address']['phone'].'</strong></td>
+				</tr>
+				<tr>
+					<td height="38" class="country">CN</td>
+					<td valign="top"><strong>
+					'.$data['address']['country'].'
+					'.$data['address']['province'].'
+					'.$data['address']['city'].'
+					'.$data['address']['region'].'
+					'.$data['address']['district'].'
+					'.$data['address']['street'].'
+					'.$data['address']['door'].'
+					'.$data['address']['detail'].'</strong>
+					'.$data['address']['code'].'
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container nobt">
+	<tr>
+		<td class="nobt">
+			<table class="nob">
+				<tr>
+					<td class="pl" width="110" height="24">付款方式：</td>
+					<td width="60">寄付</td>
+					<td width="100">收件人/代签人：</td>
+					<td></td>
+				</tr>
+				<tr>
+					<td class="pl" height="24">计费重量（KG）：</td>
+					<td>'.$data['cale_weight'].'</td>
+					<td>签收时间：</td>
+					<td>年&emsp;月&emsp;日</td>
+				</tr>
+				<tr>
+					<td class="pl">运费金额（元）：</td>
+					<td>'.$data['real_payment'].'</td>
+					<td colspan="2" class="font_s">快件送达收件人地址，经收件人或收件人允许的代收人签字视为送达。</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td>
+			<table class="nob">
+				<tr>
+					<td class="pl" width="65" height="24">件数：</td>
+					<td width="60">1</td>
+					<td width="80">重：</td>
+					<td>'.$data['cale_weight'].'</td>
+				</tr>
+				<tr>
+					<td class="pl" height="50" valign="top">配货信息：</td>
+					<td colspan="3"></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td class="center" height="65">
+			<table class="nob">
+				<tr>
+					<td class="barcode">'.$data['barcode'].'</td>
+				</tr>
+				<tr>
+					<td class="center font_l">'.$data['t_order_sn'].'</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td width="187" height="65" class="br">
+			<table class="nob">
+				<tr>
+					<td class="pl">寄件：</td>
+					<td>'.$data['storage']['linkman'].$data['storage']['phone'].$data['storage']['address'].'</td>
+				</tr>
+			</table>
+		</td>
+		<td>
+			<table class="nob">
+				<tr>
+					<td class="pl">收件：</td>
+					<td>'.$data['address']['name'].' 
+					'.$data['address']['phone'].'</br>
+					'.$data['address']['country'].'
+					'.$data['address']['detail'].'
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td width="200" height="80">
+			<table class="nob">
+				<tr>
+					<td class="pl">备注：</td>
+				</tr>
+				<tr>
+					<td class="pl font_m font_s">'.$data['remark'].'</td>
+				</tr>
+			</table>
+		</td>
+		<td class="center">
+			<table class="nob">
+				<tr>
+					<td class="font_xxxl">'.substr($data['address']['phone'],-4).'</td>
+				</tr>
+				<tr>
+					<td class="">-手机尾号-</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td height="30" class="pl">网址：'.$_SERVER["SERVER_NAME"].'</td>
+		<td>客服电话：'.$data['setting']['service_phone'].'</td>
+	</tr>
+</table>
+';
+    }
+   
+    // 批量打印面单 [生成pdf]
+    public function expressBillbatch(){
+        $selectIds = $this->postData("selectIds");
+        $inpack = (new Inpack());    
+        $data = $inpack->getExpressBatchData($selectIds);
+        $html = '';
+        foreach($data as $v){
+           $html.= $this->fill($v); 
+           $html.="</hr>";
+        }
+        file_put_contents('expressBill.html', charsetToUTF8($html));
+    }
+    
+    
+    // 修改用户地址
+    public function updateAddress(){
+        $selectIds = $this->postData();
+        $inpack = (new Inpack()); 
+        if(!$selectIds['id'] || !$selectIds['address_id']){
+            return $this->renderError('修改失败');
+            
+        }
+        $result = $inpack->where('id',$selectIds['id'])->update(['address_id'=>$selectIds['address_id']]);
+        return $this->renderSuccess('修改成功');
+    }
+
+    /**包裹导出功能**/
+    //导出成excel文档
+     public function loaddingOutExcel(){
+         //引入excel插件
+        vendor('PHPExcel.PHPExcel');
+        $objPHPExcel = new \PHPExcel();
+        //获取需要导出的数据列表
+        $ids= input("post.selectId/a");
+        $seach= input("post.seach/a");
+        //1 待入库 2 已入库 3 已分拣上架  4 待打包  5 待支付  6 已支付 7 已分拣下架  8 已打包  9 已发货 10 已收货 11 已完成
+        $map =[-1=>'问题件',1=>'待入库',2=>'已入库',3=>'已分拣上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
+        $status = [1=>'待查验',2=>'待支付',3=>'已支付','4'=>'已拣货','5'=>'已打包','6'=>'已发货','7'=>'已收货','8'=>'已完成','-1'=>'已取消'];
+       
+        if($ids){
+           $data = (new Inpack())->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
+                    $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
+                    $item['t_name'] = (new Line())->where('id',$item['line_id'])->value('name');
+                    
+                    //集运单包裹中的物品分类和价格
+                    $packdata = explode(",",$item['pack_ids']);
+                    $packClass = [];
+                    $packprice = 0;
+             
+                    foreach($packdata as $key => $vale){
+                        $expressnum = (new Package())->where('id',$vale)->find();
+                        $packitem = (new PackageItem())->where('express_num',$expressnum['express_num'])->select();
+                        $packClass[$key]="";
+                        $packprice=0;
+                        if(count($packitem)>0){
+                            $packClass[$key] = $packitem[0]['class_name'];
+                            $packprice += $packitem[0]['all_price'];
+                        } 
+                    }
+                    
+                    $item['packClass'] = implode($packClass);
+                    $item['packprice'] = $packprice;
+                    // dump($packClass);die;
+                    //折扣信息
+                    
+                    $discountData = (new UserLine())->where(['user_id'=>$item["user"]['user_id'],'line_id'=>$item['line_id']])->find();
+                    if($discountData){
+                        $item['discount'] = $discountData['discount'];
+                    }else{
+                        $item['discount'] = 1;
+                    }
+                                   
+                    $item['discount_price'] = $item['discount'] * $item['free'];
+               
+                    $item['status_text'] = $map[$item['status']];
+                    $item['address'] =(new UserAddress())->where('address_id',$item['address_id'])->find();
+                    return $item;
+                }); 
+        }else{
+            if(!empty($seach['search'])){
+                 $where['member_id'] = $seach['search']; //用户id
+            }
+            if(!empty($seach['status'])){
+                 $where['status'] = $seach['status'];    //包裹状态
+            }
+            if(!empty($seach['start_time']) && !empty($seach['end_time'])){
+                 $where['entering_warehouse_time']=['between',[$seach['start_time'],$seach['end_time']]];
+            }
+            if(!empty($seach['extract_shop_id'])){
+                $where['storage_id'] = $seach['extract_shop_id'];  //仓库
+            }
+            if(!empty($seach['express_num'])){
+                 $where['express_num'] = $seach['express_num'];  //快递单号
+            }
+            $data =(new Inpack())->where($where)->select()->each(function ($item, $key) use($map){
+                    
+                    $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
+                    //判断是否有优惠折扣
+                    $discountData = (new UserLine())->where(['user_id'=>$item["user"]['user_id'],'line_id'=>$item['line_id']])->find();
+                    if($discountData){
+                  
+                        $item['discount'] = $discountData['discount'];
+                    }else{
+                        $item['discount'] = 1;
+                    }
+                                   
+                    $item['discount_price'] = $item['discount'] * $item['free'];
+                    $item['status_text'] = $map[$item['status']];
+                    $item['phone'] =(new UserAddress())->where('address_id',$item['address_id'])->find();
+                    return $item;
+                });
+        }
+        
+          $style_Array=array(
+            'font'    => array (
+               'bold'      => true
+              ),
+             'alignment' => array (
+                      'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+               ),
+              'borders' => array (
+                   'top'     => array (
+                           'style' => \PHPExcel_Style_Border::BORDER_THIN
+                       )
+                ),
+          );
+         
+        $setting = SettingModel::getItem('store',$data[0]['wxapp_id']);
+        $objPHPExcel->getActiveSheet()->getStyle( 'A4:R4')->applyFromArray($style_Array);
+        //第一行的样式
+        $objPHPExcel->getActiveSheet()->setCellValue('A1',$setting['name'].'── 业务结算清单');
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(24);
+        $objPHPExcel->getActiveSheet()->mergeCells('A1:R1');
+        $objPHPExcel->getActiveSheet()->getRowDimension('1')->setRowHeight(36);
+        // $objPHPExcel->getActiveSheet()->setRowHeight(25);
+        //第二行的样式
+        $objPHPExcel->getActiveSheet()->setCellValue('B2','致'.$data[0]['address']['name'].'  '.'导出日期：'.getTime());
+        $objPHPExcel->getActiveSheet()->mergeCells('B2:J2');
+        
+        $objPHPExcel->setActiveSheetIndex(0);
+        //5.设置表格头（即excel表格的第一行）
+        $objPHPExcel->setActiveSheetIndex(0)
+                ->setCellValue('A4', '序号')
+                ->setCellValue('B4', '集运线路')
+                ->setCellValue('C4', '平台订单号')
+                ->setCellValue('D4', '目的地')
+                ->setCellValue('E4', '重量')
+                ->setCellValue('F4', '标准价')
+                ->setCellValue('G4', '商品品类')
+                ->setCellValue('H4', '商品价格')
+                ->setCellValue('I4', '用户ID')
+                ->setCellValue('J4', '姓名')
+                ->setCellValue('K4', '个人通关号码')
+                ->setCellValue('L4', '身份证')
+                ->setCellValue('M4', '地址')
+                ->setCellValue('N4', '邮编')
+                ->setCellValue('O4', '发货单号')
+                ->setCellValue('P4', '备注')
+                ->setCellValue('Q4', '状态')
+                ->setCellValue('R4', '业务日期');
+                   
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:R')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:R4')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:R')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        
+        $objPHPExcel->getActiveSheet()->getStyle('A:R')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        //设置行高
+        $objPHPExcel->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
+        //设置颜色
+
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('A')->setWidth(8);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('B')->setWidth(20);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('C')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('D')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('E')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('F')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('G')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('H')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('I')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('J')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('K')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('L')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('M')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('N')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('O')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('P')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('Q')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('R')->setWidth(22);
+        
+        for($i=0;$i<count($data);$i++){
+            // dump($data->toArray());die;
+            $objPHPExcel->getActiveSheet()->setCellValue('A'.($i+5),$i+1);//序号
+            $objPHPExcel->getActiveSheet()->setCellValue('B'.($i+5),$data[$i]['t_name']);//集运路线
+            $objPHPExcel->getActiveSheet()->setCellValue('C'.($i+5),$data[$i]['order_sn']);//平台订单号
+            $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+5),$data[$i]['country']);//目的地
+            $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+5),$data[$i]['weight']);//重量
+            $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+5),$data[$i]['free']);//标准价
+            $objPHPExcel->getActiveSheet()->setCellValue('G'.($i+5),$data[$i]['packClass']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('H'.($i+5),$data[$i]['packprice']);//标准价 ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('I'.($i+5),$data[$i]['user']['user_id']);//用户id
+            $objPHPExcel->getActiveSheet()->setCellValue('J'.($i+5),$data[$i]['address']['name']);//用户昵称
+            $objPHPExcel->getActiveSheet()->setCellValue('K'.($i+5),$data[$i]['address']['clearancecode']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('L'.($i+5),$data[$i]['address']['identitycard']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('M'.($i+5),$data[$i]['address']['detail']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('N'.($i+5),$data[$i]['address']['code']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('O'.($i+5),$data[$i]['t_order_sn'].' ');//内部单号
+            $objPHPExcel->getActiveSheet()->setCellValue('P'.($i+5),$data[$i]['remark']);//备注
+            $objPHPExcel->getActiveSheet()->setCellValue('Q'.($i+5),$status[$data[$i]['status']]);//转单号码
+            $objPHPExcel->getActiveSheet()->setCellValue('R'.($i+5),$data[$i]['created_time']);//业务日期
+        }
+        //7.设置保存的Excel表格名称
+        //8.设置当前激活的sheet表格名称；
+        $objPHPExcel->getActiveSheet()->setTitle('业务结算清单');
+        //9.设置浏览器窗口下载表格
+        $filename = "用户包裹"  . rand(1000000, 9999999) . ".xlsx";
+        // $objWriter = new \PHPExcel_Writer_Excel5($objPHPExcel);
+
+        $ov = \PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
+        $ov->save("excel/" . $filename);
+        return $this->renderSuccess("导出成功", [
+            "file_name" => "https://".$_SERVER["HTTP_HOST"] . "/excel/" . $filename,
+        ]);
+     }
+     
+     
+     
+     /**导出集运业务结算**/
+    //导出成excel文档
+     public function exportInpack(){
+         //引入excel插件
+        vendor('PHPExcel.PHPExcel');
+        $objPHPExcel = new \PHPExcel();
+        //获取需要导出的数据列表
+        $ids= input("post.selectId/a");
+        $seach= input("post.seach/a");
+        //1 待入库 2 已入库 3 已分拣上架  4 待打包  5 待支付  6 已支付 7 已分拣下架  8 已打包  9 已发货 10 已收货 11 已完成
+        $map =[-1=>'问题件',1=>'待入库',2=>'已入库',3=>'已分拣上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
+        $status = [1=>'待查验',2=>'待支付',3=>'已支付','4'=>'已拣货','5'=>'已打包','6'=>'已发货','7'=>'已收货','8'=>'已完成','-1'=>'已取消'];
+       
+        if($ids){
+           $data = (new Inpack())->with(['storage','shop'])->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
+                    $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
+                    $item['t_name'] = (new Line())->where('id',$item['line_id'])->value('name');
+                    $item['shopCapital'] = (new Capital())->where(['inpack_id'=> $item['order_sn'],'shop_id' => $item['shop_id']])->value('money');
+                    $item['straogeCapital'] = (new Capital())->where(['inpack_id'=> $item['order_sn'],'shop_id' => $item['storage_id']])->value('money');
+                    
+                    
+                    //集运单包裹中的物品分类和价格
+                    $packdata = explode(",",$item['pack_ids']);
+                    $packClass = [];
+                    $packprice = 0;
+             
+                    foreach($packdata as $key => $vale){
+                        $expressnum = (new Package())->where('id',$vale)->find();
+                        $packitem = (new PackageItem())->where('express_num',$expressnum['express_num'])->select();
+                        $packClass[$key]="";
+                        $packprice=0;
+                        if(count($packitem)>0){
+                            $packClass[$key] = $packitem[0]['class_name'];
+                            $packprice += $packitem[0]['all_price'];
+                        } 
+                    }
+                    
+                    $item['packClass'] = implode($packClass);
+                    $item['packprice'] = $packprice;
+                    // dump($packClass);die;
+                    //折扣信息
+                    
+                    $discountData = (new UserLine())->where(['user_id'=>$item["user"]['user_id'],'line_id'=>$item['line_id']])->find();
+                    if($discountData){
+                        $item['discount'] = $discountData['discount'];
+                    }else{
+                        $item['discount'] = 1;
+                    }
+                                   
+                    $item['discount_price'] = $item['discount'] * $item['free'];
+               
+                    $item['status_text'] = $map[$item['status']];
+                    $item['address'] =(new UserAddress())->where('address_id',$item['address_id'])->find();
+                    return $item;
+                }); 
+                
+        }else{
+            if(!empty($seach['search'])){
+                 $where['member_id'] = $seach['search']; //用户id
+            }
+            if(!empty($seach['status'])){
+                 $where['status'] = $seach['status'];    //包裹状态
+            }
+            if(!empty($seach['start_time']) && !empty($seach['end_time'])){
+                 $where['entering_warehouse_time']=['between',[$seach['start_time'],$seach['end_time']]];
+            }
+            if(!empty($seach['extract_shop_id'])){
+                $where['storage_id'] = $seach['extract_shop_id'];  //仓库
+            }
+            if(!empty($seach['express_num'])){
+                 $where['express_num'] = $seach['express_num'];  //快递单号
+            }
+            $data =(new Inpack())->where($where)->select()->each(function ($item, $key) use($map){
+                    
+                    $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
+                    //判断是否有优惠折扣
+                    $discountData = (new UserLine())->where(['user_id'=>$item["user"]['user_id'],'line_id'=>$item['line_id']])->find();
+                    if($discountData){
+                  
+                        $item['discount'] = $discountData['discount'];
+                    }else{
+                        $item['discount'] = 1;
+                    }
+                                   
+                    $item['discount_price'] = $item['discount'] * $item['free'];
+                    $item['status_text'] = $map[$item['status']];
+                    $item['phone'] =(new UserAddress())->where('address_id',$item['address_id'])->find();
+                    return $item;
+                });
+        }
+        
+          $style_Array=array(
+            'font'    => array (
+               'bold'      => true
+              ),
+             'alignment' => array (
+                      'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+               ),
+              'borders' => array (
+                   'top'     => array (
+                           'style' => \PHPExcel_Style_Border::BORDER_THIN
+                       )
+                ),
+          );
+         
+        $setting = SettingModel::getItem('store',$data[0]['wxapp_id']);
+        $objPHPExcel->getActiveSheet()->getStyle( 'A4:R4')->applyFromArray($style_Array);
+        //第一行的样式
+        $objPHPExcel->getActiveSheet()->setCellValue('A1',$setting['name'].'── 分成结算');
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(24);
+        $objPHPExcel->getActiveSheet()->mergeCells('A1:R1');
+        $objPHPExcel->getActiveSheet()->getRowDimension('1')->setRowHeight(36);
+        // $objPHPExcel->getActiveSheet()->setRowHeight(25);
+        //第二行的样式
+        $objPHPExcel->getActiveSheet()->setCellValue('B2','致'.$data[0]['address']['name'].'  '.'导出日期：'.getTime());
+        $objPHPExcel->getActiveSheet()->mergeCells('B2:J2');
+        
+        $objPHPExcel->setActiveSheetIndex(0);
+        //5.设置表格头（即excel表格的第一行）
+        $objPHPExcel->setActiveSheetIndex(0)
+                ->setCellValue('A4', '序号')
+                ->setCellValue('B4', '集运线路')
+                ->setCellValue('C4', '平台订单号')
+                ->setCellValue('D4', '目的地')
+                ->setCellValue('E4', '重量')
+                ->setCellValue('F4', '支付金额')
+                ->setCellValue('G4', '寄件仓库')
+                ->setCellValue('H4', '寄件分成')
+                ->setCellValue('I4', '派件仓库')
+                ->setCellValue('J4', '派件分成')
+                ->setCellValue('K4', '发货单号')
+                ->setCellValue('L4', '派件入库时间')
+                ->setCellValue('M4', '派件签收时间')
+                ->setCellValue('N4', '分成结算日期');
+                   
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:R')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:R4')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:R')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        
+        $objPHPExcel->getActiveSheet()->getStyle('A:R')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        //设置行高
+        $objPHPExcel->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
+        //设置颜色
+
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('A')->setWidth(8);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('B')->setWidth(20);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('C')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('D')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('E')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('F')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('G')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('H')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('I')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('J')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('K')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('L')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('M')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('N')->setWidth(25);
+
+        
+        for($i=0;$i<count($data);$i++){
+            // dump($data->toArray());die;
+            $objPHPExcel->getActiveSheet()->setCellValue('A'.($i+5),$i+1);//序号
+            $objPHPExcel->getActiveSheet()->setCellValue('B'.($i+5),$data[$i]['t_name']);//集运路线
+            $objPHPExcel->getActiveSheet()->setCellValue('C'.($i+5),$data[$i]['order_sn']);//平台订单号
+            $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+5),$data[$i]['country']);//目的地
+            $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+5),$data[$i]['weight']);//重量
+            $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+5),$data[$i]['real_payment']);//标准价
+            $objPHPExcel->getActiveSheet()->setCellValue('G'.($i+5),$data[$i]['storage']['shop_name']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('H'.($i+5),$data[$i]['straogeCapital']);//标准价 ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('I'.($i+5),$data[$i]['shop']['shop_name']);//用户id
+            $objPHPExcel->getActiveSheet()->setCellValue('J'.($i+5),$data[$i]['shopCapital']);//用户昵称
+            $objPHPExcel->getActiveSheet()->setCellValue('K'.($i+5),$data[$i]['t_order_sn']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('L'.($i+5),$data[$i]['shoprk_time']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('M'.($i+5),$data[$i]['receipt_time']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('N'.($i+5),$data[$i]['settle_time']);//快递类别  ***********
+    
+        }
+        //7.设置保存的Excel表格名称
+        //8.设置当前激活的sheet表格名称；
+        $objPHPExcel->getActiveSheet()->setTitle('业务结算清单');
+        //9.设置浏览器窗口下载表格
+        $filename = "用户包裹"  . rand(1000000, 9999999) . ".xlsx";
+        // $objWriter = new \PHPExcel_Writer_Excel5($objPHPExcel);
+
+        $ov = \PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
+        $ov->save("excel/" . $filename);
+        return $this->renderSuccess("导出成功", [
+            "file_name" => "https://".$_SERVER["HTTP_HOST"] . "/excel/" . $filename,
+        ]);
+     }
+
+}
