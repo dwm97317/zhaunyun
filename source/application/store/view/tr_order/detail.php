@@ -14,19 +14,19 @@
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">包裹信息 (可选填)</label>
                                 <div class="am-u-sm-9 am-u-end" style="position: relative">
                                      <div class="span">
-                                         长(<?= $set['size_mode']['unit'] ?>) <input type="text" class="tpl-form-input" style="width:80px" onblur="caleAmount()" name="data[length]"
+                                         长(<?= $set['size_mode']['unit'] ?>) <input type="text" class="tpl-form-input" style="width:80px" onblur="caleAmount()"  oninput="caleAmount()" name="data[length]"
                                            value="<?= $detail['length']??'' ;?>" placeholder="请输入长">
                                      </div>
                                      <div class="span">
-                                         宽(<?= $set['size_mode']['unit'] ?>) <input type="text" class="tpl-form-input" style="width:80px"  onblur="caleAmount()"  name="data[width]"
+                                         宽(<?= $set['size_mode']['unit'] ?>) <input type="text" class="tpl-form-input" style="width:80px"  onblur="caleAmount()" oninput="caleAmount()" name="data[width]"
                                            value="<?= $detail['width']??'' ;?>" placeholder="请输入宽">
                                      </div>
                                      <div class="span">
-                                         高(<?= $set['size_mode']['unit'] ?>) <input type="text" class="tpl-form-input" style="width:80px"  onblur="caleAmount()"  name="data[height]"
+                                         高(<?= $set['size_mode']['unit'] ?>) <input type="text" class="tpl-form-input" style="width:80px"  onblur="caleAmount()" oninput="caleAmount()" name="data[height]"
                                            value="<?= $detail['height']??'' ;?>" placeholder="请输入高">
                                      </div>
                                      <div class="span">
-                                         称重(<?= $set['weight_mode']['unit'] ?>) <input type="text" class="tpl-form-input" style="width:80px"  onblur="caleAmount()"  name="data[weight]"
+                                         称重(<?= $set['weight_mode']['unit'] ?>) <input type="text" class="tpl-form-input" style="width:80px"  onblur="caleAmount()" oninput="caleAmount()" name="data[weight]"
                                            value="<?= $detail['weight']??'' ;?>" placeholder="请输入重量">
                                      </div>
                                 </div>
