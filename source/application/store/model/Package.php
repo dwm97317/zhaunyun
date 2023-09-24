@@ -57,32 +57,7 @@ class Package extends PackageModel
         if($result){
             $data['id'] = $result['id'];
         }
-        // else{
-        //     //模糊查询类似单号
-            
-        //     $wxapp_id = $this->getWxappId();
-        //     $express_num = $data['express_num'];
-        //     $where = "wxapp_id = '" .$wxapp_id."' and '".$express_num."' like concat('%',express_num) and is_delete=0 and status < 6 and express_num !=''"; 
-        //     $selectData = Db::name('Package')->where($where)->select();
-        //     // dump($express_num);die;
-        //     $skey = 0;
-        //     if(count($selectData)==1){
-        //         $data['express_num'] = $selectData[0]['express_num'];
-        //         $data['id'] =  $selectData[0]['id'];
-        //     }elseif(count($selectData)>1){
-        //         //如果查出多个类似的包裹，则选择匹配度最长的；
-        //         for ($i = 1; $i < count($selectData); $i++) {
-        //             if($selectData[$i]>$selectData[$i-1]){
-        //                 $skey = $i; 
-        //             }else{
-        //                 $skey = $i+1; 
-        //             }
-        //         }
-        //         $data['express_num'] = $selectData[$skey]['express_num'];
-        //         $data['id'] =  $selectData[$skey]['id'];
-        //     }
-        // }
-        
+
         
         $noticesetting = SettingModel::getItem('notice');
         

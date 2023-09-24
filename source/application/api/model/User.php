@@ -46,9 +46,7 @@ class User extends UserModel
      */
     public static function getUser($token)
     {
-        //   dump(Cache::get($token));die;
         $openId = Cache::get($token)['openid'];
-      
         return self::detail(['open_id' => $openId], ['address', 'addressDefault', 'grade','userimage','service']);
     }
     
@@ -100,14 +98,15 @@ class User extends UserModel
         $refereeId = isset($post['referee_id']) ? $post['referee_id'] : null;
         // $userInfo = $post['user_info'];
         $userInfo = OauthService::sessionGetUserInfo($session['access_token'],$session['openid']);
-                //   dump($userInfo);die;
-        $user_id = $this->registerwx($session['openid'], $userInfo, $refereeId);
-        
+                
+        $user = $this->registerwx($session, $userInfo, $refereeId);
+        //   dump($user);die;
         // 生成token (session3rd)
-        $this->token = $this->token($session['openid']);
+        $this->token = $this->token($user['open_id']);
         // 记录缓存, 7天
+        $session['openid'] = $user['open_id'];
         Cache::set($this->token, $session, 86400 * 7);
-        return $user_id;
+        return $user['user_id'];
     }
     
     public function wxApplogin($code){
@@ -119,10 +118,10 @@ class User extends UserModel
         }
         // 微信登录 (获取session_key)
         $WxUser = new WxUser();
-        // $result = $WxUser->sessionWxKey($code,$wxConfig['app_wxappid'],$wxConfig['app_wxsecret']);
         if (!$session = $WxUser->sessionWxKey($code,$wxConfig['app_wxappid'],$wxConfig['app_wxsecret'])) {
             throw new BaseException(['msg' => $WxUser->getError()]);
         }
+        // dump($session);die;
         return $session; 
     }
 
@@ -190,25 +189,35 @@ class User extends UserModel
      * @throws \Exception
      * @throws \think\exception\DbException
      */
-    private function registerwx($open_id, $data, $refereeId = null)
+    private function registerwx($session, $data, $refereeId = null)
     {
         // 查询用户是否已存在
-        $user = self::detail(['open_id' => $open_id]);
+        $userclient = Setting::getItem('userclient',self::$wxapp_id);
+        //有微信开放平台，并且需要合并时
+        if($userclient['loginsetting']['is_wxopen']==1 && $userclient['loginsetting']['is_merge_user']==1){
+            $user1 = self::detail(['union_id' => $session['unionid']]);
+            $user2 = self::detail(['gzh_openid' => $session['openid']]);
+            $user = $user2;
+            !empty($user1) && $user = $user1;
+        }else{
+            $user = self::detail(['open_id' => $session['openid']]);
+        }
+        // dump($user);die;
         $setting = Setting::getItem('store',self::$wxapp_id);
         
         $user_code= $user['user_code'];
         if($setting['usercode_mode']['is_show']==1 || $setting['usercode_mode']['is_show']==2){
-            // dump(empty($user['user_code']));die;
             empty($user['user_code']) && $user_code = $this->checkUserCode($user,$setting); 
-            // $user_code = $this->checkUserCode($user,$setting); 
         }
         $model = $user ?: $this;
         $this->startTrans();
         try {
             // 保存/更新用户记录
- 
             if (!$model->allowField(true)->save(array_merge($data, [
-                'open_id' => $open_id,
+                'gzh_openid' => $session['openid'],
+                'open_id'=> $user['open_id']??$session['openid'],
+                'union_id'=> $user['union_id']??$session['unionid'],
+                'last_login_time' =>date("Y-m-d H:i:s",time()),
                 'wxapp_id' => self::$wxapp_id,
                 'nickName' => $data['nickname'],
                 'avatarUrl' => $data['headimgurl'],
@@ -225,7 +234,7 @@ class User extends UserModel
             $this->rollback();
             throw new BaseException(['msg' => $e->getMessage()]);
         }
-        return $model['user_id'];
+        return ['open_id'=>$model['open_id'],'user_id'=>$model['user_id']];
     }
 
     /**
@@ -240,15 +249,25 @@ class User extends UserModel
     private function register($session, $data, $refereeId = null)
     {
         // 查询用户是否已存在
-        $user = self::detail(['open_id' => $session['openid']]);
-        // dump($user);die;
+        $userclient = Setting::getItem('userclient',self::$wxapp_id);
+        
+        if($userclient['loginsetting']['is_wxopen']==1 && $userclient['loginsetting']['is_merge_user']==1){
+            $user1 = self::detail(['union_id' => $session['unionid']]);
+            $user2 = self::detail(['open_id' => $session['openid']]);
+            $user = $user1;
+            !empty($user2) && $user = $user2;
+        }else{
+            $user = self::detail(['open_id' => $session['openid']]);
+        }
+       
+        $user_code = '';
         if(!empty($user)){
             unset($data['nickName']);  
             unset($data['avatarUrl']);  
+            $user_code = $user['user_code'];
         }
+        //根据设置来生成user_code
         $setting = Setting::getItem('store',self::$wxapp_id);
-        
-        $user_code= $user['user_code'];
         if($setting['usercode_mode']['is_show']==1 || $setting['usercode_mode']['is_show']==2){
             empty($user['user_code']) && $user_code = $this->checkUserCode($user,$setting); 
         }
@@ -256,11 +275,11 @@ class User extends UserModel
         $model = $user ?: $this;
         $this->startTrans();
         try {
-            // 保存/更新用户记录
- 
+            // 保存/更新用户记录 
             if (!$model->allowField(true)->save(array_merge($data, [
                 'open_id' => $session['openid'],
                 'union_id'=> isset($session['unionid'])?$session['unionid']:'',
+                // 'paytype'=>$setting['moren'][''], //预留
                 'last_login_time' =>date("Y-m-d H:i:s",time()),
                 'wxapp_id' => self::$wxapp_id,
                 'user_code' => !empty($user['user_code'])?$user['user_code']:$user_code,

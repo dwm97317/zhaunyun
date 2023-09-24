@@ -44,7 +44,7 @@ class Inwarehouse extends Basics
         $this->param = $param;
         // dump($param);die;
         // 微信订阅消息通知用户
-        $this->onSendWxSubMsg();
+        // $this->onSendWxSubMsg();
         // 微信模板消息通知用户
         $this->onSendWxTplMsg();
     }
@@ -70,6 +70,11 @@ class Inwarehouse extends Basics
         if ($template['is_enable']==0) {
             return false;
         }
+        
+        if(empty($this->getGzhOpenidByUserId($this->param['member_id']))){
+            return false;
+        }
+        
         if (empty($template['template_id'])) {
             return false;
         }
@@ -82,7 +87,7 @@ class Inwarehouse extends Basics
 
         if ($storesetting['client']['mode']==10) {
             return  $this->sendWxTplMsgForH5($orderInfo['wxapp_id'], [
-            'touser' => $this->getOpenidByUserId($this->param['member_id']),
+            'touser' => $this->getGzhOpenidByUserId($this->param['member_id']),
             'template_id' => $template['template_id'],
             'data' => [
                 $template['keywords'][0] => ['value' => '恭喜您'.$orderInfo['member_name']],
@@ -94,7 +99,7 @@ class Inwarehouse extends Basics
         ]);
         }else{
             return  $this->sendWxTplMsg($orderInfo['wxapp_id'], [
-            'touser' => $this->getOpenidByUserId($this->param['member_id']),
+            'touser' => $this->getGzhOpenidByUserId($this->param['member_id']),
             'template_id' => $template['template_id'],
             'url' => "{$this->pageUrl[$orderType]}?id={$orderInfo['id']}&rtype=10",
             'miniprogram'=>[
@@ -154,6 +159,14 @@ class Inwarehouse extends Basics
     
     public function getOpenidByUserId($user_id){
         return User::where(['user_id'=>$user_id])->value('open_id');
+    }
+    
+    public function getGzhOpenidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('gzh_openid');
+    }
+    
+    public function getUnionidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('union_id');
     }
     
     public function getShopByShopId($shop_id){

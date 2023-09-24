@@ -2,6 +2,7 @@
 
 namespace app\common\library\wechat;
 
+use think\Cache;
 /**
  * 微信小程序用户管理类
  * Class WxUser
@@ -59,6 +60,9 @@ class WxUser extends WxBase
             $this->error = $result['errmsg'];
             return false;
         }
+        $cacheKey = $app_wxappid . '@access_token';
+        // Cache::set($cacheKey, $result['access_token'], 6000);    // 7000
+        // dump($result);die;
         return $result;
     }
     

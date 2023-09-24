@@ -153,6 +153,10 @@ class Toshop extends Basics
         return User::where(['user_id'=>$user_id])->value('open_id');
     }
     
+    public function getUnionidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('union_id');
+    }
+    
     public function getShopByShopId($shop_id){
         return (new Shop())->where(['shop_id'=>$shop_id])->value('shop_name');
     }

@@ -89,12 +89,14 @@ abstract class Basics extends \app\common\service\Basics
         
         // 获取小程序配置
         $wxConfig = WxappModel::getWxappCache($wxappId);
-   
+        // dump($wxConfig);die;
         // 请求微信api执行发送
-        $WxSubMsg = new WxTplMsg($wxConfig['app_id'], $wxConfig['app_secret'],$wxConfig['app_wxappid']);
+        $WxSubMsg = new WxTplMsg($wxConfig['app_id'], $wxConfig['app_secret'],$wxConfig['app_wxappid'],$wxConfig['app_wxsecret'],$wxConfig['wx_type']);
 
         return $WxSubMsg->sendWxTemplateMessage($params);
     }
+    
+    
     
     protected function sendWxTplMsgForH5($wxappId, $params)
     {
@@ -103,7 +105,7 @@ abstract class Basics extends \app\common\service\Basics
         $wxConfig = WxappModel::getWxappCache($wxappId);
    
         // 请求微信api执行发送
-        $WxSubMsg = new WxTplMsg($wxConfig['app_id'], $wxConfig['app_secret'],$wxConfig['app_wxappid']);
+        $WxSubMsg = new WxTplMsg($wxConfig['app_id'], $wxConfig['app_secret'],$wxConfig['app_wxappid'],$wxConfig['app_wxsecret']);
         
         return $WxSubMsg->sendWxTemplateMessageForH5($params);
     }

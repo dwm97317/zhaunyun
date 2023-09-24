@@ -18,24 +18,21 @@ class WxTplMsg extends WxBase
     public function sendWxTemplateMessage($param)
     {
         // 微信接口url
-        $accessToken = $this->getAccessToken();
+        $accessToken = $this->getAccessTokenForWxOpen();
+        // $accessToken = $this->getStableAccessToken();
         //   dump($accessToken);die;
-        // $url = "https://api.weixin.qq.com/cgi-bin/message/wxopen/template/uniform_send?access_token={$accessToken}";
         $url = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={$accessToken}";
-        //  https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=ACCESS_TOKEN
         // 构建请求
         $params = [
             'touser' => $param['touser'],
-            'mp_template_msg' => [
-                        'appid' => $this->appWxappid,
-                        'template_id' => $param['template_id'],
-                        'url' => $param['url'],
-                        'miniprogram' => [
-                            'appid' => $this->appId,
-                            'pagepath' =>$param['miniprogram']['pagepath']
-                        ],
-                        'data' =>$this->createData($param['data']),
-                    ],
+            'template_id' => $param['template_id'],
+            'appid' => $this->appWxappid,
+            'url' => $param['url'],
+            'miniprogram' => [
+                'appid' => $this->appId,
+                'pagepath' =>$param['miniprogram']['pagepath']
+            ],
+            'data' =>$this->createData($param['data']),
         ];
         $result = $this->post($url, $this->jsonEncode($params));
       
@@ -104,7 +101,7 @@ class WxTplMsg extends WxBase
 
             $params[$key] = [
                 'value' => $value['value'],
-                'color' => '#333333'
+                // 'color' => '#333333'
             ];
         }
         return $params;

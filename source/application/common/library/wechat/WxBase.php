@@ -15,6 +15,8 @@ class WxBase
     protected $appId;
     protected $appSecret;
     protected $appWxappid;
+    protected $appwxsecret;
+    protected $wx_type;
     protected $error;
 
     /**
@@ -23,16 +25,18 @@ class WxBase
      * @param $appId
      * @param $appSecret
      */
-    public function __construct($appId = null, $appSecret = null,$appWxappid =null)
+    public function __construct($appId = null, $appSecret = null,$appWxappid =null,$appwxsecret = null,$wx_type=0)
     {
-        $this->setConfig($appId, $appSecret,$appWxappid);
+        $this->setConfig($appId, $appSecret,$appWxappid,$appwxsecret,$wx_type);
     }
 
-    protected function setConfig($appId = null, $appSecret = null,$appWxappid=null)
+    protected function setConfig($appId = null, $appSecret = null,$appWxappid=null,$appwxsecret = null,$wx_type=0)
     {
         !empty($appId) && $this->appId = $appId;
         !empty($appSecret) && $this->appSecret = $appSecret;
         !empty($appWxappid) && $this->appWxappid = $appWxappid;
+        !empty($appwxsecret) && $this->appwxsecret = $appwxsecret;
+        $this->wx_type = $wx_type;
     }
 
     /**
@@ -74,6 +78,47 @@ class WxBase
         return Cache::get($cacheKey);
     }
     
+        /**
+     * 获取access_token
+     * @return mixed
+     * @throws BaseException
+     */
+    protected function getStableAccessToken()
+    {
+        if($this->wx_type==0){
+            $cacheKey = $this->appId . '@access_token';
+        }else{
+            $cacheKey = $this->appWxappid . '@access_token';
+        }
+        if (!Cache::get($cacheKey)) {
+            // 请求API获取 access_token
+            $url = "https://api.weixin.qq.com/cgi-bin/stable_token";
+            $data = [
+                'grant_type'=>'client_credential', 
+                'appid' => $this->wx_type==0?$this->appId:$this->appWxappid,
+                'secret' =>$this->wx_type==0?$this->appSecret:$this->appwxsecret,
+                'force_refresh' => false
+            ];
+            // $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->appId}&secret={$this->appSecret}";
+            $result = $this->post2($url,$data);
+            $response = $this->jsonDecode($result);
+            
+            if (array_key_exists('errcode', $response)) {
+                throw new BaseException(['msg' => "access_token获取失败，错误信息：{$result}"]);
+            }
+            // 记录日志
+            $this->doLogs([
+                'describe' => '获取access_token',
+                'url' => $url,
+                'appId' => $this->wx_type==0?$this->appId:$this->appWxappid,
+                'result' => $result
+            ]);
+            // 写入缓存
+            Cache::set($cacheKey, $response['access_token'], 6000);    // 7000
+        }
+        return Cache::get($cacheKey);
+    }
+    
     /**
      * 获取access_token
      * @return mixed
@@ -83,9 +128,7 @@ class WxBase
     {
         $cacheKey = $this->appWxappid . '@access_token';
         if (!Cache::get($cacheKey)) {
-            // 请求API获取 access_token
-            $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->appWxappid}&secret={$this->appSecret}";
-            // https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET
+            $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->appWxappid}&secret={$this->appwxsecret}";
             $result = $this->get($url);
             $response = $this->jsonDecode($result);
             if (array_key_exists('errcode', $response)) {
@@ -95,7 +138,41 @@ class WxBase
             $this->doLogs([
                 'describe' => '获取access_token',
                 'url' => $url,
-                'appId' => $this->appWxappid,
+                'appId' =>$this->appWxappid,
+                'result' => $result
+            ]);
+            // 写入缓存
+            Cache::set($cacheKey, $response['access_token'], 6000);    // 7000
+        }
+        return Cache::get($cacheKey);
+    }
+    
+    /**
+     * 获取access_token
+     * @return mixed
+     * @throws BaseException
+     */
+    protected function getAccessTokenForWxOpen()
+    {
+        if($this->wx_type==0){
+            $cacheKey = $this->appId . '@access_token';
+            $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->appId}&secret={$this->appSecret}";
+        }else{
+            $cacheKey = $this->appWxappid . '@access_token';
+            $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->appWxappid}&secret={$this->appwxsecret}";
+        }
+        // dump($this->wx_type);die;
+        if (!Cache::get($cacheKey)) {
+            $result = $this->get($url);
+            $response = $this->jsonDecode($result);
+            if (array_key_exists('errcode', $response)) {
+                throw new BaseException(['msg' => "access_token获取失败，错误信息：{$result}"]);
+            }
+            // 记录日志
+            $this->doLogs([
+                'describe' => '获取access_token',
+                'url' => $url,
+                'appId' => $this->wx_type==0?$this->appId:$this->appWxappid,
                 'result' => $result
             ]);
             // 写入缓存

@@ -462,6 +462,48 @@
                             </div>
                             
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否注册了微信开放平台
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[loginsetting][is_wxopen]" value="1"
+                                               data-am-ucheck  <?= $values['loginsetting']['is_wxopen'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[loginsetting][is_wxopen]" value="0"
+                                               data-am-ucheck <?= $values['loginsetting']['is_wxopen'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>开启微信开放平台后可以对微信小程序用户发送模板消息，没有注册则小程序用户只能接收订阅消息<a target="_blank" href="https://open.weixin.qq.com/">微信开放平台注册地址</a></small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    新用户注册时，是否合并用户数据，实现多端账户统一（必须先注册微信开放平台）
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[loginsetting][is_merge_user]" value="1"
+                                               data-am-ucheck  <?= $values['loginsetting']['is_merge_user'] == 1 ? 'checked' : '' ?>>
+                                        是
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[loginsetting][is_merge_user]" value="0"
+                                               data-am-ucheck <?= $values['loginsetting']['is_merge_user'] == 0 ? 'checked' : '' ?>>
+                                        否
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>可以实现多种客户端的账号统一，例如H5、微信小程序、APP。如果未开启，则不同端的用户无法合并<a target="_blank" href="https://open.weixin.qq.com/">微信开放平台注册地址</a></small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
                                     </button>

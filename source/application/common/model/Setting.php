@@ -354,6 +354,8 @@ class Setting extends BaseModel
                     'loginsetting'=>[
                         'is_passwordlogin'=>0, //在小程序或公众号模式中是否开启账号密码登录方式;
                         'is_phone'=>0,
+                        'is_wxopen'=>0, //是否开启了微信开放平台
+                        'is_merge_user'=>0, //默认不合并用户的
                     ]
                 ]
             ],
