@@ -82,7 +82,7 @@ class Dabaosuccess extends Basics
         // dump($this->param);die;
         if ($storesetting['client']['mode']==10) {
             return  $this->sendWxTplMsgForH5($orderInfo['wxapp_id'], [
-            'touser' => $this->getOpenidByUserId($this->param['member_id']),
+            'touser' => $this->getGzhOpenidByUserId($this->param['member_id']),
             'template_id' => $template['template_id'],
             'data' => [
                 $template['keywords'][0] => ['value' => $orderInfo['order_sn']],
@@ -93,7 +93,7 @@ class Dabaosuccess extends Basics
         ]);
         }else{
             return  $this->sendWxTplMsg($orderInfo['wxapp_id'], [
-            'touser' => $this->getOpenidByUserId($this->param['member_id']),
+            'touser' => $this->getGzhOpenidByUserId($this->param['member_id']),
             'template_id' => $template['template_id'],
             'url' => "{$this->pageUrl[$orderType]}?id={$orderInfo['id']}&rtype=10",
             'miniprogram'=>[
@@ -152,6 +152,14 @@ class Dabaosuccess extends Basics
     
     public function getOpenidByUserId($user_id){
         return User::where(['user_id'=>$user_id])->value('open_id');
+    }
+    
+    public function getGzhOpenidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('gzh_openid');
+    }
+    
+    public function getUnionidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('union_id');
     }
     
     public function getShopByShopId($shop_id){

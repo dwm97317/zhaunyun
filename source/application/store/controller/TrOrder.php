@@ -688,7 +688,8 @@ class TrOrder extends Controller
                   $lines['predict'] = [
                     'weight' => $oWeigth,
                     'price' => ($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0]+$otherfree)*$value['discount'],
-                    'rule' => $free_rule
+                    'rule' => $free_rule,
+                    'service' =>0,
                   ];         
                }else{
                     break;
@@ -701,7 +702,8 @@ class TrOrder extends Controller
                           $lines['predict'] = [
                               'weight' => $oWeigth,
                               'price' => ($v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree)*$value['discount'],
-                              'rule' => $v
+                              'rule' => $v,
+                              'service' =>0,
                           ];   
                }
                 break;
@@ -715,7 +717,8 @@ class TrOrder extends Controller
                           $lines['predict'] = [
                               'weight' => $oWeigth,
                               'price' => ($v['weight_price'] + $otherfree)*$value['discount'],
-                              'rule' => $v
+                              'rule' => $v,
+                              'service' =>0,
                           ];   
                       }
                    }
@@ -746,15 +749,28 @@ class TrOrder extends Controller
                
                break;
         }
-        //  dump(($lines['predict']['price']));die;
-        // if(is_string($lines['predict']['price'])){
-        //   number_format($lines['predict']['price']);
-        // }
-        
+        $PackageService = new PackageService(); 
+        $pricetwo = $pricethree = $lines['predict']['price'];
+        if(count($pakdata['inpackservice'])>0){
+          $servicelist = $pakdata['inpackservice'];
+          foreach ($servicelist as $val){
+              $servicedetail = $PackageService::detail($val['service_id']);
+              if($servicedetail['type']==0){
+                  $lines['predict']['service'] = $lines['predict']['service'] + $servicedetail['price'];
+                  $pricethree = floatval($pricethree) + floatval($servicedetail['price']);
+              }
+              if($servicedetail['type']==1){
+                  $lines['predict']['service'] = floatval($pricetwo)*floatval($servicedetail['percentage'])/100 + floatval($lines['predict']['service']);
+                  $pricethree = floatval($pricetwo)* floatval($servicedetail['percentage'])/100 + floatval($pricethree);
+              }
+          }
+        }
+        $lines['predict']['price'] = number_format(floatval($pricethree),2);
         $settingdata  = SettingModel::getItem('store',$line['wxapp_id']);
         if($settingdata['is_auto_free']==0){
            $lines['predict']['price'] = 0;
         }
+
        
         return $this->renderSuccess(['oWeigth'=>$oWeigth,'price'=>round($lines['predict']['price'],2),'weightV'=>$weigthV]);
     }
@@ -961,15 +977,30 @@ class TrOrder extends Controller
     public function freelistLabel(){
        $id = $this->request->param('id');    
        $inpack = (new Inpack());
+       $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorJPG(); #创建SVG类型条形码
        $data = $inpack->getExpressData($id);
-       
-    //   dump($data);die;
        $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
+       $data['name'] = '';
+       if(!empty($data['member_id'])){
+           $member  = UserModel::detail($data['member_id']);
+           $data['name'] = $member['nickName'];
+           if($data['setting']['usercode_mode']['is_show']!=0){
+              $data['member_id'] = $member['user_code'];
+           }
+       }
+       if($data['status']==7){
+           $data['receipt_time'] = $data['shoprk_time'];
+       }
+       if($data['status']<7){
+           $data['receipt_time'] = $data['created_time'];
+       }
        $data['total_free'] = $data['free']+$data['other_free']+$data['pack_free'];
+       $data['barcode'] = base64_encode($generatorSVG->getBarcode($data['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =1.8, $totalHeight = 50));
        echo $this->free($data);
     }
     
-    public function free($data){
+   
+       public function free($data){
     return  $html = '<style>
 	* {
 		margin: 0;
@@ -984,10 +1015,11 @@ class TrOrder extends Controller
 
 	table.container {
     	margin-top:10px;
-		width: 375px;
-		border: 1px solid #000;
+		width: 400px;
+		height:600px;
+		border: 2px solid #000;
 		border-bottom: 0;
-		padding:20px;
+		margin:10px;
 	}
 
 	table td.center {
@@ -1005,6 +1037,10 @@ class TrOrder extends Controller
 		font-size: 14px;
 		font-weight: bold
 	}
+	
+	.paddingleft{
+	    padding-left:10px;
+	}
 
 	.font_xxxl {
 		font-size: 32px;
@@ -1014,48 +1050,67 @@ class TrOrder extends Controller
 </style>
 <table class="container">
 	<tr>
-		<td width="152" height="46" class="pl center font_xxl">
-		    收费项目
+		<td width="152" height="26" class="pl center font_xxl">
+		    '.$data['setting']['name'].'
 		</td>
 		<td width="240" class="center font_xxl">
-		    费用（￥）
+		    '.$data['receipt_time'].'
 		</td>
 	</tr>
 	<tr>
 		<td width="152" height="36" class="pl center font_xl">
-		    渠道路线费
+		    签收人Receiver
 		</td>
 		<td width="240" class="center font_xl">
-		    '.$data['free'].'
+		    '.$data['name'].'('.$data['member_id'].')'.'
 		</td>
 	</tr>
 	<tr>
 		<td width="152" height="36" class="pl center font_xl">
-		    附加费用
+		    客户单号Tracking No
 		</td>
 		<td width="240" class="center font_xl">
-		    '.$data['other_free'].'
+		    '.$data['order_sn'].'
+		</td>
+	</tr>
+	<tr>
+		<td class="center" colspan=2 height="120">
+		      <img style="width:250px;" src="data:image/png;base64,'. $data['barcode'] .'"/><br>
+		      '.$data['order_sn'].'
 		</td>
 	</tr>
 	<tr>
 		<td width="152" height="36" class="pl center font_xl">
-		    服务项目费
+		    重量Weight
 		</td>
 		<td width="240" class="center font_xl">
-		     '.$data['pack_free'].'
+		     '.$data['cale_weight'].'
 		</td>
 	</tr>
 	<tr>
 		<td width="152" height="36" class="pl center font_xl">
-		    总计
+		    金额Payment
 		</td>
 		<td width="240" class="center font_xl">
-		   '.$data['total_free'].'
+		     '.$data['total_free'].'
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2 class="paddingleft left font_xl" height="36">
+		   '.$data['address']['name']. $data['address']['phone'].'<br>
+		   '.$data['address']['country'].'
+					'.$data['address']['province'].'
+					'.$data['address']['city'].'
+					'.$data['address']['region'].'
+					'.$data['address']['district'].'
+					'.$data['address']['street'].'
+					'.$data['address']['door'].'
+				<strong>'.$data['address']['detail'].'</strong>
+					'.$data['address']['code'].'
 		</td>
 	</tr>
 </table>';
-    }
-    
+} 
     
     
         // 渲染标签生成网页数据

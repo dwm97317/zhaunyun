@@ -352,7 +352,6 @@ class User extends Controller
         }
         if (!file_exists($wx_code)){
             $res = getWxCodeByMemberId($code,$userInfo['user_id']);
-            //   dump($res);die; 
             if ($res){
                 $wx_code = $res['data'];
             }

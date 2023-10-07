@@ -104,6 +104,14 @@ class Packageit extends Basics
         return User::where(['user_id'=>$user_id])->value('open_id');
     }
     
+    public function getGzhOpenidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('gzh_openid');
+    }
+    
+    public function getUnionidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('union_id');
+    }
+    
     /**
      * 格式化商品名称
      * @param $goodsData

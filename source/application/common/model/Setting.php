@@ -683,6 +683,19 @@ class Setting extends BaseModel
                     ],
                 ],
             ],
+              //智能AI
+            'aiidentify'=>[
+                'key' => 'aiidentify',
+                'describe' => '智能识别',
+                // 百度标准版
+                'values' => [
+                    'is_enable' =>0,
+                    'apikey' => '',
+                    'apisecret'=>'',
+                    'keyword1'=>'',
+                    'keyword2'=>'',
+                ],
+            ],
             // 充值凭证
             'bank' => [
                 'key' => 'bank',
@@ -819,6 +832,7 @@ class Setting extends BaseModel
                             'title' => '佣金提现失败通知',
                         ],
                     ],
+          
                 ],
             ],
             

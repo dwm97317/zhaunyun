@@ -25,6 +25,8 @@ use app\store\controller\Upload;
 use app\common\library\storage\Driver as StorageDriver;
 use app\store\model\Setting as SettingModel;
 use think\Request;
+use app\common\library\AITool\BaiduOcr;
+use app\api\model\User as UserModel;
 /**
  * 页面控制器
  * Class Index
@@ -47,6 +49,7 @@ class ApiPost extends Controller
         // 存储配置信息
         $this->config = SettingModel::getItem('storage',$this->wxapp_id);
     }
+    
     /**
      * 预报
      * Class Passport
@@ -163,5 +166,106 @@ class ApiPost extends Controller
             'extension' => pathinfo($fileInfo['name'], PATHINFO_EXTENSION),
         ]);
         return $model;
+    }
+    
+        /**
+     * 预报
+     * Class Passport
+     * @package app\api\controller
+     */
+    public function reportpackToBaidu(){
+        $param = $this->request->param();
+        $setting = SettingModel::getItem('aiidentify',$this->wxapp_id);
+        if($setting['is_enable']==0){
+            return $this->renderError("尚未开启智能AI识别功能，请更改API");
+        }
+        $BaiduOcr = new BaiduOcr($setting['apikey'],$setting['apisecret']);
+        if(!isset($param['token']) || empty($param['token'])){
+            return $this->renderError("TOKEN不能为空");
+        }
+        if(!isset($param['expressnum']) || empty($param['expressnum'])){
+            return $this->renderError("快递单号不能为空");
+        }
+        if(!isset($param['shop_id']) || empty($param['shop_id'])){
+            return $this->renderError("仓库号不能为空");
+        }
+        $Wxapp = new Wxapp;
+        $Package = new Package;
+        $UserModel = new UserModel;
+        $detail = $Wxapp::detail($param['wxapp_id']);
+        if($detail['token'] != $param['token']){
+            return $this->renderError("TOKEN错误");
+        }
+       
+        
+        $result = $Package->where(['express_num'=>$param['expressnum'],'is_delete'=>0])->find();
+        if(!empty($_FILES['file']['name'])){
+            $StorageDriver = new StorageDriver($this->config);
+            $file = Request::instance()->file();
+            //调用百度文字识别接口
+            // 设置上传文件的信息
+            $StorageDriver->setUploadFile('file');
+            // 上传图片
+            if (!$StorageDriver->upload()) {
+                return json(['code' => 0, 'msg' => '图片上传失败' . $StorageDriver->getError()]);
+            }
+    
+            // 图片上传路径
+            $fileName = $StorageDriver->getFileName();
+            // 图片信息
+            $fileInfo = $StorageDriver->getFileInfo();
+            // 添加文件库记录
+            $uploadFile = $this->addUploadFile($group_id = -1, $fileName, $fileInfo, 'image');
+        //   dump($uploadFile->file_url);die;
+            $user_id = $BaiduOcr->generalBasic($uploadFile->file_url.'/'.$uploadFile->file_name);
+            //查询是否存在该用户id，不存在则跳过；存在就将包裹跟用户id绑定；
+            $userinfo = $UserModel::detail($user_id);
+            if(!empty($userinfo)){
+               $Package->where(['express_num'=>$param['expressnum'],'is_delete'=>0])->update(['member_id'=>$user_id]);
+            }
+    
+        }
+         
+        
+        if(!empty($result)){
+            $result->save([
+                'status'=>2,
+                'storage_id'=>$param['shop_id'],
+                'weight'=>$param['weight'],
+                'entering_warehouse_time'=>getTime()
+            ]);
+            
+            if(isset($uploadFile)){
+                $imgdata = [
+                    'package_id'=> $result['id'],
+                    'image_id'=>$uploadFile['file_id'],
+                    'wxapp_id'=>$param['wxapp_id'],
+                    'create_time'=>time()
+                ];
+                (new PackageImage())->save($imgdata);
+            }
+            return $this->renderSuccess("更新成功");
+        }
+        $data = [
+            'order_sn'=> createSn(),
+            'express_num'=>$param['expressnum'],
+            'status'=>2,
+            'storage_id'=>$param['shop_id'],
+            'wxapp_id'=>$param['wxapp_id'],
+            'weight'=>$param['weight'],
+            'source'=>9,
+            'entering_warehouse_time'=>getTime()
+        ];
+        $id = $Package->saveData($data);
+        if(isset($uploadFile)){
+            $imgdata = [
+                'package_id'=> $id,
+                'image_id'=>$uploadFile['file_id'],
+                'wxapp_id'=>$param['wxapp_id'],
+                'create_time'=>time()
+            ];
+            (new PackageImage())->save($imgdata);
+        }
+        return $this->renderSuccess("预报成功");
     }
 }

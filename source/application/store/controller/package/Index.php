@@ -458,7 +458,9 @@ class Index extends Controller
         // $shopShelf = ShopModel::getQueList(['storage_id'=>$detail['storage_id']]);
         // dump($shopShelf->toArray());die;
         $shopList = ShopModel::getListName();
-        
+        if($this->store['user']['shop_id']>0){
+            $shopList = (new ShopModel())->where('shop_id',$this->store['user']['shop_id'])->select();
+        }
         //获取到国家信息
         $detail['country'] = (new Countries())->where('id',$detail['country_id'])->find();
         $countryList = (new Countries())->getListAll();
@@ -573,6 +575,10 @@ class Index extends Controller
              }
         }
         $shopList = ShopModel::getAllList();
+        if($this->store['user']['shop_id']>0){
+            $shopList = (new ShopModel())->where('shop_id',$this->store['user']['shop_id'])->select();
+        }
+        // dump($this->store);die;
         $expressList = Express::getAll();
         $shelf = [];
         if(count($shopList)>0){

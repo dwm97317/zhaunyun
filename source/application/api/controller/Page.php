@@ -47,8 +47,15 @@ class Page extends Controller
     
     //获取H5跳转地址
     public function getCode(){
-        $redirectUri = base_url()."html5/pages/my/my"; 
-        $url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx483d93f2c89fb198&redirect_uri=".$redirectUri."&response_type=code&scope=snsapi_userinfo&state=10001#wechat_redirect";
+        $wxappId = $this->request->param('wxapp_id');
+        $app_wxappid = WxappModel::detail($wxappId);
+        // dump($app_wxappid);die;
+        if(!empty($app_wxappid['other_url'])){
+            $redirectUri = $app_wxappid['other_url']."html5/pages/my/my"; 
+        }else{
+            $redirectUri = base_url()."html5/pages/my/my"; 
+        }
+        $url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=".$app_wxappid['app_wxappid']."&redirect_uri=".$redirectUri."&response_type=code&scope=snsapi_userinfo&state=".$wxappId."#wechat_redirect";
        return $this->renderSuccess($url);
     }
     
@@ -415,12 +422,16 @@ class Page extends Controller
            $data['region']['city'] = '';
            $data['region']['region'] = '';
        }
-        
        $setting = CommonSetting::getItem('store',input('wxapp_id'));
-    //   dump($setting['is_change_uid']);die;
+        
+       $aiidentify = CommonSetting::getItem('aiidentify',input('wxapp_id'));
        if($setting['is_change_uid']==1){
           ($this->user)['user_code'] = ($this->user)['user_code'].'室';
           ($this->user)['user_id'] = ($this->user)['user_id'].'室';
+       }
+       if($aiidentify['is_enable']==1){
+           ($this->user)['user_code'] = $aiidentify['keyword1'].($this->user)['user_code'].$aiidentify['keyword2'];
+           ($this->user)['user_id'] = $aiidentify['keyword1'].($this->user)['user_id'].$aiidentify['keyword2'];
        }
        //只显示CODE
        if($setting['usercode_mode']['is_show']==1){
@@ -478,19 +489,19 @@ class Page extends Controller
              if($data['type']==1){
                 
                 if($setting['link_mode'] == 10){
-                    $data['address'] = 'UID:'.$this->user['user_id'].$data['address']; 
+                    $data['address'] = $this->user['user_id'].$data['address']; 
                      $data['linkman'] =$data['shop_name'].'-UID'.($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 20){
-                    $data['address'] = 'UID:'.$this->user['user_id'].$data['address']; 
+                    $data['address'] = $this->user['user_id'].$data['address']; 
                      $data['linkman'] =$data['linkman'].'-UID'.($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 30){
-                    $data['address'] = 'UID:'.$this->user['user_id'].$data['address']; 
+                    $data['address'] = $this->user['user_id'].$data['address']; 
                      $data['linkman'] =($this->user)['nickName'].'-UID'.($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 40){
-                    $data['address'] = 'UID:'.$this->user['user_id'].$data['address']; 
+                    $data['address'] = $this->user['user_id'].$data['address']; 
                      $data['linkman'] =$data['shop_alias_name'].'-UID'.($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 50){
@@ -500,20 +511,20 @@ class Page extends Controller
              }else{
                 
                 if($setting['link_mode'] == 10){
-                    $data['address'] = $data['address'].'UID:'.$this->user['user_id'];
-                     $data['linkman'] =$data['shop_name'].'-UID'.($this->user)['user_id'];
+                    $data['address'] = $data['address'].$this->user['user_id'];
+                     $data['linkman'] =$data['shop_name'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 20){
-                    $data['address'] = $data['address'].'UID:'.$this->user['user_id'];
-                     $data['linkman'] =$data['linkman'].'-UID'.($this->user)['user_id'];
+                    $data['address'] = $data['address'].$this->user['user_id'];
+                     $data['linkman'] =$data['linkman'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 30){
-                    $data['address'] = $data['address'].'UID:'.$this->user['user_id'];
-                     $data['linkman'] =($this->user)['nickName'].'-UID'.($this->user)['user_id'];
+                    $data['address'] = $data['address'].$this->user['user_id'];
+                     $data['linkman'] =($this->user)['nickName'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 40){
                     $data['address'] = $data['address'].'UID:'.$this->user['user_id'];
-                     $data['linkman'] =$data['shop_alias_name'].'-UID'.($this->user)['user_id'];
+                     $data['linkman'] =$data['shop_alias_name'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 50){
                      $data['address'] =  $data['address'].$this->user['user_id'];

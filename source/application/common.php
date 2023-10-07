@@ -1021,7 +1021,7 @@ function getWxCodeByMemberId($code,$user_id){
 //   dump($access_token);die;
         if (!$access_token){
             $access_token=getWcAccess_token($system['app_id'],$system['app_secret']);
-            Cache::set($system['app_id'].'@access_token',$access_token['access_token'],time()+7200);
+            Cache::set($system['app_id'].'@access_token',$access_token['access_token'],6000);
             $access_token = $access_token['access_token'];
         }
            

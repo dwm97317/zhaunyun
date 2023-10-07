@@ -34,6 +34,17 @@ class Setting extends Controller
     {
         return $this->updateUserclient('userclient');
     }
+    
+     /**
+     * 智能AI识别
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function aiidentify()
+    {
+        return $this->updateUserclient('aiidentify');
+    }
+    
 
      /**
      * 更新系统设置事件

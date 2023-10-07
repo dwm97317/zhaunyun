@@ -724,6 +724,10 @@ return [
                 ]
             ],
             [
+                'name' => '智能AI识别',
+                'index' => 'setting/aiidentify'
+            ],
+            [
                 'name' => '邮件通知',
                 'index' => 'setting/email'
             ],

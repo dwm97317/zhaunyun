@@ -216,7 +216,7 @@ class User extends UserModel
             if (!$model->allowField(true)->save(array_merge($data, [
                 'gzh_openid' => $session['openid'],
                 'open_id'=> $user['open_id']??$session['openid'],
-                'union_id'=> $user['union_id']??$session['unionid'],
+                'union_id'=> $user['union_id']??(isset($session['unionid'])?$session['unionid']:''),
                 'last_login_time' =>date("Y-m-d H:i:s",time()),
                 'wxapp_id' => self::$wxapp_id,
                 'nickName' => $data['nickname'],

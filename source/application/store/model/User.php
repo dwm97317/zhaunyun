@@ -85,6 +85,9 @@ class User extends UserModel
     public function add($data){
        // 表单验证
       if (!$this->onValidate($data)) return false;
+       $setting = SettingModel::getItem('store');
+       // 保存数据
+       $data['paytype'] = $setting['moren']['user_pack_in_pay'];
        // 保存数据
        $data['wxapp_id'] = self::$wxapp_id;
        $data['create_time'] = time();

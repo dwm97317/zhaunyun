@@ -96,6 +96,7 @@
                                 <th>用户ID</th>
                                 <th>微信头像</th>
                                 <th>微信昵称</th>
+                                <th>OPEN_ID</th>
                                 <th>专属客服</th>
                                 <th>手机号</th>
                                 <th>用户余额</th>
@@ -129,6 +130,11 @@
                                         <?php if($set['is_show']!=0) :?>
                                              CODE: <span><?= $item['user_code'] ?></span>
                                         <?php endif;?>
+                                    </td>
+                                    <td class="am-text-middle">
+                                        开放平台ID:<?= $item['union_id'] ?> <br> 
+                                        小程序ID:<?= $item['open_id'] ?> <br>
+                                        公众号ID:<?= $item['gzh_openid'] ?> <br> 
                                     </td>
                                      <td class="am-text-middle"><?= $item['service']['real_name'] ?></td>
                                     <!--<?php $usource = [1=>'小程序',2=>'公众号',3=>'PC端',4=>'App'] ?>-->

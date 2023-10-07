@@ -98,6 +98,14 @@ class Paymessage extends Basics
 
     }
     
+    public function getGzhOpenidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('gzh_openid');
+    }
+    
+    public function getUnionidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('union_id');
+    }
+    
     public function getOpenidByUserId($user_id){
         return User::where(['user_id'=>$user_id])->value('open_id');
     }

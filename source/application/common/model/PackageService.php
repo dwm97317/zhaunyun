@@ -10,5 +10,8 @@ class PackageService extends BaseModel
 {
     protected $name = 'package_services';
     protected $updateTime = false;
-
+    
+    public static  function detail($id){
+        return (new static()) ->find($id);
+    }
 }

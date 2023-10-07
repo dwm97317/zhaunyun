@@ -118,6 +118,7 @@ class Login extends Basics
             'nickName' => !empty($data['mobile']) ? hide_mobile($data['mobile']) : $data['email'],
             'open_id'=> !empty($data['mobile'])?$data['mobile']:$data['email'],
             'email'=>$data['email'],
+            'paytype'=> $setting['moren']['user_pack_in_pay'],
             'tel_code'=>$data['tel_code'],
             'user_code'=>isset($user_code)?$user_code:'',
             'password'=>yoshop_hash($data['password']),

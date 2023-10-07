@@ -11,7 +11,8 @@ class Setting extends EnumBasics
 {
     // 系统设置
     const STORE = 'store';
-
+     // 智能AI
+    const AIIDENTIFY = 'aiidentify';
     // 交易设置
     const TRADE = 'trade';
 
@@ -67,6 +68,10 @@ class Setting extends EnumBasics
             self::STORE => [
                 'value' => self::STORE,
                 'describe' => '系统设置',
+            ],
+            self::AIIDENTIFY => [
+                'value' => self::AIIDENTIFY,
+                'describe' => '智能AI',
             ],
             self::TRADE => [
                 'value' => self::TRADE,

@@ -86,7 +86,7 @@ class Payment extends Basics
         if ($storesetting['client']['mode']==10) {
             // dump($this->param['order']['member_id']);die;
            return  $this->sendWxTplMsgForH5($orderInfo['wxapp_id'], [
-            'touser' => $this->getOpenidByUserId($this->param['order']['member_id']),
+            'touser' => $this->getGzhOpenidByUserId($this->param['order']['member_id']),
             'template_id' => $template['template_id'],
             // 'url' => "{$this->pageUrl[$orderType]}?id={$orderInfo['id']}",
             'data' => [
@@ -99,7 +99,7 @@ class Payment extends Basics
         ]);
         }else{
            return $this->sendWxTplMsg($orderInfo['wxapp_id'], [
-                'touser' => $this->getOpenidByUserId($this->param['order']['member_id']),
+                'touser' => $this->getGzhOpenidByUserId($this->param['order']['member_id']),
                 'template_id' => $template['template_id'],
                 'url' => "{$this->pageUrl[$orderType]}?id={$orderInfo['id']}",
                 'miniprogram'=>[
@@ -153,6 +153,14 @@ class Payment extends Basics
                 $template['keywords'][3] => ['value' => $orderInfo['created_time']],
             ]
         ]);
+    }
+    
+    public function getGzhOpenidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('gzh_openid');
+    }
+    
+    public function getUnionidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('union_id');
     }
 
     public function getOpenidByUserId($user_id){

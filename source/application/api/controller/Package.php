@@ -598,6 +598,10 @@ class Package extends Controller
         if (!$pack || count($pack) !== count($idsArr)){
             return $this->renderError('打包包裹数据错误');
         }
+        $pack_storage = array_unique(array_column($pack->toArray(),'storage_id'));
+        if (count($pack_storage)!=1){
+             return $this->renderError('请选择同一仓库的包裹进行打包');
+        }
         if (!$address_id){
             return $this->renderError('请先选择地址');
         }

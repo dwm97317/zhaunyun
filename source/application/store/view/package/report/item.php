@@ -6,7 +6,7 @@
                     <div class="widget-title am-cf"> 包裹详情 </div>
                 </div>
                 <?php $taker_status = [1=>'待认领',2=>'已认领',3=>'已丢弃',4=>'退件']; ?>
-                <?php $status = [0=>"问题件",1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成','-1'=>'问题件']; ?>
+                <?php $status = [0=>"问题件",1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成','-1'=>'问题件',''=>'无状态']; ?>
                 <div class="widget__order-detail widget-body am-margin-bottom-lg">
                         <!-- 基本信息 -->
                     <div class="widget-head am-cf">
@@ -26,7 +26,10 @@
                                 <th>时间</th>
                             </tr>
                             <tr>
-                                <td><?= $detail['order_sn'] ?></td>
+                                <td>
+                                    <?= $detail['order_sn'] ?><br>
+                                    <?= $detail['express_num'] ?>
+                                </td>
                                 <td>
                                     <p><?= $detail['user']['nickName'] ?></p>
                                     <p class="am-link-muted">(用户id：<?= $detail['user']['user_id'] ?>)</p>
