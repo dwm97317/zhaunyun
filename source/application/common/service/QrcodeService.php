@@ -45,15 +45,16 @@ class QrcodeService {
     //文字生成图片
 	public function makeImgWithStr($text, $font_size=20,$font = 'assets/common/fonts/verdanab.ttf')
 	{
+	   // dump($text);
 		//图片尺寸
 		$im = imagecreatetruecolor(444, 70);
 		//背景色
 		$white = imagecolorallocate($im, 255, 255, 255);
 		//字体颜色
 		$black = imagecolorallocate($im, 0, 0, 0);
-        $product_sn1 = substr($text,0,2);
-        $product_sn2 = substr($text,2,2);
-        $product_sn = $product_sn1.'-'.$product_sn2;
+        // $product_sn1 = substr($text,0,2);
+        // $product_sn2 = substr($text,2,2);
+        $product_sn = $text;
 		imagefilledrectangle($im, 0, 0, 444, 300, $white);
 		$txt_max_width = intval(0.8 * 444);
 		$content = "";
@@ -73,7 +74,7 @@ class QrcodeService {
 		$txt_width = $test_box[2] - $test_box[0];
 
 		$y = 70 * 0.6; // 文字从何处的高度开始
-		$x = (230 - $txt_width) / 2; //文字居中
+		$x = (230 - $txt_width) / 4; //文字居中
 		// echo $x;die;
 		//文字写入
 		imagettftext($im, $font_size, 0, $x, $y, $black, $font, $content); //写 TTF 文字到图中

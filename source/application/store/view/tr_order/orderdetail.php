@@ -206,10 +206,12 @@
                     <div class="widget-head am-cf">
                         <div class="widget-title am-fl">订单图片</div>
                     </div>
-                    <?php  foreach ($detail['inpackimage'] as $item): ?>
-                    <a href="<?= $item['file_path'] ?>"><img style="max-width: 200px;max-height: 200px;" src="<?= $item['file_path'] ?>"/></a>
-                    <?php endforeach?>
                     
+                    <figure style="display:inline-flex;" data-am-widget="figure" class="am am-figure am-figure-default "   data-am-figure="{  pureview: 'true' }">
+                            <?php  foreach ($detail['inpackimage'] as $item): ?>
+                            <a href="<?= $item['file_path'] ?>"><img style="max-width: 200px;max-height: 200px;" src="<?= $item['file_path'] ?>"/></a>
+                            <?php endforeach?>
+                       </figure>
                     
                 </div>
             </div>

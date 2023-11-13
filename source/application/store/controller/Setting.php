@@ -7,6 +7,7 @@ use app\store\model\Setting as SettingModel;
 use app\common\library\sms\Driver as SmsDriver;
 use app\store\model\Wxapp as WxappModel;
 use app\common\model\UploadFile;
+use app\common\model\AiLog;
 /**
  * 系统设置
  * Class Setting
@@ -45,6 +46,28 @@ class Setting extends Controller
         return $this->updateUserclient('aiidentify');
     }
     
+     /**
+     * 智能AI识别
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function keeper()
+    {
+        return $this->updateUserclient('keeper');
+    }
+    
+    /**
+     * 智能AI识别的记录日志
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function aiidentifylog(){
+        $param = $this->request->param();
+        // dump($param);die;
+        $AiLog = new AiLog;
+        $list = $AiLog->getList($param);
+        return $this->fetch("aiidentifylog",compact('list'));
+    }
 
      /**
      * 更新系统设置事件
@@ -55,12 +78,12 @@ class Setting extends Controller
      */
     private function updateUserclient($key, $vars = [])
     {
-             
         if (!$this->request->isAjax()) {
             $vars['values'] = SettingModel::getItem($key);
+            $vars['values']['baiduai'] = WxappModel::detail($this->store['wxapp']['wxapp_id'])['baiduai'];
             return $this->fetch($key, $vars);
         }
-        // dump($this->postData($key));die;
+  
         $model = new SettingModel;
         if ($model->edit($key, $this->postData($key))) {
             return $this->renderSuccess('操作成功');

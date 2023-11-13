@@ -249,6 +249,7 @@ class Page extends Controller
         $store['userclient']= SettingModel::detail('userclient')['values'];
         $store['copyright']= WxappModel::detail(input('wxapp_id'));
         $store['paytype']= SettingModel::detail('paytype')['values'];
+        $store['keeper']= SettingModel::detail('keeper')['values'];
         return $this->renderSuccess($store);
     }
     
@@ -269,6 +270,11 @@ class Page extends Controller
        if($setting['is_change_uid']==1){
           ($this->user)['user_code'] = ($this->user)['user_code'].'室';
           ($this->user)['user_id'] = ($this->user)['user_id'].'室';
+       }
+       $aiidentify = CommonSetting::getItem('aiidentify',input('wxapp_id'));
+       if($aiidentify['is_enable']==1){
+           ($this->user)['user_code'] = $aiidentify['keyword1'].($this->user)['user_code'].$aiidentify['keyword2'];
+           ($this->user)['user_id'] = $aiidentify['keyword1'].($this->user)['user_id'].$aiidentify['keyword2'];
        }
       //0 显示ID, 1显示code 2 都显示
     //   dump($setting['usercode_mode']['is_show']);die;
@@ -424,11 +430,12 @@ class Page extends Controller
        }
        $setting = CommonSetting::getItem('store',input('wxapp_id'));
         
-       $aiidentify = CommonSetting::getItem('aiidentify',input('wxapp_id'));
+       
        if($setting['is_change_uid']==1){
           ($this->user)['user_code'] = ($this->user)['user_code'].'室';
           ($this->user)['user_id'] = ($this->user)['user_id'].'室';
        }
+       $aiidentify = CommonSetting::getItem('aiidentify',input('wxapp_id'));
        if($aiidentify['is_enable']==1){
            ($this->user)['user_code'] = $aiidentify['keyword1'].($this->user)['user_code'].$aiidentify['keyword2'];
            ($this->user)['user_id'] = $aiidentify['keyword1'].($this->user)['user_id'].$aiidentify['keyword2'];
@@ -705,7 +712,7 @@ class Page extends Controller
                 }
             }
         }else{
-        $value['discount'] = isset($this->user['grade']['equity']['discount'])?($this->user['grade']['equity']['discount']/10):1;
+            $value['discount'] = isset($this->user['grade']['equity']['discount'])?($this->user['grade']['equity']['discount']/10):1;
         }
       
            $value['line_type_unit_name'] =  $line_type_unit_map[$value['line_type_unit']];

@@ -98,6 +98,7 @@ class Store extends Controller
            'copyright_phone' =>$data['copyright_phone'],
            'version' =>  $data['version'],
            'filing_number' =>  $data['filing_number'],
+           'baiduai'=>$data['baiduai'],
         ];
         $res = $model->where('wxapp_id',$wxapp_id)->update($wappData);
         if ($res) {

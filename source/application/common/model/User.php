@@ -18,6 +18,20 @@ class User extends BaseModel
     // 性别
     private $gender = ['保密', '男', '女'];
     
+    // 余额不变更，只更新日志
+    public function logUpdate($type,$member_id,$amount,$remark){
+        $member = self::find($member_id);
+        // 新增余额变动记录
+         BalanceLog::add(SceneEnum::CONSUME, [
+              'user_id' => $member['user_id'],
+              'money' => 0,
+              'remark' => $remark,
+              'sence_type' => $type,
+              'wxapp_id' => (new Package())->getWxappId(),
+          ], [$member['nickName']]);
+          return true;
+    }
+    
     // 余额变更
     public function banlanceUpdate($type,$member_id,$amount,$remark){
         $member = self::find($member_id);
@@ -99,6 +113,16 @@ class User extends BaseModel
     {
         return $this->hasMany('UserAddress');
     }
+    
+    /**
+     * 关联收货地址表
+     * @return \think\model\relation\HasMany
+     */
+    public function usermark()
+    {
+        $module = self::getCalledModule() ?: 'common';
+        return $this->hasMany("app\\{$module}\\model\\user\\UserMark");
+    }
 
     /**
      * 关联收货地址表 (默认地址)
@@ -139,7 +163,7 @@ class User extends BaseModel
      * @return null|static
      * @throws \think\exception\DbException
      */
-    public static function detail($where, $with = ['address', 'addressDefault'])
+    public static function detail($where, $with = ['address', 'addressDefault','grade'])
     {
         $filter = ['is_delete' => 0];
        

@@ -23,16 +23,20 @@ class BaiduOcr extends BaiduBase
             //   dump($img);die;
        $header = ["Content-Type:application/x-www-form-urlencoded"];
        $bodys = array(
-            'url' => $img
+            'url' => $img,
+            'detect_direction'=>"true",
+            'paragraph'=>"true"
        );
        $res = $this->requestPost($url, $bodys);
+       
        $data = json_decode($res,true)['words_result'];
-    //   dump($data);die;
+
        $words = '';
        foreach ($data as $key =>$val){
           $words = $words.$val['words'];
        }
-       return $this->getBetweenAB($words,'晨升物流','室');
+       $user_id = $this->getBetweenAB($words,$this->keyword1,$this->keyword2);
+       return ['user_id'=>$user_id,'words'=>$words];
     }
     
     

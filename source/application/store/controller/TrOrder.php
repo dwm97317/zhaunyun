@@ -3,6 +3,7 @@ namespace app\store\controller;
 use app\api\model\Logistics;
 use app\store\model\Inpack;
 use app\store\model\Package;
+use app\api\controller\Package as PackageModel;
 use app\store\model\PackageItem;
 use app\store\model\Line;
 use app\store\model\ShelfUnitItem;
@@ -25,6 +26,10 @@ use app\store\model\PackageService;
 use app\common\model\store\shop\Capital;
 use app\store\model\store\shop\ShopBonus;
 use app\store\model\store\shop\Clerk;
+use app\api\model\dealer\Setting as SettingDealerModel;
+use app\common\model\dealer\User as DealerUser;
+use app\api\model\dealer\Referee as RefereeModel;
+use app\common\model\dealer\Order as DealerOrder;
 /**
  * 订单管理
  * Class Order
@@ -93,6 +98,43 @@ class TrOrder extends Controller
         return $this->getList('已完成订单列表', 'complete');
     }
     
+    /**
+     * 转运中订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function quicklypack()
+    {
+        return $this->getQuicklypack('已完成订单列表', 'all');
+    }
+    
+    /**
+     * 订单列表
+     * @param string $title
+     * @param string $dataType
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    private function getQuicklypack($title, $dataType)
+    {
+        // 订单列表
+        $model = new Inpack;
+        $set = Setting::detail('store')['values'];
+        $list = $model->getQuicklypack($dataType, $this->request->param());
+        foreach ($list as &$value) {
+            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['down_shelf'] = 0;
+            $value['inpack'] = 0;
+           if ($dataType=='payed'){
+                $value['down_shelf'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
+                $value['inpack'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',8)->count();
+           }
+        }
+
+        return $this->fetch('index', compact('list','dataType','set'));
+    }
+    
+    
     public function package($id){
          // 订单详情
         $detail = Inpack::details($id);
@@ -106,6 +148,18 @@ class TrOrder extends Controller
         return $this->fetch('package', compact('list','id'));
     }
     
+    //修改集运单所属用户id
+    public function changeUser(){
+        $ids = $this->postData('selectIds')[0];
+        $user_id = $this->postData('user_id')[0];
+        $idsArr = explode(',',$ids);
+        // dump($user_id);die;
+        $res = (new Inpack())->whereIn("id",$idsArr)->update(['member_id'=>$user_id,'updated_time'=>getTime()]);
+        if (!$res){
+            return $this->renderError('修改提交失败');
+        }
+        return $this->renderSuccess('修改提交成功');
+    }
     
     /**
      * 集运单详情
@@ -143,6 +197,21 @@ class TrOrder extends Controller
         return $this->fetch('orderdetail', compact(
             'detail','line','package','packageItem','packageService','set'
         ));
+    }
+    
+     /**
+     * 后台修改备注信息
+     * @return false|int
+     * @throws \think\exception\DbException
+     */
+    public function changeRemark(){
+        $param = $this->request->param();
+        $model = new Inpack();
+        $detail = $model::details($param['id']);
+        if($detail->save(['remark'=>$param['remark']])){
+            return $this->renderSuccess('更新成功');
+        }
+        return $this->renderError('更新失败');
     }
 
      /**
@@ -247,8 +316,11 @@ class TrOrder extends Controller
         $detail = Inpack::details($id);
         $detail['total'] = $detail['free']+$detail['pack_free']+$detail['other_free'];
         $set = Setting::detail('store')['values'];
-      
-        return $this->fetch('detail', compact('detail','line','set'));
+        $is_auto_free = 0;
+        if($set['is_auto_free']==1){
+            $is_auto_free = 1;
+        }
+        return $this->fetch('detail', compact('detail','line','set','is_auto_free'));
     }
     
     
@@ -275,7 +347,139 @@ class TrOrder extends Controller
        return  $this->renderSuccess('操作成功','',$result=['price' =>  $payprice ,'balance' =>$userdata['balance']]);
     }
     
+     //使用现金支付支付集运单费用
+    public function cashforprice(){
+        $data = $this->request->param();
+        $model = new Inpack();
+        $user =  new UserModel;
+        $inpackdata = $model::details($data['id']);
+        $userdata = User::detail($data['user_id']);
+        
+        $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free'];
+        if($payprice==0){
+            return $this->renderError('订单金额为0，请先设置订单金额');
+        }
+        //扣除余额，并产生一天用户的消费记录；减少用户余额；
+        $res = $user->logUpdate('remove',$data['user_id'],$payprice,date("Y-m-d H:i:s").',集运单'.$inpackdata['order_sn'].'使用现金支付'.$payprice.'（现金支付不改变用户余额）');
+        if(!$res){
+            //累计消费金额
+            $user->setIncPayMoney($payprice);
+            return $this->renderError($user->getError() ?: '操作失败');
+        }
+        
+        $this->dealerData(['amount'=>$payprice,'order_id'=>$data['id']],$userdata);
+        //修改集运单状态何支付状态
+        // dump($rrr);die;
+        if($inpackdata['status']==2){
+            $inpackdata->where('id',$data['id'])->update(['status'=>3,'is_pay'=>1,'is_pay_type'=>5,'pay_time'=>date('Y-m-d H:i:s',time())]);
+        }else{
+            $inpackdata->where('id',$data['id'])->update(['is_pay'=>1,'is_pay_type'=>5,'pay_time'=>date('Y-m-d H:i:s',time())]);
+        }
+        
+        return $this->renderSuccess('操作成功');
+    }
     
+    // 处理分销逻辑
+     public function dealerData($data,$user){
+        
+        // 分销商基本设置
+        $setting = SettingDealerModel::getItem('basic');
+        $User = (new User());
+        $dealeruser = new DealerUser();
+        // 是否开启分销功能
+        if (!$setting['is_open']) {
+            return false;
+        }
+        $commission = SettingDealerModel::getItem('commission');
+        // 判断用户 是否有上级
+        $ReffeerModel = new RefereeModel;
+        $dealerCapital = [];
+        $dealerUpUser = $ReffeerModel->where(['user_id'=>$user['user_id']])->find();
+        if (!$dealerUpUser){
+            return false;
+        }
+        $firstMoney = $data['amount'] * ($commission['first_money']/100);
+        $firstUserId = $dealerUpUser['dealer_id'];
+        $remainMoney = $data['amount'] - $firstMoney;
+    
+        //给用户分配余额
+        $dealeruser->grantMoney($firstUserId,$firstMoney);
+        $dealerCapital[] = [
+           'user_id' => $firstUserId,
+           'flow_type' => 10,
+           'money' => $firstMoney,
+           'describe' => '分销收益',
+           'create_time' => time(),
+           'update_time' => time(),
+           'wxapp_id' => $user['wxapp_id'],
+        ];
+        # 判断是否进行二级分销
+        if ($setting['level'] >= 2) {
+            // 查询一级分销用户 是否存在上级
+            $dealerSencondUser = $ReffeerModel->where(['user_id'=>$dealerUpUser['dealer_id']])->find();
+            if ($dealerSencondUser){
+                $secondMoney = $remainMoney * ($commission['second_money']/100);
+                $remainMoney = $remainMoney - $secondMoney;
+                $secondUserId = $dealerSencondUser['dealer_id'];
+                $dealerCapital[] = [
+                   'user_id' => $secondUserId,
+                   'flow_type' => 10,
+                   'money' => $secondMoney,
+                   'describe' => '分销收益',
+                   'create_time' => time(),
+                   'update_time' => time(),
+                   'wxapp_id' => $user['wxapp_id'],
+                ];
+                $dealeruser->grantMoney($secondUserId,$secondMoney);
+            }
+        }
+        # 判断是否进行三级分销
+        if ($setting['level'] == 3) {
+            // 查询二级分销用户 是否存在上级
+            $dealerthirddUser = $ReffeerModel->where(['user_id'=>$dealerSencondUser['dealer_id']])->find();
+            if ($dealerSencondUser){
+                $thirdMoney = $remainMoney * ($commission['third_money']/100);
+                $thirdUserId = $dealerthirddUser['dealer_id'];
+                $dealerCapital[] = [
+                   'user_id' => $thirdUserId,
+                   'flow_type' => 10,
+                   'money' => $thirdMoney,
+                   'describe' => '分销收益',
+                   'create_time' => time(),
+                   'update_time' => time(),
+                   'wxapp_id' => $user['wxapp_id'],
+                ];
+                $dealeruser->grantMoney($thirdUserId,$thirdMoney);
+            }
+        }
+       
+        // 生成分销订单
+        $dealerOrder = [
+            'user_id' => $user['user_id'],
+            'order_id' => $data['order_id'],
+            'order_price' => $data['amount'],
+            'order_type' => 30,
+            'first_user_id' => $firstUserId??0,
+            'second_user_id' => $secondUserId??0,
+            'third_user_id' => $thirdUserId??0,
+            'first_money' => $firstMoney??0,
+            'second_money' => $secondMoney??0,
+            'third_money' => $thirdMoney??0,
+            'is_invalid' => 0,
+            'is_settled' => 1,
+            'settle_time' => time(),
+            'create_time' => time(),
+            'update_time' => time(),
+            'wxapp_id' => $user['wxapp_id']
+        ];
+             
+        $resCapi = (new Capital())->allowField(true)->saveAll($dealerCapital);
+        $resDeal = (new DealerOrder())->allowField(true)->save($dealerOrder);
+        if(!$resCapi || !$resDeal){
+            return false;
+        }
+        return true;
+     }
     
     //使用余额抵扣集运单费用
     public function payyue(){
@@ -299,10 +503,11 @@ class TrOrder extends Controller
             return $this->renderError($user->getError() ?: '操作失败');
         }
         //修改集运单状态何支付状态
+        $this->dealerData(['amount'=>$payprice,'order_id'=>$data['id']],$userdata);
         if($inpackdata['status']==2){
-            $inpackdata->where('id',$data['id'])->update(['status'=>3,'is_pay'=>1,'is_pay_type'=>0,'pick_time'=>date('Y-m-d H:i:s',time())]);
+            $inpackdata->where('id',$data['id'])->update(['status'=>3,'is_pay'=>1,'is_pay_type'=>0,'pay_time'=>date('Y-m-d H:i:s',time())]);
         }else{
-            $inpackdata->where('id',$data['id'])->update(['is_pay'=>1,'is_pay_type'=>0,'pick_time'=>date('Y-m-d H:i:s',time())]);
+            $inpackdata->where('id',$data['id'])->update(['is_pay'=>1,'is_pay_type'=>0,'pay_time'=>date('Y-m-d H:i:s',time())]);
         }
         return $this->renderSuccess('操作成功');
     }
@@ -469,10 +674,9 @@ class TrOrder extends Controller
         $model = Inpack::details($id);
         $package_ids = $model['pack_ids'];
         $pack = explode(',',$package_ids);
-        // dump($pack);die;
         if(!empty($pack)){
           foreach ($pack as $key => $val){
-            (new Package())->where('id',$val)->update(['status' => 2]);
+            (new Package())->where('id',$val)->update(['status' => 2,'inpack_id'=>null]);
           }  
         }
         if ($model->removedelete($id)) {
@@ -573,6 +777,7 @@ class TrOrder extends Controller
                   unset($package_ids[$key]);
               }
               $update['status'] = 2;
+              $update['inpack_id'] = null;
              (new Package())->where('id',input('id'))->update($update);
               $inpackUpdate['pack_ids'] = implode(',',$package_ids);
               $res = $model->where(['id'=>input('value')])->update($inpackUpdate);
@@ -594,6 +799,7 @@ class TrOrder extends Controller
           $package_ids = array_diff($package_ids,$ids);
           //循环更新包裹状态为已入库，可打包状态
           $update['status'] = 2;
+          $update['inpack_id'] = null;
           foreach($ids as $key => $val){
              (new Package())->where('id',$val)->update($update);    
           } 
@@ -648,6 +854,12 @@ class TrOrder extends Controller
                     }else{
                        $value['discount'] =1;
                     }
+                    //会员等级折扣
+                    $suer  = User::detail($pakdata['member_id']);
+                    // dump($suer->toArray());die;
+                    if(!empty($suer['grade']) && $suer['grade']['status']==1 && $suer['grade']['equity']['discount']>0){
+                        $value['discount'] = $suer['grade']['equity']['discount'] * 0.1;
+                    }
             }else{
                 $value['discount'] =1;
             }
@@ -669,6 +881,7 @@ class TrOrder extends Controller
         $lines['predict'] = [
               'weight' => $oWeigth,
               'price' => '包裹重量超限',
+              'service'=>0,
            ]; 
         switch ($line['free_mode']) {
             case '1':
@@ -706,12 +919,11 @@ class TrOrder extends Controller
                               'service' =>0,
                           ];   
                }
+          
                 break;
             case '3':
                 $free_rule = json_decode($line['free_rule'],true);
-                              
                foreach ($free_rule as $k => $v) {
-                   
                    if ($oWeigth >= $v['weight'][0]){
                       if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
                           $lines['predict'] = [
@@ -731,14 +943,12 @@ class TrOrder extends Controller
                 $free_rule = json_decode($line['free_rule'],true);
                 // dump($value['free_rule']);
                foreach ($free_rule as $k => $v) {
-                   
                    if ($oWeigth >= $v['weight'][0]){
                       if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
                           !isset($v['weight_unit']) && $v['weight_unit']=1;
-                        //   $lines['sortprice'] =(floatval($v['weight_price']) * floatval($oWeigth)/floatval($v['weight_unit']) + floatval($otherfree))*$value['discount'] ;
                           $lines['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => (floatval($v['weight_price']) * floatval($oWeigth)/floatval($v['weight_unit']) + floatval($otherfree))*$value['discount'],
+                              'price' => (floatval($v['weight_price']) * ceil(floatval($oWeigth)/floatval($v['weight_unit'])) + floatval($otherfree))*$value['discount'],
                               'rule' => $v,
                               'service' =>0,
                           ]; 
@@ -750,11 +960,13 @@ class TrOrder extends Controller
                break;
         }
         $PackageService = new PackageService(); 
-        $pricetwo = $pricethree = $lines['predict']['price'];
+        $pricethree = 0;
+        $pricetwo = $lines['predict']['price'];
         if(count($pakdata['inpackservice'])>0){
           $servicelist = $pakdata['inpackservice'];
           foreach ($servicelist as $val){
               $servicedetail = $PackageService::detail($val['service_id']);
+            //   dump($servicedetail);die;
               if($servicedetail['type']==0){
                   $lines['predict']['service'] = $lines['predict']['service'] + $servicedetail['price'];
                   $pricethree = floatval($pricethree) + floatval($servicedetail['price']);
@@ -765,14 +977,15 @@ class TrOrder extends Controller
               }
           }
         }
-        $lines['predict']['price'] = number_format(floatval($pricethree),2);
+           
+        $lines['predict']['price'] = number_format(floatval($lines['predict']['price']),2);
         $settingdata  = SettingModel::getItem('store',$line['wxapp_id']);
+        //不需要主动更新费用
         if($settingdata['is_auto_free']==0){
            $lines['predict']['price'] = 0;
         }
-
-       
-        return $this->renderSuccess(['oWeigth'=>$oWeigth,'price'=>round($lines['predict']['price'],2),'weightV'=>$weigthV]);
+         
+        return $this->renderSuccess(['oWeigth'=>$oWeigth,'price'=>str_replace(',','',$lines['predict']['price']),'weightV'=>$weigthV,'packfree'=>$pricethree]);
     }
     
     /**

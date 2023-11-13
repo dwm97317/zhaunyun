@@ -365,8 +365,9 @@ class Login extends Basics
             'mobile' => $form['mobile'],
             'password'=>yoshop_hash($form['password'])
         ];
-        
-        $clerkdata = $Clerk->useGlobalScope(false)->where($loginData)->with(['user','storage'])->find();
+        //  dump($loginData);die;
+        $clerkdata = $Clerk->useGlobalScope(false)->where($loginData)->with(['user','storage'])->where('is_delete',0)->find();
+       
         if(!empty($clerkdata)){
             $clerkdata['user'] = $UserModel->useGlobalScope(false)->where(['user_id' => $clerkdata['user_id'],'is_delete'=>0])->find(); 
         }

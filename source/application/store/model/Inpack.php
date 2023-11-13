@@ -93,6 +93,36 @@ class Inpack extends InpackModel
          return $res;
     }
     
+    /**
+     * 快速打包订单列表
+     * @param string $dataType
+     * @param array $query
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getQuicklypack($dataType, $query = [])
+    {
+        // 检索查询条件
+        !empty($query) && $this->setWhere($query);
+        // 获取数据列表
+        $res= $this
+            ->alias('pa')
+            ->with(['line','address','storage','user'])
+            ->join('user u','u.user_id = pa.member_id','left')
+            ->join('user_address add','add.address_id = pa.address_id','left')
+            ->where('pa.status','in',$this->status[$dataType])
+            ->where('pa.is_delete',0)
+            ->where('pa.address_id',null)
+            ->order(['pa.created_time' => 'desc'])
+            ->paginate(10, false, [
+                'query' => \request()->request()
+            ]);
+            // dump($res->toArray());die;
+         return $res;
+    }
+    
+    
+    
     // 代购单 同步
     public function anyicData($v){
         $data['source'] = 4;
@@ -141,33 +171,35 @@ class Inpack extends InpackModel
            }
            unset($data['images']);
         }
-        
+  
         $pack = $this->where('id',$data['id'])->find();
-        if(isset($data['is_pay']) && $data['is_pay'] == 1){
-              $data['pay_time'] = getTime();
-              $data['is_pay_type'] = 0;
-              $data['is_pay'] = 1;
-              if($pack['status']==2){
-                  $data['status'] = 3;
-              }else{
-                  $data['status'] = $pack['status'];
-              }
-        }
+        // if(isset($data['is_pay']) && $data['is_pay'] == 1){
+        //       $data['pay_time'] = getTime();
+        //       $data['is_pay_type'] = 0;
+        //       $data['is_pay'] = 1;
+        //       if($pack['status']==2){
+        //           $data['status'] = 3;
+        //       }else{
+        //           $data['status'] = $pack['status'];
+        //       }
+        // }
+        
+        
+        $userData = (new UserModel)->where('user_id',$pack['member_id'])->find();
+        $pack['userName']=$userData['nickName'];
         //判断是否更新状态到已查验
         if(isset($data['verify']) && ($data['verify'] ==1)){
             $data['status'] = 2;
             //发送订阅消息以及模板消息,包裹查验完成，等待支付
             $noticesetting = SettingModel::getItem('notice');
             //根据设置内容，判断是否需要发送通知；
-            $userData = (new UserModel)->where('user_id',$pack['member_id'])->find();
-            $pack['userName']=$userData['nickName'];
+            
+         
+            
             $pack['remark']= $noticesetting['check']['describe'];
             $pack['total_free'] = $pack['free']+$pack['other_free']+$pack['pack_free'];
             //获取模板消息设置，根据设置选择调用的函数
-            
-            
-            
-            
+
             //发送邮件通知
              $email = SettingModel::getItem('email');
             if($email['is_enable']==1 && (isset($pack['member_id']) || !empty($pack['member_id']))){
@@ -180,7 +212,7 @@ class Inpack extends InpackModel
         
         
         unset($data['verify']);
-        // dump($data);die;
+        // dump($pack);die;
         $rers =  $this->where('id',$data['id'])->update($data);
         $tplmsgsetting = SettingModel::getItem('tplMsg');
             if($tplmsgsetting['is_oldtps']==1){
@@ -436,7 +468,7 @@ class Inpack extends InpackModel
         $packages[] = $pack['id'];
         $inpackData['pack_ids'] = implode(',',$packages);
         $res = $this->where(['id'=>$data['id']])->update($inpackData);
-        (new Package())->where(['id'=>$pack['id']])->update(['status'=>5]);
+        (new Package())->where(['id'=>$pack['id']])->update(['status'=>5,'inpack_id'=>$data['id']]);
         if ($res){
             return true;
         }

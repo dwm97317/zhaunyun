@@ -52,10 +52,12 @@ class Poster extends Base
         // 1. 下载背景图
         $backdrop = $this->saveTempImage($wxappId, $this->config['backdrop']['src'], 'backdrop');     
         $avatarUrl = empty($this->dealer['user']['avatarUrl'])?'https://zhuanyun.sllowly.cn/assets/api/489ce8be9a1f50f782d84c71aa73cd53.jpeg':$this->dealer['user']['avatarUrl'];
+       
         // 2. 下载用户头像
         $avatarUrl = $this->saveTempImage($wxappId, $avatarUrl , 'avatar');
         // 3. 下载小程序码
         $qrcode = $this->saveQrcode($wxappId, 'uid:' . $this->dealer['user_id']);
+      
         // 4. 拼接海报图
         return $this->savePoster($backdrop, $avatarUrl, $qrcode);
     }
@@ -104,40 +106,45 @@ class Poster extends Base
         $editor = Grafika::createEditor(['Gd']);
         // 打开海报背景图
         $editor->open($backdropImage, $backdrop);
-        // 生成圆形用户头像
-        // $this->config['avatar']['style'] === 'circle' && $this->circular($avatarUrl, $avatarUrl);
-        // 打开用户头像
-        // $editor->open($avatarImage, $avatarUrl);
-        // 重设用户头像宽高
-        // $avatarWidth = $this->config['avatar']['width'] * 2;
-        // $editor->resizeExact($avatarImage, $avatarWidth, $avatarWidth);
-        // 用户头像添加到背景图
-        // $avatarX = $this->config['avatar']['left'] * 2;
-        // $avatarY = $this->config['avatar']['top'] * 2;
-        // $editor->blend($backdropImage, $avatarImage, 'normal', 1.0, 'top-left', $avatarX, $avatarY);
+        //生成圆形用户头像
+        $this->config['avatar']['style'] === 'circle' && $this->circular($avatarUrl, $avatarUrl);
+        //打开用户头像
+        $editor->open($avatarImage, $avatarUrl);
+        //重设用户头像宽高
+        $avatarWidth = $this->config['avatar']['width'] * 2;
+        $editor->resizeExact($avatarImage, $avatarWidth, $avatarWidth);
+       // 用户头像添加到背景图
+        $avatarX = $this->config['avatar']['left'];
+        $avatarY = $this->config['avatar']['top'];
+        // $avatarX = $this->config['avatar']['left'] *2;
+        // $avatarY = $this->config['avatar']['top']  *2;
+        //   dump($this->config);die;
+        $editor->blend($backdropImage, $avatarImage, 'normal', 1.0, 'top-left', $avatarX, $avatarY);
 
         // 生成圆形小程序码
         $this->config['qrcode']['style'] === 'circle' && $this->circular($qrcode, $qrcode);
         // 打开小程序码
         $editor->open($qrcodeImage, $qrcode);
         // 重设小程序码宽高
-      
+   
         $qrcodeWidth = $this->config['qrcode']['width'];
  
         $editor->resizeExact($qrcodeImage, $qrcodeWidth, $qrcodeWidth);
         // 小程序码添加到背景图
         $qrcodeX = $this->config['qrcode']['left'];
         $qrcodeY = $this->config['qrcode']['top'];
-
+        
         $editor->blend($backdropImage, $qrcodeImage, 'normal', 1.0, 'top-left', $qrcodeX, $qrcodeY);
 
         // 写入用户昵称
-        // $fontSize = $this->config['nickName']['fontSize'] * 2 * 0.76;
+        $fontSize = $this->config['nickName']['fontSize'] * 2 * 0.76;
         // $fontX = $this->config['nickName']['left'] * 2;
         // $fontY = $this->config['nickName']['top'] * 2;
-        // $Color = new Color($this->config['nickName']['color']);
-        // $fontPath = Grafika::fontsDir() . DS . 'st-heiti-light.ttc';
-        // $editor->text($backdropImage, $this->dealer['user']['nickName'], $fontSize, $fontX, $fontY, $Color, $fontPath);
+        $fontX = $this->config['nickName']['left'];
+        $fontY = $this->config['nickName']['top'];
+        $Color = new Color($this->config['nickName']['color']);
+        $fontPath = Grafika::fontsDir() . DS . 'st-heiti-light.ttc';
+        $editor->text($backdropImage, $this->dealer['user']['nickName'], $fontSize, $fontX, $fontY, $Color, $fontPath);
 
         // 保存图片
         $editor->save($backdropImage, $this->getPosterPath());

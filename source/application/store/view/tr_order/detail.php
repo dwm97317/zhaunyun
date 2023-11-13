@@ -164,25 +164,7 @@
                                 </div>
                             </div>
                             <?php endif; ?>
-                             <?php if(in_array($detail['status'],[2,3,4,5,6,7,8]) && $detail['is_pay']==2):?>
-                           <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 支付状态 </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="data[is_pay]" value="1" data-am-ucheck
-                                               <?= $detail['is_pay'] == 1 ? 'checked' : '' ?>>
-                                        已支付
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="data[is_pay]" value="2" data-am-ucheck <?= $detail['is_pay'] == 2 ? 'checked' : '' ?> >
-                                        未支付
-                                    </label>
-                                    <div class="help-block">
-                                        <small style="color:#ff6666;">手动修改支付状态,可能会导致资金损失,请谨慎操作</small>
-                                </div>
-                                </div>
-                            </div>
-                            <?php endif; ?>
+                           
                             <div class="am-form-group">
                                 <input name="data[id]" type="hidden" value="<?= $detail['id']??'' ;?>">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
@@ -233,6 +215,11 @@
     function caleAmount(){
        var form = $("#my-form").serializeArray();
        var newdata = [];
+       var is_auto_free = <?=$is_auto_free?>;
+       console.log(is_auto_free,5);
+       if(is_auto_free==0){
+           return false;
+       }
        form.map(function(val,key){
 			newdata[val.name]=val.value;
 	   });
@@ -246,14 +233,11 @@
                  $('#price').val(res.msg.price);
                  $('#oWei').val(res.msg.oWeigth);
                  $('#weigthV').val(res.msg.weightV);
+                 $('#pack_free').val(res.msg.packfree);
                  var other_free = $('#other_free').val();
                  var pack_free = $('#pack_free').val();
                  var num = parseFloat(res.msg.price);
-                 console.log(num);
-                //  console.log(isNaN(parseFloat(res.msg.price)));
-                 var total = Number(num) + parseFloat(pack_free) + Number(other_free);
-                //  console.log((res.msg.price));
-                //  console.log((Number(res.msg.price) + Number(pack_free) + Number(other_free)),99)
+                 var total = Number(num) + Number(pack_free) + Number(other_free);
                  $("#all").val(total)
              } 
           }

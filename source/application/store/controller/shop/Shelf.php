@@ -26,10 +26,10 @@ class Shelf extends Controller
         return $this->fetch('index', compact('list'));
     }
 
-        // 货位数据
+    // 货位数据
     public function dataShelfUnit(){
        $map['ware_no'] = $this->store['user']['shop_id'];
-       $list = (new ShelfModel())->getList($map);
+       $list = (new ShelfModel())->getAllList($map);
        $shelf = [];
        if(count($list)>0){
            foreach ($list as $key => $item){

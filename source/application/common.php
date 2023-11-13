@@ -14,6 +14,8 @@ use PHPMailer\PHPMailer\SMTP;
 use app\api\model\Setting as SettingModel;
 use app\api\model\Line;
 use app\api\model\Inpack;
+use app\api\model\User;
+use app\store\model\user\UserLine;
 
     require (VENDOR_PATH.'phpmailer/phpmailer/src/PHPMailer.php');
     require (VENDOR_PATH.'phpmailer/phpmailer/src/SMTP.php');
@@ -1450,6 +1452,7 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
  function getpackfree($id){
     $Inpack = new Inpack();
     $Line = new Line();
+    $User = new User;
     //获取集运单
     $packData = $Inpack->getDetails($id,$field=[]);
 
@@ -1458,13 +1461,34 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
     if(!empty($packData['length']) && !empty($packData['width']) && !empty($packData['height']) && $packData['line']['volumeweight_type']==20){
         $weight = round(($packData['weight'] + (($packData['length']*$packData['width']*$packData['height'])/$packData['line']['volumeweight'] - $packData['weight'])*$packData['line']['bubble_weight']/100),2);
     }
-    
+    // dump($weight);die;
     $oWeigth = $weight - $packData['weight'] > 0 ? $weight:$packData['weight'];
     
     //总费用=路线规则中的费用+路线的增值服务费+服务项目的费用；
-    $data = [];
+    $data = [
+        'sortprice'=>0    
+    ];
+    $reprice = 0;
     $free_rule = json_decode($packData['line']['free_rule'],true);//运费规则
     $otherfree = $packData['line']['service_route']; //路线的增值服务费用；
+    $setting = SettingModel::getItem('store',$packData['wxapp_id']);
+    if($setting['is_discount']==1){
+        $userData = $User::detail(['user_id'=>$packData['member_id']]);
+      
+        $UserLine =  (new UserLine());
+        $linedata= $UserLine->where('user_id',$userData['user_id'])->where('line_id',$packData['line_id'])->find();
+            if($linedata){
+              $discount  = $linedata['discount'];
+            }else{
+                if(isset($userData['grade']['equity']['discount']) && $userData['grade']['status']==1){
+                   $discount = isset($userData['grade']['equity']['discount'])?($userData['grade']['equity']['discount']/10):1;  
+                }else{
+                   $discount = 1;
+                }
+            }
+        }else{
+            $discount = isset($userData['grade']['equity']['discount'])?($userData['grade']['equity']['discount']/10):1;
+        }
     
      switch ($packData['line']['free_mode']) {
              case '1':
@@ -1481,13 +1505,19 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                            break;
                       }
                   }
-                  $data['sortprice'] =$reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0]+$otherfree;
+                  $data['sortprice'] = ($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0]+$otherfree)*$discount;
                   $data['predict'] = [
                     'weight' => $oWeigth,
-                    'price' => $reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0]+$otherfree,
+                    'price' => ($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0]+$otherfree)*$discount,
                     'rule' => $free_rule
                   ];         
                }else{
+                    $data['sortprice'] = $free_rule[0]['weight_price']+$otherfree;
+                    $data['predict'] = [
+                    'weight' => $oWeigth,
+                    'price' =>  $free_rule[0]['weight_price']+$otherfree,
+                    'rule' => $free_rule
+                  ];        
                     break;
                }
 
@@ -1496,10 +1526,10 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                  //首重价格+续重价格*（总重-首重）
 
                foreach ($free_rule as $k => $v) {
-                          $data['sortprice'] =$v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree;
+                          $data['sortprice'] =($v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree)*$discount;
                           $data['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => $v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree,
+                              'price' => ($v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree)*$discount,
                               'rule' => $v
                           ];   
                }
@@ -1509,10 +1539,25 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                foreach ($free_rule as $k => $v) {
                    if ($oWeigth >= $v['weight'][0]){
                       if (isset($v['weight'][1]) && $oWeigth<$v['weight'][1]){
-                          $data['sortprice'] =$oWeigth*$v['weight_price'] + $otherfree ;
+                          $data['sortprice'] = ($oWeigth*$v['weight_price'] + $otherfree)*$discount ;
                           $data['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => $oWeigth*$v['weight_price'] + $otherfree,
+                              'price' => ($oWeigth*$v['weight_price'] + $otherfree)*$discount,
+                              'rule' => $v
+                          ];   
+                      }
+                   }
+               }
+               break;
+               
+                case '4':
+               foreach ($free_rule as $k => $v) {
+                   if ($oWeigth > $v['weight'][0]){
+                      if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
+                          $data['sortprice'] = ($v['weight_price']*ceil($oWeigth/$v['weight_unit']) + $otherfree)*$discount ;
+                          $data['predict'] = [
+                              'weight' => $oWeigth,
+                              'price' => ($v['weight_price']*ceil($oWeigth/$v['weight_unit']) + $otherfree)*$discount,
                               'rule' => $v
                           ];   
                       }
@@ -1535,11 +1580,11 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
             }
         }
         
-           
+        //  dump($data);die;  
         
         $packD['volume'] = $weight; //体积重
         $packD['cale_weight'] = $oWeigth; //计费重量
-        $packD['other_free'] = $otherfree;
+        $packD['other_free'] = $otherfree + $packData['other_free'];
         $packD['pack_free'] = $packfree;
         $packD['free'] = $data['sortprice'];
         $resin = $Inpack->where('id',$id)->update($packD);

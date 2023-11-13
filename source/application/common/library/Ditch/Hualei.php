@@ -26,7 +26,6 @@ class Hualei{
     public function query($express_no)
     {
         // 缓存索引
-        // $baseurl = 'http://8.134.51.61:8082/selectTrack.htm?documentCode='.$express_no;
         $baseurl = $this->config['apiurl'].$express_no;
         // 参数设置
         $result = $this->curlRequest($baseurl, '');

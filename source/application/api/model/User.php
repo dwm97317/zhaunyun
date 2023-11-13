@@ -59,10 +59,8 @@ class User extends UserModel
         if(empty($clerkData)){
             throw new BaseException(['msg' => "账号或密码不正确"]);
         }
-        // dump($clerkData->toArray());die; 
         $this->token = $this->token($clerkData['user']['open_id']);
-      
-       return $clerkData['user']['user_id']; 
+        return $clerkData['user']['user_id']; 
     }
 
     /**
@@ -79,8 +77,9 @@ class User extends UserModel
         $session = $this->wxlogin($post['code']);
         // 自动注册用户
         $refereeId = isset($post['referee_id']) ? $post['referee_id'] : null;
-        $userInfo = $post['user_info'];
-        $user_id = $this->register($session, $userInfo, $refereeId);
+        // $userInfo = $post['user_info'];
+        // $user_id = $this->register($session, $userInfo, $refereeId);
+        $user_id = $this->register($session, $refereeId);
         // 生成token (session3rd)
         $this->token = $this->token($session['openid']);
         // 记录缓存, 7天
@@ -94,13 +93,12 @@ class User extends UserModel
         $session = $this->wxApplogin($post['code']);
         // dump($session);die;
         // 自动注册用户
-        
         $refereeId = isset($post['referee_id']) ? $post['referee_id'] : null;
         // $userInfo = $post['user_info'];
         $userInfo = OauthService::sessionGetUserInfo($session['access_token'],$session['openid']);
-                
+                        // dump($userInfo);die;   
         $user = $this->registerwx($session, $userInfo, $refereeId);
-        //   dump($user);die;
+
         // 生成token (session3rd)
         $this->token = $this->token($user['open_id']);
         // 记录缓存, 7天
@@ -197,12 +195,15 @@ class User extends UserModel
         if($userclient['loginsetting']['is_wxopen']==1 && $userclient['loginsetting']['is_merge_user']==1){
             $user1 = self::detail(['union_id' => $session['unionid']]);
             $user2 = self::detail(['gzh_openid' => $session['openid']]);
+            $user3 = self::detail(['open_id' => $session['openid']]);
             $user = $user2;
             !empty($user1) && $user = $user1;
+            !empty($user2) && $user = $user2;
+            !empty($user3) && $user = $user3;
         }else{
             $user = self::detail(['open_id' => $session['openid']]);
         }
-        // dump($user);die;
+        // dump($session);die;
         $setting = Setting::getItem('store',self::$wxapp_id);
         
         $user_code= $user['user_code'];
@@ -216,10 +217,11 @@ class User extends UserModel
             if (!$model->allowField(true)->save(array_merge($data, [
                 'gzh_openid' => $session['openid'],
                 'open_id'=> $user['open_id']??$session['openid'],
-                'union_id'=> $user['union_id']??(isset($session['unionid'])?$session['unionid']:''),
+                'union_id'=> empty($user['union_id'])?(isset($session['unionid'])?$session['unionid']:''):$user['union_id'],
                 'last_login_time' =>date("Y-m-d H:i:s",time()),
                 'wxapp_id' => self::$wxapp_id,
-                'nickName' => $data['nickname'],
+                'paytype'=> $setting['moren']['user_pack_in_pay'],
+                'nickName' => empty($user['nickName'])?$data['nickname']:$user['nickName'],
                 'avatarUrl' => $data['headimgurl'],
                 'user_code' => !empty($user['user_code'])?$user['user_code']:$user_code,
             ]))) {
@@ -246,9 +248,10 @@ class User extends UserModel
      * @throws \Exception
      * @throws \think\exception\DbException
      */
-    private function register($session, $data, $refereeId = null)
+    private function register($session, $refereeId = null)
     {
         // 查询用户是否已存在
+        // dump($session);die;
         $userclient = Setting::getItem('userclient',self::$wxapp_id);
         
         if($userclient['loginsetting']['is_wxopen']==1 && $userclient['loginsetting']['is_merge_user']==1){
@@ -261,10 +264,12 @@ class User extends UserModel
         }
        
         $user_code = '';
+        $data = [];
         if(!empty($user)){
-            unset($data['nickName']);  
-            unset($data['avatarUrl']);  
             $user_code = $user['user_code'];
+        }else{
+            $data['nickName'] = "";
+            $data['avatarUrl'] = "";
         }
         //根据设置来生成user_code
         $setting = Setting::getItem('store',self::$wxapp_id);
@@ -279,7 +284,7 @@ class User extends UserModel
             if (!$model->allowField(true)->save(array_merge($data, [
                 'open_id' => $session['openid'],
                 'union_id'=> isset($session['unionid'])?$session['unionid']:'',
-                // 'paytype'=>$setting['moren'][''], //预留
+                'paytype'=> $setting['moren']['user_pack_in_pay'],
                 'last_login_time' =>date("Y-m-d H:i:s",time()),
                 'wxapp_id' => self::$wxapp_id,
                 'user_code' => !empty($user['user_code'])?$user['user_code']:$user_code,

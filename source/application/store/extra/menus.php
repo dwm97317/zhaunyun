@@ -103,6 +103,10 @@ return [
                 'name' => '用户评价',
                 'index' => 'tr_order/comment',
             ],
+            [
+                'name' => '快速打包件',
+                'index' => 'tr_order/quicklypack',
+            ],
            
         ]
     ],
@@ -114,6 +118,10 @@ return [
             [
                 'name' => '用户列表',
                 'index' => 'user/index',
+            ],
+            [
+                'name' => '唛头列表',
+                'index' => 'user/marklist',
             ],
             [
                 'name' => '用户地址',
@@ -610,6 +618,10 @@ return [
                     [
                         'name' => '用户端样式',
                         'index' => 'setting/userclient'
+                    ],
+                    [
+                        'name' => '仓管端样式',
+                        'index' => 'setting/keeper'
                     ]
                 ]
             ],

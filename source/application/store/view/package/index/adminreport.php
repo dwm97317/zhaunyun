@@ -25,7 +25,7 @@
                                 <label class="am-u-sm-3  am-u-lg-2 am-form-label"> 输入用户ID </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="widget-become-goods am-form-file am-margin-top-xs">
-                                        <input type="text" class="tpl-form-input" name="data[user_id]"
+                                        <input onblur="finduser()" id="member_id" type="text" class="tpl-form-input" name="data[user_id]"
                                            value="<?= $data['member_id']??'' ;?>" placeholder="输入用户ID">
                                         <div class="am-block">
                                             <small>输入用户ID与【选择用户】两者选其一</small>
@@ -37,7 +37,7 @@
                                 <label class="am-u-sm-3  am-u-lg-2 am-form-label"> 输入用户编号（CODE） </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="widget-become-goods am-form-file am-margin-top-xs">
-                                        <input type="text" class="tpl-form-input" name="data[user_code]"
+                                        <input onblur="findusercode()" id="user_code"  type="text" class="tpl-form-input" name="data[user_code]"
                                            value="<?= $data['member']['user_code']??'' ;?>" placeholder="输入用户CODE">
                                         <div class="am-block">
                                             <small>输入用户CODE与【选择用户】两者选其一</small>
@@ -61,6 +61,20 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <?php if (isset($set['is_usermark']) && $set['is_usermark']==1): ?>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">选择唛头 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select id="usermark" name="data[mark]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" >
+                                    </select>
+                                    <div class="help-block">
+                                        <small>请选择包裹将要寄往的国家</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">运往国家 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -81,6 +95,7 @@
                                     </div>
                                 </div>
                             </div>
+                            
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 入库仓库 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -195,6 +210,75 @@
         }
 		// preload shutter audio clip
 		
+		function findusercode(){
+            var usercode = $("#user_code")[0].value;
+             $.ajax({
+                   type:'post',
+                   url:"<?= url('store/user/findusercode') ?>",
+                   data:{member_id:usercode},
+                   dataType:'json',
+                   success:function (res) {
+                       if (res.code==1){
+                            for(var i=0;i< res.data.list.total;i++){
+                               var op = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
+                               $("#usermark").append(op);
+                           }
+                       }else{
+                           layer.alert(res.msg)
+                           $("#user_code").val('')
+                       }
+                   }
+               })
+            console.log(member_id)
+        }
+		
+		function finduser(){
+            var member_id = $("#member_id")[0].value;
+             $.ajax({
+                   type:'post',
+                   url:"<?= url('store/user/findUserMark') ?>",
+                   data:{member_id:member_id},
+                   dataType:'json',
+                   success:function (res) {
+                       if (res.code==1){
+                           for(var i=0;i< res.data.list.total;i++){
+                               var op = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
+                               $("#usermark").append(op);
+                           }
+                           
+                       }else{
+                           layer.alert(res.msg)
+                           $("#member_id").val('')
+                       }
+                   }
+               })
+            console.log(member_id)
+        }
+        
+        function finduserWith(e){
+            var member_id = e[0].user_id;
+            console.log(e,98765);
+             $.ajax({
+                   type:'post',
+                   url:"<?= url('store/user/findUserMark') ?>",
+                   data:{member_id:member_id},
+                   dataType:'json',
+                   success:function (res) {
+                       if (res.code==1){
+                           for(var i=0;i< res.data.list.total;i++){
+                               var op = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
+                               $("#usermark").append(op);
+                           }
+                           
+                       }else{
+                           layer.alert(res.msg)
+                           $("#member_id").val('')
+                       }
+                   }
+               })
+            console.log(member_id)
+        }
+        
 		function take_snapshot() {
 			// play sound effect
 			shutter.play();
@@ -259,7 +343,9 @@
             dataIndex: 'user_id',
             done: function (data) {
                 var user = [data[0]];
+                console.log(user,87654);
                 $userList.html(template('tpl-user-item', user));
+                finduserWith(user);
             }
         });
     });

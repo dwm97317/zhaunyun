@@ -79,9 +79,9 @@ class Packageit extends Basics
         if (empty($template['template_id'])) {
             return false;
         }
-
-       return $this->sendWxTplMsg($data['wxapp_id'], [
-            'touser' => $this->getOpenidByUserId($data['clerkid']),//仓管id，找到仓管员，
+// dump($data['clerkid']);die;
+       return $this->sendWxTplMsgForH5($data['wxapp_id'], [
+            'touser' => $this->getGzhOpenidByUserId($data['clerkid']),//仓管id，找到仓管员，
             'template_id' => $template['template_id'],
             'url' => "",
             'miniprogram'=>[

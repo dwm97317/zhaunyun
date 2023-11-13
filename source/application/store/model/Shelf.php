@@ -19,6 +19,13 @@ class Shelf extends ShelfModel
             'query'=>\request()->request()
         ]);
     }
+    
+     public function getAllList($query){
+        return $this->setListQueryWhere($query)
+        ->alias('a')
+        ->with('storage')
+        ->select();
+    }
 
     public function setListQueryWhere($query){
         !empty($query['ware_no'])  && $this->where('ware_no','=',$query['ware_no']);

@@ -9,6 +9,7 @@ use app\store\model\Coupon;
 use app\store\model\UserCoupon;
 use app\store\model\Setting;
 use app\store\model\store\shop\Clerk;
+use app\store\model\user\UserMark as UserMarkModel;
 /**
  * 用户管理
  * Class User
@@ -32,7 +33,7 @@ class User extends Controller
         $gradeList = GradeModel::getUsableList();
         //获取设置
         $set = Setting::detail('store')['values']['usercode_mode'];
-        // dump($setting);die;
+        // dump($list->toArray());die;
         // 可以分发的优惠券
         $coupon = (new Coupon())->getAllList();
         $line = (new Line())->getListAll();
@@ -151,12 +152,94 @@ class User extends Controller
     public function grade($user_id)
     {
         // 用户详情
+        // dump($this->postData('grade'));die;
         $model = UserModel::detail($user_id);
         if ($model->updateGrade($this->postData('grade'))) {
             return $this->renderSuccess('操作成功');
         }
         return $this->renderError($model->getError() ?: '操作失败');
     }
+    
+    /**
+     * 新增会员唛头
+     * @param $user_id
+     * @return array|bool
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function usermark($user_id)
+    {
+        // 用户详情
+        $model = new UserMarkModel;
+        $param = $this->postData('mark');
+        $param['user_id'] = $user_id;
+        if(empty($param['mark'])){
+            return $this->renderError('请输入唛头');
+        }
+        $marks = $model->where('user_id',$user_id)->where('mark',$param['mark'])->find();
+        if(!empty($marks)){
+            return $this->renderError('唛头已存在');
+        }
+        if (UserMarkModel::add($param)) {
+            return $this->renderSuccess('操作成功');
+        }
+        return $this->renderError('操作失败');
+    }
+    
+    /**
+     * 获取用户唛头信息
+     * @param $user_id
+     * @return array|bool
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function marklist(){
+       $model = new UserMarkModel;
+       $list = $model->getList($this->request->param());
+    //   dump($list->toArray());die;
+       //获取设置
+        $set = Setting::detail('store')['values']['usercode_mode'];
+       return $this->fetch('user/usermark/index', compact('list','set'));
+    }
+    
+    public function findUserMark(){
+        $model = new UserMarkModel;
+        $param = $this->request->param();
+        $list = $model->getList($param);
+        return $this->renderSuccess('操作成功','',compact('list'));
+    }
+    
+    public function findusercode(){
+        $model = new UserMarkModel;
+        $UserModel = new UserModel;
+        $param = $this->request->param();
+        $user = $UserModel->where(['user_code'=>$param['member_id'],'is_delete'=>0])->find();
+        $list = [];
+        if(!empty($user)){
+             $param['member_id'] = $user['user_id'];
+             $list = $model->getList($param);
+        }
+       
+        return $this->renderSuccess('操作成功','',compact('list'));
+    }
+    
+     /**
+     * 删除会员唛头
+     * @param $user_id
+     * @return array|bool
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function deletemark($id)
+    {
+         $model = (new UserMarkModel());
+         $res = $model->where('id',$id)->delete();
+         if ($res) {
+            return $this->renderSuccess('删除成功');
+         }
+         return $this->renderError($model->getError() ?: '删除失败');
+    }
+    
     
     /**
      * 获取用户信息

@@ -63,6 +63,12 @@
                             </div>
                         </div>
                         <div class="am-form-group">
+                            <label class="am-u-sm-3 am-u-lg-2 am-form-label"> AI识别剩余次数 </label>
+                            <div class="am-u-sm-9 am-u-end">
+                                <input type="text" class="tpl-form-input" name="store[baiduai]"   value="<?= $data['baiduai'] ?>">
+                            </div>
+                        </div>
+                        <div class="am-form-group">
                             <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                 <button type="submit" class="j-submit am-btn am-btn-secondary">提交
                                 </button>

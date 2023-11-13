@@ -387,6 +387,8 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     <small>注：请至少选择两个规则，注意选择固定+动态的单号规则；</small>
                                 </div>
                             </div>
+                            
+                            
                              <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require"> 自定义订单首字母 </label>
                                 <div class="am-u-sm-9">
@@ -417,7 +419,26 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     </label>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启唛头功能
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_usermark]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['is_usermark'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_usermark]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['is_usermark'] == '0' ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                </div>
+                            </div>
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl"> 自定义功能设置</div>
                             </div>
@@ -869,7 +890,147 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 </div>
                             </div>
                             
-                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl"> 系统默认功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    代用户打包默认选择邮寄模式
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][send_mode]" value="20"
+                                               data-am-ucheck
+                                            <?= $values['moren']['send_mode'] == '20' ? 'checked' : '' ?>
+                                               required>
+                                        默认为直邮模式
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][send_mode]" value="10"
+                                               data-am-ucheck
+                                            <?= $values['moren']['send_mode'] == '10' ? 'checked' : '' ?>>
+                                        默认为拼邮模式
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    后台录入的包裹默认为邮寄模式
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][pack_in_shop]" value="20"
+                                               data-am-ucheck
+                                            <?= $values['moren']['pack_in_shop'] == '20' ? 'checked' : '' ?>
+                                               required>
+                                        默认为直邮模式
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][pack_in_shop]" value="10"
+                                               data-am-ucheck
+                                            <?= $values['moren']['pack_in_shop'] == '10' ? 'checked' : '' ?>>
+                                        默认为拼邮模式
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    当上面模式为直邮模式时，是否自动生成订单
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][is_zhiyou_pack]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['moren']['is_zhiyou_pack'] == '0' ? 'checked' : '' ?>
+                                               required>
+                                        默认不生成
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][is_zhiyou_pack]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['moren']['is_zhiyou_pack'] == '1' ? 'checked' : '' ?>>
+                                        默认生成
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    当上面模式为直邮模式时，默认订单状态为
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][pack_in_status]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['moren']['pack_in_status'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        待查验（待打包）
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][pack_in_status]" value="2"
+                                               data-am-ucheck
+                                            <?= $values['moren']['pack_in_status'] == '2' ? 'checked' : '' ?>>
+                                        待支付
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][pack_in_status]" value="3"
+                                               data-am-ucheck
+                                            <?= $values['moren']['pack_in_status'] == '3' ? 'checked' : '' ?>>
+                                        待发货
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    当上面模式为直邮模式时，默认付款模式为
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][pack_in_pay]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['moren']['pack_in_pay'] == '0' ? 'checked' : '' ?>
+                                               required>
+                                        立即发货
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][pack_in_pay]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['moren']['pack_in_pay'] == '1' ? 'checked' : '' ?>>
+                                        货到付款
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][pack_in_pay]" value="2"
+                                               data-am-ucheck
+                                            <?= $values['moren']['pack_in_pay'] == '2' ? 'checked' : '' ?>>
+                                        月结
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    新用户注册时，默认付款模式为
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][user_pack_in_pay]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['moren']['user_pack_in_pay'] == '0' ? 'checked' : '' ?>
+                                               required>
+                                        立即发货
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][user_pack_in_pay]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['moren']['user_pack_in_pay'] == '1' ? 'checked' : '' ?>>
+                                        货到付款
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[moren][user_pack_in_pay]" value="2"
+                                               data-am-ucheck
+                                            <?= $values['moren']['user_pack_in_pay'] == '2' ? 'checked' : '' ?>>
+                                        月结
+                                    </label>
+                                </div>
+                            </div>
                             
                             
                             <div class="widget-head am-cf">

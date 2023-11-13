@@ -1,3 +1,12 @@
+<style>
+    tbody tr:nth-child(2n){
+        background: #fff !important;
+        color:#ff6666;
+    }
+    /*.am-table-striped>tbody>tr:nth-child(odd)>td, .am-table-striped>tbody>tr:nth-child(odd)>th{*/
+    /*    background: #f9f9f9 !important;*/
+    /*}*/
+</style>
 <div class="row-content am-cf">
     <div class="row">
         <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
@@ -146,7 +155,9 @@
                         </form>
                     </div>
                    <div class="page_toolbar am-margin-bottom-xs am-cf" style="margin-bottom:20px; margin-left:15px;">
-                       
+                        <?php if (checkPrivilege('package.index/changeuser')): ?>
+                        <button type="button" id="j-upuser" class="am-btn am-btn-success am-radius"><i class="iconfont icon-yonghu "></i> 修改所属用户</button>
+                        <?php endif;?>
                         <!--状态变更-->
                         <?php if (checkPrivilege('tr_order/upsatatus')): ?>
                         <button type="button" id="j-upstatus" class="am-btn am-btn-secondary am-radius"><i class="iconfont icon-755danzi"></i> 状态变更</button>
@@ -195,7 +206,6 @@
                                 <th>转运信息</th>
                                 <th>收货信息</th>
                                 <th>费用信息</th>
-                                <!--<th>重量信息</th>-->
                                 <th>包裹信息</th>
                                 <th>时间</th>
                                 <th>支付状态</th>
@@ -207,7 +217,7 @@
                             <?php if (!$list->isEmpty()): foreach ($list as $item): ?>
                             <?php $status = [1=>'待查验',2=>'待发货',3=>'待发货','4'=>'待发货','5'=>'待发货','6'=>'已发货','7'=>'已到货','8'=>'已完成','-1'=>'问题件']; ?>
                             <?php $paytime_status = [ 1=>'已支付',2=>'未支付'] ; ?>
-                            <?php $isPayType = [0=>'后台操作', 1=>'微信支付',2=>'余额支付',3 =>'汉特支付',4=>'OMIPAY'] ; ?>
+                            <?php $isPayType = [0=>'后台操作', 1=>'微信支付',2=>'余额支付',3 =>'汉特支付',4=>'OMIPAY',5=>'现金支付'] ; ?>
                                 <tr>
                                     <td class="am-text-middle">
                                        <input name="checkIds" type="checkbox" value="<?= $item['id'] ?>"> 
@@ -303,6 +313,7 @@
                                         共有 <?= $item['num'] ?> 个包裹 </br>
                                         <a href="<?= url('store/trOrder/package', ['id' => $item['id']]) ?>">查看包裹明细</a>
                                     </td>
+                            
                                     <td class="am-text-middle">
                                         提交打包：<?= $item['created_time'] ?> </br>
                                         
@@ -430,16 +441,25 @@
                                             </a>
                                             <?php endif ;?>
                                             <?php endif ;?>
-                                            <?php if ($item['is_pay'] ==2) : ?>
+                                            <?php if (checkPrivilege('tr_order/payyue') && $item['is_pay'] ==2) : ?>
                                             <a class='tpl-table-black-operation-warning j-payyue' href="javascript:void(0);" data-balance="0" data-price="0" data-name="<?= $item['nickName'] ?>" data-user_id="<?= $item['member_id'] ?>" data-id="<?= $item['id'] ?>">
                                                 <i class="iconfont icon-dizhi"></i> 余额扣除
                                             </a>
-                                            <?php endif ;?>
-                                            <!-- <a class='tpl-table-black-operation-warning j-changeaddress' href="javascript:void(0);" data-user_id="<?= $item['member_id'] ?>" data-id="<?= $item['id'] ?>">-->
-                                            <!--    <i class="iconfont icon-dizhi"></i> 打印包裹清单-->
-                                            <!--</a>-->
+                                             <?php endif ;?>
                                          </div>
+                                         <div class="tpl-table-black-operation" style="margin-top:10px">
+                                            <?php if (checkPrivilege('tr_order/cashforprice') && $item['is_pay'] ==2) : ?>
+                                            <a class='tpl-table-black-operation-warning j-payxianjin' href="javascript:void(0);" data-balance="0" data-price="0" data-name="<?= $item['nickName'] ?>" data-user_id="<?= $item['member_id'] ?>" data-id="<?= $item['id'] ?>">
+                                                <i class="iconfont icon-dizhi"></i> 现金收款
+                                            </a>
+                                            <?php endif ;?>
+                                        </div>
                                     </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="11" class="am-text-left"><?= $item['remark']?$item['remark']:'请输入订单备注' ?> 
+                                    <a class="j-audit" data-id="<?= $item['id'] ?>" data-remark="<?= $item['remark'] ?>" href="javascript:void(0);"><i class="am-icon-pencil"></i>
+                                    </a></td>
                                 </tr>
                             <?php endforeach; else: ?>
                                 <tr>
@@ -460,17 +480,66 @@
         </div>
     </div>
 </div>
+<script id="tpl-dealer-apply" type="text/template">
+    <div class="am-padding-top-sm">
+        <form class="form-dealer-apply am-form tpl-form-line-form" method="post"
+              action="<?= url('store/trOrder/changeRemark') ?>">
+            <input type="hidden" name="id" value="{{ id }}">
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-form-label"> 备注信息 </label>
+                <div class="am-u-sm-9">
+                    <input type="text" class="tpl-form-input" name="remark" placeholder="请填写备注"
+                           value="{{ remark }}">
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
 <script id="tpl-user-item" type="text/template">
     {{ each $data }}
     <div class="file-item">
         <a href="{{ $value.avatarUrl }}" title="{{ $value.nickName }} (ID:{{ $value.user_id }})" target="_blank">
             <img src="{{ $value.avatarUrl }}">
         </a>
-        <input type="hidden" name="clerk[user_id]" value="{{ $value.user_id }}">
+        <input type="hidden" name="user_id" value="{{ $value.user_id }}">
     </div>
     {{ /each }}
 </script>
-
+<script id="tpl-grade" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包裹数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'> 共选中 {{ selectCount }} 包裹</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择用户
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                         <div class="widget-become-goods am-form-file am-margin-top-xs">
+                                        <button type="button"
+                                                class="j-selectUser upload-file am-btn am-btn-secondary am-radius" onclick="doSelectUser()">
+                                            <i class="am-icon-cloud-upload"></i> 选择用户
+                                        </button>
+                                        <div class="user-list uploader-list am-cf">
+                                        </div>
+                                        <div class="am-block">
+                                            <small>选择后不可更改</small>
+                                        </div>
+                                    </div>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+</script>
 <script id="tpl-status" type="text/template">
     <div class="am-padding-xs am-padding-top">
         <form class="am-form tpl-form-line-form" method="post" action="">
@@ -570,7 +639,52 @@
 </script>
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
+     function doSelectUser(){
+           var $userList = $('.user-list');
+            $.selectData({
+                title: '选择用户',
+                uri: 'user/lists',
+                dataIndex: 'user_id',
+                done: function (data) {
+                    var user = [data[0]];
+                    console.log(user,98999);
+                    $userList.html(template('tpl-user-item', user));
+                }
+            });
+    }
+    
     $(function () {
+        
+        /**
+         * 修改会员
+         */
+        $('#j-upuser').on('click', function () {
+             var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            $.showModal({
+                title: '修改会员'
+                , area: '460px'
+                , content: template('tpl-grade', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('/store/tr_Order/changeUser') ?>',
+                        data: {selectIds:data.selectId}
+                    });
+                    return true;
+                }
+            });
+        });
+        
+        
         $('#datetimepicker').datetimepicker({
           format: 'yyyy-mm-dd hh:ii'
         });
@@ -579,6 +693,41 @@
         $('#datetimepicker').datetimepicker().on('changeDate', function(ev){
             // $('#datetimepicker').datetimepicker('hide');
           });
+          
+          
+        /**
+         * 审核操作
+         */
+        $('.j-audit').click(function () {
+            var $this = $(this);
+            layer.open({
+                type: 1
+                , title: '修改备注信息'
+                , area: '500px'
+                , offset: 'auto'
+                , anim: 1
+                , closeBtn: 1
+                , shade: 0.3
+                , btn: ['确定', '取消']
+                , content: template('tpl-dealer-apply', $this.data())
+                , success: function (layero) {
+                    // 注册radio组件
+                    layero.find('input[type=radio]').uCheck();
+                }
+                , yes: function (index, layero) {
+                    // 表单提交
+                    layero.find('.form-dealer-apply').ajaxSubmit({
+                        type: 'post',
+                        dataType: 'json',
+                        success: function (result) {
+                            result.code === 1 ? $.show_success(result.msg, result.url)
+                                : $.show_error(result.msg);
+                        }
+                    });
+                    layer.close(index);
+                }
+            });
+        });
     });
      
 </script>
@@ -600,6 +749,31 @@
                     </label>
                     <div class="am-u-sm-8 am-u-end">
                        <p class='am-form-static'>用户余额：{{ balance }} / 订单金额：{{ price }}</p>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-xianjin" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-4 am-form-label form-require">
+                        用户信息
+                    </label>
+                    <div class="am-u-sm-8">
+                       <p class='am-form-static'>{{ name }}</p>
+                    </div>
+                </div>
+               <div class="am-form-group">
+                    <label class="am-u-sm-4 am-form-label form-require">
+                        订单信息
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'>订单金额：{{ price }}</p>
                     </div>
                 </div>
                 
@@ -754,22 +928,45 @@
                   $.show_error(result.msg);   
                 }
             });
-           
-            console.log(data,547)
+        });
+        
+         //现金抵扣集运
+        $('.j-payxianjin').click(function (e) {
+            var data = $(this).data();
+            var user_id = $(this).data().user_id;
+            var id=  $(this).data().id;
             
+            if(!user_id){
+                layer.alert('用户信息有误', {icon: 5});
+                return false;
+            }
             
-            // var id=  $(this).data().id;
-            // layer.confirm('确认后将使用用户系统内余额抵扣订单，请确认用户有足够的余额', {title: '订单使用余额抵扣'}
-            //         , function (index) {
-            //             $.post('store/tr_Order/payyue',{id:id,user_id:user_id}, function (result) {
-            //                 result.code === 1 ? $.show_success(result.msg, result.url)
-            //                     : $.show_error(result.msg);
-            //             });
-            //             layer.close(index);
-            //         });
-            
+            $.post('store/tr_Order/balanceAndPrice',{id:id,user_id:user_id}, function (result) {
+                if(result.code == 1 ){
+                    data.balance = result.data.balance;
+                    data.price = result.data.price;
+                    $.showModal({
+                        title: '现金收款'
+                        , area: '460px'
+                        , content: template('tpl-xianjin', data)
+                        , uCheck: true
+                        , success: function ($content) {
+                        }
+                        , yes: function ($content) {
+                            $.post('store/tr_Order/cashforPrice',{id:id,user_id:user_id}, function (result) {
+                                result.code === 1 ? $.show_success(result.msg, result.url)
+                                    : $.show_error(result.msg);
+                            });
+                        }
+                    });
+                }else{
+                  $.show_error(result.msg);   
+                }
+            });
 
         });
+        
+        
             
         // 变更地址
         $('.j-changeaddress').click(function (e) {

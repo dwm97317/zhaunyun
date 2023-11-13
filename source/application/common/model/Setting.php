@@ -126,12 +126,14 @@ class Setting extends BaseModel
                     'client' =>[
                         'mode' =>20, //10 只开启H5，20，小程序+H5，    
                     ],
+                    'is_usermark'=>0, //是否开启唛头，1=开启
                     'moren'=>[
                         'send_mode'=> 10, //默认10 拼邮模式  20 直邮模式  代用户打包默认的
                         'pack_in_shop' => 10, //默认10 拼邮模式  20 直邮模式  后台录入的
                         'is_zhiyou_pack'=>0, //默认不生成订单  1生成集运单
                         'pack_in_status' => 3, //默认3 待发货 1 待查验  2 待支付  当选择直邮模式后，包裹入库即默认状态
                         'pack_in_pay'=> 0, //默认0 立即发货  1货到付款  2月结
+                        'user_pack_in_pay'=>0,//默认0 立即发货  1货到付款  2月结
                     ],
                     'orderno'=>[
                         'default'=>[20,110],
@@ -305,6 +307,34 @@ class Setting extends BaseModel
                         'mode' => 10, //10默认每次都弹  20 只弹一次  30 不弹    
                     ]
                 ],
+            ],
+            //仓管端设置项目
+            'keeper' => [
+                'key' => 'keeper',
+                'describe' => '仓管端设置',
+                'values' => [
+                    'fahuocang' => [
+                        'is_shop'=>1, //是否显示入库仓库
+                        'is_shop_force'=>0,
+                        'is_user'=>1, //
+                        'is_user_force'=>0,
+                        'is_shelf' => 1,
+                        'is_shelf_force'=>0,
+                        'is_category' => 1,
+                        'is_category_force'=>0,
+                        'is_hot' => 1,
+                        'is_hot_force'=>0,
+                        'is_weight' => 1,
+                        'is_weight_force' => 0,
+                        'is_vol' => 1,
+                        'is_vol_force' => 0,
+                        'is_remark' => 1,
+                        'is_adminremark' => 1,
+                        'is_adminremark_force' => 0,
+                        'is_photo' => 1,
+                        'is_photo_force' => 0,
+                    ]
+                ]
             ],
             // 用户端设置
             'userclient' => [
@@ -694,6 +724,9 @@ class Setting extends BaseModel
                     'apisecret'=>'',
                     'keyword1'=>'',
                     'keyword2'=>'',
+                    'is_cangguanduan'=>0, //仓管端
+                    'is_houtaiduan'=>0,  //后台端
+                    'is_dianzicheng'=>0, //电子秤
                 ],
             ],
             // 充值凭证

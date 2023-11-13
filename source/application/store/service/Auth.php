@@ -60,9 +60,11 @@ class Auth
         'package.newpack/savepackage',
         'tr_order/caleamount',
         'tr_order/deliverysave',
-        'tr_order/payyue',
         'tr_order/balanceandprice',
         'package.index/seachuseraddress',
+        'tr_order/changeremark',
+        'user/findusermark',
+        'user/findusercode'
     ];
 
     /** @var array $accessUrls 商家用户权限url */

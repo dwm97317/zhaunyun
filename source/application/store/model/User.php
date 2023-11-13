@@ -14,6 +14,7 @@ use app\common\library\helper;
 use app\store\model\UserAddress;
 use app\store\model\Package;
 use app\store\model\Inpack;
+use app\store\model\Setting as SettingModel;
 /**
  * 用户模型
  * Class User
@@ -64,7 +65,7 @@ class User extends UserModel
         // 获取用户列表
         $inpack = new Inpack();
         $package = new Package();
-        return $this->with(['grade','service'])
+        return $this->with(['grade','service','usermark'])
             ->where('is_delete', '=', '0')
             ->order(['create_time' => 'desc'])
             ->paginate(15, false, [
@@ -86,6 +87,7 @@ class User extends UserModel
        // 表单验证
       if (!$this->onValidate($data)) return false;
        $setting = SettingModel::getItem('store');
+    //   dump($setting);die;
        // 保存数据
        $data['paytype'] = $setting['moren']['user_pack_in_pay'];
        // 保存数据
@@ -142,10 +144,13 @@ class User extends UserModel
           $this->error = '手机号已存在，请更换手机号';
           return false;
       }
-      $useremail = $this->where('email', '=',$data['email'])->find();
-      if (!empty($useremail)){
-          $this->error = '邮箱已存在，请更换邮箱';
-          return false;
+      
+      if(!empty($data['email'])){
+          $useremail = $this->where('email', '=',$data['email'])->find();
+          if (!empty($useremail)){
+              $this->error = '邮箱已存在，请更换邮箱';
+              return false;
+          }
       }
       
       return true;

@@ -66,12 +66,14 @@ class WxPay extends WxBase
             'total_fee' => $totalFee * 100, // 价格:单位分
             'trade_type' => 'JSAPI',
         ];
+        //   dump($params);die;
         // 生成签名
         $params['sign'] = $this->makeSign($params);
         // 请求API
         $url = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
         $result = $this->post($url, $this->toXml($params));
         $prepay = $this->fromXml($result);
+        // dump($result);die;
         // 请求失败
         if ($prepay['return_code'] === 'FAIL') {
             throw new BaseException(['msg' => "微信支付api：{$prepay['return_msg']}", 'code' => -10]);

@@ -14,6 +14,8 @@ class BaiduBase
 {
     protected $apikey;
     protected $apisecret;
+    protected $keyword1;
+    protected $keyword2;
     protected $error;
 
     /**
@@ -22,15 +24,17 @@ class BaiduBase
      * @param $appId
      * @param $appSecret
      */
-    public function __construct($apikey = null, $apisecret = null)
+    public function __construct($setting)
     {
-        $this->setConfig($apikey, $apisecret);
+        $this->setConfig($setting['apikey'], $setting['apisecret'],$setting['keyword1'],$setting['keyword2']);
     }
 
-    protected function setConfig($apikey = null, $apisecret = null)
+    protected function setConfig($apikey = null, $apisecret = null,$keyword1,$keyword2)
     {
         !empty($apikey) && $this->apikey = $apikey;
         !empty($apisecret) && $this->apisecret = $apisecret;
+        !empty($keyword1) && $this->keyword1 = $keyword1;
+        !empty($keyword2) && $this->keyword2 = $keyword2;
     }
 
     /**

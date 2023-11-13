@@ -15,7 +15,8 @@ class Setting extends EnumBasics
     const AIIDENTIFY = 'aiidentify';
     // 交易设置
     const TRADE = 'trade';
-
+    // 仓管端设置
+    const KEEPER = 'keeper';
     // 短信通知
     const SMS = 'sms';
     //用户端样式设置
@@ -68,6 +69,10 @@ class Setting extends EnumBasics
             self::STORE => [
                 'value' => self::STORE,
                 'describe' => '系统设置',
+            ],
+            self::KEEPER => [
+                'value' => self::KEEPER,
+                'describe' => '仓管端设置',
             ],
             self::AIIDENTIFY => [
                 'value' => self::AIIDENTIFY,

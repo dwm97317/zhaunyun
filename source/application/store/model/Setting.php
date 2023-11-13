@@ -110,6 +110,9 @@ class Setting extends SettingModel
         if($key=='userclient'){
             $values = $this->setVlaue($values); 
         }
+        if($key=='keeper'){
+            $values = $this->setVlaue($values); 
+        }
         if($key=='paytype'){
             $values = $this->setpayTypeVlaue($values); 
         }
@@ -130,7 +133,7 @@ class Setting extends SettingModel
         $paytype = ['wechat','balance','Hantepay','omipay'];
         foreach ($paytype as $pay){
             $array2 = [];
-            // dump($values[$pay]['platfrom']);die;
+            // dump($values[$pay]);die;
             foreach ($values[$pay]['platfrom'] as $key=>$val){
                 array_unshift($array2,$key);
             }
@@ -187,6 +190,29 @@ class Setting extends SettingModel
         if(!isset($values['userinfo']['is_mobile_force'])){
             $values['userinfo']['is_mobile_force'] = '0';
         }
+        
+        if(!isset($values['fahuocang']['is_user_force'])){
+            $values['fahuocang']['is_user_force'] = '0';
+        }
+        if(!isset($values['fahuocang']['is_shelf_force'])){
+            $values['fahuocang']['is_shelf_force'] = '0';
+        }
+        if(!isset($values['fahuocang']['is_category_force'])){
+            $values['fahuocang']['is_category_force'] = '0';
+        }
+        if(!isset($values['fahuocang']['is_weight_force'])){
+            $values['fahuocang']['is_weight_force'] = '0';
+        }
+        if(!isset($values['fahuocang']['is_vol_force'])){
+            $values['fahuocang']['is_vol_force'] = '0';
+        }
+        if(!isset($values['fahuocang']['is_adminremark_force'])){
+            $values['fahuocang']['is_adminremark_force'] = '0';
+        }
+        if(!isset($values['fahuocang']['is_photo_force'])){
+            $values['fahuocang']['is_photo_force'] = '0';
+        }
+        
         return $values;
     }
     

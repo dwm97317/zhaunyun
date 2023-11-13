@@ -163,6 +163,7 @@ class Index extends Controller
         $data = [];
         $User = new User;
         $member = '';
+        // dump($param);die;
         if(!empty($param['data']['user_code'])){
             $member = $User->where(['user_code'=>$param['data']['user_code'],'is_delete'=>0])->find();
         }
@@ -177,6 +178,7 @@ class Index extends Controller
                 !empty($member) && $result->save([
                     'member_id'=>$member['user_id'],
                     'is_take'=>2,
+                    'usermark'=>isset($param['data']['mark'])?$param['data']['mark']:'',
                     'country_id'=>$param['data']['country_id'],
                     'storage_id'=>$param['data']['shop_id'],
                     'remark'=>$param['data']['remark'],
@@ -190,6 +192,7 @@ class Index extends Controller
             $data[$key]['member_id'] = !empty($member)?$member['user_id']:'';
             $data[$key]['country_id'] = $param['data']['country_id'];
             $data[$key]['storage_id'] = $param['data']['shop_id'];
+            $data[$key]['usermark'] = isset($param['data']['mark'])?$param['data']['mark']:'';
             $data[$key]['remark'] = $param['data']['remark'];
             $data[$key]['created_time'] = getTime();
             $data[$key]['updated_time'] = getTime();
@@ -261,7 +264,7 @@ class Index extends Controller
         $map2 = \request()->param();
         $map = array_merge($map1,$map2);
         //  dump($map2);die;
-        $list = $packageModel->getAllList($map);
+        $list = $packageModel->getUnpackList($map);
         $countweight = $packageModel->getListSum($map); 
         $shopList = ShopModel::getAllList();
         $line = (new Line())->getListAll([]);
@@ -398,6 +401,7 @@ class Index extends Controller
         $map2 = \request()->param();
         $map = array_merge($map1,$map2);
         $list = $packageModel->getList($map);
+        // dump($list->toArray());die;
         $shopList = ShopModel::getAllList();
         $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
         $statusTotal = [];
@@ -688,14 +692,6 @@ class Index extends Controller
         if (!$line){
             return $this->renderError('线路不存在,请重新选择');
         }
-        //计算路线费用；
-        //  dump($line);die;
-        // $priceRes = $this->computeLinePrice($pack,$line,$pack_ids);
-        
-        // if(isset($priceRes['code'])){
-        //      return $this->renderError('线路价格无法预估,请更换线路'); 
-        // }
-    //  dump($address);die;
         // 创建包裹订单
         $inpackOrder = [
           'order_sn' => $storesetting['createSn']==10?createSn():createSnByUserIdCid($pack_member[0],$address['country_id']),
@@ -712,7 +708,6 @@ class Index extends Controller
           'other_free' =>0,
           'member_id' => $pack_member[0],
           'country' => $address['country'],
-          'source' => 1,
           'created_time' => getTime(),
           'updated_time' => getTime(),
           'status' => 1,
@@ -737,8 +732,6 @@ class Index extends Controller
         $inpackdate = (new Inpack())->where('id',$inpack)->find();
         //处理包装服务
         (new InpackServiceModel())->doservice($inpack,$pack_ids);
-        
-        
         $res = (new Package())->whereIn('id',$idsArr)->update(['inpack_id'=>$inpack,'status'=>5,'line_id'=>$line_id,'pack_service'=>$pack_ids,'address_id'=>$address_id,'updated_time'=>getTime()]);
         //更新包裹的物流信息
         foreach ($idsArr as $key => $val){
@@ -760,93 +753,93 @@ class Index extends Controller
     
 
     //  计算线路费用
-    public function computeLinePrice($pack,$line,$pack_ids){
+    // public function computeLinePrice($pack,$line,$pack_ids){
 
-        $free_rule = json_decode($line['free_rule'],true);  //线路规则
-        $price = 0; // 总运费
-        $allWeigth = 0; //总重量
-        $caleWeigth = 0; //计费重量
-        $volumn = 0;   //体积重
-        $pack_free = 0; //包装费
-        switch ($line['free_mode']) {
-            //阶梯计费
-            case '1':
-                foreach ($pack as $v){
-                    //计算体积重，按6000规则
-                    $weigthV = round(($v['length']*$v['width']*$v['height'])/6000,2);
-                    // 取两者中较重者 
-                    $oWeigth = $weigthV > $v['weight']?$weigthV:$v['weight'];
+    //     $free_rule = json_decode($line['free_rule'],true);  //线路规则
+    //     $price = 0; // 总运费
+    //     $allWeigth = 0; //总重量
+    //     $caleWeigth = 0; //计费重量
+    //     $volumn = 0;   //体积重
+    //     $pack_free = 0; //包装费
+    //     switch ($line['free_mode']) {
+    //         //阶梯计费
+    //         case '1':
+    //             foreach ($pack as $v){
+    //                 //计算体积重，按6000规则
+    //                 $weigthV = round(($v['length']*$v['width']*$v['height'])/6000,2);
+    //                 // 取两者中较重者 
+    //                 $oWeigth = $weigthV > $v['weight']?$weigthV:$v['weight'];
              
-                    foreach ($free_rule as $k => $val) {
-                      if ($oWeigth >= $val['weight'][0]){
-                         if (isset($val['weight'][1]) && $oWeigth<$val['weight'][1]){
-                             $predict = [
-                                 'price' => $oWeigth*$val['weight_price'],
-                             ];
-                             continue;   
-                         }
-                      }
-                   }
+    //                 foreach ($free_rule as $k => $val) {
+    //                   if ($oWeigth >= $val['weight'][0]){
+    //                      if (isset($val['weight'][1]) && $oWeigth<$val['weight'][1]){
+    //                          $predict = [
+    //                              'price' => $oWeigth*$val['weight_price'],
+    //                          ];
+    //                          continue;   
+    //                      }
+    //                   }
+    //               }
                    
-                   if (!isset($predict['price'])){
-                       return $this->renderError('线路价格无法预估,请更换线路'); 
-                   }
+    //               if (!isset($predict['price'])){
+    //                   return $this->renderError('线路价格无法预估,请更换线路'); 
+    //               }
                    
-                   $price += $predict['price']; // 累加价格
-                   $allWeigth += $v['weight']; // 累加重量
-                   $caleWeigth += $oWeigth; // 累加计费重量 
-                   $volumn += $weigthV; // 累加体积重
-                   $free = $predict['price']; // 更新运费
-                   // 计算包装费用
-                   $packServiesSum = Db::name('package_services')->whereIn('id',explode(',',$pack_ids))->sum('price');
-                   $pack_free = $packServiesSum;
-                //   (new Package())->where(['id'=>$v['id']])->update($up);
-                }
-                break;
-            //首续重计费   
-            case '2':
-                //多个包裹循环计算
-                foreach ($pack as $v){
-                    //计算体积重，按6000规则
-                    $weigthV = round(($v['length']*$v['width']*$v['height'])/6000,2);
-                    // 取两者中较重者 
-                    $oWeigth = $weigthV > $v['weight']?$weigthV:$v['weight'];
-                    $caleWeigth += $oWeigth; // 累加计费重量 
-                    $volumn += $weigthV; // 累加体积重
-                    // 计算包装费用
-                    $packServiesSum = Db::name('package_services')->whereIn('id',explode(',',$pack_ids))->sum('price');
-                    $pack_free = $packServiesSum;
+    //               $price += $predict['price']; // 累加价格
+    //               $allWeigth += $v['weight']; // 累加重量
+    //               $caleWeigth += $oWeigth; // 累加计费重量 
+    //               $volumn += $weigthV; // 累加体积重
+    //               $free = $predict['price']; // 更新运费
+    //               // 计算包装费用
+    //               $packServiesSum = Db::name('package_services')->whereIn('id',explode(',',$pack_ids))->sum('price');
+    //               $pack_free = $packServiesSum;
+    //             //   (new Package())->where(['id'=>$v['id']])->update($up);
+    //             }
+    //             break;
+    //         //首续重计费   
+    //         case '2':
+    //             //多个包裹循环计算
+    //             foreach ($pack as $v){
+    //                 //计算体积重，按6000规则
+    //                 $weigthV = round(($v['length']*$v['width']*$v['height'])/6000,2);
+    //                 // 取两者中较重者 
+    //                 $oWeigth = $weigthV > $v['weight']?$weigthV:$v['weight'];
+    //                 $caleWeigth += $oWeigth; // 累加计费重量 
+    //                 $volumn += $weigthV; // 累加体积重
+    //                 // 计算包装费用
+    //                 $packServiesSum = Db::name('package_services')->whereIn('id',explode(',',$pack_ids))->sum('price');
+    //                 $pack_free = $packServiesSum;
                     
-                }
-                    //累计重量进行计算运费
-                    if($caleWeigth>$free_rule[0]['first_weight']){
-                        $linenum = ($caleWeigth-$free_rule[0]['first_weight'])/$free_rule[0]['next_weight'];
-                        //向上取整，不管0.1也取1
-                        $price =$free_rule[0]['first_price']+ ceil($linenum)*$free_rule[0]['next_price'];
-                        $allWeigth = $caleWeigth;
-                        $caleWeigth = $free_rule[0]['first_weight'] + ceil($linenum)*$free_rule[0]['next_weight'] ;
-                    }else{
-                        $price += $free_rule[0]['first_price'];
-                        $allWeigth = $caleWeigth;
-                        $caleWeigth = 0.5;
-                    }
+    //             }
+    //                 //累计重量进行计算运费
+    //                 if($caleWeigth>$free_rule[0]['first_weight']){
+    //                     $linenum = ($caleWeigth-$free_rule[0]['first_weight'])/$free_rule[0]['next_weight'];
+    //                     //向上取整，不管0.1也取1
+    //                     $price =$free_rule[0]['first_price']+ ceil($linenum)*$free_rule[0]['next_price'];
+    //                     $allWeigth = $caleWeigth;
+    //                     $caleWeigth = $free_rule[0]['first_weight'] + ceil($linenum)*$free_rule[0]['next_weight'] ;
+    //                 }else{
+    //                     $price += $free_rule[0]['first_price'];
+    //                     $allWeigth = $caleWeigth;
+    //                     $caleWeigth = 0.5;
+    //                 }
                     
                     
-                break;
-            default:
-                // code...
-                break;
-        }
+    //             break;
+    //         default:
+    //             // code...
+    //             break;
+    //     }
                
-        $data['allWeigth'] = $allWeigth; //此数值计算无误
-        $data['free'] = $price;  //此数值计算无误
-        $data['caleWeigth'] = $caleWeigth;//此数值计算无误
-        $data['volumn'] = $volumn;  //此参数意义不大，可以忽略
-        $data['pack_free'] = $pack_free; //包装费 此费用需要根据选择的包裹服务统计包装服务费用
-        $data['other_free'] = $line['tariff'] + $line['service_route'];  //海关费用+渠道增值服务费
+    //     $data['allWeigth'] = $allWeigth; //此数值计算无误
+    //     $data['free'] = $price;  //此数值计算无误
+    //     $data['caleWeigth'] = $caleWeigth;//此数值计算无误
+    //     $data['volumn'] = $volumn;  //此参数意义不大，可以忽略
+    //     $data['pack_free'] = $pack_free; //包装费 此费用需要根据选择的包裹服务统计包装服务费用
+    //     $data['other_free'] = $line['tariff'] + $line['service_route'];  //海关费用+渠道增值服务费
       
-        return $data;
-    }
+    //     return $data;
+    // }
 
     /**
      * 批量修改包裹所属用户
@@ -945,6 +938,9 @@ class Index extends Controller
             'express_num' =>$post['express_num'],
             'express_name'=>isset($post['express_name'])?$post['express_name']:'其他',
             'storage_id' => isset($res['data']['storage']['shop_id'])?$res['data']['storage']['shop_id']:'',
+            'length'=> isset($post['length'])?$post['length']:'',
+            'width'=> isset($post['width'])?$post['width']:'',
+            'height'=> isset($post['height'])?$post['height']:'',
             'entering_warehouse_time'=> getTime(),
             'created_time'=> getTime(),
             'updated_time'=> getTime(),
@@ -1119,6 +1115,7 @@ class Index extends Controller
          }
         //更新图片
         if(isset($data['images'])){
+            (new $PackageImage)->where('package_id',$data['id'])->delete(); 
             foreach ($data['images'] as $key =>$val){
                  $result = (new $PackageImage)->where('package_id',$data['id'])->where('image_id',$val)->find();
                  if(!isset($result)){
@@ -1134,6 +1131,8 @@ class Index extends Controller
                      }
                  }
             }
+        }else{
+            (new $PackageImage)->where('package_id',$data['id'])->delete(); 
         }
         
         //更新包裹所在货架
@@ -1190,6 +1189,7 @@ class Index extends Controller
                     $data['status'] = 2;
                     $data['storage_id'] = $shop_id;
                     $data['is_take'] = 1;
+                    $data['source'] = 2;
                     $data['wxapp_id'] = (new Package())->getWxappId();
                     $data['created_time'] = getTime();
                     $data['updated_time'] = getTime();

@@ -56,6 +56,7 @@ class Payment
     {
         // 统一下单API
         $wxConfig = WxappModel::getWxappCache($user['wxapp_id']);
+        // dump($user);die;
         //获取当前使用的是元/美元
         $pricemode = SettingModel::getItem('store')['price_mode']['mode'];
         $paytype = SettingModel::getItem('paytype');

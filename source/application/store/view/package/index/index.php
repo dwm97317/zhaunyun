@@ -245,11 +245,14 @@
                                             <?= $item['inpack']['order_sn'] ?></a><br>
                                         <?php endif;?>
                                         
-                                        <span class="am-badge am-badge-secondary"><?= $source[$item['source']]?></span>
+                                        <span class="am-badge am-badge-secondary"><?= $source[$item['source']]?></span></br>
                                         
                                         <?php if (!$item['category_attr']->isEmpty()): foreach ($item['category_attr'] as $attr): ?>
-                                              <span class="am-badge am-badge-success"><?= $attr['class_name']?></span> 
+                                              <span class="am-badge am-badge-success"><?= $attr['class_name']?></span> </br>
                                         <?php endforeach;endif; ?>
+                                        <?php if(isset($set['is_usermark']) && $set['is_usermark']==1 && $item['usermark'] ) :?>
+                                             唛头：<?= $item['usermark']; ?></br>
+                                        <?php endif;?>
                                     </td>
                                     <td class="am-text-middle">
                                         <?= $item['nickName'] ?></br>
@@ -910,6 +913,7 @@
                 dataIndex: 'user_id',
                 done: function (data) {
                     var user = [data[0]];
+                    console.log(user,98999);
                     $userList.html(template('tpl-user-item', user));
                 }
             });

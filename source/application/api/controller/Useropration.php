@@ -163,6 +163,7 @@ class Useropration extends Controller
         if(stristr($post,'JD')){
              $post = explode('-',$post)[0];
         }
+        
         //处理USPS单号问题
         //处理FEDEX单号问题
         $map[] = ['is_delete','=',0];
@@ -174,7 +175,7 @@ class Useropration extends Controller
             ->with(['storage','line'])
             ->find();
         //当查询不到包裹时，尝试查询是否是集运单的国际单号；
-
+// dump($res);die;
         if(empty($res)){
             $Inpack = new Inpack();
             $maps['is_delete'] =0;
@@ -260,7 +261,7 @@ class Useropration extends Controller
         $order['updated_time'] = getTime();
         $order['shoprk_time'] = getTime();
         $order['remark'] = $remark;
-    
+        $order['exceed_date'] = 0;
         $restwo = $packData->save($order); //获取到包裹的id
         if (!$restwo){
              return $this->renderError('包裹入库失败');
@@ -375,6 +376,7 @@ class Useropration extends Controller
        }
         return $this->renderSuccess("上架成功");
     }
+
 
     // 仓库打包员 打包列表
     public function inpackTotal(){
@@ -695,35 +697,13 @@ class Useropration extends Controller
   
        //再加一层校验；
         $map[] = ['is_delete','=',0];
-        $map[] = ['express_num','=',$express_num]; 
-        // $is_exitres = (new Package())->setQuery($map)->find();
-        // // dump($is_exitres);die;  
-        // if($is_exitres){
-        //     $is_pre =10;
-        // }else{
-        //     //模糊查询类似单号
-        //     $where = "wxapp_id = '" .$wxapp_id."' and '".$express_num."' like concat('%',express_num) and is_delete=0 and status < 6 and express_num !=''"; 
-        //     $selectData = Db::name('Package')->where($where)->where('express_num','not null')->select();
-             
-        //     $skey = 0;
-        //     if(count($selectData)==1  && $is_pre==0){
-        //         $is_pre = 10;
-        //         $express_num = $selectData['0']['express_num'];
-        //     }elseif(count($selectData)>1 && $is_pre==0){
-        //          $is_pre = 10;
-        //         //如果查出多个类似的包裹，则选择匹配度最长的；
-        //         for ($i = 1; $i < count($selectData); $i++) {
-        //             if($selectData[$i]>$selectData[$i-1]){
-        //                 $skey = $i; 
-        //             }else{
-        //                 $skey = $i+1; 
-        //             }
-        //         }
-        //         $express_num = $selectData[$skey]['express_num'];
-        //         $id = $selectData[$skey]['id'];
-        //     }
-        // }
-        //  dump($is_pre);die;      
+        $map[] = ['express_num','=',$express_num];
+        //对京东单号进行特殊处理
+        if(strstr($express_num,'JD')){
+            $a = explode('-',$express_num);
+            count($a)>1 && $express_num = $a[0];
+        }
+        
        //$is_pre==0 为没有查询到包裹数据的情况，需要插入新数据
        if ($is_pre==0){
             if ($user_id){
@@ -821,7 +801,7 @@ class Useropration extends Controller
                       Message::send('order.enter',$data);  
                     }
               }
-            
+            Logistics::add($restwo,'仓管员手动入库');
             return $this->renderSuccess('包裹入库成功');
        }elseif($is_pre==10){
        //有对应数据情况下
@@ -849,7 +829,7 @@ class Useropration extends Controller
        $update['width'] = !empty($width)?$width:$data['width'];
        $update['weight'] = !empty($weight)?$weight:$data['weight'];
        $update['remark'] = !empty($data['remark'])?$data['remark'].';'.$remark:$remark;
-
+       $update['storage_id'] = $clerk['shop_id'];
        $update['status'] = 2;
        $update['updated_time'] = getTime();
        $update['entering_warehouse_time'] = getTime();
@@ -917,6 +897,7 @@ class Useropration extends Controller
                (new Email())->sendemail($user,$data,$type=1);
            } 
        }
+       
        return $this->renderSuccess('包裹入库成功'); 
            
        }elseif($is_pre==20){

@@ -112,6 +112,7 @@ class Index extends Controller
       if (!$this->request->isAjax()) {
         return $this->fetch('add',compact('shopList'));
       }
+   
       // 新增记录
       $model = new Shelf();
       if ($model->add($this->postData('shelf'))) {

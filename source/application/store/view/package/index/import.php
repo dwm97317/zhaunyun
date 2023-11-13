@@ -86,11 +86,10 @@ var importExcel = {
           '物流名称':'express_name',
           '用户ID':'member_id',
           '仓库名称':'storage_name',
-           '包裹重量':'weight',
-        //   '物品价值':'price',
-        //   '备注':'remark',
-        //   '认领状态':'is_taker',
-        //   '物品品类':'class_name',
+          '包裹重量':'weight',
+          '长':'length',
+          '宽':'width',
+          '高':'height',
     },
     num:0,
     pro_num:0,
@@ -184,7 +183,7 @@ var importExcel = {
     },
     uploadPre:function(excelData){
         if (!excelData[0]){
-             console.log('excel 为空的');
+             console.log(excelData + 'excel 为空的');
              return;
         }
         $('.am-u-sm-12').show();

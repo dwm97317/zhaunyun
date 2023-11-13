@@ -107,6 +107,7 @@
         $('input[data-check=item]:checked').each(function () {
             data.push($(this).data('params'));
         });
+        console.log(data,98765);
         return data;
     }
 

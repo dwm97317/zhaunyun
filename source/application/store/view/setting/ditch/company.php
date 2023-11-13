@@ -51,6 +51,27 @@
                                 <td>华磊科技</td>
                                 <td>http://www.sz56t.com/</td>
                             </tr>
+                            <tr>
+                                <td>10005</td>
+                                <td>星泰国际</td>
+                                <td>星泰国际</td>
+                                <td>星泰国际</td>
+                                <td>http://xingtx.nextsls.com/</td>
+                            </tr>
+                            <tr>
+                                <td>10006</td>
+                                <td>澳联国际</td>
+                                <td>澳联国际</td>
+                                <td>澳联国际</td>
+                                <td>http://www.sz56t.com/</td>
+                            </tr>
+                            <tr>
+                                <td>10007</td>
+                                <td>易抵达</td>
+                                <td>易抵达</td>
+                                <td>易抵达</td>
+                                <td>https://www.itdida.com/</td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>

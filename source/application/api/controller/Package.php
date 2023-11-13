@@ -40,7 +40,9 @@ use app\common\library\Ditch\BaiShunDa\bsdexp;
 use app\common\library\Ditch\Jlfba\jlfba;
 use app\common\library\Ditch\kingtrans;
 use app\common\library\Ditch\Hualei;
-
+use app\common\library\Ditch\Xzhcms5;
+use app\common\library\Ditch\Aolian;
+use app\common\library\Ditch\Yidida;
 /**
  * 页面控制器
  * Class Index
@@ -67,6 +69,78 @@ class Package extends Controller
             $this->user['user_id'] = 0;
         }
     }
+    
+        
+    //批量打包
+    public function quickPackageItAll(){
+        $param = $this->request->param();
+        $PackageModel = new PackageModel;
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        $storesetting = SettingModel::getItem('store');
+        $inpackOrder = [
+          'order_sn' => createSn(),
+          'remark' =>$param['remark'],
+          'pack_services_id' => $param['pack_ids'],
+          'storage_id' => $clerk['shop_id'],
+          'free' => 0,
+          'weight' =>$param['weight'],
+          'length' =>$param['length'],
+          'width' =>$param['width'],
+          'height' =>$param['height'],
+          'cale_weight' =>0,
+          'volume' => 0, //体积重
+          'pack_free' => 0,
+          'other_free' =>0,
+          'created_time' => getTime(),
+          'updated_time' => getTime(),
+          'status' => 1,
+          'source' => 6,
+          'wxapp_id' => $param['wxapp_id'],
+          'line_id' => $param['line_id'],
+        ];
+        // 开启事务
+        Db::startTrans();
+        $inpack = (new Inpack())->insertGetId($inpackOrder);
+         //处理包装服务
+        (new InpackServiceModel())->doservice($inpack,$param['pack_ids']);
+        //查询仓库是否存在此包裹，如果存在，则更新入库时间和入库的状态；
+        //如果不存在，则需要入库操作；
+        $pack_id = [];
+        // dump($clerk);die;
+        $express_nums = explode(',',$param['packids']);
+        foreach ($express_nums as $key => $val){
+            $number = $PackageModel->where('express_num',$val)->find();
+            
+            if(!empty($number) && $number['status']>4){
+                return $this->renderError($val.'已被打包');
+            }
+            // dump($number->toArray());die;
+            if(!empty($number)){
+                $number->save(['entering_warehouse_time'=>getTime(),'status'=>8,'inpack_id'=>$inpack]);
+                $pack_id[$key] = $number['id'];
+            }else{
+                $id = $PackageModel->insertGetId([
+                    'entering_warehouse_time'=>getTime(),
+                    'status'=>8,
+                    'express_num'=>$val,
+                    'storage_id'=>$clerk['shop_id'],
+                    'updated_time'=>getTime(),
+                    'created_time'=>getTime(),
+                    'wxapp_id'=>$param['wxapp_id'],
+                    'inpack_id'=>$inpack,
+                    'order_sn'=> CreateSn()
+                ]);
+                $pack_id[$key] = $id;
+            }
+        }
+        (new Inpack())->where('id',$inpack)->update(['pack_ids'=>implode(',',$pack_id)]);
+        Db::commit();
+        return $this->renderSuccess('提交打包成功');
+        //包裹处理完成后，需要把包裹的id加入到集运订单中，创建新的快速打包订单；
+        
+        //快速打包订单添加好后，需要对订单进行用户归属，路线选择，用户地址选择等操作才能划分到正常订单行列；
+    }
+    
 
      // 包裹预报
      public function report(){
@@ -244,7 +318,7 @@ class Package extends Controller
          //注册到17track
          $noticesetting = SettingModel::getItem('notice');
          $storesetting = SettingModel::getItem('store');
-        //  dump($storesetting);die;
+        //  dump($noticesetting);die;
          if($noticesetting['is_track_yubao']['is_enable']==1){
                 $trackd = (new TrackApi())
                 ->register([
@@ -692,7 +766,12 @@ class Package extends Controller
             
             //发送模板消息通知
         }
-
+         //计算费用
+         if($storesetting['is_auto_free']==1){
+             getpackfree($inpackdate['id']); 
+         }
+        
+         
          $this->user = $this->getUser();
          $clerk = (new Clerk())->where('shop_id',$pack[0]['storage_id'])->where('mes_status',0)->where('is_delete',0)->select();
           
@@ -946,24 +1025,25 @@ class Package extends Controller
      // 包裹列表 - 取消包裹
      public function canclePack(){
          $id = $this->postData('id');
-         $info = (new Inpack())->field('id,status,is_pay,pack_ids')->find($id[0]);
+         $info = (new Inpack())->field('id,status,is_pay,pack_ids,real_payment,order_sn,member_id,wxapp_id')->find($id[0]);
          if (!in_array($info['status'],[1,2,3,4])){
               return $this->renderError('该包裹已发货,无法为您拦截取消');
          }
+          
          // 判断该订单是否已支付 且 实际付款金额>0
-         if ($info['is_pay']==1 && $info['real_payment']){
+         if ($info['is_pay']==1 && $info['real_payment']>0){
              // 退款流程
             $remark =  '集运订单'.$info['order_sn'].'的支付退款';
             (new User())->banlanceUpdate('add',$info['member_id'],$info['real_payment'],$remark);
          }
          
          $padata= explode(',',$info['pack_ids']);
-        //  dump($padata);die;
          if($info['pack_ids']){
              foreach($padata as $key=>$val){
-                 (new PackageModel())->where('id',$val)->update(['status'=>2]);
+                 (new PackageModel())->where('id',$val)->update(['status'=>2,'inpack_id'=>null]);
              }
          }
+        
          $res = (new Inpack())->where(['id'=>$info['id']])->update(['status'=>'-1']);
          if (!$res){
               return $this->renderError('取消失败');
@@ -1078,7 +1158,7 @@ class Package extends Controller
         if(!\request()->get('token')){
             return $this->renderError('请先登录');
         }
-        $field = 'id,inpack_id,country_id,order_sn,storage_id,express_num,created_time,source,status';
+        $field = 'id,inpack_id,country_id,order_sn,storage_id,express_num,created_time,source,status,usermark';
         $where = [
           'is_delete' => 0,
           'status' =>\request()->get('status'),
@@ -1553,7 +1633,7 @@ class Package extends Controller
      public function details(){
         $field_group = [
            'edit' => [
-              'id,order_sn,storage_id,country_id,express_name,express_num,express_id,free,pack_free,price,address_id,status,line_id,remark,weight'
+              'id,order_sn,storage_id,country_id,express_name,express_num,express_id,free,pack_free,price,address_id,status,line_id,remark,weight,usermark'
            ],
         ];
         $id = \request()->post('id');
@@ -1679,6 +1759,7 @@ class Package extends Controller
         $logguoji=[];
         $logzd = [];
         $logici = [];
+        $logicti = [];
         $Logistics = new Logistics();
         $PackageModel = new PackageModel();
         $DitchModel= new DitchModel();
@@ -1692,13 +1773,14 @@ class Package extends Controller
         $inpackData2 = $Inpack->where(['t2_order_sn'=>$express,'is_delete' => 0])->find();
         $inpackData3 = $Inpack->where('FIND_IN_SET(:ids,pack_ids)', ['ids' => $packData['id']])->where('is_delete',0)->find();
         //如果是包裹单号，可以反查下处于哪个集运单；
-       
+        //   dump($packData);die;
         
         if(!empty($packData)){
             //查出的系统内部物流信息
             $logic = $Logistics->getList($express);
-            if(count($logic)>0){
                 // dump($logic);die;
+            if(count($logic)>0){
+                // dump($inpackData);die;
                 $logia = $Logistics->getorderno($logic[0]['order_sn']);
             }
             $express_code = $Express->getValueById($packData['express_id'],'express_code');
@@ -1716,14 +1798,16 @@ class Package extends Controller
             }
               
             $logic = array_merge($logia,$logib,$logic,$logzd,$logguoji);
-           
         }
-//   dump($inpackData);die;
+        
+        if(!empty($inpackData)){
+            //查出的系统内部物流信息
+            $logicti = $Logistics->getorderno($express);
+        }
+//   dump($logicti);die;
         if(!empty($inpackData) ){
             if($inpackData['transfer']==0){
-                
                 $ditchdatas = $DitchModel->where('ditch_id','=',$inpackData['t_number'])->find();
-                //  dump($ditchdatas);die;
                  //锦联
                 if($ditchdatas['ditch_no']==10001){
                     $jlfba =  new jlfba(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token']]);
@@ -1745,8 +1829,27 @@ class Package extends Controller
                     $Hualei =  new Hualei(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
                     $result = $Hualei->query($express);
                 }
+                
+                //星泰api
+                if($ditchdatas['ditch_no']==10005){
+                    $Xzhcms5 =  new Xzhcms5(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
+                    $result = $Xzhcms5->query($express);
+                }
+                
+                //澳联
+                if($ditchdatas['ditch_no']==10006){
+                    $Aolian =  new Aolian(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
+                    $result = $Aolian->query($express);
+                }
+                
+                //易抵达
+                if($ditchdatas['ditch_no']==10007){
+                    $Yidida =  new Yidida(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
+                    $result = $Yidida->query($express);
+                }
              
                 $logic = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
+                // dump($logic);die;
                 $logic = array_merge($logic,$result);
              
             }else{
@@ -1758,7 +1861,7 @@ class Package extends Controller
         if(!empty($inpackData2)){
             $logici = $Logistics->getZdList($inpackData2['t2_order_sn'],$inpackData2['t2_number'],$inpackData2['wxapp_id']);
         }
-        $logic = array_merge($logic,$logici);
+        $logic = array_merge($logic,$logici,$logicti);
 
         return $this->renderSuccess(compact('logic'));
      }

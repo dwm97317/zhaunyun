@@ -89,7 +89,12 @@
                                         <td class="am-text-middle"><?= $item['shelf_unit_no'] ?></td>
                                         <td class="am-text-middle"><?= $item['shelf']['shelf_name'] ?></td>
                                         <td class="am-text-middle"><a target="_blank" href="/<?= $item['shelf_unit_qrcode'];?>"><img width="30" height="30" src="/<?= $item['shelf_unit_qrcode'];?>" ></a></td>
-                                        <td class="am-text-middle"><?php if (isset($item['shelfunititem']) && !$item['shelfunititem']->isEmpty() ): ?><?php foreach($item['shelfunititem'] as $_item):?>包裹单号:<?= $_item['express_num']; ?> [UID]:<?= $_item['user_id'] ;?></br><?php endforeach ;?><?php else: ?> 货位空空如也 <?php endif; ?></td>
+                                        <td class="am-text-middle"><?php if (isset($item['shelfunititem']) && !$item['shelfunititem']->isEmpty() ): ?><?php foreach($item['shelfunititem'] as $_item):?>
+                                            包裹单号:<?= $_item['express_num']; ?> 
+                                            [UID]:<?= $_item['user_id'] ;?>  上架时间：<?= $_item['created_time'] ;?></br>
+                                            <?php endforeach ;?>
+                                            <?php else: ?> 货位空空如也 <?php endif; ?>
+                                        </td>
                                         <td class="am-text-middle">
                                             <div class="tpl-table-black-operation">
                                                 <?php if (checkPrivilege('shelf_manager.index/deleteshelfunititem')): ?>

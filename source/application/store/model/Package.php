@@ -73,7 +73,6 @@ class Package extends PackageModel
         }
 
         
-        // dump(empty($data['user_code']));die;
         if(!empty($data['user_code'])){
             $userData = (new User())->where('user_code',$data['user_code'])->find();
             isset($userData) && $data['user_id'] = $userData['user_id'];
@@ -125,7 +124,6 @@ class Package extends PackageModel
          ];
          //存在id则为更新
          if ($data['id']){
-        
               $post['status'] = 2;
               $res = $this->where('id',$data['id'])->update($post);
               
@@ -142,18 +140,6 @@ class Package extends PackageModel
                   $updataimg['create_time'] = strtotime(getTime());
                  (new PackageImage())->insert($updataimg);
               }}
-              
-            //   //兼容新的突破上传
-            // dump(isset($data['package_image_id']));die;
-            //   if(isset($data['package_image_id'])){
-            //       foreach ($package_image_id as $value ) {
-            //           $updataimg['package_id'] = $data['id'];
-            //           $updataimg['image_id'] = $value;
-            //           $updataimg['wxapp_id'] = self::$wxapp_id;
-            //           $updataimg['create_time'] = strtotime(getTime());
-            //          (new PackageImage())->insert($updataimg);
-            //       }
-            //   }
               
               $post['id'] = $data['id'];
               //判断是否需要添加物流信息
@@ -500,8 +486,8 @@ class Package extends PackageModel
     {
         return $this->setindexListQueryWhere($query)
             ->alias('a')
-            ->with(['categoryAttr','Member','country','storage','inpack'])
-            ->field('a.inpack_id,a.id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title')
+            ->with(['categoryAttr','Member','country','storage','inpack','packageimage.file'])
+            ->field('a.inpack_id,a.usermark,a.id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -594,7 +580,7 @@ class Package extends PackageModel
     }
     
     
-        /**
+    /**
      * 订单列表
      * @param array $query
      * @return \think\Paginator
@@ -616,6 +602,37 @@ class Package extends PackageModel
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
             ->join('package_item pi','pi.order_id = a.id','LEFT')
+            ->order('updated_time DESC')
+            ->group('a.id')
+            ->paginate(isset($query['limitnum'])?$query['limitnum']:15,false,[
+                'query'=>\request()->request()
+            ]);
+    }
+    
+    /**
+     * 订单列表
+     * @param array $query
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    //查询
+    public function getUnpackList($query = [])
+    {
+        // dump($query);die;
+        // $query['category_id'] = 884;
+        return $this->setListQueryWhere($query)
+            ->alias('a')
+            ->with(['categoryAttr','inpack'])
+            // ->with(['categoryAttr','categoryAttr' => function($quer) use($query) {
+            //     $quer->where('class_id','=',$query['category_id']);
+            // }])
+            ->field('a.id,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
+            ->join('user u', 'a.member_id = u.user_id',"LEFT")
+            ->join('countries c', 'a.country_id = c.id',"LEFT")
+            ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
+            ->join('package_item pi','pi.order_id = a.id','LEFT')
+            ->where('a.inpack_id',null)
+            // ->whereOr('a.')
             ->order('updated_time DESC')
             ->group('a.id')
             ->paginate(isset($query['limitnum'])?$query['limitnum']:15,false,[
@@ -680,7 +697,6 @@ class Package extends PackageModel
         !empty($param['is_take'])&& $this->where('is_take','in',$param['is_take']);
         !empty($param['source'])&& $this->where('source','=',$param['source']);
         !empty($param['is_delete'])&& $this->where('a.is_delete','=',$param['is_delete']);
-        
         !empty($param['extract_shop_id'])&&is_numeric($param['extract_shop_id']) && $param['extract_shop_id'] > -1 && $this->where('storage_id', '=', (int)$param['extract_shop_id']);
         !empty($param['start_time']) && $this->where('created_time', '>', $param['start_time']);
         !empty($param['end_time']) && $this->where('created_time', '<', $param['end_time']." 23:59:59");

@@ -98,6 +98,7 @@ class Passport extends Controller
         // 微信小程序一键登录
         $LoginService = new LoginService;
         $data = $this->request->param();
+        // dump($data);die;
         if (!$LoginService->loginMpWxMobileClerk($data)) {
             return $this->renderError($LoginService->getError());
         }

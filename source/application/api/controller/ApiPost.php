@@ -27,6 +27,7 @@ use app\store\model\Setting as SettingModel;
 use think\Request;
 use app\common\library\AITool\BaiduOcr;
 use app\api\model\User as UserModel;
+use app\common\model\AiLog;
 /**
  * 页面控制器
  * Class Index
@@ -179,7 +180,8 @@ class ApiPost extends Controller
         if($setting['is_enable']==0){
             return $this->renderError("尚未开启智能AI识别功能，请更改API");
         }
-        $BaiduOcr = new BaiduOcr($setting['apikey'],$setting['apisecret']);
+        // dump($setting);die;
+        $BaiduOcr = new BaiduOcr($setting);
         if(!isset($param['token']) || empty($param['token'])){
             return $this->renderError("TOKEN不能为空");
         }
@@ -192,12 +194,13 @@ class ApiPost extends Controller
         $Wxapp = new Wxapp;
         $Package = new Package;
         $UserModel = new UserModel;
+        $AiLog = new AiLog;
         $detail = $Wxapp::detail($param['wxapp_id']);
         if($detail['token'] != $param['token']){
             return $this->renderError("TOKEN错误");
         }
        
-        
+        $userinfo = [];
         $result = $Package->where(['express_num'=>$param['expressnum'],'is_delete'=>0])->find();
         if(!empty($_FILES['file']['name'])){
             $StorageDriver = new StorageDriver($this->config);
@@ -216,22 +219,38 @@ class ApiPost extends Controller
             $fileInfo = $StorageDriver->getFileInfo();
             // 添加文件库记录
             $uploadFile = $this->addUploadFile($group_id = -1, $fileName, $fileInfo, 'image');
-        //   dump($uploadFile->file_url);die;
-            $user_id = $BaiduOcr->generalBasic($uploadFile->file_url.'/'.$uploadFile->file_name);
-            //查询是否存在该用户id，不存在则跳过；存在就将包裹跟用户id绑定；
-            $userinfo = $UserModel::detail($user_id);
-            if(!empty($userinfo)){
-               $Package->where(['express_num'=>$param['expressnum'],'is_delete'=>0])->update(['member_id'=>$user_id]);
+            //使用百度AI识别结果
+            if(!empty($result) && $result['is_take']==1){
+                $ailogresult = $BaiduOcr->generalBasic($uploadFile->file_url.'/'.$uploadFile->file_name);
+                $AiLog->add([
+                    'user_id'=>$ailogresult['user_id'],
+                    'content'=>$ailogresult['words'],
+                    'wxapp_id'=>$this->wxapp_id,
+                ]);
+                $detail->setDec('baiduai',1); 
             }
-    
+            
+            $storesetting = SettingModel::getItem('store',$this->wxapp_id);
+            
+            //  dump($user_id);die;
+            if(!empty($ailogresult['user_id'])){
+                if($storesetting['usercode_mode']['is_show']==1){
+                    $userinfo = $UserModel::detail(['user_code'=>$ailogresult['user_id']]);
+                }else{
+                    $userinfo = $UserModel::detail($ailogresult['user_id']);
+                }
+            }  
+            //查询是否存在该用户id，不存在则跳过；存在就将包裹跟用户id绑定；
         }
-         
-        
+           
+        //当包裹已经预报时
         if(!empty($result)){
             $result->save([
                 'status'=>2,
+                'member_id'=>!empty($userinfo)?$userinfo['user_id']:$result['member_id'],
                 'storage_id'=>$param['shop_id'],
                 'weight'=>$param['weight'],
+                'is_take'=>!empty($userinfo)?2:$result['is_take'],
                 'entering_warehouse_time'=>getTime()
             ]);
             
@@ -246,6 +265,7 @@ class ApiPost extends Controller
             }
             return $this->renderSuccess("更新成功");
         }
+         //当包裹没有预报时
         $data = [
             'order_sn'=> createSn(),
             'express_num'=>$param['expressnum'],
@@ -254,9 +274,12 @@ class ApiPost extends Controller
             'wxapp_id'=>$param['wxapp_id'],
             'weight'=>$param['weight'],
             'source'=>9,
+            'member_id'=>!empty($userinfo)?$userinfo['user_id']:'',
+            'is_take'=>!empty($userinfo)?2:1,
             'entering_warehouse_time'=>getTime()
         ];
         $id = $Package->saveData($data);
+        // dump($id.'-'.$uploadFile);die;
         if(isset($uploadFile)){
             $imgdata = [
                 'package_id'=> $id,

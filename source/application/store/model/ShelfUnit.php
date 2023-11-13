@@ -78,6 +78,7 @@ class ShelfUnit extends ShelfUnitModel
         $list = $this->where('shelf_unit_id','in',$ids)->select();
         $qrcodeService = (new QrcodeService());
         foreach ($list as $v){
+        
             $update['shelf_unit_qrcode'] = $qrcodeService->create($v['shelf_unit_code']);
             $this->where(['shelf_unit_id'=>$v['shelf_unit_id']])->update($update);
         } 
@@ -120,12 +121,13 @@ class ShelfUnit extends ShelfUnitModel
     // 生成货位数据
     public function getShelfUnitData($data,$shelf){
         $shelf_unit = [];
+            // dump($data);die;
         $allrang = $data['shelf_row']*$data['shelf_column'];
         $qrcodeService = (new QrcodeService());
         for ($i = 1; $i <= $allrang ; $i++){
                 $shelf_unit[$i]['shelf_unit_no'] = 'S'.$i;
                 $shelf_unit[$i]['shelf_unit_code'] = createQrcodeCode($data['shelf_no'].'S'.$i);
-                $shelf_unit[$i]['shelf_unit_qrcode'] = $qrcodeService->create($shelf_unit[$i]['shelf_unit_code']);
+                $shelf_unit[$i]['shelf_unit_qrcode'] = $qrcodeService->create($data['shelf_no'].'S'.$i);
                 $shelf_unit[$i]['shelf_id'] = $shelf;
                 $shelf_unit[$i]['shelf_unit_floor'] = $i; //层数
                 $shelf_unit[$i]['wxapp_id'] = self::$wxapp_id;

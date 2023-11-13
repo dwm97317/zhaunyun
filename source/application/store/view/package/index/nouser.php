@@ -73,6 +73,7 @@
                                 <th><input id="checkAll" type="checkbox" ></th>
                                 <th>包裹ID</th>
                                 <th>包裹预报单号/快递单号</th>
+                                <th>包裹预览图</th>
                                 <th>仓库</th>
                                 <th>运往国家</th>
                                 <th>包裹信息</th>
@@ -97,6 +98,15 @@
                                         <?php if (!$item['category_attr']->isEmpty()): foreach ($item['category_attr'] as $attr): ?>
                                               <span class="am-badge am-badge-success"><?= $attr['class_name']?></span> 
                                         <?php endforeach;endif; ?>
+                                    </td>
+                                    <td class="am-text-middle">
+                                        <figure style="display:inline-flex;" data-am-widget="figure" class="am am-figure am-figure-default "   data-am-figure="{  pureview: 'true' }">
+                                            <?php if (!$item['packageimage']->isEmpty()): foreach ($item['packageimage'] as $itemd): ?>
+                                            <a href="<?= $itemd['file_path'] ?>" title="点击查看大图" target="_blank">
+                                                <img src="<?= $itemd['file_path'] ?>" width="50" height="50" alt="评论图片">
+                                            </a>
+                                            <?php endforeach;endif; ?>
+                                        </figure>
                                     </td>
                                     <td class="am-text-middle"><?= $item['shop_name'] ?></td>
                                     <td class="am-text-middle"><?= $item['title'] ?></td>

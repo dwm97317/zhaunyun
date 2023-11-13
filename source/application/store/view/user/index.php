@@ -95,15 +95,11 @@
                                 <th><input id="checkAll" type="checkbox" ></th>
                                 <th>用户ID</th>
                                 <th>微信头像</th>
-                                <th>微信昵称</th>
+                                <th>会员资料</th>
                                 <th>OPEN_ID</th>
                                 <th>专属客服</th>
-                                <th>手机号</th>
-                                <th>用户余额</th>
-                                <th>可用积分</th>
-                                <th>会员角色</th>
-                                <th>实际消费金额</th>
-                                <th>性别</th>
+                                <th>交易数据</th>
+                                <th>会员唛头</th>
                                 <th>时间</th>
                                 <th width="300px">操作</th>
                             </tr>
@@ -119,17 +115,31 @@
                                     <td class="am-text-middle">
                                         <a href="<?= $item['avatarUrl'] ?>" title="点击查看大图" target="_blank">
                                             <?php if($item['avatarUrl']) :?>
-                                                 <img src="<?= $item['avatarUrl'] ?>" width="72" height="72" alt="">
+                                                 <img src="<?= $item['avatarUrl'] ?>" width="50" height="50" alt="">
                                             <?php else:?>
-                                                 <img src="assets/admin/img/head.jpg" width="72" height="72" alt="">
+                                                 <img src="assets/admin/img/head.jpg" width="50" height="50" alt="">
                                             <?php endif;?>
+                                            
                                         </a>
                                     </td>
                                     <td class="am-text-middle">
                                         <?= $item['nickName'] ?> <br> 
                                         <?php if($set['is_show']!=0) :?>
-                                             CODE: <span><?= $item['user_code'] ?></span>
+                                             CODE: <span><?= $item['user_code'] ?></span><br>
                                         <?php endif;?>
+                                        性别：<?= $item['gender']['text'] ?><br>
+                                        <?php if($item['user_type']!=4) :?>
+                                             <?= $typeMap[$item['user_type']];?><br>
+                                          <?php else:?>
+                                              <?php if($item['grade']['name']) :?>
+                                                    <?= $item['grade']['name'];?><br>
+                                              <?php else:?>
+                                               普通会员<br>
+                                              <?php endif;?>
+                                          <?php endif;?>
+                                          <?php if($item['mobile'] !=0 ) :?>
+                                            手机号：<?= $item['mobile']; ?>
+                                          <?php endif;?>
                                     </td>
                                     <td class="am-text-middle">
                                         开放平台ID:<?= $item['union_id'] ?> <br> 
@@ -139,24 +149,17 @@
                                      <td class="am-text-middle"><?= $item['service']['real_name'] ?></td>
                                     <!--<?php $usource = [1=>'小程序',2=>'公众号',3=>'PC端',4=>'App'] ?>-->
                                     <!--<td class="am-text-middle"><?= $usource[$item['u_source']] ?></td>-->
-                                    <td class="am-text-middle"><?= $item['mobile'] ?></td>
-                                    <td class="am-text-middle"><?= $item['balance'] ?></td>
-                                    <td class="am-text-middle"><?= $item['points'] ?></td>
-                                   
                                     <td class="am-text-middle">
-                                          <?php if($item['user_type']!=4) :?>
-                                             <?= $typeMap[$item['user_type']];?>
-                                          <?php else:?>
-                                              <?php if($item['grade']['name']) :?>
-                                                    <?= $item['grade']['name'];?>
-                                              <?php else:?>
-                                               普通会员
-                                              <?php endif;?>
-                                          <?php endif;?>
+                                        用户余额：<?= $item['balance'] ?><br> 
+                                        可用积分：<?= $item['points'] ?><br>
+                                        实际消费金额：<?= $item['expend_money'] ?>
                                     </td>
-                                    <td class="am-text-middle"><?= $item['expend_money'] ?></td>
-                                    <td class="am-text-middle"><?= $item['gender']['text'] ?></td>
-                              
+                                    <td class="am-text-middle">
+                                         <?php if (isset($item['usermark']) && !$item['usermark']->isEmpty()):
+                                            foreach ($item['usermark'] as $items): ?>
+                                            <?= $items['mark']; ?> - <?= $items['markdes']; ?> <br>
+                                        <?php endforeach; endif; ?>
+                                    </td>
                                     <td class="am-text-middle">
                                         注册时间：<?= $item['create_time'] ?><br/>
                                         最近登录：<?= $item['last_login_time'] ?><br/>
@@ -192,6 +195,15 @@
                                                    title="修改会员等级">
                                                     <i class="iconfont icon-grade-o"></i>
                                                     会员等级
+                                                </a>
+                                            <?php endif; ?>
+                                            <?php if (checkPrivilege('user/usermark')): ?>
+                                                <a class="j-usermark tpl-table-black-operation-default"
+                                                   href="javascript:void(0);"
+                                                   data-id="<?= $item['user_id'] ?>"
+                                                   title="添加会员唛头">
+                                                    <i class="iconfont icon-grade-o"></i>
+                                                    新增唛头
                                                 </a><br />
                                                 <span style="padding-bottom:10px;display: block;"></span>
                                             <?php endif; ?>
@@ -356,7 +368,27 @@
         </form>
     </div>
 </script>
-
+<!-- 模板：修改会员唛头 -->
+<script id="tpl-usermark" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label"> 唛头编号 </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <input type="text" name="mark[mark]" value="" placeholder="请输入唛头编号">
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label"> 使用场景描述 </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <input type="text" name="mark[markdes]" value="" placeholder="请输入唛头用途">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
 <!-- 模板：用户充值 -->
 <script id="tpl-recharge" type="text/template">
     <div class="am-padding-xs am-padding-top-sm">
@@ -687,6 +719,29 @@
                 }
             });
         });
+        
+        /**
+         * 修改会员等级
+         */
+        $('.j-usermark').on('click', function () {
+            var data = $(this).data();
+            $.showModal({
+                title: '新增会员等级'
+                , area: '460px'
+                , content: template('tpl-usermark', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('user/usermark') ?>',
+                        data: {user_id: data.id}
+                    });
+                    return true;
+                }
+            });
+        });
+         
         
         /**
          * 修改会员折扣
