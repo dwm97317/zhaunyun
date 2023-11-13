@@ -55,7 +55,7 @@ abstract class Server
      */
     public function setUploadFileByReal($filePath)
     {
-   
+//   dump($filePath);die;
         // 设置为系统内部上传
         $this->isInternal = true;
         // 文件信息

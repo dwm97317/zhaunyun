@@ -79,5 +79,15 @@ class UploadFile extends BaseModel
         $data['wxapp_id'] = self::$wxapp_id;
         return $this->save($data);
     }
+    
+    /**
+     * 添加新记录
+     * @param $data
+     * @return false|int
+     */
+    public function addImage($data)
+    {
+        return $this->save($data);
+    }
 
 }

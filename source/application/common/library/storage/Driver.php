@@ -47,6 +47,8 @@ class Driver
     {
         return $this->engine->setUploadFileByReal($filePath);
     }
+    
+    
 
     /**
      * 执行文件上传
@@ -54,6 +56,14 @@ class Driver
     public function upload()
     {
         return $this->engine->upload();
+    }
+    
+    /**
+     * 执行文件上传
+     */
+    public function put()
+    {
+        return $this->engine->putFile();
     }
 
     /**

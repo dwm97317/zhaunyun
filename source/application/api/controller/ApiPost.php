@@ -139,7 +139,133 @@ class ApiPost extends Controller
         }
         return $this->renderSuccess("预报成功");
     }
+    
+    /**
+     * 电子秤二号
+     * Class Passport
+     * @package app\api\controller
+     */
+    public function reportpacktwo(){
+        $param = $this->request->param();
+        $wxapp_id = $param['wxapp_id'];
+        $param = $param[0];
+        if(!isset($param['ticketsNum']) || empty($param['ticketsNum'])){
+            return $this->renderError("快递单号不能为空");
+        }
+        if(!isset($param['weight']) || empty($param['weight'])){
+            return $this->renderError("包裹重量不能为空");
+        }
+        $Package = new Package;
+        $result = $Package->where(['express_num'=>$param['ticketsNum'],'is_delete'=>0])->find();
+        if(!empty($result)){
+            $result->save([
+                'status'=>2,
+                // 'storage_id'=>$param['shop_id'],
+                'weight'=>$param['weight'],
+                'length'=>$param['length'],
+                'height'=>$param['height'],
+                'width'=>$param['width'],
+                'volume'=>$param['volume'],
+                'entering_warehouse_time'=>getTime()
+            ]);
+            return ['result'=>"true",'message'=>"入库成功"];
+        }
+        $data = [
+            'order_sn'=> createSn(),
+            'express_num'=>$param['ticketsNum'],
+            'status'=>2,
+            // 'storage_id'=>$param['shop_id'],
+            'wxapp_id'=>$wxapp_id,
+            'weight'=>$param['weight'],
+            'length'=>$param['length'],
+            'height'=>$param['height'],
+            'width'=>$param['width'],
+            'source'=>9,
+            'entering_warehouse_time'=>getTime()
+        ];
+        $id = $Package->saveData($data);
+        return ['result'=>"true",'message'=>"入库成功"];
+    }
 
+    /**
+     * 图片上传接口
+     * @return array
+     * @throws \think\Exception
+     */
+    public function image()
+    {
+        // 实例化存储驱动
+        
+        $param = $this->request->param();
+        // $data =  explode ( ',' ,  $param['file'] );  //截取data:image/png;base64, 这个逗号后的字符
+        $data =  base64_decode($param['file']);
+        // dump($data);die;
+        $path = 'uploads/'.time().rand(10000,99999).'.jpg';
+        file_put_contents($path,$data);
+        // 设置上传文件的信息
+        $this->config = SettingModel::getItem('storage',$param['wxapp_id']);
+        $StorageDriver = new StorageDriver($this->config);
+        //   dump($path);die;
+        $StorageDriver->setUploadFileByReal($path);
+        // dump(34);die;
+        // 上传图片
+        if (!$StorageDriver->put()) {
+            return json(['code' => 0, 'msg' => '图片上传失败' . $StorageDriver->getError()]);
+        }
+        // dump(34);die;
+        // 设置上传文件的信息
+        // 图片上传路径
+        $fileName = $StorageDriver->getFileName();
+        // 图片信息
+        $fileInfo = $StorageDriver->getFileInfo();
+        // 添加文件库记录
+        $uploadFile = $this->addUploadFiles($fileName, $fileInfo, 'image');
+        $Package = new Package;
+        $result = $Package->where(['express_num'=>$param['ticketsNum'],'is_delete'=>0])->find();
+        if(isset($uploadFile) && !empty($result)){
+            $imgdata = [
+                'package_id'=> $result['id'],
+                'image_id'=>$uploadFile['file_id'],
+                'wxapp_id'=>$param['wxapp_id'],
+                'create_time'=>time()
+            ];
+            (new PackageImage())->save($imgdata);
+        }
+        // 图片上传成功
+        return json(['isOK' => 1]);
+    }
+
+    /**
+     * 添加文件库上传记录
+     * @param $fileName
+     * @param $fileInfo
+     * @param $fileType
+     * @return UploadFile
+     */
+    private function addUploadFiles($fileName, $fileInfo, $fileType)
+    {
+        // 存储引擎
+        $storage = $this->config['default'];
+
+        // 存储域名
+        $fileUrl = isset($this->config['engine'][$storage]['domain'])
+            ? $this->config['engine'][$storage]['domain'] : '';
+        // 添加文件库记录
+                
+        $model = new UploadFile;
+        $model->addImage([
+            'storage' => $storage,
+            'file_url' => $fileUrl,
+            'file_name' => $fileName,
+            'file_size' => $fileInfo['size'],
+            'file_type' => $fileType,
+            'extension' => pathinfo($fileInfo['name'], PATHINFO_EXTENSION),
+            'is_user' => 0,
+            'wxapp_id'=>$this->wxapp_id
+        ]);
+      
+        return $model;
+    }
 /**
      * 添加文件库上传记录
      * @param $group_id
