@@ -167,7 +167,7 @@ class ApiPost extends Controller
                 'volume'=>$param['volume'],
                 'entering_warehouse_time'=>getTime()
             ]);
-            return ['result'=>true,'message'=>"入库成功"];
+            return ['result'=>"true",'message'=>"入库成功"];
         }
         $data = [
             'order_sn'=> createSn(),
@@ -183,7 +183,7 @@ class ApiPost extends Controller
             'entering_warehouse_time'=>getTime()
         ];
         $id = $Package->saveData($data);
-        return ['result'=>true,'message'=>"入库成功"];
+        return ['result'=>"true",'message'=>"入库成功"];
     }
 
     /**
