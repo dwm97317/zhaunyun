@@ -49,6 +49,34 @@ class Aliyun extends Server
         }
         return true;
     }
+    
+    
+     /**
+     * 执行上传
+     * @return bool|mixed
+     */
+    public function putFile()
+    {
+        $path = realpath($this->getRealPath());
+        try {
+            $ossClient = new OssClient(
+                $this->config['access_key_id'],
+                $this->config['access_key_secret'],
+                $this->config['domain'],
+                true
+            );
+            $result = $ossClient->uploadFile(
+                $this->config['bucket'],
+                $this->fileName,
+                $this->getRealPath()
+            );
+        } catch (OssException $e) {
+            $this->error = $e->getMessage();
+            return false;
+        }
+        return true;
+    }
+
 
     /**
      * 删除文件
