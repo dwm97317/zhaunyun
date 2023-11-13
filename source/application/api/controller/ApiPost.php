@@ -147,7 +147,8 @@ class ApiPost extends Controller
      */
     public function reportpacktwo(){
         $param = $this->request->param();
-        // dump($param);die;
+        $wxapp_id = $param['wxapp_id'];
+        $param = $param[0];
         if(!isset($param['ticketsNum']) || empty($param['ticketsNum'])){
             return $this->renderError("快递单号不能为空");
         }
@@ -174,7 +175,7 @@ class ApiPost extends Controller
             'express_num'=>$param['ticketsNum'],
             'status'=>2,
             // 'storage_id'=>$param['shop_id'],
-            'wxapp_id'=>$param['wxapp_id'],
+            'wxapp_id'=>$wxapp_id,
             'weight'=>$param['weight'],
             'length'=>$param['length'],
             'height'=>$param['height'],
@@ -196,10 +197,10 @@ class ApiPost extends Controller
         // 实例化存储驱动
         
         $param = $this->request->param();
-        $base64_string =  explode ( ',' ,  $param['file'] );  //截取data:image/png;base64, 这个逗号后的字符
-        $data =  base64_decode($base64_string [1]);
+        // $data =  explode ( ',' ,  $param['file'] );  //截取data:image/png;base64, 这个逗号后的字符
+        $data =  base64_decode($param['file']);
         // dump($data);die;
-        $path = 'uploads/'.time().rand(10000,99999).'.jpeg';
+        $path = 'uploads/'.time().rand(10000,99999).'.jpg';
         file_put_contents($path,$data);
         // 设置上传文件的信息
         $this->config = SettingModel::getItem('storage',$param['wxapp_id']);
