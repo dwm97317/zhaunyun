@@ -48,6 +48,7 @@ class Inpack extends InpackModel
     {
         // 检索查询条件
         !empty($query) && $this->setWhere($query);
+        !isset($query['limitnum']) && $query['limitnum'] = 10;
         // 获取数据列表
         $res= $this
             ->alias('pa')
@@ -57,7 +58,7 @@ class Inpack extends InpackModel
             ->where('pa.status','in',$this->status[$dataType])
             ->where('pa.is_delete',0)
             ->order(['pa.created_time' => 'desc'])
-            ->paginate(10, false, [
+            ->paginate($query['limitnum'], false, [
                 'query' => \request()->request()
             ]);
             // dump($res->toArray());die;
@@ -76,6 +77,7 @@ class Inpack extends InpackModel
     {
         // 检索查询条件
         !empty($query) && $this->setWhere($query);
+        !isset($query['limitnum']) && $query['limitnum'] = 10;
         // 获取数据列表
         $res= $this
             ->alias('pa')
@@ -86,7 +88,7 @@ class Inpack extends InpackModel
             ->where('pa.is_delete',0)
             ->where('pa.is_pay',2)
             ->order(['pa.created_time' => 'desc'])
-            ->paginate(10, false, [
+            ->paginate($query['limitnum'], false, [
                 'query' => \request()->request()
             ]);
             // dump($res->toArray());die;
@@ -104,6 +106,7 @@ class Inpack extends InpackModel
     {
         // 检索查询条件
         !empty($query) && $this->setWhere($query);
+        !isset($query['limitnum']) && $query['limitnum'] = 10;
         // 获取数据列表
         $res= $this
             ->alias('pa')
@@ -114,7 +117,7 @@ class Inpack extends InpackModel
             ->where('pa.is_delete',0)
             ->where('pa.address_id',null)
             ->order(['pa.created_time' => 'desc'])
-            ->paginate(10, false, [
+            ->paginate($query['limitnum'], false, [
                 'query' => \request()->request()
             ]);
             // dump($res->toArray());die;

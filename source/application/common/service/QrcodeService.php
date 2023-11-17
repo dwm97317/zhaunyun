@@ -8,6 +8,7 @@ class QrcodeService {
     public $outPut = 'uploads/qrcode/'; // 输出文件夹
     
     public function create($text){
+        // dump($text);die;
         if ($this->engine=='phpQrcode'){
             $rout1 = $this->createQrcodeByQr($text);
             $rout2 = $this->makeImgWithStr($text,30);

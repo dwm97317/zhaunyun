@@ -85,6 +85,7 @@ var importExcel = {
           '快递单号':'express_num',
           '物流名称':'express_name',
           '用户ID':'member_id',
+          '唛头':'usermark',
           '仓库名称':'storage_name',
           '包裹重量':'weight',
           '长':'length',

@@ -40,13 +40,13 @@ class Aolian{
         // 参数设置
         $result = $this->http_post($baseurl,json_encode($data));
         $express = json_decode($result,true);
-
-        if ($express['code']!=0) {
-            $this->error = isset($express['msg']) ? $express['msg'] : '查询失败';
+        // dump($express);die;
+        if ($express['code']==0) {
+            $this->error = isset($express['data'][0]['errormsg']) ? $express['data'][0]['errormsg'] : '查询失败';
             return [];
         }  
         $loglist = [];
-        // dump($express['data']);die;
+   
         if(count($express['data'][0]['trackItems'])>0){
             foreach ($express['data'][0]['trackItems'] as $v){
                 $loglist[] = [

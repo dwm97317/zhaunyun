@@ -28,7 +28,17 @@
                             <input type="hidden" name="s" value="/<?= $request->pathinfo() ?>">
                             <div class="am-u-sm-12 am-u-md-12">
                                 <div class="am fl">
-                                    
+                                    <div class="am-form-group am-fl">
+                                        <select name="limitnum"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '显示条数'}">
+                                            <option value="15">显示15条</option>
+                                            <option value="30">显示30条</option>
+                                            <option value="50">显示50条</option>
+                                            <option value="100">显示100条</option>
+                                            <option value="200">显示200条</option>
+                                            <option value="500">显示500条</option>
+                                        </select>
+                                    </div>
                                     <?php if($dataType=='all'): ?>
                                     <div class="am-form-group am-fl">
                                         <?php $extractStatus = $request->get('status'); ?>

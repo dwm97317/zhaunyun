@@ -220,7 +220,7 @@ class User extends UserModel
                 'union_id'=> empty($user['union_id'])?(isset($session['unionid'])?$session['unionid']:''):$user['union_id'],
                 'last_login_time' =>date("Y-m-d H:i:s",time()),
                 'wxapp_id' => self::$wxapp_id,
-                'paytype'=> $setting['moren']['user_pack_in_pay'],
+                'paytype'=> $user['paytype']??$setting['moren']['user_pack_in_pay'],
                 'nickName' => empty($user['nickName'])?$data['nickname']:$user['nickName'],
                 'avatarUrl' => $data['headimgurl'],
                 'user_code' => !empty($user['user_code'])?$user['user_code']:$user_code,
@@ -284,7 +284,7 @@ class User extends UserModel
             if (!$model->allowField(true)->save(array_merge($data, [
                 'open_id' => $session['openid'],
                 'union_id'=> isset($session['unionid'])?$session['unionid']:'',
-                'paytype'=> $setting['moren']['user_pack_in_pay'],
+                'paytype'=> $user['paytype']??$setting['moren']['user_pack_in_pay'],
                 'last_login_time' =>date("Y-m-d H:i:s",time()),
                 'wxapp_id' => self::$wxapp_id,
                 'user_code' => !empty($user['user_code'])?$user['user_code']:$user_code,

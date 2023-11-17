@@ -121,12 +121,13 @@ class ShelfUnit extends ShelfUnitModel
     // 生成货位数据
     public function getShelfUnitData($data,$shelf){
         $shelf_unit = [];
-            // dump($data);die;
+          
         $allrang = $data['shelf_row']*$data['shelf_column'];
         $qrcodeService = (new QrcodeService());
         for ($i = 1; $i <= $allrang ; $i++){
+            //   dump(createQrcodeCode($data['shelf_no'].'S'.$i));die;
                 $shelf_unit[$i]['shelf_unit_no'] = 'S'.$i;
-                $shelf_unit[$i]['shelf_unit_code'] = createQrcodeCode($data['shelf_no'].'S'.$i);
+                $shelf_unit[$i]['shelf_unit_code'] = $data['shelf_no'].'S'.$i;
                 $shelf_unit[$i]['shelf_unit_qrcode'] = $qrcodeService->create($data['shelf_no'].'S'.$i);
                 $shelf_unit[$i]['shelf_id'] = $shelf;
                 $shelf_unit[$i]['shelf_unit_floor'] = $i; //层数

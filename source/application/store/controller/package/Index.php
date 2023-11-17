@@ -23,6 +23,7 @@ use think\Db;
 use app\common\service\Message;
 use app\common\model\setting;
 use app\store\model\InpackService as InpackServiceModel;
+use app\store\model\user\UserMark as UserMarkModel;
 /**
  * 商家用户控制器
  * Class StoreUser
@@ -269,8 +270,9 @@ class Index extends Controller
         $shopList = ShopModel::getAllList();
         $line = (new Line())->getListAll([]);
         $packageService = (new PackageService())->getListAll();
-        // dump($packageService->toArray());die;
+       
         $set = Setting::detail('store')['values'];
+        //   dump($set);die;
         $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
         $statusTotal = [];
         foreach($status as $key => $val){
@@ -907,7 +909,7 @@ class Index extends Controller
     //   dump($post);die;
        $noticesetting = setting::getItem('notice');
        $field = [
-          'express_num','member_id','express_name','storage_name','weight'
+          'express_num','member_id','express_name','storage_name','weight','usermark'
        ];
        $require_field = [
           'express_num','storage_name'
@@ -941,6 +943,7 @@ class Index extends Controller
             'length'=> isset($post['length'])?$post['length']:'',
             'width'=> isset($post['width'])?$post['width']:'',
             'height'=> isset($post['height'])?$post['height']:'',
+            'usermark'=> isset($post['usermark'])?$post['usermark']:'',
             'entering_warehouse_time'=> getTime(),
             'created_time'=> getTime(),
             'updated_time'=> getTime(),
@@ -949,7 +952,25 @@ class Index extends Controller
             'wxapp_id' => (new Package())->getWxappId(),
             'is_take'=> !isset($post['member_id'])?1:2
        ];
-       $res = (new Package())->insertGetId($postData);
+       if(!empty($postData['member_id']) && !empty($postData['usermark'])){
+           $usermark = (new UserMarkModel())->where(['user_id'=>$postData['member_id'],'mark'=>$postData['usermark']])->find();
+           if(empty($usermark)){
+               (new UserMarkModel())->save([
+                    'user_id'=>$postData['member_id'],
+                    'mark'=>$postData['usermark'],
+                    'wxapp_id'=>(new Package())->getWxappId(),
+                    'create_time'=>time()
+               ]);
+           }
+       }
+       $packdata = (new Package())->where('express_num',$postData['express_num'])->where('is_delete',0)->find();
+       if(empty($packdata)){
+           $res = (new Package())->insertGetId($postData);
+       }else{
+           $packdata->save($postData);
+           $res = $packdata['id'];
+       }
+       
        if (!$res){
            $post['error'] = '未知错误';
            return $this->renderError('导入错误','',$post);
@@ -1028,9 +1049,9 @@ class Index extends Controller
                 $sub =  (new Package())->sendEnterMessage([$data->toArray()]);
                 return ['code'=>3,'msg'=>'快递单号客户已预报,状态修改失败，请手动调整为入库'];
             }
-            // if ($sn['status']==2){
-            //     return ['code'=>0,'msg'=>'快递单号已入库,请勿重复入库'];
-            // }
+            if ($sn['status']==2){
+                return ['code'=>0,'msg'=>'快递单号已入库,请勿重复入库'];
+            }
             
             // if ($sn['status']==2){
             //     return ['code'=>0,'msg'=>'快递单号已入库,请勿重复入库'];

@@ -371,9 +371,9 @@ class TrOrder extends Controller
         //修改集运单状态何支付状态
         // dump($rrr);die;
         if($inpackdata['status']==2){
-            $inpackdata->where('id',$data['id'])->update(['status'=>3,'is_pay'=>1,'is_pay_type'=>5,'pay_time'=>date('Y-m-d H:i:s',time())]);
+            $inpackdata->where('id',$data['id'])->update(['real_payment'=>$payprice,'status'=>3,'is_pay'=>1,'is_pay_type'=>5,'pay_time'=>date('Y-m-d H:i:s',time())]);
         }else{
-            $inpackdata->where('id',$data['id'])->update(['is_pay'=>1,'is_pay_type'=>5,'pay_time'=>date('Y-m-d H:i:s',time())]);
+            $inpackdata->where('id',$data['id'])->update(['real_payment'=>$payprice,'is_pay'=>1,'is_pay_type'=>5,'pay_time'=>date('Y-m-d H:i:s',time())]);
         }
         
         return $this->renderSuccess('操作成功');
@@ -505,9 +505,9 @@ class TrOrder extends Controller
         //修改集运单状态何支付状态
         $this->dealerData(['amount'=>$payprice,'order_id'=>$data['id']],$userdata);
         if($inpackdata['status']==2){
-            $inpackdata->where('id',$data['id'])->update(['status'=>3,'is_pay'=>1,'is_pay_type'=>0,'pay_time'=>date('Y-m-d H:i:s',time())]);
+            $inpackdata->where('id',$data['id'])->update(['real_payment'=>$payprice,'status'=>3,'is_pay'=>1,'is_pay_type'=>0,'pay_time'=>date('Y-m-d H:i:s',time())]);
         }else{
-            $inpackdata->where('id',$data['id'])->update(['is_pay'=>1,'is_pay_type'=>0,'pay_time'=>date('Y-m-d H:i:s',time())]);
+            $inpackdata->where('id',$data['id'])->update(['real_payment'=>$payprice,'is_pay'=>1,'is_pay_type'=>0,'pay_time'=>date('Y-m-d H:i:s',time())]);
         }
         return $this->renderSuccess('操作成功');
     }
@@ -1875,11 +1875,11 @@ class TrOrder extends Controller
           );
          
         $setting = SettingModel::getItem('store',$data[0]['wxapp_id']);
-        $objPHPExcel->getActiveSheet()->getStyle( 'A4:R4')->applyFromArray($style_Array);
+        $objPHPExcel->getActiveSheet()->getStyle( 'A4:S4')->applyFromArray($style_Array);
         //第一行的样式
         $objPHPExcel->getActiveSheet()->setCellValue('A1',$setting['name'].'── 业务结算清单');
         $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(24);
-        $objPHPExcel->getActiveSheet()->mergeCells('A1:R1');
+        $objPHPExcel->getActiveSheet()->mergeCells('A1:S1');
         $objPHPExcel->getActiveSheet()->getRowDimension('1')->setRowHeight(36);
         // $objPHPExcel->getActiveSheet()->setRowHeight(25);
         //第二行的样式
@@ -1903,17 +1903,19 @@ class TrOrder extends Controller
                 ->setCellValue('L4', '身份证')
                 ->setCellValue('M4', '地址')
                 ->setCellValue('N4', '邮编')
-                ->setCellValue('O4', '发货单号')
-                ->setCellValue('P4', '备注')
-                ->setCellValue('Q4', '状态')
-                ->setCellValue('R4', '业务日期');
+                ->setCellValue('O4', '承运商')
+                ->setCellValue('P4', '发货单号')
+                ->setCellValue('Q4', '备注')
+                ->setCellValue('R4', '状态')
+                ->setCellValue('S4', '业务日期')
+                ->setCellValue('T4', '专属客服');
                    
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:R')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:T')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:R4')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:R')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:T4')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:T')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         
-        $objPHPExcel->getActiveSheet()->getStyle('A:R')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        $objPHPExcel->getActiveSheet()->getStyle('A:T')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
         //设置行高
         $objPHPExcel->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
@@ -1935,8 +1937,10 @@ class TrOrder extends Controller
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('N')->setWidth(10);
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('O')->setWidth(18);
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('P')->setWidth(18);
-        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('Q')->setWidth(10);
-        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('R')->setWidth(22);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('Q')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('R')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('S')->setWidth(22);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('T')->setWidth(22);
         
         for($i=0;$i<count($data);$i++){
             // dump($data->toArray());die;
@@ -1954,10 +1958,12 @@ class TrOrder extends Controller
             $objPHPExcel->getActiveSheet()->setCellValue('L'.($i+5),$data[$i]['address']['identitycard']);//快递类别  ***********
             $objPHPExcel->getActiveSheet()->setCellValue('M'.($i+5),$data[$i]['address']['detail']);//快递类别  ***********
             $objPHPExcel->getActiveSheet()->setCellValue('N'.($i+5),$data[$i]['address']['code']);//快递类别  ***********
-            $objPHPExcel->getActiveSheet()->setCellValue('O'.($i+5),$data[$i]['t_order_sn'].' ');//内部单号
-            $objPHPExcel->getActiveSheet()->setCellValue('P'.($i+5),$data[$i]['remark']);//备注
-            $objPHPExcel->getActiveSheet()->setCellValue('Q'.($i+5),$status[$data[$i]['status']]);//转单号码
-            $objPHPExcel->getActiveSheet()->setCellValue('R'.($i+5),$data[$i]['created_time']);//业务日期
+            $objPHPExcel->getActiveSheet()->setCellValue('O'.($i+5),$data[$i]['t_name'].' ');//内部单号
+            $objPHPExcel->getActiveSheet()->setCellValue('p'.($i+5),$data[$i]['t_order_sn'].' ');//内部单号
+            $objPHPExcel->getActiveSheet()->setCellValue('Q'.($i+5),$data[$i]['remark']);//备注
+            $objPHPExcel->getActiveSheet()->setCellValue('R'.($i+5),$status[$data[$i]['status']]);//转单号码
+            $objPHPExcel->getActiveSheet()->setCellValue('S'.($i+5),$data[$i]['created_time']);//业务日期
+            $objPHPExcel->getActiveSheet()->setCellValue('T'.($i+5),$data[$i]['user']['user_id']);//专属客服
         }
         //7.设置保存的Excel表格名称
         //8.设置当前激活的sheet表格名称；
