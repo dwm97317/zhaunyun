@@ -174,7 +174,7 @@ class Report extends Controller
         $detail['log'] = (new Logistics())->where('order_sn',$detail['order_sn'])->select();
         //获取集运信息
         $set = Setting::detail('store')['values'];
-        // dump($set);die;
+        // dump($detail);die;
         // $detail['inpack'] = (new Inpack())->where('pack_ids','in',$id)->select();
         //获取货架信息
         // $data = (new ShelfUnitItem())->where('pack_id',$id)->find();

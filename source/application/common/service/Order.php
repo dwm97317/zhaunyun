@@ -44,7 +44,7 @@ class Order
         $model = self::model(OrderTypeEnum::TRAN);
      
         foreach ($data as $key =>$val) {
-          $data[$key]['inpack'] = $model::detail($val['id']);
+          $data[$key]['inpack'] = $model::detail($val['order_id']);
         }
   
         return $data;

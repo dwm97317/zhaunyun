@@ -116,7 +116,7 @@ class Package extends Controller
             }
             // dump($number->toArray());die;
             if(!empty($number)){
-                $number->save(['entering_warehouse_time'=>getTime(),'status'=>8,'inpack_id'=>$inpack]);
+                $number->save(['entering_warehouse_time'=>getTime(),'status'=>8,'inpack_id'=>$inpack,'storage_id'=>$clerk['shop_id'],]);
                 $pack_id[$key] = $number['id'];
             }else{
                 $id = $PackageModel->insertGetId([

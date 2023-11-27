@@ -75,6 +75,10 @@ class Setting extends SettingModel
                     $values['price_mode']['unit'] = 'A$';
                     $values['price_mode']['unit_name'] = '澳元';
                     break;
+                case '60':
+                    $values['price_mode']['unit'] = 'HK$';
+                    $values['price_mode']['unit_name'] = '港币';
+                    break;
                 default:
                     $values['price_mode']['unit'] = '¥';
                     $values['price_mode']['unit_name'] = '元';

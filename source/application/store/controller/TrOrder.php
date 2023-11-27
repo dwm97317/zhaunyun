@@ -137,9 +137,10 @@ class TrOrder extends Controller
     
     public function package($id){
          // 订单详情
-        $detail = Inpack::details($id);
-        $list = (new Package())->with("packageimage.file")->where('id','in',explode(',',$detail['pack_ids']))->select();
-       
+        // $detail = Inpack::details($id);
+        $Package = new Package();
+        $list = $Package->with("packageimage.file")->where('inpack_id',$id)->select();
+    //   dump($list->toArray());die;
         foreach ($list as $k => $v){
             $list[$k]['shelf'] = (new ShelfUnitItem())->getShelfUnitByPackId($v['id']);
             $list[$k]['pakitem'] = (new PackageItem())->where('order_id',$v['id'])->select();
@@ -152,9 +153,13 @@ class TrOrder extends Controller
     public function changeUser(){
         $ids = $this->postData('selectIds')[0];
         $user_id = $this->postData('user_id')[0];
+        $Package = new Package();
         $idsArr = explode(',',$ids);
-        // dump($user_id);die;
-        $res = (new Inpack())->whereIn("id",$idsArr)->update(['member_id'=>$user_id,'updated_time'=>getTime()]);
+        $array = (new Inpack())->whereIn("id",$idsArr)->where('is_delete',0)->select();
+        foreach ($array as $key => $val){
+            $Package->where('inpack_id',$val['id'])->update(['member_id'=>$user_id,'updated_time'=>getTime(),'is_take'=>2]);
+            $res = $val->save(['member_id'=>$user_id,'updated_time'=>getTime()]);
+        }
         if (!$res){
             return $this->renderError('修改提交失败');
         }
@@ -362,11 +367,10 @@ class TrOrder extends Controller
         //扣除余额，并产生一天用户的消费记录；减少用户余额；
         $res = $user->logUpdate('remove',$data['user_id'],$payprice,date("Y-m-d H:i:s").',集运单'.$inpackdata['order_sn'].'使用现金支付'.$payprice.'（现金支付不改变用户余额）');
         if(!$res){
-            //累计消费金额
-            $user->setIncPayMoney($payprice);
             return $this->renderError($user->getError() ?: '操作失败');
         }
-        
+        //累计消费金额
+        $userdata->setIncPayMoney($payprice);
         $this->dealerData(['amount'=>$payprice,'order_id'=>$data['id']],$userdata);
         //修改集运单状态何支付状态
         // dump($rrr);die;
@@ -498,10 +502,10 @@ class TrOrder extends Controller
         //扣除余额，并产生一天用户的消费记录；减少用户余额；
         $res = $user->banlanceUpdate('remove',$data['user_id'],$payprice,date("Y-m-d H:i:s").',集运单'.$inpackdata['order_sn'].'消费余额'.$payprice);
         if(!$res){
-            //累计消费金额
-            $user->setIncPayMoney($payprice);
             return $this->renderError($user->getError() ?: '操作失败');
         }
+        //累计消费金额
+        $userdata->setIncPayMoney($payprice);
         //修改集运单状态何支付状态
         $this->dealerData(['amount'=>$payprice,'order_id'=>$data['id']],$userdata);
         if($inpackdata['status']==2){

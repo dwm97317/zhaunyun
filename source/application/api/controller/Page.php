@@ -247,6 +247,15 @@ class Page extends Controller
         }
         $store["country"] = (new Country())->queryTopCountry();
         $store['userclient']= SettingModel::detail('userclient')['values'];
+        if(!empty($store['userclient']['guide']['first_image'])){
+             $store['userclient']['guide']['first_image'] = UploadFile::detail($store['userclient']['guide']['first_image'])['file_path'];
+        }
+        if(!empty($store['userclient']['guide']['second_image'])){
+             $store['userclient']['guide']['second_image'] = UploadFile::detail($store['userclient']['guide']['second_image'])['file_path'];
+        }
+        if(!empty($store['userclient']['guide']['third_image'])){
+             $store['userclient']['guide']['third_image'] = UploadFile::detail($store['userclient']['guide']['third_image'])['file_path'];
+        }
         $store['copyright']= WxappModel::detail(input('wxapp_id'));
         $store['paytype']= SettingModel::detail('paytype')['values'];
         $store['keeper']= SettingModel::detail('keeper')['values'];

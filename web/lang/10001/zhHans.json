@@ -687,7 +687,7 @@
 		"route_not_found": "未查询到路线"
 	},
 	"page_dairuku_xgxx": {
-		"modify_information": "修改信息",
+		"modify_information": "修改包裹信息",
 		"package_information": "包裹信息",
 		"courier_name": "快递名称",
 		"parcel_no": "包裹单号",
@@ -695,9 +695,10 @@
 		"consolidation_warehouse": "集运仓库",
 		"goods_info": "商品信息",
 		"commodity_category": "商品品类",
-		"commodity_value": "商品价值",
-		"commodity_remarks": "商品备注",
-		"edit_package": "编辑包裹"
+		"commodity_value": "商品总价值",
+		"commodity_remarks": "内品描述",
+		"edit_package": "编辑包裹",
+		"commodity_remarkstips":"请输入物品信息，格式参考例如: 衬衣*2，裤子*2，鞋子*1"
 	},
 	"page_dairuku_xq": {
 		"package_details": "包裹详情",
@@ -1001,7 +1002,18 @@
 		"placeholder5": "请输入银行名称",
 		"weixin": "微信号",
 		"placeholder6": "请输入你的微信号",
-		"Withdrawal_instructions": "提现须知"
+		"Withdrawal_instructions": "提现须知",
+		"tixianzhi":"提现至",
+		"dianjiqiehuan":"点击切换",
+		"zhu":"注",
+		"xingming":"姓名",
+		"xingmingremark":"请输入姓名",
+		"zhifubao":"支付宝账号",
+		"zhifubaoremark":"请输入支付宝账号",
+		"bank_account":"开户行名称/地址",
+		"bank_accountremark":"请输入开户行名称/地址",
+		"bank_card":"银行卡号",
+		"bank_cardremark":"请输入银行卡号"
 	},
 	"page_my_tixianmx": {
 		"Withdrawal_details": "提现明细",

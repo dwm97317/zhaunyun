@@ -109,6 +109,7 @@ class Dealer extends Controller
             'background' => $this->setting['background']['values']['withdraw_apply'],
             // 页面文字
             'words' => $this->setting['words']['values'],
+            'payenum'=>[10=>'微信','20'=>'支付宝',30=>'银行卡',40=>'余额']
         ]);
     }
 

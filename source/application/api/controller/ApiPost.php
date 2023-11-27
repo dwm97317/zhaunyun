@@ -58,7 +58,7 @@ class ApiPost extends Controller
      */
     public function reportpack(){
         $param = $this->request->param();
-       
+    
         if(!isset($param['token']) || empty($param['token'])){
             return $this->renderError("TOKEN不能为空");
         }

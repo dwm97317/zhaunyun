@@ -72,9 +72,13 @@
                                         <td class="am-text-middle"><?= $item['id'] ?></td>
                                         <td class="am-text-middle"><?= $item['express_num'] ?></td>
                                         <td class="am-text-middle">
-                                            <?php foreach ($item['packageimage'] as $items): ?>
-                                            <a href="<?= $items['file_path'] ?>" target="_blank"><img style="height:50px;" src="<?= $items['file_path'] ?>" /></a>
-                                            <?php endforeach; ?>
+                                            <figure style="display:inline-flex;" data-am-widget="figure" class="am am-figure am-figure-default "   data-am-figure="{  pureview: 'true' }">
+                                            <?php if (!$item['packageimage']->isEmpty()): foreach ($item['packageimage'] as $itemd): ?>
+                                            <a href="<?= $itemd['file_path'] ?>" title="点击查看大图" target="_blank">
+                                                <img src="<?= $itemd['file_path'] ?>" width="50" height="50" alt="评论图片">
+                                            </a>
+                                            <?php endforeach;endif; ?>
+                                            </figure>
                                         </td>
                                         <td class="am-text-middle">
                                             <?php foreach ($item['pakitem'] as $items): ?>

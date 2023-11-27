@@ -249,9 +249,9 @@ class User extends Controller
         
         $capital = (new Capital());
         $total = [
-            'today' =>  -$capital->where(['user_id'=>$userInfo['user_id']])->whereBetween('create_time',[$beginToday,$endToday])->sum('money'),
-            'week' =>  $capital->where(['user_id'=>$userInfo['user_id']])->whereBetween('create_time',[$weekStart,$weekEnd])->sum('money'),
-            'tatal' => $capital->where(['user_id'=>$userInfo['user_id']])->sum('money'),
+            'today' => $capital->where('flow_type',10)->where(['user_id'=>$userInfo['user_id']])->whereBetween('create_time',[$beginToday,$endToday])->sum('money'),
+            'week' =>$capital->where('flow_type',10)->where(['user_id'=>$userInfo['user_id']])->whereBetween('create_time',[$weekStart,$weekEnd])->sum('money'),
+            'tatal' => $capital->where('flow_type',10)->where(['user_id'=>$userInfo['user_id']])->sum('money'),
             'today_user' => $refferModel->countRefferUser($userInfo['user_id'],'today'),
             'all_member' => $refferModel->countRefferUser($userInfo['user_id']),
             'income' => $userInfo['income'],

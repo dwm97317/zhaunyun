@@ -503,6 +503,246 @@
                                 </div>
                             </div>
                             
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">用户端下单流程功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 第一步的标题 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[newuserprocess][first_title]"
+                                           value="<?= $values['newuserprocess']['first_title'] ?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 第一步的说明文字 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[newuserprocess][first_remark]"
+                                           value="<?= $values['newuserprocess']['first_remark'] ?>" required>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 第二步的标题 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[newuserprocess][second_title]"
+                                           value="<?= $values['newuserprocess']['second_title'] ?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 第二步的说明文字 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[newuserprocess][second_remark]"
+                                           value="<?= $values['newuserprocess']['second_remark'] ?>" required>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 第三步的标题 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[newuserprocess][third_title]"
+                                           value="<?= $values['newuserprocess']['third_title'] ?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 第三步的说明文字 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[newuserprocess][third_remark]"
+                                           value="<?= $values['newuserprocess']['third_remark'] ?>" required>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 第四步的标题 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[newuserprocess][fourth_title]"
+                                           value="<?= $values['newuserprocess']['fourth_title'] ?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 第四步的说明文字 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[newuserprocess][fourth_remark]"
+                                           value="<?= $values['newuserprocess']['fourth_remark'] ?>" required>
+                                </div>
+                            </div>
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">用户端首页引导区功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否使用原始默认
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[guide][is_default]" value="1"
+                                               data-am-ucheck  <?= $values['guide']['is_default'] == 1 ? 'checked' : '' ?>>
+                                        默认
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[guide][is_default]" value="0"
+                                               data-am-ucheck <?= $values['guide']['is_default'] == 0 ? 'checked' : '' ?>>
+                                        自定义
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>使用默认则下方设置不会生效，使用自定义，则请上传完整的图片和跳转路径，否则可能无法跳转</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label">第一张图 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <button type="button"
+                                                class="upload-file1 am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择图片
+                                        </button>
+                                        <div class="uploader-list am-cf">
+                                                <div class="file-item">
+                                                    <a href="<?= isset($values['guide']['first_image'])?$values['guide']['first_file_path']:'' ?>"
+                                                       title="点击查看大图" target="_blank">
+                                                        <img src="<?= isset($values['guide']['first_file_path'])?$values['guide']['first_file_path']:'' ?>">
+                                                    </a>
+                                                    <input type="hidden" name="userclient[guide][first_image]" value="<?=$values['guide']['first_image'] ?>">
+                                                    <i class="iconfont icon-shanchu file-item-delete"></i>
+                                                </div>
+                                        </div>
+                                        <div class="help-block am-u-sm-12">
+                                        <small>图片比例宽高比3:5,像素160*250</small>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    第一张图跳转地址类型
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[guide][first_url_type]" value="1"
+                                               data-am-ucheck  <?= $values['guide']['first_url_type'] == 1 ? 'checked' : '' ?>>
+                                        站内
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[guide][first_url_type]" value="2"
+                                               data-am-ucheck <?= $values['guide']['first_url_type'] == 2 ? 'checked' : '' ?>>
+                                        站外
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>站内请使用下方的链接库，站外链接请先在微信小程序官网后台添加域名授权</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label"> 第一张图跳转地址 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[guide][first_url]"
+                                           value="<?= $values['guide']['first_url'] ?>">
+                                           <small>注意：小程序内部链接使用链接库中的<a target="_blank" href="index.php?s=/store/wxapp.page/links">点击打开链接库</a></small>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label">第二张图 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <button type="button"
+                                                class="upload-file2 am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择图片
+                                        </button>
+                                        <div class="uploader-list am-cf">
+                                                <div class="file-item">
+                                                    <a href="<?= isset($values['guide']['second_image'])?$values['guide']['second_file_path']:'' ?>"
+                                                       title="点击查看大图" target="_blank">
+                                                        <img src="<?= isset($values['guide']['second_file_path'])?$values['guide']['second_file_path']:'' ?>">
+                                                    </a>
+                                                    <input type="hidden" name="userclient[guide][second_image]" value="<?=$values['guide']['second_image'] ?>">
+                                                    <i class="iconfont icon-shanchu file-item-delete"></i>
+                                                </div>
+                                        </div>
+                                        <small>图片比例宽高比3:5,像素160*250</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    第二张图跳转地址类型
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[guide][second_url_type]" value="1"
+                                               data-am-ucheck  <?= $values['guide']['second_url_type'] == 1 ? 'checked' : '' ?>>
+                                        站内
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[guide][second_url_type]" value="2"
+                                               data-am-ucheck <?= $values['guide']['second_url_type'] == 2 ? 'checked' : '' ?>>
+                                        站外
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>站内请使用下方的链接库，站外链接请先在微信小程序官网后台添加域名授权</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label"> 第二张图跳转地址 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[guide][second_url]"
+                                           value="<?= $values['guide']['second_url'] ?>">
+                                    <small>注意：小程序内部链接使用链接库中的<a target="_blank" href="index.php?s=/store/wxapp.page/links">点击打开链接库</a></small>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label">第三张图 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <button type="button"
+                                                class="upload-file3 am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择图片
+                                        </button>
+                                        <div class="uploader-list am-cf">
+                                                <div class="file-item">
+                                                    <a href="<?= isset($values['guide']['third_image'])?$values['guide']['third_file_path']:'' ?>"
+                                                       title="点击查看大图" target="_blank">
+                                                        <img src="<?= isset($values['guide']['third_file_path'])?$values['guide']['third_file_path']:'' ?>">
+                                                    </a>
+                                                    <input type="hidden" name="userclient[guide][third_image]" value="<?=$values['guide']['third_image'] ?>">
+                                                    <i class="iconfont icon-shanchu file-item-delete"></i>
+                                                </div>
+                                        </div>
+                                        <small>图片比例宽高比3:5,像素160*250</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    第三张图跳转地址类型
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[guide][third_url_type]" value="1"
+                                               data-am-ucheck  <?= $values['guide']['third_url_type'] == 1 ? 'checked' : '' ?>>
+                                        站内
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[guide][third_url_type]" value="2"
+                                               data-am-ucheck <?= $values['guide']['third_url_type'] == 2 ? 'checked' : '' ?>>
+                                        站外
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>站内请使用下方的链接库，站外链接请先在微信小程序官网后台添加域名授权</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label"> 第三张图跳转地址 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[guide][third_url]"
+                                           value="<?= $values['guide']['third_url'] ?>">
+                                    <small>注意：小程序内部链接使用链接库中的<a target="_blank" href="index.php?s=/store/wxapp.page/links">点击打开链接库</a></small>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
@@ -516,6 +756,12 @@
         </div>
     </div>
 </div>
+<script src="/web/static/js/selectize.min.js"></script>
+<!-- 图片文件列表模板 -->
+{{include file="layouts/_template/tpl_file_item" /}}
+
+<!-- 文件库弹窗 -->
+{{include file="layouts/_template/file_library" /}}
 <script>
     $(function () {
         /**
@@ -523,6 +769,15 @@
          * @type {*}
          */
         $('#my-form').superForm();
-
+         // 选择图片
+        $('.upload-file1').selectImages({
+            name: 'userclient[guide][first_image]'
+        });
+        $('.upload-file2').selectImages({
+            name: 'userclient[guide][second_image]'
+        });
+        $('.upload-file3').selectImages({
+            name: 'userclient[guide][third_image]'
+        });
     });
 </script>

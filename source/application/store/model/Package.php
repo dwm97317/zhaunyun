@@ -571,7 +571,7 @@ class Package extends PackageModel
             $express_num = str_replace("\r\n","\n",trim($param['express_num']));
             $express_num = explode("\n",$express_num);
             $express_num = implode(',',$express_num);
-            $where['a.express_num'] = array('in', $express_num);
+            $where['a.express_num|a.order_sn'] = array('in', $express_num);
             $this->where($where);
         }
         !empty($param['likesearch']) && $this->where('a.express_num','like','%'.$param['likesearch'].'%');

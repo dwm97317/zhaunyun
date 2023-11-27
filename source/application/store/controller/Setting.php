@@ -81,6 +81,12 @@ class Setting extends Controller
         if (!$this->request->isAjax()) {
             $vars['values'] = SettingModel::getItem($key);
             $vars['values']['baiduai'] = WxappModel::detail($this->store['wxapp']['wxapp_id'])['baiduai'];
+           
+            if($key=='userclient' && isset($vars['values']['guide']['first_image'])){
+                $vars['values']['guide']['first_file_path'] = UploadFile::detail($vars['values']['guide']['first_image'])['file_path'];
+                $vars['values']['guide']['second_file_path'] = UploadFile::detail($vars['values']['guide']['second_image'])['file_path'];
+                $vars['values']['guide']['third_file_path'] = UploadFile::detail($vars['values']['guide']['third_image'])['file_path'];
+            }
             return $this->fetch($key, $vars);
         }
   

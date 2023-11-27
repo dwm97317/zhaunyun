@@ -689,7 +689,7 @@ class Index extends Controller
             $address = (new UserAddress())->where(['address_id'=>$address_id])->find();
         }
         
-        
+        $userinfo = (new User())->where('user_id',$pack_member[0])->find();
         $line = (new Line())->find($line_id);
         if (!$line){
             return $this->renderError('线路不存在,请重新选择');
@@ -705,6 +705,7 @@ class Index extends Controller
           'free' => 0,
           'weight' =>0,
           'cale_weight' =>0,
+          'pay_type'=> !empty($userinfo)?$userinfo['paytype']:0,
           'volume' => 0, //体积重
           'pack_free' => 0,
           'other_free' =>0,

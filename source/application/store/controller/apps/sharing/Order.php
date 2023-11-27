@@ -51,7 +51,7 @@ class Order extends Controller
            $list[$key] = $Inpack::details($value['package_id']);
            $list[$key]['pin_status'] =$value['status'];
         }
-  
+        // dump($list);die;
         return $this->fetch('inpacklist',compact('list','set','shopList'));
     }
     

@@ -242,8 +242,11 @@ class Inpack extends BaseModel
      */
     public static function detail($orderId)
     {
-        return self::get($orderId);
+        return self::with(['user'])
+        ->where('id',$orderId)
+        ->find();
     }
+    
     
        
      /**

@@ -4,7 +4,7 @@ namespace app\store\controller\apps\dealer;
 
 use app\store\controller\Controller;
 use app\store\model\dealer\Order as OrderModel;
-
+use app\store\model\Setting as SettingModel;
 /**
  * 分销订单
  * Class Order
@@ -23,8 +23,9 @@ class Order extends Controller
     {
         $model = new OrderModel;
         $list = $model->getList($user_id, $is_settled);
-    //   dump($list->toArray());die;
-        return $this->fetch('index', compact('list'));
+        $set = SettingModel::getItem('store');
+        // dump($list->toArray());die;
+        return $this->fetch('index', compact('list','set'));
     }
 
 }

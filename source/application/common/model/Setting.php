@@ -287,6 +287,11 @@ class Setting extends BaseModel
                             'unit'=>'A$',
                             'unit_name'=>'澳元',
                         ],
+                        '60'=>[
+                            'number'=>'60',
+                            'unit'=>'HK$',
+                            'unit_name'=>'港币',
+                        ],
                     ],
                     'address_setting'=>[
                         'is_tel_code'=>1, 
@@ -386,6 +391,30 @@ class Setting extends BaseModel
                         'is_phone'=>0,
                         'is_wxopen'=>0, //是否开启了微信开放平台
                         'is_merge_user'=>0, //默认不合并用户的
+                    ],
+                    'newuserprocess'=>[
+                        'first_title'=>"第一步：复制仓库地址",
+                        'first_remark'=>"复制仓库地址后前往购物平台下单，将仓库地址粘贴到购物平台收货地址中。",
+                        'second_title'=>"第二步：预报包裹",
+                        'second_remark'=>"下单后可以在购物平台获取到快递单号，将快递单号预报系统中",
+                        'third_title'=>"第三步：申请打包",
+                        'third_remark'=>"包裹到达仓库后，可向仓库申请打包出库。",
+                        'fourth_title'=>"第四步：支付订单费用",
+                        'fourth_remark'=>"包裹打包完成后，可支付包裹运费费用，仓库即会快速发货。",
+                    ],
+                    'guide'=>[
+                        'is_default'=>1, //使用系统默认的
+                        'first_image'=>"",
+                        'first_url'=>'',
+                        'first_url_type'=>1, //默认1为站内，2为站外
+                        
+                        'second_image'=>"",
+                        'second_url'=>'',
+                        'second_url_type'=>1, //默认1为站内，2为站外
+                        
+                        'third_image'=>"",
+                        'third_url'=>'',
+                        'third_url_type'=>1, //默认1为站内，2为站外
                     ]
                 ]
             ],

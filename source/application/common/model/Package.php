@@ -52,7 +52,7 @@ class Package extends BaseModel
      */
     public function packageimage()
     {
-        return $this->hasMany('PackageImage')->order(['id' => 'asc']);
+        return $this->hasMany('PackageImage','package_id','id')->order(['id' => 'asc']);
     }
     
      /**

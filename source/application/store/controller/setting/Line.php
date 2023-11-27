@@ -149,7 +149,7 @@ class Line extends Controller
         $set = Setting::detail('store')['values'];
   
         if (!$this->request->isAjax()) {
-            // dump();die;
+            // dump($set);die;
             return $this->fetch('edit', compact('model','country','set'));
         }
      

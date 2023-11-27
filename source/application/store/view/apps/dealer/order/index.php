@@ -6,6 +6,7 @@
                     <div class="widget-title am-cf">分销订单</div>
                 </div>
                 <?php $status = [-1=>'问题件',1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成']; ?>
+                <?php $orderstatus = [''=>'',1=>'待查验',2=>'待发货',3=>'待发货','4'=>'待发货','5'=>'待发货','6'=>'已发货','7'=>'已到货','8'=>'已完成','-1'=>'问题件']; ?>
                 <div class="widget-body am-fr">
                     <!-- 工具栏 -->
                     <div class="page_toolbar am-margin-bottom-xs am-cf">
@@ -59,8 +60,10 @@
                                 </tr>
                                 <tr>
                                     <td class="am-text-middle am-text-left" colspan="6">
-                                        <span class="am-margin-right-lg">集运单号：<?= $order['inpack']['order_sn'] ?></span>
-                                        <span class="am-margin-right-lg">集运单ID：<?= $order['order_id'] ?></span>
+                                        <span class="am-margin-right-lg">
+                                            <a href="<?= url('store/trOrder/orderdetail', ['id' => $order['order_id']]) ?>">
+                                                集运单号：<?= $order['inpack']['order_sn'] ?></a>
+                                            </span>
                                         <span class="am-margin-right-lg"> <?= $order['create_time'] ?></span>
                                     </td>
                                 </tr>
@@ -69,14 +72,15 @@
                                         <span class="am-margin-right-lg">实际支付：<?= $order['inpack']['real_payment'] ?></span>
                                     </td> 
                                     <td class="am-text-middle am-text-left" colspan="1">
-                                        <span class="am-margin-right-lg">用户编号： <?= $order['inpack']['member_id'] ?></span>
+                                        <span class="am-margin-right-lg">订单用户编号： <?= $order['inpack']['user']['user_code'] ?></span>
                                     </td>
+                                    
                                     <td class="am-text-middle am-text-left" colspan="1">
-                                        <span class="am-margin-right-lg">订单状态： <?=  isset($order['inpack']['status']['text'])?$status[$order['inpack']['status']['text']]:'订单已删除'; ?></span>
+                                        <span class="am-margin-right-lg">订单状态： <?=  $orderstatus[$order['inpack']['status']] ; ?></span>
                                         
                                     </td> 
                                     <td class="am-text-middle am-text-left" colspan="1">
-                                        <span class="am-margin-right-lg">是否结算： <?= $order['is_settled']==1?'已结算':'未结算' ?></span>
+                                        <span class="am-margin-right-lg">是否结算： <?= $order['inpack']['is_settled']==1?'已结算':'未结算' ?></span>
                                     </td> 
                                 </tr>
                                 <tr>
@@ -86,8 +90,14 @@
                                                 <div class="dealer-item am-fl am-margin-right-xl">
                                                     <p>
                                                         <span class="am-text-right">一级分销商：</span>
-                                                        <span><?= $order['dealer_first']['user']['nickName'] ?>
-                                                            (ID: <?= $order['dealer_first']['user_id'] ?>)</span>
+                                                        <?php if($set['usercode_mode']['is_show']!=1) :?>
+                                                            <span><?= $order['dealer_first']['user']['nickName'] ?>(ID: <?= $order['dealer_first']['user_id'] ?>)</span>
+                                                        <?php endif;?>
+                                                        
+                                                        <?php if($set['usercode_mode']['is_show']!=0) :?>
+                                                            <span><?= $order['dealer_first']['user']['nickName'] ?>(code: <?= $order['dealer_first']['user']['user_code'] ?>)</span>
+                                                        <?php endif;?>
+                                                        
                                                     </p>
                                                     <p>
                                                         <span class="am-text-right">分销佣金：</span>
@@ -99,8 +109,13 @@
                                                 <div class="dealer-item am-fl am-margin-right-xl">
                                                     <p>
                                                         <span class="am-text-right">二级分销商：</span>
-                                                        <span><?= $order['dealer_second']['user']['nickName'] ?>
-                                                            (ID: <?= $order['dealer_second']['user_id'] ?>)</span>
+                                                        <?php if($set['usercode_mode']['is_show']!=1) :?>
+                                                            <span><?= $order['dealer_second']['user']['nickName'] ?>(ID: <?= $order['dealer_second']['user_id'] ?>)</span>
+                                                        <?php endif;?>
+                                                        
+                                                        <?php if($set['usercode_mode']['is_show']!=0) :?>
+                                                            <span><?= $order['dealer_second']['user']['nickName'] ?>(code: <?= $order['dealer_second']['user']['user_code'] ?>)</span>
+                                                        <?php endif;?>
                                                     </p>
                                                     <p>
                                                         <span class="am-text-right">分销佣金：</span>
@@ -112,8 +127,13 @@
                                                 <div class="dealer-item am-fl am-margin-right-xl">
                                                     <p>
                                                         <span class="am-text-right">三级分销商：</span>
-                                                        <span><?= $order['dealer_third']['user']['nickName'] ?>
-                                                            (ID: <?= $order['dealer_third']['user_id'] ?>)</span>
+                                                        <?php if($set['usercode_mode']['is_show']!=1) :?>
+                                                            <span><?= $order['dealer_third']['user']['nickName'] ?>(ID: <?= $order['dealer_third']['user_id'] ?>)</span>
+                                                        <?php endif;?>
+                                                        
+                                                        <?php if($set['usercode_mode']['is_show']!=0) :?>
+                                                            <span><?= $order['dealer_third']['user']['nickName'] ?>(code: <?= $order['dealer_third']['user']['user_code'] ?>)</span>
+                                                        <?php endif;?>
                                                     </p>
                                                     <p>
                                                         <span class="am-text-right">分销佣金：</span>

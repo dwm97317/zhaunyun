@@ -389,5 +389,22 @@ class User extends Controller
         }
         return $this->renderError($model->getError() ?: '添加失败');
     }
+    
+        
+    /**
+     * 设置支付方式
+     * @param $coupon_id
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function setpaytype(){
+        $param = $this->request->param();
+        $userid = explode(',',$param['user_id']);
+        foreach ($userid as $val){
+            $user = UserModel::detail($val);
+            $user->save(['paytype'=>$param['paytype']]);
+        }
+        return $this->renderSuccess('批量设置成功');
+    }
 
 }

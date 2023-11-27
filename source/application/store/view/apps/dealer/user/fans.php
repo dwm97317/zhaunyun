@@ -34,7 +34,7 @@
                                         <p><span><?= $item['user']['nickName'] ?></span></p>
                                     </td>
                                     <td class="am-text-middle"><?= $item['user']['gender']['text'] ?></td>
-                                    <td class="am-text-middle"><?= $item['user']['expend_money'] ?></td>
+                                    <td class="am-text-middle"><?= $item['user']['pay_money'] ?></td>
                                     <td class="am-text-middle"><?= $item['create_time'] ?></td>
                                 </tr>
                             <?php endforeach; else: ?>

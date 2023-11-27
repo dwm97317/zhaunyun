@@ -48,33 +48,6 @@ class PaySuccess extends Basics
      * @param int $payType 支付类型
      * @param array $payData 支付回调数据
      * @return bool
-     *  // 更新订单状态
-            if($payType == PayTypeEnum::HANTEPAY){
-                  $this->model->save([
-                    'is_pay' => 1,
-                    'pay_time' => getTime(),
-                    'status' =>3,
-                    'is_pay_type' => 3,
-                 ]);
-            }
-            
-            if($payType == PayTypeEnum::BALANCE){
-                $this->model->save([
-                    'is_pay' => 1,
-                    'pay_time' => getTime(),
-                    'status' =>3,
-                    'is_pay_type' => 2,
-                ]);
-            }
-            
-            if($payType == PayTypeEnum::WECHAT){
-                $this->model->save([
-                    'is_pay' => 1,
-                    'pay_time' => getTime(),
-                    'status' =>3,
-                    'is_pay_type' => 1,
-                ]);
-            }
      */
     public function onPaySuccess($payType, $payData)
     {
@@ -115,7 +88,8 @@ class PaySuccess extends Basics
                         'is_pay_type' => 4,
                     ]);
                 }
-            return true;
+                
+                return true;
         });
     }
 

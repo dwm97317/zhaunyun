@@ -20,13 +20,6 @@ class Banner extends BannerModel
     {
         // 表单验证
         if (!$this->onValidate($data)) return false;
-        if($data['banner_site'] ==20){
-            $conut = $this->where('banner_site',$data['banner_site'])->count();
-            if($conut>0){
-               $this->error = '小程序广告图只允许上传一张';
-               return false; 
-            }
-        }
         $data['wxapp_id'] = self::$wxapp_id;
         $data['created_time'] = time();
         if ($this->allowField(true)->save($data)) {

@@ -57,7 +57,7 @@
                                 <div class="am-form-group">
                                     <label class="am-u-sm-3 am-u-md-4 am-form-label form-require"> 头像宽度 </label>
                                     <div class="am-u-sm-9 am-u-md-8">
-                                        <input type="number" min="30" class="tpl-form-input" v-model="avatar.width"
+                                        <input type="number" min="1" class="tpl-form-input" v-model="avatar.width"
                                                required>
                                     </div>
                                 </div>
@@ -78,7 +78,7 @@
                                 <div class="am-form-group am-padding-top">
                                     <label class="am-u-sm-3 am-u-md-4 am-form-label form-require"> 昵称字体大小 </label>
                                     <div class="am-u-sm-9 am-u-md-8">
-                                        <input type="number" min="12" class="tpl-form-input"
+                                        <input type="number" min="6" class="tpl-form-input"
                                                v-model="nickName.fontSize" required>
                                     </div>
                                 </div>

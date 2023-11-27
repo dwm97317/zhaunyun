@@ -208,6 +208,7 @@ class User extends BaseModel
      */
     public function setIncPayMoney($money)
     {
+      
         return $this->setInc('pay_money', $money);
     }
 
