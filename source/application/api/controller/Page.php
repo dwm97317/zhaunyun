@@ -450,51 +450,75 @@ class Page extends Controller
            ($this->user)['user_id'] = $aiidentify['keyword1'].($this->user)['user_id'].$aiidentify['keyword2'];
        }
        //只显示CODE
+        // dump($setting['usercode_mode']['is_show']);die;
        if($setting['usercode_mode']['is_show']==1){
            if($data['type']==1){
                 
                 if($setting['link_mode'] == 10){
-                     $data['address'] = 'UID'.$this->user['user_code'].$data['address'];
                      $data['linkman'] =$data['shop_name'].'-'.($this->user)['user_code'];
                 }
                 if($setting['link_mode'] == 20){
-                     $data['address'] = 'UID'.$this->user['user_code'].$data['address'];
                      $data['linkman'] =$data['linkman'].'-'.($this->user)['user_code'];
                 }
                 if($setting['link_mode'] == 30){
-                     $data['address'] = 'UID'.$this->user['user_code'].$data['address'];
                      $data['linkman'] =($this->user)['nickName'].'-'.($this->user)['user_code'];
                 }
                 if($setting['link_mode'] == 40){
-                     $data['address'] = 'UID'.$this->user['user_code'].$data['address'];
                      $data['linkman'] =$data['shop_alias_name'].'-'.($this->user)['user_code'];
                 }
                 if($setting['link_mode'] == 50){
-                     $data['address'] =  $data['address'].$this->user['user_code'];
                      $data['linkman'] = ($this->user)['nickName'];
                 }
+               // 根据地址的设置，生成不同的地址展示模式
+                switch ($setting['address_mode']) {
+                    case '10':
+                        $data['address'] = $data['address'];
+                        break;
+                    case '20':
+                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_code'].' '.$data['address'];
+                        break;
+                    case '30':
+                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_code'].' '.$data['address'];
+                        break;
+                    default:
+                        // code...
+                        break;
+                }
+                
+                
                 
            }else{
                 
                 if($setting['link_mode'] == 10){
-                    $data['address'] = $data['address'].'UID'.$this->user['user_code'];
                      $data['linkman'] =$data['shop_name'].'-'.($this->user)['user_code'];
                 }
                 if($setting['link_mode'] == 20){
-                    $data['address'] = $data['address'].'UID'.$this->user['user_code'];
                      $data['linkman'] =$data['linkman'].'-'.($this->user)['user_code'];
                 }
                 if($setting['link_mode'] == 30){
-                    $data['address'] = $data['address'].'UID'.$this->user['user_code'];
                      $data['linkman'] =($this->user)['nickName'].'-'.($this->user)['user_code'];
                 }
                 if($setting['link_mode'] == 40){
-                    $data['address'] = $data['address'].'UID'.$this->user['user_code'];
                      $data['linkman'] =$data['shop_alias_name'].'-'.($this->user)['user_code'];
                 }
                 if($setting['link_mode'] == 50){
                      $data['address'] =  $data['address'].$this->user['user_code'];
                      $data['linkman'] = ($this->user)['nickName'];
+                }
+                // 根据地址的设置，生成不同的地址展示模式
+                switch ($setting['address_mode']) {
+                    case '10':
+                        $data['address'] = $data['address'];
+                        break;
+                    case '20':
+                        $data['address'] = $data['address'].$this->user['user_code'];
+                        break;
+                    case '30':
+                        $data['address'] = $data['address'].$this->user['user_code'].'室';
+                        break;
+                    default:
+                        // code...
+                        break;
                 }
            }
        }
@@ -505,46 +529,69 @@ class Page extends Controller
              if($data['type']==1){
                 
                 if($setting['link_mode'] == 10){
-                    $data['address'] = $this->user['user_id'].$data['address']; 
                      $data['linkman'] =$data['shop_name'].'-UID'.($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 20){
-                    $data['address'] = $this->user['user_id'].$data['address']; 
                      $data['linkman'] =$data['linkman'].'-UID'.($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 30){
-                    $data['address'] = $this->user['user_id'].$data['address']; 
                      $data['linkman'] =($this->user)['nickName'].'-UID'.($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 40){
-                    $data['address'] = $this->user['user_id'].$data['address']; 
                      $data['linkman'] =$data['shop_alias_name'].'-UID'.($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 50){
-                     $data['address'] =  $data['address'].$this->user['user_id'];
                      $data['linkman'] = ($this->user)['nickName'];
                 }
+                
+                // 根据地址的设置，生成不同的地址展示模式
+                switch ($setting['address_mode']) {
+                    case '10':
+                        $data['address'] = $data['address'];
+                        break;
+                    case '20':
+                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.$data['address'];
+                        break;
+                    case '30':
+                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.$data['address'];
+                        break;
+                    default:
+                        // code...
+                        break;
+                }
+                
              }else{
                 
                 if($setting['link_mode'] == 10){
-                    $data['address'] = $data['address'].$this->user['user_id'];
                      $data['linkman'] =$data['shop_name'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 20){
-                    $data['address'] = $data['address'].$this->user['user_id'];
                      $data['linkman'] =$data['linkman'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 30){
-                    $data['address'] = $data['address'].$this->user['user_id'];
                      $data['linkman'] =($this->user)['nickName'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 40){
-                    $data['address'] = $data['address'].'UID:'.$this->user['user_id'];
                      $data['linkman'] =$data['shop_alias_name'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 50){
-                     $data['address'] =  $data['address'].$this->user['user_id'];
                      $data['linkman'] = ($this->user)['nickName'];
+                }
+                
+                // 根据地址的设置，生成不同的地址展示模式
+                switch ($setting['address_mode']) {
+                    case '10':
+                        $data['address'] = $data['address'];
+                        break;
+                    case '20':
+                        $data['address'] = $data['address'].$this->user['user_id'];
+                        break;
+                    case '30':
+                        $data['address'] = $data['address'].$this->user['user_id'].'室';
+                        break;
+                    default:
+                        // code...
+                        break;
                 }
              }
             
@@ -554,46 +601,69 @@ class Page extends Controller
             if($data['type']==1){
                 
                 if($setting['link_mode'] == 10){
-                    $data['address'] = 'UID:'.$this->user['user_id'].'-CODE:'.$this->user['user_code'].$data['address']; 
                      $data['linkman'] =$data['shop_name'].'-UID'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
                 }
                 if($setting['link_mode'] == 20){
-                    $data['address'] = 'UID:'.$this->user['user_id'].'-CODE:'.$this->user['user_code'].$data['address']; 
                      $data['linkman'] =$data['linkman'].'-UID'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
                 }
                 if($setting['link_mode'] == 30){
-                    $data['address'] = 'UID:'.$this->user['user_id'].'-CODE:'.$this->user['user_code'].$data['address']; 
                      $data['linkman'] =($this->user)['nickName'].'-UID'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
                 }
                 if($setting['link_mode'] == 40){
-                    $data['address'] = 'UID:'.$this->user['user_id'].'-CODE:'.$this->user['user_code'].$data['address']; 
                      $data['linkman'] =$data['shop_alias_name'].'-UID'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
                 }
                 if($setting['link_mode'] == 50){
-                     $data['address'] =  $data['address'].$this->user['user_id'].'/'.$this->user['user_code'];
                      $data['linkman'] = ($this->user)['nickName'];
                 }
+                
+                // 根据地址的设置，生成不同的地址展示模式
+                switch ($setting['address_mode']) {
+                    case '10':
+                        $data['address'] = $data['address'];
+                        break;
+                    case '20':
+                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.'-CODE:'.$this->user['user_code'].$data['address'];
+                        break;
+                    case '30':
+                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.'-CODE:'.$this->user['user_code'].$data['address'];
+                        break;
+                    default:
+                        // code...
+                        break;
+                }
+                
             }else{
                 
                 if($setting['link_mode'] == 10){
-                    $data['address'] = $data['address'].'UID:'.$this->user['user_id'].'-CODE:'.$this->user['user_code']; 
                      $data['linkman'] =$data['shop_name'].'-UID'.($this->user)['user_id'].'-CODE'.$this->user['user_code'];
                 }
                 if($setting['link_mode'] == 20){
-                    $data['address'] = $data['address'].'UID:'.$this->user['user_id'].'-CODE:'.$this->user['user_code']; 
                      $data['linkman'] =$data['linkman'].'-UID'.($this->user)['user_id'].'-CODE'.$this->user['user_code'];
                 }
                 if($setting['link_mode'] == 30){
-                    $data['address'] = $data['address'].'UID:'.$this->user['user_id'].'-CODE:'.$this->user['user_code']; 
                      $data['linkman'] =($this->user)['nickName'].'-UID'.($this->user)['user_id'].'-CODE'.$this->user['user_code'];
                 }
                 if($setting['link_mode'] == 40){
-                    $data['address'] = $data['address'].'UID:'.$this->user['user_id'].'-CODE:'.$this->user['user_code']; 
                      $data['linkman'] =$data['shop_alias_name'].'-UID'.($this->user)['user_id'].'-CODE'.$this->user['user_code'];
                 }
                 if($setting['link_mode'] == 50){
-                     $data['address'] =  $data['address'].$this->user['user_id'].'/'.$this->user['user_code'];
                      $data['linkman'] = ($this->user)['nickName'];
+                }
+                
+                // 根据地址的设置，生成不同的地址展示模式
+                switch ($setting['address_mode']) {
+                    case '10':
+                        $data['address'] = $data['address'];
+                        break;
+                    case '20':
+                        $data['address'] = $data['address'].$this->user['user_id'];
+                        break;
+                    case '30':
+                        $data['address'] = $data['address'].$this->user['user_id'].'室';
+                        break;
+                    default:
+                        // code...
+                        break;
                 }
             }
        }

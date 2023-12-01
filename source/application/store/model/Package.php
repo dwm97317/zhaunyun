@@ -50,7 +50,12 @@ class Package extends PackageModel
              return false;
         }
         
-        self::$wxapp_id == 10013 && file_put_contents("包裹入库.txt", "时间：".getTime().", 数据:".json_encode($data)."\r\n", FILE_APPEND);
+        // self::$wxapp_id == 10013 && file_put_contents("包裹入库.txt", "时间：".getTime().", 数据:".json_encode($data)."\r\n", FILE_APPEND);
+        $tyoi = stripos($data['express_num'], "JD");
+        if($tyoi==0){
+            $ex = explode('-',$data['express_num']);
+            $data['express_num'] = $ex[0];
+        }
         
         $result = $this->where('express_num',$data['express_num'])->where('is_delete',0)->find();
    
@@ -62,6 +67,7 @@ class Package extends PackageModel
         $noticesetting = SettingModel::getItem('notice');
         
         $resull = strstr($data['express_num'],'JD');
+        // dump($resull);die;
         if(!$resull){
             $res=preg_match('^\w+$^',$data['express_num']);
             $res1=preg_match('/^[^\s]*$/',$data['express_num']);

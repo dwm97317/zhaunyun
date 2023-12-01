@@ -57,17 +57,6 @@ class Banner extends BannerModel
         // 表单验证
        
         if (!$this->onValidate($data)) return false;
-        if($data['banner_site'] ==20){
-            $bannerData = $this->where('banner_site',$data['banner_site'])->select();
-            if(count($bannerData)>1){
-               $this->error = '小程序广告图只允许上传一张';
-               return false; 
-            }
-            if(count($bannerData) == 1 && $bannerData[0]['id'] != $data['id']){
-               $this->error = '小程序广告图只允许上传一张';
-               return false; 
-            }
-        }
         $data['wxapp_id'] = self::$wxapp_id;
         // 保存数据
         if ($this->allowField(true)->save($data)) {

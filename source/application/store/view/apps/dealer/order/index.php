@@ -80,7 +80,7 @@
                                         
                                     </td> 
                                     <td class="am-text-middle am-text-left" colspan="1">
-                                        <span class="am-margin-right-lg">是否结算： <?= $order['inpack']['is_settled']==1?'已结算':'未结算' ?></span>
+                                        <span class="am-margin-right-lg">是否结算： <?= $order['is_settled']==1?'已结算':'未结算' ?></span>
                                     </td> 
                                 </tr>
                                 <tr>

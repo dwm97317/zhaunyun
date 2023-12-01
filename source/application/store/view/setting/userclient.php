@@ -415,6 +415,46 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    开启自提点
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[packit][is_packagestation]" value="1"
+                                               data-am-ucheck  <?= $values['packit']['is_packagestation'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[packit][is_packagestation]" value="0"
+                                               data-am-ucheck <?= $values['packit']['is_packagestation'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>选择不开启后，在用户端提交打包时则无法查看到自提点</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    开启送货上门
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[packit][is_todoor]" value="1"
+                                               data-am-ucheck  <?= $values['packit']['is_todoor'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[packit][is_todoor]" value="0"
+                                               data-am-ucheck <?= $values['packit']['is_todoor'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>选择不开启后，在用户端提交打包时则无法选择用户地址</small>
+                                    </div>
+                                </div>
+                            </div>
                             
                             
                             <div class="widget-head am-cf">

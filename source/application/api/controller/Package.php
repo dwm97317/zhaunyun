@@ -187,11 +187,11 @@ class Package extends Controller
              return $this->renderError('快递单号不能有空格');
          }
          //为京东特别写的代码
-        //  if(!stristr($post['express_sn'],'JD')){
+         if(!stristr($post['express_sn'],'JD')){
           if(!preg_match('^\w{3,20}$^',$post['express_sn'])){
              return $this->renderError('快递单号不能使用特殊字符');
            } 
-        //  }
+         }
          
          $express = (new Express())->getValueById($post['express_id'],'express_name');
          $express_code = (new Express())->getValueById($post['express_id'],'express_code');

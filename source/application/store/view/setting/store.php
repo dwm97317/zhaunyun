@@ -805,6 +805,20 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label form-require"> 用户复制仓库地址显示模式 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="store[address_mode]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="10" <?= $values['address_mode']== 10 ? 'selected' : '' ?>>纯仓库地址</option>
+                                            <option value="20" <?= $values['address_mode'] == 20 ? 'selected' : '' ?>>地址+UID</option>
+                                            <option value="30" <?= $values['address_mode'] == 30 ? 'selected' : '' ?>>地址+UID+室</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
                                     复制仓库地址时，UID是否修改为xxxx室
                                 </label>

@@ -615,11 +615,7 @@ class Useropration extends Controller
     
         $post = $this->postData('code')[0];
         //特殊处理京东单号
-        if(stristr($post,'JD')){
-             $post = explode('-',$post)[0];
-        }
-        //处理USPS单号问题
-        //处理FEDEX单号问题
+
         
       
         $map[] = ['is_delete','=',0];
@@ -630,7 +626,20 @@ class Useropration extends Controller
             ->with('storage')
             ->find();
         //当查询不到包裹时，尝试查询是否是集运单的国际单号；
-
+        //当查询是JD包裹时，可以用原来的单号再查询一遍
+        $tyoi = stripos($post, "JD");
+        if(empty($res) && $tyoi==0){
+            $ex = explode('-',$post);
+            $post = $ex[0];
+            $map[] = ['is_delete','=',0];
+            $map[] = ['express_num','=',$post]; 
+            $res = (new Package())
+                ->setQuery($map)
+                ->field('id,express_num,order_sn,member_id,storage_id,status,width,height,weight,length,remark,admin_remark')
+                ->with('storage')
+                ->find();
+        }
+        
         if(empty($res)){
            
             $Inpack = new Inpack();
@@ -699,10 +708,10 @@ class Useropration extends Controller
         $map[] = ['is_delete','=',0];
         $map[] = ['express_num','=',$express_num];
         //对京东单号进行特殊处理
-        if(strstr($express_num,'JD')){
-            $a = explode('-',$express_num);
-            count($a)>1 && $express_num = $a[0];
-        }
+        // if(strstr($express_num,'JD')){
+        //     $a = explode('-',$express_num);
+        //     count($a)>1 && $express_num = $a[0];
+        // }
         
        //$is_pre==0 为没有查询到包裹数据的情况，需要插入新数据
        if ($is_pre==0){
