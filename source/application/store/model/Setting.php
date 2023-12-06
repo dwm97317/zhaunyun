@@ -123,7 +123,6 @@ class Setting extends SettingModel
         
         // 删除系统设置缓存
         Cache::rm('setting_' . self::$wxapp_id);
-        // dump();die;
         return $model->save([
                 'key' => $key,
                 'describe' => SettingEnum::data()[$key]['describe'],
@@ -264,14 +263,6 @@ class Setting extends SettingModel
     {
         if ($values['is_open'] == false) {
             return true;
-        }
-        if (!$values['printer_id']) {
-            $this->error = '请选择订单打印机';
-            return false;
-        }
-        if (empty($values['order_status'])) {
-            $this->error = '请选择订单打印方式';
-            return false;
         }
         return true;
     }

@@ -15,7 +15,8 @@ class DealerOrder
 {
     /* @var DealerOrderModel $model */
     private $model;
-
+    private $wxappId;
+    
     /**
      * 执行函数
      * @param $model

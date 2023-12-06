@@ -144,10 +144,17 @@
                                                    placeholder="可输入多个发货单号,按换车换行" value="<?= $request->get('tr_number') ?>"></textarea>
                                         </div>
                                     </div>
+                                    
                                     <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input style="width:250px;" type="text" class="am-form-field" name="order_sn"
                                                    placeholder="请输入平台订单号或转运单号" value="<?= $request->get('order_sn') ?>">
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input style="width:250px;" type="text" class="am-form-field" name="batch_no"
+                                                   placeholder="请输入批次号或提单号" value="<?= $request->get('batch_no') ?>">
                                         </div>
                                     </div>
                                     <div class="am-form-group am-fl">
@@ -194,6 +201,11 @@
                         <button type="button" id="j-pintuan" class="am-btn am-btn-success am-radius"><i class="iconfont icon-pintuan"></i> 加入拼团</button>
                         <?php endif;?>
                         
+                        <!--加入批次-->
+                        <?php if (checkPrivilege('batch/addtobatch')): ?>
+                        <button type="button" id="j-batch" class="am-btn am-btn-secondary am-radius"><i class="iconfont icon-pintuan"></i> 加入批次</button>
+                        <?php endif;?>
+                        
                         <!--导出-->
                         <?php if (checkPrivilege('tr_order/loaddingoutexcel')): ?>
                         <button type="button" id="j-export" class="am-btn am-btn-warning am-radius"><i class="iconfont icon-daochu"></i> 导出订单</button>
@@ -212,7 +224,7 @@
                             <thead>
                             <tr>
                                 <th><input id="checkAll" type="checkbox"></th>
-                                <th>平台订单号</th>
+                                <th>单号信息</th>
                                 <th>转运信息</th>
                                 <th>收货信息</th>
                                 <th>费用信息</th>
@@ -236,6 +248,10 @@
                                         <span style="cursor:pointer" text="<?= $item['order_sn'] ?>" onclick="copyUrl2(this)"><?= $item['order_sn'] ?></span></br>
                                         <?php if ($item['inpack_type']==1): ?> 
                                         <span class="am-badge am-badge-secondary">拼团订单</span>
+                                        <?php endif ;?>
+                                        <?php if ($item['batch_id']): ?> 
+                                        批次号：<?= $item['batch']['batch_name'] ?><br>
+                                        提单号/装箱号：<?= $item['batch']['batch_no'] ?><br>
                                         <?php endif ;?>
                                     </td>
                                     <td class="am-text-middle">
@@ -647,6 +663,38 @@
         </form>
     </div>
 </script>
+<script id="tpl-batch" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择集运单数
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'> 共选中 {{ selectCount }} 订单</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择批次
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="batch_id"
+                                data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" onchange="getSelectData(this)" data-select_type='shelf'>
+                            <option value="">请选择</option>
+                            <?php if (isset($batchlist) && !$batchlist->isEmpty()):
+                                foreach ($batchlist as $item): ?>
+                                    <option value="<?= $item['batch_id'] ?>"><?= $item['batch_name'] ?> - <?= $item['batch_no'] ?></option>
+                                <?php endforeach; endif; ?>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</script>
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
      function doSelectUser(){
@@ -977,6 +1025,37 @@
         });
         
         
+        
+         /**
+         * 加入批次
+         */
+        $('#j-batch').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择集运单', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            console.log(data.selectId)
+            $.showModal({
+                title: '将订单加入到批次中'
+                , area: '460px'
+                , content: template('tpl-batch', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('store/batch/addtobatch') ?>',
+                        data: {selectIds:data.selectId},
+                    });
+                    return true;
+                }
+            });
+        });
+
             
         // 变更地址
         $('.j-changeaddress').click(function (e) {

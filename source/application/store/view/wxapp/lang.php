@@ -28,6 +28,16 @@
                                                data-am-ucheck <?= $lang['default'] == 'zhHant' ? 'checked' : '' ?>>
                                         繁体中文
                                     </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="radio" name="lang[default]" value="thai"
+                                               data-am-ucheck <?= $lang['default'] == 'thai' ? 'checked' : '' ?>>
+                                        泰语
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="radio" name="lang[default]" value="vietnam"
+                                               data-am-ucheck <?= $lang['default'] == 'vietnam' ? 'checked' : '' ?>>
+                                        越南语
+                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -44,6 +54,16 @@
                                         <input type="checkbox" name="lang[en]" value="1"
                                                data-am-ucheck <?= $lang['en'] == 1 ? 'checked' : '' ?>>
                                         英文
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="lang[thai]" value="1"
+                                               data-am-ucheck <?= $lang['thai'] == 1 ? 'checked' : '' ?>>
+                                        泰语
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="lang[vietnam]" value="1"
+                                               data-am-ucheck <?= $lang['vietnam'] == 1 ? 'checked' : '' ?>>
+                                        越南语
                                     </label>
                                 </div>
                             </div>

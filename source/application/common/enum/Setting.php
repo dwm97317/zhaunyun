@@ -19,6 +19,8 @@ class Setting extends EnumBasics
     const KEEPER = 'keeper';
     // 短信通知
     const SMS = 'sms';
+    // 批次设置
+    const BATCH = 'batch';
     //用户端样式设置
     const USERCLIENT = 'userclient';
     // 语言设置
@@ -69,6 +71,10 @@ class Setting extends EnumBasics
             self::STORE => [
                 'value' => self::STORE,
                 'describe' => '系统设置',
+            ],
+            self::BATCH => [
+                'value' => self::BATCH,
+                'describe' => '批次设置',
             ],
             self::KEEPER => [
                 'value' => self::KEEPER,

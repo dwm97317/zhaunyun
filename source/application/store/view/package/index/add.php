@@ -8,7 +8,21 @@
                     <div class="widget-body">
                         <fieldset>
                             <div class="widget-head am-cf">
-                                <div class="widget-title am-fl">手动录入 <a href="<?= url('store/package.index/import')?>">批量导入</a></div>
+                                <div class="am-u-sm-8">
+                                    <div class="widget-title am-fl">手动录入 <a href="<?= url('store/package.index/import')?>">批量导入</a></div>
+                                </div>
+                                <?php if (isset($printsetting) && $printsetting['is_open']==1): ?>
+                                <div class="am-u-sm-4">
+                                    <div class="am-fl am-u-sm-6" style="display:flex;">
+                                        <label class="am-form-label">标签打印机：</label>
+                                        <select style="width:136px;" class="label-operate-item-value" id="select-printlist" onchange="onPrintSelected()"></select>
+                                    </div>
+                                    <div class="am-fl am-u-sm-6">
+                                        <input class="label-operate-item" type="button" id="test-open-printer" value="打开打印机" />
+                                        <input class="label-operate-item" type="button" id="test-close-printer" value="关闭打印机" />
+                                    </div>
+                                </div>
+                                <?php endif; ?>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">快递单号[包裹单号] </label>
@@ -25,7 +39,7 @@
                                 <label class="am-u-sm-3  am-u-lg-2 am-form-label"> 输入用户ID </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="widget-become-goods am-form-file am-margin-top-xs">
-                                        <input type="text" class="tpl-form-input" name="data[user_id]"
+                                        <input onblur="finduser()" id="member_id" type="text" class="tpl-form-input" name="data[user_id]"
                                            value="<?= $data['member_id']??'' ;?>" placeholder="输入用户ID">
                                         <div class="am-block">
                                             <small>输入用户ID与【选择用户】两者选其一</small>
@@ -37,7 +51,7 @@
                                 <label class="am-u-sm-3  am-u-lg-2 am-form-label"> 输入用户编号（CODE） </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="widget-become-goods am-form-file am-margin-top-xs">
-                                        <input type="text" class="tpl-form-input" name="data[user_code]"
+                                        <input onblur="findusercode()" type="text" class="tpl-form-input" name="data[user_code]"
                                            value="<?= $data['member']['user_code']??'' ;?>" placeholder="输入用户CODE">
                                         <div class="am-block">
                                             <small>输入用户CODE与【选择用户】两者选其一</small>
@@ -61,6 +75,28 @@
                                     </div>
                                 </div>
                             </div>
+                            <?php if (isset($set['is_usermark']) && $set['is_usermark']==1): ?>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">选择唛头 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <?php if (isset($printsetting) && $printsetting['is_open']==1): ?>
+                                    <select  onchange="printlabel()" id="usermark" name="data[mark]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请先选择用户', maxHeight: 400}" >
+                                        <option value="1">请选择</option>
+                                    </select>
+                                    <?php endif; ?>
+                                    <?php if (isset($printsetting) && $printsetting['is_open']==0): ?>
+                                    <select  id="usermark" name="data[mark]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请先选择用户', maxHeight: 400}" >
+                                        <option value="1">请选择</option>
+                                    </select>
+                                    <?php endif; ?>
+                                    <div class="help-block">
+                                        <small>请选择包裹将要寄往的国家</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">运往国家 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -318,6 +354,10 @@
 
 <!-- 文件库弹窗 -->
 {{include file="layouts/_template/file_library" /}}
+<script type="text/javascript" src="assets/store/js/lib/dtpweb.js"></script>
+<?php if (isset($printsetting) && $printsetting['is_open']==1): ?>
+<script type="text/javascript" src="assets/store/js/lib/index.js"></script>
+<?php endif; ?>
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 
 	<script language="JavaScript">
@@ -354,11 +394,14 @@
                         setTimeout(function(){
                             shutter.play();
                             $('#my-form').submit();
+                           
                         },1000)
                         
                        }
                 })
         }
+        
+        
 		// preload shutter audio clip
 		
 		function take_snapshot() {
@@ -415,7 +458,123 @@
              
 	</script>
 <script>
-   
+    function printlabel(){
+        var expremm = $("#express_num")[0].value;
+        var usermark = $("#usermark")[0].value;
+        if(usermark=='不选择唛头'){
+            return;
+        } 
+        var today = getNowFormatDate();
+        // return;
+        if(expremm){
+            drawTextTest(expremm,usermark,today);
+        }
+    }
+
+//获取当前日期函数
+function getNowFormatDate() {
+  var date = new Date(),
+    obj = {
+      year: date.getFullYear(), //获取完整的年份(4位)
+      month: date.getMonth() + 1, //获取当前月份(0-11,0代表1月)
+      strDate: date.getDate(), // 获取当前日(1-31)
+      week: '星期' + '日一二三四五六'.charAt(date.getDay()), //获取当前星期几(0 ~ 6,0代表星期天)
+      hour: date.getHours(), //获取当前小时(0 ~ 23)
+      minute: date.getMinutes(), //获取当前分钟(0 ~ 59)
+      second: date.getSeconds() //获取当前秒数(0 ~ 59)
+    }
+ 
+  Object.keys(obj).forEach(key => {
+    if (obj[key] < 10) obj[key] = `0${obj[key]}`
+  })
+ 
+  return `${obj.year}/${obj.month}/${obj.strDate}/ ${obj.hour}:${obj.minute}:${obj.second}`
+}
+   function findusercode(){
+            var usercode = $("#user_code")[0].value;
+            var op = '<option>无唛头</option>';
+             $.ajax({
+                   type:'post',
+                   url:"<?= url('store/user/findusercode') ?>",
+                   data:{member_id:usercode},
+                   dataType:'json',
+                   success:function (res) {
+                       if (res.code==1){
+                           if(res.data.list.data.length>0){
+                               $("#usermark option").remove();
+                                for(var i=0;i< res.data.list.total;i++){
+                                    op = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
+                                   $("#usermark").append(op);
+                               }
+                           }else{
+                               $("#usermark option").remove();
+                           }
+                       }else{
+                           layer.alert(res.msg)
+                           $("#user_code").val('')
+                       }
+                   }
+               })
+            console.log(member_id)
+        }
+		
+		function finduser(){
+            var member_id = $("#member_id")[0].value;
+            var op = '<option>不选择唛头</option>';
+             $.ajax({
+                   type:'post',
+                   url:"<?= url('store/user/findUserMark') ?>",
+                   data:{member_id:member_id},
+                   dataType:'json',
+                   success:function (res) {
+                       if (res.code==1){
+                           if(res.data.list.data.length>0){
+                              $("#usermark option").remove();
+                              $("#usermark").append(op);
+                              for(var i=0;i< res.data.list.total;i++){
+                                    op = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
+                                   $("#usermark").append(op);
+                               } 
+                           }else{
+                                $("#usermark option").remove();
+                                $("#usermark").append(op);
+                           }
+                       }else{
+                           layer.alert(res.msg)
+                           $("#member_id").val('')
+                       }
+                   }
+               })
+            console.log(member_id)
+        }
+        
+        function finduserWith(e){
+            var member_id = e[0].user_id;
+            console.log(e,98765);
+             $.ajax({
+                   type:'post',
+                   url:"<?= url('store/user/findUserMark') ?>",
+                   data:{member_id:member_id},
+                   dataType:'json',
+                   success:function (res) {
+                       if (res.code==1){
+                           $("#usermark option").remove();
+                           if(res.data.list.data.length>0){
+                               for(var i=0;i< res.data.list.total;i++){
+                                   var op = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
+                                   $("#usermark").append(op);
+                               }
+                           }else{
+                               $("#usermark option").remove();
+                           }
+                       }else{
+                           layer.alert(res.msg)
+                           $("#member_id").val('')
+                       }
+                   }
+               })
+            console.log(member_id)
+        }
      // 选择用户
     $('.j-selectUser').click(function () {
         var $userList = $('.user-list');
@@ -426,6 +585,7 @@
             done: function (data) {
                 var user = [data[0]];
                 $userList.html(template('tpl-user-item', user));
+                finduserWith(user);
             }
         });
     });

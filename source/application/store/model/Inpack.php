@@ -52,9 +52,11 @@ class Inpack extends InpackModel
         // 获取数据列表
         $res= $this
             ->alias('pa')
+            ->field('pa.*,ba.batch_id,ba.batch_name,ba.batch_no,u.nickName')
             ->with(['line','address','storage','user','shop'])
             ->join('user u','u.user_id = pa.member_id','left')
             ->join('user_address add','add.address_id = pa.address_id','left')
+            ->join('batch ba','ba.batch_id = pa.batch_id','left')
             ->where('pa.status','in',$this->status[$dataType])
             ->where('pa.is_delete',0)
             ->order(['pa.created_time' => 'desc'])
@@ -494,6 +496,8 @@ class Inpack extends InpackModel
         !empty($query['service_id']) && $this->where('u.service_id','=',$query['service_id']);
         !empty($query['user_code']) && $this->where('u.user_code','=',$query['user_code']);
         !empty($query['user_id']) && $this->where('pa.member_id','=',$query['user_id']);
+        !empty($query['batch_no']) && $this->where('ba.batch_name|ba.batch_no','=',$query['batch_no']);
+        !empty($query['batch_id']) && $this->where('pa.batch_id','=',$query['batch_id']);
         !empty($query['start_time']) && $this->where('created_time', '>', $query['start_time']);
         !empty($query['end_time']) && $this->where('created_time', '<', $query['end_time']." 23:59:59");
         !empty($query['search']) && $this->where('pa.member_id|u.nickName|u.user_code','like','%'.$query['search'].'%');
@@ -558,6 +562,9 @@ class Inpack extends InpackModel
         return $this->belongsTo('app\store\model\store\Shop','shop_id');
     }
     
+    public function batch(){
+        return $this->belongsTo('app\store\model\Batch');
+    }
     /**
      * 获取订单总量
      * @param null $day

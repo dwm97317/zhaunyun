@@ -40,13 +40,14 @@ class UserMark extends UserMarkModel
     {
         // 设置默认的检索数据
         $params = $this->setQueryDefaultValue($query, [
-            'user_id' => 0,
+            'member_id' => 0,
             'search' => '',
+            'user_id'=>0
         ]);
         // 用户ID
         $params['user_id'] > 0 && $this->where('log.user_id', '=', $params['user_id']);
         
-        $params['member_id'] > 0 && $this->where('log.user_id', '=', $params['member_id']);
+        ($params['member_id'] > 0 || empty($params['member_id'])) && $this->where('log.user_id', '=', $params['member_id']);
         // 用户昵称
         !empty($params['search']) && $this->where('user.nickName|user.user_id|log.mark', 'like', "%{$params['search']}%");
     }

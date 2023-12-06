@@ -19,7 +19,7 @@ class Inpack extends InpackModel
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function getUnSettledList()
+    public function getUnSettledList($wxappid)
     {
    
         $list = (new InpackModel())
@@ -27,7 +27,8 @@ class Inpack extends InpackModel
             ->where('is_settled', '=', 0)
             ->where('status', '=', 8)
             ->where('is_pay', '=', 1)
-            ->where('wxapp_id',10001)
+            ->where('wxapp_id',$wxappid)
+            ->limit(10)
             ->select();
         if ($list->isEmpty()) {
             return $list;
@@ -45,12 +46,13 @@ class Inpack extends InpackModel
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function getdetainedList(){
+    public function getdetainedList($wxappid){
         $list = $this
             ->where('is_delete', '=', 0)
             ->where('Inpack_type',0)
             ->where('status', '=', 7)
-            ->where('wxapp_id',10001)
+            ->where('wxapp_id',$wxappid)
+            ->limit(10)
             ->select();
         if ($list->isEmpty()) {
             return $list;

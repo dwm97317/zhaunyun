@@ -19,6 +19,7 @@ use app\store\model\InpackService;
 use app\api\model\Setting as SettingModel;
 use app\store\model\user\UserLine;
 use app\store\model\UserAddress;
+use app\store\model\Batch;
 use app\common\model\Setting as SettingModelPlus;
 use app\store\model\sharing\SharingOrder;
 use app\store\model\sharing\SharingOrderItem;
@@ -722,6 +723,7 @@ class TrOrder extends Controller
         $list = $model->getList($dataType, $this->request->param());
         $servicelist = $Clerk->where('FIND_IN_SET(:ids,clerk_type)', ['ids' => 7])->select();
         $pintuanlist = (new SharingOrder())->getList([]);
+        $batchlist = (new Batch())->getAllwaitList([]);
         $shopList = ShopModel::getAllList();
         $lineList = $Line->getListAll();
         foreach ($list as &$value) {
@@ -734,7 +736,7 @@ class TrOrder extends Controller
            }
         }
 
-        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient'));
+        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist'));
     }
     
     

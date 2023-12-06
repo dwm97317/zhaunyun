@@ -444,6 +444,8 @@ class Setting extends BaseModel
                     'zhHans' => '1', //简体中文
                     'en' => '0', //英文
                     'zhHant' => '0', //繁体
+                    'thai'=>0, //泰语
+                    'vietnam'=>0, //越南
                 ]
             ],
             // 支付设置
@@ -677,6 +679,7 @@ class Setting extends BaseModel
                     'is_open' => '0',   // 是否开启打印
                     'printer_id' => '', // 打印机id
                     'order_status' => [], // 订单类型 10下单打印 20付款打印 30确认收货打印
+                    'printsite'=> 1, //1=后台录入包裹时打印  2=仓管扫码入库时
                 ],
             ],
             // 物流信息设置
@@ -775,6 +778,19 @@ class Setting extends BaseModel
                     'is_bizhong' => 1,
                     'is_pingzhengimage' => 1,
                     'is_chongzhidate' => 1,
+                ],
+            ],
+            // 批次设置
+            'batch' => [
+                'key' => 'batch',
+                'describe' => '批次规则',
+                'values' => [
+                    'firstword_mode' =>0,//0开启 1不开启
+                    'firstword' => 'XS',  //首字母
+                    'ftime_mode'=> 0, //0开启 1不开启
+                    'ftime' => '',  //时间模式
+                    'random'=> 0, //0 随机模式 顺序生成
+                    'is_autolog'=>0, // 不开启自动更新，1开启
                 ],
             ],
             // 满额包邮设置

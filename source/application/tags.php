@@ -57,6 +57,12 @@ return [
         'app\\task\\behavior\\Inpack',
         '_overlay'=>true
     ],
+    
+    // 批次行为管理
+    'Batch' => [
+        'app\\task\\behavior\\Batch',
+        '_overlay'=>true
+    ],
 
     // 拼团订单行为管理
     'sharing_order' => [

@@ -64,6 +64,21 @@ class Logistics extends BaseModel
         ]);
     }
     
+    public static function addInpackLogsPlus($id,$desc,$time){
+    
+    $Inpack = (new Inpack())->where('order_sn',$id)->find();
+    $model = new static;
+    return $model->insert([
+        'order_sn' => $Inpack['order_sn'],
+        // 'express_num' => $Inpack['t_order_sn'],
+        'status' => $Inpack['status'],
+        'status_cn' => $model->maps[$Inpack['status']],
+        'logistics_describe' => $desc?$desc:'包裹状态更新',
+        'logistics_sn'=> '',
+        'created_time' => $time,
+        'wxapp_id'=>self::$wxapp_id?self::$wxapp_id:$Inpack['wxapp_id'],
+    ]);
+    }
       
      public static function addInpackLogs($id,$desc){
         
@@ -74,6 +89,22 @@ class Logistics extends BaseModel
             // 'express_num' => $Inpack['t_order_sn'],
             'status' => $Inpack['status'],
             'status_cn' => $model->maps[$Inpack['status']],
+            'logistics_describe' => $desc?$desc:'包裹状态更新',
+            'logistics_sn'=> '',
+            'created_time' => getTime(),
+            'wxapp_id'=>self::$wxapp_id?self::$wxapp_id:$Inpack['wxapp_id'],
+        ]);
+    }
+    
+    public static function addbatchLogs($id,$status_cn,$desc){
+        
+        $Inpack = (new Inpack())->where('order_sn',$id)->find();
+        $model = new static;
+        return $model->insert([
+            'order_sn' => $Inpack['order_sn'],
+            // 'express_num' => $Inpack['t_order_sn'],
+            'status' => $Inpack['status'],
+            'status_cn' => $status_cn,
             'logistics_describe' => $desc?$desc:'包裹状态更新',
             'logistics_sn'=> '',
             'created_time' => getTime(),

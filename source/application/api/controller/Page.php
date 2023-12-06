@@ -8,6 +8,7 @@ use app\api\model\dealer\Setting;
 use app\api\model\Setting as SettingModel;
 use app\api\model\Line;
 use app\api\model\Bank;
+use app\common\model\Batch;
 use app\common\model\Setting as CommonSetting;
 use app\store\model\user\UserLine;
 use app\common\model\Wxapp as WxappModel;
@@ -86,6 +87,11 @@ class Page extends Controller
         return $this->renderSuccess("资料非常完善");
     }
     
+    public function batchLog(){
+        $Batch = new Batch;
+        return true;
+    }
+    
     //获取国家前缀
     public function getCountryQianZhui(){
         $list = getFileData('assets/sms.json');
@@ -105,7 +111,7 @@ class Page extends Controller
                 ['name' =>'简体','type' => 'zhHans']
             ];
         }
-        $en = $zhHant = [];
+        $en = $thai = $vietnam = $zhHant = [];
         if($lang['en']==1){
             $en=[
                 ['name' =>'English','type' => 'en']
@@ -116,7 +122,18 @@ class Page extends Controller
                 ['name' =>'繁体','type' => 'zhHant']
             ]; 
         }
-        $langs['data'] = array_merge($zhHans,$en,$zhHant);
+        if($lang['thai']==1){
+            $thai =[
+                ['name' =>'thai','type' => 'thai']
+            ]; 
+        }
+        if($lang['vietnam']==1){
+            $vietnam=[
+                ['name' =>'vietnam','type' => 'vietnam']
+            ]; 
+        }
+        // dump();die;
+        $langs['data'] = array_merge($zhHans,$en,$zhHant,$thai,$vietnam);
         $langs['default'] = $lang['default'];
         return $this->renderSuccess($langs);
     }
@@ -133,7 +150,14 @@ class Page extends Controller
                 break;
             case 'zhHans':
                 $track = getFileDataForLang('lang/10001/zhHans.json');
-                break;    
+                break;
+            case 'thai':
+                $track = getFileDataForLang('lang/10001/thai.json');
+                break;
+            case 'vietnam':
+                $track = getFileDataForLang('lang/10001/vietnam.json');
+                break;
+                
             default:
                 $track = getFileDataForLang('lang/10001/zhHant.json');  
                 break;

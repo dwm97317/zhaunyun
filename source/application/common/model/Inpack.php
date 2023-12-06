@@ -31,6 +31,7 @@ class Inpack extends BaseModel
         $static = new static;
         Hook::listen('Inpack', $static);
         Hook::listen('Detained', $static);
+        
     }
     
      /**

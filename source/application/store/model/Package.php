@@ -49,7 +49,7 @@ class Package extends PackageModel
         if(!$this->onCheck($data)){
              return false;
         }
-        
+        //   dump($data);die;
         // self::$wxapp_id == 10013 && file_put_contents("包裹入库.txt", "时间：".getTime().", 数据:".json_encode($data)."\r\n", FILE_APPEND);
         $tyoi = stripos($data['express_num'], "JD");
         if($tyoi==0){
@@ -67,7 +67,7 @@ class Package extends PackageModel
         $noticesetting = SettingModel::getItem('notice');
         
         $resull = strstr($data['express_num'],'JD');
-        // dump($resull);die;
+      
         if(!$resull){
             $res=preg_match('^\w+$^',$data['express_num']);
             $res1=preg_match('/^[^\s]*$/',$data['express_num']);
@@ -119,6 +119,7 @@ class Package extends PackageModel
             'express_id' => $data['express_id']?$data['express_id']:$result['express_id'],
             'image' => json_encode($image),
             'price' => $data['price'],
+            'usermark'=> isset($data['mark'])?$data['mark']:$result['usermark'],
             'visit_free' => isset($data['visit_free'])?$data['visit_free']:0,
             'member_name' => isset($this->userName)?$this->userName:'',
             'wxapp_id' =>self::$wxapp_id,
@@ -676,7 +677,7 @@ class Package extends PackageModel
             ->alias('a')
             ->with('categoryAttr')
             ->where('a.is_delete',1)
-            ->field('a.id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
+            ->field('a.id,a.inpack_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")

@@ -44,7 +44,8 @@ class Index extends Controller
         $Category = new Category();
         $map = \request()->param();
         $list = $packageModel->getList($map);
-        // dump($list->toArray());die;
+        
+        // dump($printsetting);die;
         $countweight = $packageModel->getListSum($map);
         $shopList = ShopModel::getAllList();
         
@@ -571,6 +572,7 @@ class Index extends Controller
             }
         }
         $countryList = (new Countries())->getListAll();
+        $printsetting = Setting::detail('printer')['values'];  //打印机设置
         $set = Setting::detail('store')['values'];
         $category = (new Category())->getAll()['tree'];
         if(!empty($category)){
@@ -600,10 +602,11 @@ class Index extends Controller
                 $shelfitem = (new ShelfUnit())->where('shelf_id',$shelfid)->select();
             }
         }
+        
         $list = [];
         if (!$this->request->isAjax()){
             // dump($data);die;
-            return $this->fetch('add', compact('data','list','shopList','shelf','shelfitem','category','expressList','countryList','set'));
+            return $this->fetch('add', compact('data','list','shopList','shelf','shelfitem','category','expressList','countryList','set','printsetting'));
         }
     }
     

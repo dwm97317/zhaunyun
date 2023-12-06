@@ -14,7 +14,7 @@ class Detained
 {
     /* @var DealerOrderModel $model */
     private $model;
-
+    private $wxappId;
     /**
      * 执行函数
      * @param $model
@@ -23,12 +23,12 @@ class Detained
      */
     public function run($model)
     {
-        // dump($model instanceof InpackModel);die;
         if (!$model instanceof InpackModel) {
             return new InpackModel and false;
         }
         $this->model = new InpackModel;
-        if (!Cache::has('__task_space__Detained')) {
+        $this->wxappId = $model::$wxapp_id;
+        if (!Cache::has("__task_space__Detained__{$this->wxappId}")) {
             $this->model->startTrans();
             try {
                 // 检查滞留件
@@ -37,7 +37,7 @@ class Detained
             } catch (\Exception $e) {
                 $this->model->rollback();
             }
-            Cache::set('__task_space__Detained', time(),86400);
+            Cache::set("__task_space__Detained__{$this->wxappId}",86400);
         }
         return true;
     }
@@ -53,7 +53,7 @@ class Detained
     private function detained()
     {
         // 获取未结算佣金的订单列表
-        $list = $this->model->getdetainedList();
+        $list = $this->model->getdetainedList($this->wxappId);
       
         if ($list->isEmpty()) return false;
         // 整理id集

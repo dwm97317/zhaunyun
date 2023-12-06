@@ -103,6 +103,9 @@ class ApiPost extends Controller
                 'status'=>2,
                 'storage_id'=>$param['shop_id'],
                 'weight'=>$param['weight'],
+                'length'=>isset($param['length'])?$param['length']:$result['length'],
+                'width'=>isset($param['width'])?$param['width']:$result['width'],
+                'height'=>isset($param['height'])?$param['height']:$result['height'],
                 'entering_warehouse_time'=>getTime()
             ]);
             

@@ -160,9 +160,9 @@ class Useropration extends Controller
     
         $post = $this->postData('code')[0];
         //特殊处理京东单号
-        if(stristr($post,'JD')){
-             $post = explode('-',$post)[0];
-        }
+        // if(stristr($post,'JD')){
+        //      $post = explode('-',$post)[0];
+        // }
         
         //处理USPS单号问题
         //处理FEDEX单号问题
@@ -532,7 +532,9 @@ class Useropration extends Controller
                    $i += 1;
                }
             }
-            $packs = $Inpack->where('take_code',$code)->where('shop_id',$clerk['shop_id'])->where('status','<',8)->with(['Member','address','service','shelfunititem.shelfunit.shelf'])->select();
+         
+            $packs = $Inpack->where('take_code|order_sn|t_order_sn',$code)->where('shop_id',$clerk['shop_id'])->where('status','<',8)->with(['Member','address','service','shelfunititem.shelfunit.shelf'])->select();
+            //   dump($packs);die;
             if(count($packs)>0){
                 $pack[0] = $packs;
             }

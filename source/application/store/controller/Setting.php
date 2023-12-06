@@ -22,8 +22,17 @@ class Setting extends Controller
      */
     public function store()
     {
-        // dump($this->updateEvent('store'));die;
         return $this->updateEvent('store');
+    }
+    
+    /**
+     * 批次设置
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function batch()
+    {
+        return $this->updateEvent('batch');
     }
     
      /**
@@ -215,8 +224,7 @@ class Setting extends Controller
     public function printer()
     {
         // 获取打印机列表
-        $printerList = PrinterModel::getAll();
-        return $this->updateEvent('printer', compact('printerList'));
+        return $this->updateEvent('printer');
     }
 
     /**

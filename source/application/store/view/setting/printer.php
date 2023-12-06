@@ -6,10 +6,10 @@
                     <div class="widget-body">
                         <fieldset>
                             <div class="widget-head am-cf">
-                                <div class="widget-title am-fl">小票打印设置</div>
+                                <div class="widget-title am-fl">标签打印设置</div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 是否开启小票打印 </label>
+                                <label class="am-u-sm-3 am-form-label form-require"> 是否开启标签打印 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">
                                         <input type="radio" name="printer[is_open]" value="1" data-am-ucheck
@@ -21,27 +21,32 @@
                                     </label>
                                 </div>
                             </div>
+                            <!--<div class="am-form-group">-->
+                            <!--    <label class="am-u-sm-3 am-form-label form-require"> 选择订单打印机 </label>-->
+                            <!--    <div class="am-u-sm-9 am-u-end am-padding-xs">-->
+                            <!--        <select name="printer[printer_id]"-->
+                            <!--                data-am-selected="{btnSize: 'sm', placeholder:'请选择打印机', maxHeight: 400}">-->
+                            <!--            <option value=""></option>-->
+                            <!--            <?php if (isset($printerList)): foreach ($printerList as $printer): ?>-->
+                            <!--                <option value="<?= $printer['printer_id'] ?>"-->
+                            <!--                    <?= $values['printer_id'] == $printer['printer_id'] ? 'selected' : '' ?>>-->
+                            <!--                    <?= $printer['printer_name'] ?></option>-->
+                            <!--            <?php endforeach; endif; ?>-->
+                            <!--        </select>-->
+                            <!--    </div>-->
+                            <!--</div>-->
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 选择订单打印机 </label>
-                                <div class="am-u-sm-9 am-u-end am-padding-xs">
-                                    <select name="printer[printer_id]"
-                                            data-am-selected="{btnSize: 'sm', placeholder:'请选择打印机', maxHeight: 400}">
-                                        <option value=""></option>
-                                        <?php if (isset($printerList)): foreach ($printerList as $printer): ?>
-                                            <option value="<?= $printer['printer_id'] ?>"
-                                                <?= $values['printer_id'] == $printer['printer_id'] ? 'selected' : '' ?>>
-                                                <?= $printer['printer_name'] ?></option>
-                                        <?php endforeach; endif; ?>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 订单打印方式 </label>
+                                <label class="am-u-sm-3 am-form-label form-require"> 标签打印位置 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-checkbox-inline">
-                                        <input type="checkbox" name="printer[order_status][]" value="20" data-am-ucheck
-                                            <?= in_array('20', $values['order_status']) ? 'checked' : '' ?>>
-                                        订单付款时
+                                        <input type="checkbox" name="printer[printsite][]" value="1" data-am-ucheck
+                                            <?= in_array('1', $values['printsite']) ? 'checked' : '' ?>>
+                                        后台录入时触发打印
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="printer[printsite][]" value="2" data-am-ucheck
+                                            <?= in_array('2', $values['printsite']) ? 'checked' : '' ?>>
+                                        仓管端入库触发
                                     </label>
                                 </div>
                             </div>

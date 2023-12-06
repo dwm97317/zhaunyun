@@ -294,6 +294,40 @@ return [
             ]
         ]
     ],
+    'batch' => [
+        'name' => '批次管理',
+        'icon' => 'icon-wenzhang',
+        'index' => 'batch/index',
+        'submenu' => [
+            [
+                'name' => '批次列表',
+                'active' => true,
+                'index' => 'batch/index',
+                'submenu' => [
+                    [
+                        'name' => '待发货',
+                        'index' => 'batch/index',
+                    ],
+                    [
+                        'name' => '运送中',
+                        'index' => 'batch/moving',
+                    ],
+                    [
+                        'name' => '已到达',
+                        'index' => 'batch/reached',
+                    ],
+                ]
+            ],
+            [
+                'name' => '批次设置',
+                'index' => 'batch/setting',
+            ],
+            [
+                'name' => '批次物流模板',
+                'index' => 'batch/batchtemplate',
+            ],
+        ]
+    ],
     'content' => [
         'name' => '内容管理',
         'icon' => 'icon-wenzhang',
@@ -760,15 +794,15 @@ return [
             [
                 'name' => '小票打印机',
                 'submenu' => [
-                    [
-                        'name' => '打印机管理',
-                        'index' => 'setting.printer/index',
-                        'uris' => [
-                            'setting.printer/index',
-                            'setting.printer/add',
-                            'setting.printer/edit'
-                        ]
-                    ],
+                    // [
+                    //     'name' => '打印机管理',
+                    //     'index' => 'setting.printer/index',
+                    //     'uris' => [
+                    //         'setting.printer/index',
+                    //         'setting.printer/add',
+                    //         'setting.printer/edit'
+                    //     ]
+                    // ],
                     [
                         'name' => '打印设置',
                         'index' => 'setting/printer'
