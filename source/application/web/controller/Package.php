@@ -62,7 +62,7 @@ class Package extends Controller
     
     public function mypackage(){
         $package = (new PackageModel());
-        $field = 'id,country_id,order_sn,member_id,storage_id,express_num,status,created_time,pack_free,free,weight,express_name,length,height,width,remark,express_id';
+        $field = 'id,usermark,country_id,order_sn,member_id,storage_id,express_num,status,created_time,pack_free,free,weight,express_name,length,height,width,remark,express_id';
         $param = $this->request->param();
         $where = [];    
         isset($param['number']) && $where['express_num'] = $param['number'];

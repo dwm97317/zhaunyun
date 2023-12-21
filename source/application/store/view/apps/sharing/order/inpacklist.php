@@ -209,10 +209,6 @@
                                     <td class="am-text-middle">
                                         申请打包: <?= $item['created_time'] ?> </br>
                                         支付时间: <?= $item['pay_time'] ?> </br>
-                                        <?php if ($item['status']==3 && !$item['pick_time']): ?>
-                                        分拣进度：<span style="color:#ff6666;">
-                                            已拣货[<?= $item['down_shelf']?>]</span> 
-                                        <?php else:?>分拣完成: <?php endif; ?>
                                         <?= $item['pick_time'] ?> </br> 
                                         <?php if ($item['status']==4 && !$item['unpack_time']): ?>打包进度：<span style="color:#ff6666;">已打包[<?= $item['inpack']?>]</span> <?php else:?>打包完成: <?php endif; ?> <?= $item['unpack_time'] ?> 
                                     </td>

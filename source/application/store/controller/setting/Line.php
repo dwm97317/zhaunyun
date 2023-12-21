@@ -6,6 +6,8 @@ use app\store\model\Line as LineModel;
 use app\store\model\Countries;
 use app\store\model\Category;
 use app\common\model\Setting;
+use app\store\model\LineService;
+
 /**
  * 线路设置
  * Class Delivery
@@ -59,8 +61,10 @@ class Line extends Controller
     public function add()
     {
         $set = Setting::detail('store')['values'];
+        $lineservice = (new LineService())->getListAll();
+        // dump($lineservice);die;
         if (!$this->request->isAjax()) {
-            return $this->fetch('add',compact('set'));
+            return $this->fetch('add',compact('set','lineservice'));
         }
         // 新增记录
         $model = new LineModel();
@@ -116,14 +120,14 @@ class Line extends Controller
             $model['free_rule']  = $result;
         }
        
-        // dump($result);die;
+    
         $country = [];
         $category = [];
         $country = (new Countries())->where('status','=',1)->select();
         $category = (new Category())->where('parent_id','<>',0)->select();
         $countryId = array_column($country->toArray(),null,'id');
         $categoryId = array_column($category->toArray(),null,'category_id');
-
+        $lineservice = (new LineService())->getListAll();
         $country_text = []; //城市
         $category_text = [];//分类
         if ($model['countrys']){
@@ -150,9 +154,9 @@ class Line extends Controller
   
         if (!$this->request->isAjax()) {
             // dump($set);die;
-            return $this->fetch('edit', compact('model','country','set'));
+            return $this->fetch('edit', compact('model','country','set','lineservice'));
         }
-     
+        //  dump($this->postData('line'));die;
         // 更新记录
         if ($model->edit($this->postData('line'))) {
             return $this->renderSuccess('更新成功', url('setting.line/index'));

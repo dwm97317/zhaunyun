@@ -38,18 +38,12 @@ class UserMark extends UserMarkModel
      */
     private function setQueryWhere($query)
     {
-        // 设置默认的检索数据
-        $params = $this->setQueryDefaultValue($query, [
-            'member_id' => 0,
-            'search' => '',
-            'user_id'=>0
-        ]);
         // 用户ID
-        $params['user_id'] > 0 && $this->where('log.user_id', '=', $params['user_id']);
+        // $query['user_id'] > 0 && $this->where('log.user_id', '=', $query['user_id']);
         
-        ($params['member_id'] > 0 || empty($params['member_id'])) && $this->where('log.user_id', '=', $params['member_id']);
+        isset($query['member_id']) && ($query['member_id'] > 0 || empty($query['member_id'])) && $this->where('log.user_id', '=', $query['member_id']);
         // 用户昵称
-        !empty($params['search']) && $this->where('user.nickName|user.user_id|log.mark', 'like', "%{$params['search']}%");
+        !empty($query['search']) && $this->where('user.nickName|user.user_id|log.mark', 'like', "%{$query['search']}%");
     }
 
 }

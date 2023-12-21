@@ -75,10 +75,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <?php if (isset($set['is_usermark']) && $set['is_usermark']==1): ?>
+                            <?php if (isset($adminsetting['is_usermark']) && $adminsetting['is_usermark']==1): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">选择唛头 </label>
-                                <div class="am-u-sm-9 am-u-end">
+                                <div class="am-u-sm-2 am-u-end">
                                     <?php if (isset($printsetting) && $printsetting['is_open']==1): ?>
                                     <select  onchange="printlabel()" id="usermark" name="data[mark]"
                                             data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请先选择用户', maxHeight: 400}" >
@@ -95,8 +95,15 @@
                                         <small>请选择包裹将要寄往的国家</small>
                                     </div>
                                 </div>
+                                <label class="am-u-sm-2 am-u-lg-1 am-form-label">输入唛头</label>
+                                <div class="am-u-sm-5 am-u-end">
+                                    <input type="text" id="inputmark" class="tpl-form-input" name="data[mark]" onchange ="printlabel()"
+                                           value="" placeholder="请输入唛头">
+                                </div>
+                                
                             </div>
                             <?php endif; ?>
+                            <?php if (isset($adminsetting['is_country']) && $adminsetting['is_country']==1): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">运往国家 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -117,6 +124,8 @@
                                     </div>
                                 </div>
                             </div>
+                            <?php endif; ?>
+                            <?php if (isset($adminsetting['is_shop']) && $adminsetting['is_shop']==1): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 所属仓库 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -137,6 +146,8 @@
                                     </div>
                                 </div>
                             </div>
+                            <?php endif; ?>
+                            <?php if (isset($adminsetting['is_express']) && $adminsetting['is_express']==1): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">选择物流 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -157,6 +168,8 @@
                                     </div>
                                 </div>
                             </div>
+                            <?php endif; ?>
+                            <?php if (isset($adminsetting['is_packinfo']) && $adminsetting['is_packinfo']==1): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">包裹信息 (可选填)</label>
                                 <div class="am-u-sm-9 am-u-end" style="position: relative">
@@ -176,8 +189,14 @@
                                          称重(<?= $set['weight_mode']['unit'] ?>) <input type="text" id="weight" class="tpl-form-input" style="width:80px" name="data[weigth]"
                                            value="<?= $data['weigth']??'' ;?>" placeholder="请输入重量">
                                      </div>
+                                     <div class="span">
+                                         数量 <input type="number" min="1" max="1000" class="tpl-form-input" style="width:80px" name="data[num]"
+                                           value="1" placeholder="请输入数量">
+                                     </div>
                                 </div>
                             </div>
+                            <?php endif; ?>
+                            <?php if (isset($adminsetting['is_totalvalue']) && $adminsetting['is_totalvalue']==1): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">总价值</label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -185,6 +204,7 @@
                                            value="<?= $data['price']??'' ;?>" placeholder="请输入价格">
                                 </div>
                             </div>
+                            
                             <input type="hidden" class="tpl-form-input" name="data[package_image_id]" value="">
                             <?php if(!empty($data) && $data['source']==7): ?>
                             <div class="am-form-group">
@@ -194,7 +214,9 @@
                                            value="<?= $data['visit_free']??'' ;?>" placeholder="请输入上门取件费">
                                 </div>
                             </div>
-                            <?php endif ?>
+                            <?php endif; ?>
+                            <?php endif; ?>
+                            <?php if (isset($adminsetting['is_category']) && $adminsetting['is_category']==1): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">物品品类</label>
                                 <div class="am-u-sm-9 am-u-end wd">
@@ -208,6 +230,8 @@
                                          <span class="cursor" onclick="CategorySelect.display()">+</span></div>
                                 </div>
                             </div>
+                            <?php endif; ?>
+                            <?php if (isset($adminsetting['is_adminremark']) && $adminsetting['is_adminremark']==1): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">备注</label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -215,6 +239,8 @@
                                            value="<?= $data['remark']??'' ;?>" placeholder="请输入备注" >
                                 </div>
                             </div>
+                            <?php endif; ?>
+                            <?php if (isset($adminsetting['is_packimage']) && $adminsetting['is_packimage']==1): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">包裹扩展信息 (可选填)</label>
                                 <div class="am-u-sm-9 am-u-end" style="position: relative">
@@ -271,7 +297,9 @@
                         		Webcam.attach( '#my_camera' );
                         	</script>
                         	 <?php endif; ?>
-                        	<?php if ($set['is_open_shelf']==1): ?>
+                        
+                        	<?php endif; ?>
+                            <?php if (isset($adminsetting['is_shelf']) && $adminsetting['is_shelf']==1): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">包裹存放位置</label>
                                 
@@ -460,10 +488,24 @@
 <script>
     function printlabel(){
         var expremm = $("#express_num")[0].value;
-        var usermark = $("#usermark")[0].value;
-        if(usermark=='不选择唛头'){
-            return;
-        } 
+        var usermark1 = $("#usermark")[0].value;
+        var usermark2 = $("#inputmark")[0].value;
+        var usermark = '';
+        console.log(usermark1,86);
+          console.log(usermark2,86);
+        if(usermark1=='不选择唛头'){
+            if(usermark2==''){
+                return;
+            }else{
+                usermark = usermark2;
+            }
+        }else{
+            if(usermark2==''){
+                usermark = usermark1;
+            }else{
+                usermark = usermark2;
+            }
+        }
         var today = getNowFormatDate();
         // return;
         if(expremm){
@@ -492,7 +534,7 @@ function getNowFormatDate() {
 }
    function findusercode(){
             var usercode = $("#user_code")[0].value;
-            var op = '<option>无唛头</option>';
+            var op = '<option>不选择唛头</option>';
              $.ajax({
                    type:'post',
                    url:"<?= url('store/user/findusercode') ?>",
@@ -502,12 +544,14 @@ function getNowFormatDate() {
                        if (res.code==1){
                            if(res.data.list.data.length>0){
                                $("#usermark option").remove();
+                               $("#usermark").append(op);
                                 for(var i=0;i< res.data.list.total;i++){
-                                    op = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
-                                   $("#usermark").append(op);
+                                    var ops = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
+                                   $("#usermark").append(ops);
                                }
                            }else{
                                $("#usermark option").remove();
+                               $("#usermark").append(op);
                            }
                        }else{
                            layer.alert(res.msg)
@@ -532,8 +576,8 @@ function getNowFormatDate() {
                               $("#usermark option").remove();
                               $("#usermark").append(op);
                               for(var i=0;i< res.data.list.total;i++){
-                                    op = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
-                                   $("#usermark").append(op);
+                                    var ops = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
+                                   $("#usermark").append(ops);
                                } 
                            }else{
                                 $("#usermark option").remove();
@@ -550,7 +594,7 @@ function getNowFormatDate() {
         
         function finduserWith(e){
             var member_id = e[0].user_id;
-            console.log(e,98765);
+            var op = '<option>不选择唛头</option>';
              $.ajax({
                    type:'post',
                    url:"<?= url('store/user/findUserMark') ?>",
@@ -558,14 +602,16 @@ function getNowFormatDate() {
                    dataType:'json',
                    success:function (res) {
                        if (res.code==1){
-                           $("#usermark option").remove();
                            if(res.data.list.data.length>0){
-                               for(var i=0;i< res.data.list.total;i++){
-                                   var op = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
-                                   $("#usermark").append(op);
-                               }
+                               $("#usermark option").remove();
+                               $("#usermark").append(op);
+                              for(var i=0;i< res.data.list.total;i++){
+                                  var ops = '<option value=' + res.data.list.data[i].mark +'>' + res.data.list.data[i].mark + '-' + res.data.list.data[i].markdes + '</option>';
+                                  $("#usermark").append(ops);
+                              }
                            }else{
                                $("#usermark option").remove();
+                               $("#usermark").append(op);
                            }
                        }else{
                            layer.alert(res.msg)

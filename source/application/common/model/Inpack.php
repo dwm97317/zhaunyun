@@ -268,6 +268,14 @@ class Inpack extends BaseModel
         return $this->hasOne('ShelfUnitItem','pack_id','order_sn');
     }
     
+     /**
+     * 关联优惠券
+     * @return \think\model\relation\HasMany
+     */
+    public function usercoupon()
+    {
+        return $this->belongsTo('UserCoupon','user_coupon_id','user_coupon_id');
+    }
     
            
      /**
@@ -287,4 +295,34 @@ class Inpack extends BaseModel
         return $this->hasOne('Line', 'id', 'line_id')
             ->field(['name','id']);
     }
+    
+    /**
+     * 显示支付方式
+     * @param $value
+     * @return mixed
+     */
+    public function getPayTypeAttr($value)
+    {
+        $type = [0=>'立即发货',1=>'货到付款',2=>'2月结'];
+        return [
+            'text'=> $type[$value],
+            'value'=>$value
+        ];
+    }
+    
+    /**
+     * 显示支付方式
+     * @param $value
+     * @return mixed
+     */
+    public function getIsPayTypeAttr($value)
+    {
+        //0 后台操作 1 微信 2 余额 3 汉特  4omipay  5现金支付
+        $type = [0=>'后台操作',1=>'微信支付',2=>'余额支付',3=>'汉特支付',4=>'OMIPAY',5=>'现金支付'];
+        return [
+            'text'=> $type[$value],
+            'value'=>$value
+        ];
+    }
+
 }

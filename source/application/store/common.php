@@ -27,4 +27,3 @@ function dataMapRender($data,$field,$map){
      } 
      return $data;
 }
-

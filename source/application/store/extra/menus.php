@@ -27,8 +27,12 @@ return [
               'index' => 'package.index/adminreport',
           ],
           [
-              'name' => '扫码出入库',
+              'name' => '扫码入库',
               'index' => 'package.index/scan',
+          ],
+          [
+              'name' => '扫码出库',
+              'index' => 'package.index/scanout',
           ],
           [
               'name' => '预报包裹',
@@ -642,20 +646,24 @@ return [
                 'index' => 'setting/store',
             ],
             [
-                'name' => '样式中心',
+                'name' => '自定义中心',
                 'index' => 'setting/stylecenter',
                 'submenu' => [
                     [
-                        'name' => '后台样式',
+                        'name' => '后台样式设置',
                         'index' => 'setting/stylecenter',
                     ],
                     [
-                        'name' => '用户端样式',
+                        'name' => '用户端设置',
                         'index' => 'setting/userclient'
                     ],
                     [
-                        'name' => '仓管端样式',
+                        'name' => '仓管端设置',
                         'index' => 'setting/keeper'
+                    ],
+                    [
+                        'name' => '电脑端设置',
+                        'index' => 'setting/adminstyle'
                     ]
                 ]
             ],
@@ -680,8 +688,6 @@ return [
                     ]
                 ]
             ],
-            
-            
             [
               'name' => '集运线路',
               'index' => 'setting.line/index',
@@ -689,6 +695,15 @@ return [
                   'setting.line/index',
                   'setting.line/add',
                   'setting.line/edit',
+              ],
+            ],
+            [
+              'name' => '增值服务',
+              'index' => 'setting.addservice/index',
+              'uris' => [
+                  'setting.addservice/index',
+                  'setting.addservice/add',
+                  'setting.addservice/edit',
               ],
             ],
             [
@@ -840,11 +855,7 @@ return [
             [
                 'name' => 'API接口',
                 'index' => 'tools/apipost',
-            ]
-            // [
-            //     'name' => '17Track物流查询',
-            //     'index' => 'tools/seach',
-            // ],
+            ],
         ]
     ]
 ];

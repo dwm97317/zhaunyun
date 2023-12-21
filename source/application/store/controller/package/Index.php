@@ -24,6 +24,8 @@ use app\common\service\Message;
 use app\common\model\setting;
 use app\store\model\InpackService as InpackServiceModel;
 use app\store\model\user\UserMark as UserMarkModel;
+use app\store\model\Batch;
+use app\store\model\store\shop\Clerk;
 /**
  * 商家用户控制器
  * Class StoreUser
@@ -44,15 +46,15 @@ class Index extends Controller
         $Category = new Category();
         $map = \request()->param();
         $list = $packageModel->getList($map);
-        
-        // dump($printsetting);die;
+        // dump($list->toArray());die;
         $countweight = $packageModel->getListSum($map);
         $shopList = ShopModel::getAllList();
-        
+        $batchlist = (new Batch())->getAllwaitList([]);
         $line = (new Line())->getList([]);
         $packageService = (new PackageService())->getList([]);
         //获取设置
         $set = Setting::detail('store')['values'];
+        $adminstyle = Setting::detail('adminstyle')['values'];
         $type = 'all';
    
         $topcategory = $Category->getListTop($name=null)->toArray()['data'];
@@ -79,7 +81,7 @@ class Index extends Controller
             }
             $packlists = implode(',',$packlist);
         }
-        return $this->fetch('index', compact('i','packlists','list','shopList','line','packageService','type','storeAddress','category','topcategory','set','datatotal','countweight'));
+        return $this->fetch('index', compact('i','packlists','list','shopList','line','packageService','type','storeAddress','category','topcategory','set','datatotal','countweight','batchlist','adminstyle'));
     }
     
     //动态改变类目
@@ -146,6 +148,14 @@ class Index extends Controller
            return $this->renderSuccess('操作成功');
       }
       return $this->renderError('操作失败');
+    }
+    
+    //查询包裹的物流信息
+    public function getlog(){
+        $packageModel = new Package();
+        $param = $this->request->param();
+        $data = $packageModel->getlog($param);
+        return $this->renderSuccess('操作成功','',compact('data'));
     }
     
     //代客预报
@@ -573,6 +583,7 @@ class Index extends Controller
         }
         $countryList = (new Countries())->getListAll();
         $printsetting = Setting::detail('printer')['values'];  //打印机设置
+        $adminsetting = Setting::detail('adminstyle')['values'];  //电脑端设置
         $set = Setting::detail('store')['values'];
         $category = (new Category())->getAll()['tree'];
         if(!empty($category)){
@@ -606,7 +617,7 @@ class Index extends Controller
         $list = [];
         if (!$this->request->isAjax()){
             // dump($data);die;
-            return $this->fetch('add', compact('data','list','shopList','shelf','shelfitem','category','expressList','countryList','set','printsetting'));
+            return $this->fetch('add', compact('data','list','shopList','shelf','shelfitem','category','expressList','countryList','set','printsetting','adminsetting'));
         }
     }
     
@@ -627,7 +638,6 @@ class Index extends Controller
     */
     public function uodatepackStatus(){
         $model = new Package();
-        // dump($this->postData('data'));die;
         if (!$model->uodatepackStatus($this->postData('data'))) {
             return $this->renderError($model->getError() ?: '操作失败');
         }
@@ -910,7 +920,7 @@ class Index extends Controller
     public function importdo(){
        $post = request()->param();
        //物流模板设置
-    //   dump($post);die;
+       $PackageItem = new PackageItem;
        $noticesetting = setting::getItem('notice');
        $field = [
           'express_num','member_id','express_name','storage_name','weight','usermark'
@@ -936,26 +946,32 @@ class Index extends Controller
            $post['success'] = $res['msg'];
            return $this->renderSuccess('导入成功','',$post);
        }
+       //查询包裹是否存在
+       $packdata = (new Package())->where('express_num',$post['express_num'])->where('is_delete',0)->find();
        $postData = [
             'order_sn' => createSn(),
             'status' => 2,
-            'member_id' => isset($post['member_id'])?$post['member_id']:'',
+            'member_id' => isset($post['member_id'])?$post['member_id']:$packdata['member_id'],
             'member_name' => isset($res['data']['member']['nickName'])?$res['data']['member']['nickName']:'',
             'express_num' =>$post['express_num'],
             'express_name'=>isset($post['express_name'])?$post['express_name']:'其他',
             'storage_id' => isset($res['data']['storage']['shop_id'])?$res['data']['storage']['shop_id']:'',
-            'length'=> isset($post['length'])?$post['length']:'',
-            'width'=> isset($post['width'])?$post['width']:'',
-            'height'=> isset($post['height'])?$post['height']:'',
-            'usermark'=> isset($post['usermark'])?$post['usermark']:'',
+            'length'=> isset($post['length'])?$post['length']:$packdata['length'],
+            'width'=> isset($post['width'])?$post['width']:$packdata['width'],
+            'height'=> isset($post['height'])?$post['height']:$packdata['height'],
+            'usermark'=> isset($post['usermark'])?$post['usermark']:$packdata['usermark'],
+            // 'num'=>isset($post['num'])?$post['num']:$packdata['num'],
+            'volume'=>isset($post['volume'])?$post['volume']:$packdata['volume'],
+            'weight'=>isset($post['weight'])?$post['weight']:$packdata['weight'],
             'entering_warehouse_time'=> getTime(),
             'created_time'=> getTime(),
             'updated_time'=> getTime(),
             'source'=>4,
-            'weight'=>isset($post['weight'])?$post['weight']:'',
             'wxapp_id' => (new Package())->getWxappId(),
             'is_take'=> !isset($post['member_id'])?1:2
        ];
+       
+        
        if(!empty($postData['member_id']) && !empty($postData['usermark'])){
            $usermark = (new UserMarkModel())->where(['user_id'=>$postData['member_id'],'mark'=>$postData['usermark']])->find();
            if(empty($usermark)){
@@ -967,14 +983,20 @@ class Index extends Controller
                ]);
            }
        }
-       $packdata = (new Package())->where('express_num',$postData['express_num'])->where('is_delete',0)->find();
+       
        if(empty($packdata)){
            $res = (new Package())->insertGetId($postData);
        }else{
            $packdata->save($postData);
            $res = $packdata['id'];
        }
-       
+       $PackageItem->save([
+            'order_id'=>$res,
+            'express_num'=>$postData['express_num'],
+            'class_name'=>isset($post['class_name'])?$post['class_name']:'',
+            'product_num'=>isset($post['product_num'])?$post['product_num']:$packdata['product_num'],
+            'wxapp_id' => (new Package())->getWxappId(),
+       ]);
        if (!$res){
            $post['error'] = '未知错误';
            return $this->renderError('导入错误','',$post);
@@ -1189,10 +1211,54 @@ class Index extends Controller
         
     }
     
-    // 扫码  
+    // 扫码入库  
     public function scan(){
         $shopList = ShopModel::getAllList();
         return $this->fetch('scan', compact('list','shopList'));
+    }
+    
+    // 扫码出库  
+    public function scanout(){
+        $batchlist = (new Batch())->getAllwaitList();
+        return $this->fetch('scanout', compact('list','batchlist'));
+    }
+    
+    //扫码出库
+    public function scanoutshop(){
+        $code = request()->param('barcode');
+        $batch_id = request()->param('batch_id');
+        $data = (new Package())->alias('a')->field('a.id,a.storage_id,a.is_scan,a.wxapp_id,a.order_sn,u.nickName,a.member_id,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title')->join('user u', 'a.member_id = u.user_id',"LEFT")
+            ->join('countries c', 'a.country_id = c.id',"LEFT")
+            ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
+            ->where(['express_num'=>$code])
+            ->where('a.is_delete',0)
+            ->find();
+     
+            if (empty($data)){
+                // 入库标记为待认领
+                $data['express_num'] = $code;
+                $data['status'] = 2;
+                $data['storage_id'] = 0;
+                $data['is_take'] = 1;
+                $data['err'] = '库中未查到到该包裹,请先入库';
+                $data['opTime'] = getTime(); 
+                $return = [
+                   'success' =>false,
+                   'data' => $data,
+                ];
+                 
+                return $this->renderSuccess($data['err'],'',$return);
+                die;
+            }
+
+            $res = $data->save(['is_scan'=>2,'status'=>7,'batch_id'=>$batch_id,'updated_time'=>getTime()]);
+            if ($res){
+               $data['err'] = '检测到包裹,包裹已标记出库';
+               $data['is_scan'] = 2;
+               $data['opTime'] = getTime(); 
+               $return = ['success' =>true,'data' => $data];
+               return $this->renderSuccess($data['err'],'',$return);
+            }
     }
     
     // 扫码结果 并更新 状态
@@ -1203,10 +1269,12 @@ class Index extends Controller
         $shop_id = request()->param('shop_id');
         $data = (new Package())->alias('a')->field('a.id,a.storage_id,a.is_scan,a.wxapp_id,a.order_sn,u.nickName,a.member_id,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title')->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
-            ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")->where(['express_num'=>$code])->find();
+            ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
+            ->where(['express_num'=>$code])
+            ->where('a.is_delete',0)
+            ->find();
      
-        switch ($type) {
-            case '1':
+ 
                 if (empty($data)){
                     // 入库标记为待认领
                     $data['order_sn'] = createSn();
@@ -1216,6 +1284,7 @@ class Index extends Controller
                     $data['is_take'] = 1;
                     $data['source'] = 2;
                     $data['wxapp_id'] = (new Package())->getWxappId();
+                    $data['entering_warehouse_time'] = getTime();
                     $data['created_time'] = getTime();
                     $data['updated_time'] = getTime();
                     $res = (new Package())->insert($data);
@@ -1228,6 +1297,7 @@ class Index extends Controller
                     return $this->renderSuccess($data['err'],'',$return);
                     die;
                 }
+                
                 if ($data['a_status']!=1){
                     $err = '该包裹未处于待入库状态';
                     $data['err'] = $err;
@@ -1242,7 +1312,7 @@ class Index extends Controller
                 $update['status'] = 2;
                 $update['entering_warehouse_time'] = getTime();
                 
-                $res = (new Package())->where('id',$data['id'])->update($update);
+                $res = $data->save($update);
     
                 if ($res){
                     $data['err'] = '成功入库';
@@ -1257,80 +1327,6 @@ class Index extends Controller
                    return $this->renderSuccess($data['err'],'',$return);
                    die;
                 }
-                break;
-            case '2': 
-               
-                if (empty($data)){
-                    // 入库标记为待认领
-                    $data['order_sn'] = createSn();
-                    $data['express_num'] = $code;
-                    $data['status'] = 2;
-                    $data['storage_id'] = $shop_id;
-                    $data['is_take'] = 1;
-                    $data['err'] = '库中未查到到该包裹';
-                    $data['opTime'] = getTime(); 
-                    $return = [
-                       'success' =>false,
-                       'data' => $data,
-                    ];
-                     
-                    return $this->renderSuccess($data['err'],$return);
-                    die;
-                }
-               
-                if ($form=='package'){
-                    $packid = request()->param('pack_id');
-                    $Inpack = (new InPack())->find($packid);
-                    $packIds = explode(',',$Inpack['pack_ids']);
-                    $pack_list = (new Package())->where('id','in',$packIds)->select();
-                    $pack_list_arr = array_column($pack_list->toArray(),'express_num');
-                    if (!in_array($code,$pack_list_arr)){
-                         // 入库标记为待认领
-                      
-                        $data['err'] = '该包裹不属于该集运单,请检查';
-                        $data['opTime'] = getTime(); 
-                        $return = [
-                           'success' =>false,
-                           'data' => $data,
-                        ];
-                        return $this->renderSuccess($data['err'],$return);
-                        die;
-                    }
-                    $res = (new Package())->where('express_num',$code)->update(['is_scan'=>2,'entering_warehouse_time'=>getTime()]);
-                    if ($res){
-                       $data['err'] = '检测到包裹';
-                       $data['is_scan'] = 2;
-                       $data['opTime'] = getTime(); 
-                       $return = [
-                       'success' =>true,
-                       'data' => $data,
-                       ];
-                     return $this->renderSuccess($data['err'],'',$return);
-                     die;
-                      }
-                } 
-                
-                
-                if ($form=='scan'){
-                    $Package = (new Package())->where('express_num',$code)->find();
-                    $res = (new Package())->where('express_num',$code)->update(['is_scan'=>2,'updated_time'=>getTime()]);
-                    if ($res){
-                       $data['err'] = '检测到包裹,包裹已标记出库';
-                       $data['is_scan'] = 2;
-                       $data['opTime'] = getTime(); 
-                       $return = [
-                       'success' =>true,
-                       'data' => $data,
-                       ];
-                     return $this->renderSuccess($data['err'],'',$return);
-                     die;
-                      }
-                } 
-                 
-            default:
-                // code...
-                break;
-        }
     }
     
     /**包裹导出功能**/
@@ -1343,16 +1339,18 @@ class Index extends Controller
         $ids= input("post.selectId/a");
         $seach= input("post.seach/a");
         //1 待入库 2 已入库 3 已分拣上架  4 待打包  5 待支付  6 已支付 7 已分拣下架  8 已打包  9 已发货 10 已收货 11 已完成
-        $map =[-1=>'问题件',1=>'待入库',2=>'已入库',3=>'已分拣上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
+        $map =[''=>'',-1=>'问题件',1=>'待入库',2=>'已入库',3=>'已分拣上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
         
         if($ids){
-           $data = (new Package())->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
+           $data = (new Package())->with(['categoryAttr'])->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
                     $item["user"] = (new User())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
                     $item['status_text'] = $map[$item['status']];
                     $item['phone'] =(new UserAddress())->where('user_id',$item['member_id'])->find();
+                    $item['volumeweight'] = $item['width']*$item['height']*$item['length']/6000;
                     return $item;
                 }); 
         }else{
+            // dump($seach);die;
             if(!empty($seach['search'])){
                  $where['member_id'] = $seach['search']; //用户id
             }
@@ -1373,13 +1371,16 @@ class Index extends Controller
             $data =(new Package())->where($where)->select()->each(function ($item, $key) use($map){
                     $item["user"] = (new User())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
                     $item['status_text'] = $map[$item['status']];
+                
                     $item['phone'] =(new UserAddress())->where('user_id',$item['member_id'])->find();
+                    
+                    $item['volumeweight'] = $item['width']*$item['height']*$item['length']/6000;
                     return $item;
                 });
             // dump((new Package())->getLastsql());die;
-            // dump($data);die;
+            
         }
-        
+        // dump($data->toArray());die;
         $objPHPExcel->setActiveSheetIndex(0);
         //5.设置表格头（即excel表格的第一行）
         $objPHPExcel->setActiveSheetIndex(0)
@@ -1390,10 +1391,20 @@ class Index extends Controller
                 ->setCellValue('E1', '包裹状态')
                 ->setCellValue('F1', '入库时间')
                 ->setCellValue('G1', '重量')
-                ->setCellValue('H1', '系统单号');
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:H')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:H1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objPHPExcel->getActiveSheet()->getStyle('A:H')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                ->setCellValue('H1', '唛头')
+                ->setCellValue('I1', '长度')
+                ->setCellValue('J1', '宽度')
+                ->setCellValue('K1', '高度')
+                ->setCellValue('L1', '总重量')
+                ->setCellValue('M1', '总体积')
+                ->setCellValue('N1', '体积重')
+                ->setCellValue('O1', '货品')
+                ->setCellValue('P1', '数量')
+                ->setCellValue('Q1', '创建时间')
+                ;
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:Q')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:Q1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->getActiveSheet()->getStyle('A:Q')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
         
         //设置行高
         $objPHPExcel->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
@@ -1406,17 +1417,35 @@ class Index extends Controller
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('E')->setWidth(10);
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('F')->setWidth(30);
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('G')->setWidth(10);
-        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('H')->setWidth(30);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('H')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('I')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('J')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('K')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('L')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('M')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('N')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('O')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('P')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('Q')->setWidth(30);
         // $objPHPExcel->getActiveSheet()->getStyle('A1:H1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         for($i=0;$i<count($data);$i++){
             $objPHPExcel->getActiveSheet()->setCellValue('A'.($i+2),$data[$i]['express_num'].' ');//ID
             $objPHPExcel->getActiveSheet()->setCellValue('B'.($i+2),$data[$i]['user']['user_id']);//标签码
             $objPHPExcel->getActiveSheet()->setCellValue('C'.($i+2),$data[$i]['user']['nickName']);//防伪码
-            $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+2),$data[$i]['phone']?$data[$i]['phone']['phone']:$data[$i]['user']['mobile']);//ID
+            $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+2),$data[$i]['phone']?($data[$i]['phone']['phone'].' '):($data[$i]['user']['mobile'].' '));//ID
             $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+2),$data[$i]['status_text']);//标签码
             $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+2),$data[$i]['entering_warehouse_time']);//ID
             $objPHPExcel->getActiveSheet()->setCellValue('G'.($i+2),$data[$i]['weight']);//标签码
-            $objPHPExcel->getActiveSheet()->setCellValue('H'.($i+2),$data[$i]['order_sn']);//防伪码
+            $objPHPExcel->getActiveSheet()->setCellValue('H'.($i+2),$data[$i]['usermark']);//防伪码
+            $objPHPExcel->getActiveSheet()->setCellValue('I'.($i+2),$data[$i]['length']);
+            $objPHPExcel->getActiveSheet()->setCellValue('J'.($i+2),$data[$i]['width']);
+            $objPHPExcel->getActiveSheet()->setCellValue('K'.($i+2),$data[$i]['height']);
+            $objPHPExcel->getActiveSheet()->setCellValue('L'.($i+2),$data[$i]['weight']);
+            $objPHPExcel->getActiveSheet()->setCellValue('M'.($i+2),$data[$i]['volume']);
+            $objPHPExcel->getActiveSheet()->setCellValue('N'.($i+2),$data[$i]['volumeweight']); //体积重
+            $objPHPExcel->getActiveSheet()->setCellValue('O'.($i+2),isset($data[$i]['category_attr'][0])?$data[$i]['category_attr'][0]['class_name']:''); //货品
+            $objPHPExcel->getActiveSheet()->setCellValue('P'.($i+2),isset($data[$i]['category_attr'][0])?$data[$i]['category_attr'][0]['product_num']:''); //数量
+            $objPHPExcel->getActiveSheet()->setCellValue('Q'.($i+2),$data[$i]['created_time']);
         }
         //7.设置保存的Excel表格名称
         //8.设置当前激活的sheet表格名称；

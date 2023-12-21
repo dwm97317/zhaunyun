@@ -1746,13 +1746,41 @@ class Package extends Controller
      
      /**
       * 轨迹列表
+      * 重构时间 2023年12月08日
+      * 输入参数进行国际和国内信息的查询，对所有快递单号进行检索属于的集运单以及对应的国际单号
+      * 并将该国际单号数据进行获取展示；
+      * */
+     public function getlogistics(){
+        $express = $this->postData('code')[0];
+        $Logistics = new Logistics();
+        $PackageModel = new PackageModel();
+        $DitchModel= new DitchModel();
+        $Inpack = new Inpack();
+        $Express = new Express();
+        //查询单号是否有国内包裹的物流信息;
+        $packData = $PackageModel->where(['express_num'=>$express,'is_delete' => 0])->find();
+        $inpackData = $Inpack->where('order_sn|t_order_sn',$express)->where(['is_delete' => 0])->find();  //国际单号
+        $inpackData2 = $Inpack->where(['t2_order_sn'=>$express,'is_delete' => 0])->find();  //转单号
+        $inpackData3 = $Inpack->where(['t2_order_sn'=>$express,'is_delete' => 0])->find();  //转单号
+        
+        $logic = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
+        //查询包裹系统内部的轨迹
+        
+        //查询系统内部订单的轨迹
+        
+        //查询发货后的物流轨迹
+        return $this->renderSuccess(compact('logic'));
+     }
+     
+     /**
+      * 轨迹列表
       * 重构时间 2022年06月27日
       * 输入参数进行国际和国内信息的查询，对所有快递单号进行检索属于的集运单以及对应的国际单号
       * 并将该国际单号数据进行获取展示；
       * */
      public function logicist(){
         $express = $this->postData('code')[0];
-        $logic=[];
+        $logic = $logic4 = $logictik =[];
         $result=[];
         $logib = [];
         $logia = [];
@@ -1768,17 +1796,17 @@ class Package extends Controller
         $setting = SettingModel::detail("notice")['values'];
         //查询出来这个单号是包裹单号、国际单号、转单号
         $packData = $PackageModel->where(['express_num'=>$express,'is_delete' => 0])->find();
-       
-        $inpackData = $Inpack->where(['t_order_sn'=>$express,'is_delete' => 0])->find();
-        $inpackData2 = $Inpack->where(['t2_order_sn'=>$express,'is_delete' => 0])->find();
-        $inpackData3 = $Inpack->where('FIND_IN_SET(:ids,pack_ids)', ['ids' => $packData['id']])->where('is_delete',0)->find();
+        
+        $inpackData = $Inpack->where('t_order_sn',$express)->where(['is_delete' => 0])->find(); //国际单号
+        $inpackData2 = $Inpack->where(['t2_order_sn'=>$express,'is_delete' => 0])->find();  //转单号
+        $inpackData4 = $Inpack->where(['order_sn'=>$express,'is_delete' => 0])->find();
         //如果是包裹单号，可以反查下处于哪个集运单；
-        //   dump($packData);die;
+        //   dump($inpackData);die;
         
         if(!empty($packData)){
             //查出的系统内部物流信息
             $logic = $Logistics->getList($express);
-                // dump($logic);die;
+              
             if(count($logic)>0){
                 // dump($inpackData);die;
                 $logia = $Logistics->getorderno($logic[0]['order_sn']);
@@ -1787,27 +1815,30 @@ class Package extends Controller
             // dump($express_code);die; 
             if($setting['is_track_yubao']['is_enable']==1){//如果预报推送物流，则查询出来
                 $logib = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
-                // dump($logib);die;
+                
             }
             
-            if(!empty($inpackData3) && !empty($inpackData3['t_order_sn'])){
-                $logzd = $Logistics->getZdList($inpackData3['t_order_sn'],$inpackData3['t_number'],$inpackData3['wxapp_id']);
+            
+            // $inpackData3 = $Inpack->where('id', $packData['inpack_id'])->where('is_delete',0)->find();
+            // if(!empty($inpackData3) && !empty($inpackData3['t_order_sn'])){
+            //     $logzd = $Logistics->getZdList($inpackData3['t_order_sn'],$inpackData3['t_number'],$inpackData3['wxapp_id']);
+            // }
+            // if(!empty($inpackData3) && !empty($inpackData3['t2_order_sn'])){
+            //     $logguoji = $Logistics->getZdList($inpackData3['t2_order_sn'],$inpackData3['t2_number'],$inpackData3['wxapp_id']);
+            // }
+        
+            $logic = array_merge($logia,$logib,$logic);
+            if(empty($logic)){
+                $inpackData2 = $Inpack->where('id',$packData['inpack_id'])->where(['is_delete' => 0])->find(); //国际单号
+                // dump($inpackData2);die;
             }
-            if(!empty($inpackData3) && !empty($inpackData3['t2_order_sn'])){
-                $logguoji = $Logistics->getZdList($inpackData3['t2_order_sn'],$inpackData3['t2_number'],$inpackData3['wxapp_id']);
-            }
-              
-            $logic = array_merge($logia,$logib,$logic,$logzd,$logguoji);
         }
         
-        if(!empty($inpackData)){
-            //查出的系统内部物流信息
-            $logicti = $Logistics->getorderno($express);
-        }
-//   dump($logicti);die;
+
         if(!empty($inpackData) ){
             if($inpackData['transfer']==0){
                 $ditchdatas = $DitchModel->where('ditch_id','=',$inpackData['t_number'])->find();
+                // dump($ditchdatas);die;
                  //锦联
                 if($ditchdatas['ditch_no']==10001){
                     $jlfba =  new jlfba(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token']]);
@@ -1828,6 +1859,7 @@ class Package extends Controller
                 if($ditchdatas['ditch_no']==10004){
                     $Hualei =  new Hualei(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
                     $result = $Hualei->query($express);
+                    //  dump($result);die;
                 }
                 
                 //星泰api
@@ -1847,21 +1879,44 @@ class Package extends Controller
                     $Yidida =  new Yidida(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
                     $result = $Yidida->query($express);
                 }
-             
-                $logic = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
-                // dump($logic);die;
-                $logic = array_merge($logic,$result);
+                //当是自有专线物流时
+                // $logictjki = [];
+                // if($ditchdatas['type']==0){
+                //   $logictjki = $Logistics->getorderno($inpackData['order_sn']);  
+                // }
+                // //查询国际物流部分
+                // // $logic = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
+                // // dump($result);die;
+                // $logic = array_merge($result,$logictjki);
+                $logic = $result;
              
             }else{
                 $logic = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
             }
+            // dump($inpackData);die;
+            $packinck = $PackageModel->where(['inpack_id'=>$inpackData['id'],'is_delete' => 0])->find();
+           
+            if(!empty($packinck)){
+                $logictik = $Logistics->getList($packinck['express_num']);
+                //  dump($packinck);die;
+            }
+            if(empty($logia) && (empty($result) || $ditchdatas['type']==0)){
+                $logic543 = $Logistics->getorderno($inpackData['order_sn']); 
+                $logic = array_merge($logic,$logic543);
+           
+            }
             
+            // $logictii = $Logistics->getlogisticssn($inpackData['t_order_sn']);dump($logictii);die;
+            $logic = array_merge($logic,$logictik);
+        //   dump($logic);die;
+            // $logic = array_merge($logic,$result);
         }
         
         if(!empty($inpackData2)){
             $logici = $Logistics->getZdList($inpackData2['t2_order_sn'],$inpackData2['t2_number'],$inpackData2['wxapp_id']);
         }
-        $logic = array_merge($logic,$logici,$logicti);
+ 
+        $logic = array_merge($logic,$logici);
 
         return $this->renderSuccess(compact('logic'));
      }

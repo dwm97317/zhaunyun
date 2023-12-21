@@ -195,8 +195,9 @@ class User extends Controller
      */
     public function marklist(){
        $model = new UserMarkModel;
+    //   dump($this->request->param());die;
        $list = $model->getList($this->request->param());
-    //   dump($list->toArray());die;
+      
        //获取设置
         $set = Setting::detail('store')['values']['usercode_mode'];
        return $this->fetch('user/usermark/index', compact('list','set'));

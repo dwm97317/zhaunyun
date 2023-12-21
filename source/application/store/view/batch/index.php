@@ -82,14 +82,22 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                                     <i class="am-icon-trash"></i> 删除
                                                 </a>
                                             <?php endif; ?>
+                                            
+                                            <?php if (checkPrivilege('batch/logistics')): ?>
+                                            <a href="javascript:void(0);" class="j-wuliu tpl-table-black-operation-green " data-id="<?= $item['batch_id'] ?>"> 
+                                                <i class="iconfont icon-755danzi "></i> 物流更新
+                                            </a>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div style="margin-top:10px;" class="tpl-table-black-operation">
                                             <?php if (checkPrivilege('batch/batchvsinpack')): ?>
                                             <a href="<?= url('batch/batchvsinpack', ['id' => $item['batch_id']]) ?>">
                                             查看批次订单
                                             </a>
                                             <?php endif; ?>
-                                            <?php if (checkPrivilege('batch/logistics')): ?>
-                                            <a href="javascript:void(0);" class="j-wuliu tpl-table-black-operation-green " data-id="<?= $item['batch_id'] ?>"> 
-                                                <i class="iconfont icon-755danzi "></i> 物流更新
+                                            <?php if (checkPrivilege('batch/batchvspack')): ?>
+                                            <a  class="tpl-table-black-operation-del" href="<?= url('batch/batchvspack', ['id' => $item['batch_id']]) ?>">
+                                            查看批次包裹
                                             </a>
                                             <?php endif; ?>
                                         </div>

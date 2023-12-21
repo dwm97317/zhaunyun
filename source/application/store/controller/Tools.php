@@ -8,6 +8,8 @@ use app\api\controller\Page;
 use app\store\model\Line;
 use app\common\model\UpdateLog;
 use app\common\model\ApiPost;
+use app\common\model\Logistics;
+use app\store\model\Setting as SettingModel;
 /**
  * 工具功能
  * Class Passport
@@ -50,4 +52,6 @@ class Tools extends Controller
         $list = $ApiPost->getList();
         return $this->fetch('apipost',compact('list'));
     }
+    
+
 }

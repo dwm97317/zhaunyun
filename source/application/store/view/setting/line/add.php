@@ -287,24 +287,24 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 渠道增值服务 (<?= $set['price_mode']['unit'] ?>) </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">
+                                    增值服务
+                                </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                     <input type="text"  class="tpl-form-input" name="line[service_route]" value="10"
-                                           required>
+                                    <select id="selectize-tags-1" onclick="changeorder()" onchange="changeorder()" name="line[services_require]" multiple="" class="tag-gradient-success">
+                                        <?php if (count($lineservice)>0): foreach ($lineservice as $key =>$item): ?>
+                                            <option value="<?= $item['service_id'] ?>"><?= $item['name'] ?></option>
+                                        <?php endforeach; endif; ?>
+                                    </select>
+                                    
+                                    <small>注：不需要增值服务可不选；</small>
                                 </div>
                             </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 增值服务是否必选  </label>
+                           <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 增值服务说明 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="line[service_requrie]" value="1" data-am-ucheck
-                                               checked>
-                                        是
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="line[service_requrie]" value="2" data-am-ucheck>
-                                        否
-                                    </label>
+                                     <input type="text"  class="tpl-form-input" name="line[service_route]" value=""
+                                           required>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -392,7 +392,9 @@
 </div>
 <!-- 图片文件列表模板 -->
 {{include file="layouts/_template/tpl_file_item" /}}
-
+<link href="/web/static/css/selectize.default.css" rel="stylesheet">
+<script src="/web/static/js/summernote-bs4.min.js"></script>
+<script src="/web/static/js/selectize.min.js"></script>
 <!-- 文件库弹窗 -->
 {{include file="layouts/_template/file_library" /}}
 <script src="assets/common/plugins/umeditor/umeditor.config.js?v=<?= $version ?>"></script>
@@ -461,6 +463,17 @@
         $('.upload-file').selectImages({
             name: 'line[image_id]'
         });
+        
+        $('#selectize-tags-1').selectize({
+    	    delimiter: ',',
+    	    persist: false,
+    	    create: function(input) {
+    	        return {
+    	            value: input,
+    	            text: input
+    	        }
+    	    }
+	    });
 
         /**
          * 表单验证提交
@@ -469,7 +482,10 @@
         $('#my-form').superForm();
     });
     
-    
+    function changeorder(){
+        console.log($('#selectize-tags-1')[0]);
+        $('#orderno').val($('#selectize-tags-1')[0].selectize.items);
+    }
 
     // 切换计费模式
     function switchMode(_this){

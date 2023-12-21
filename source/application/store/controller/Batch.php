@@ -10,6 +10,7 @@ use app\api\model\Setting as SettingModel;
 use app\store\model\Express as ExpressModel;
 use app\store\model\Ditch as DitchModel;
 use app\store\model\Inpack;
+use app\store\model\Package;
 use app\common\model\Logistics;
 /**
  * 批次管理
@@ -30,9 +31,9 @@ class Batch extends Controller
         $model = new BatchModel;
         $BatchTemplateModel = new BatchTemplateModel;
         $templatelist = $BatchTemplateModel->getAllList();
-        
-        $list = $model->getList(['status'=>0]);
-        // dump($list->toArray());die;
+        $param = $this->request->param();
+        $param['status'] = 0;
+        $list = $model->getList($param);
         $type = 0;
         return $this->fetch('index', compact('list','type','templatelist'));
     }
@@ -75,8 +76,25 @@ class Batch extends Controller
     public function batchvsinpack($id){
          $Inpack = new Inpack;
          $set = Setting::detail('store')['values']['address_setting'];
-         $list = $Inpack->getList('all',['batch_id'=>$id,'limitnum'=>100]);
+         $map = ['batch_id'=>$id,'limitnum'=>100];
+         $list = $Inpack->getList('all',$map);
          return $this->fetch('orderlist', compact('list','set'));
+    }
+    
+    /**
+     * 获取批次内
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function batchvspack($id){
+         $Package = new Package;
+         $set = Setting::detail('store')['values'];
+         $map = ['batch_id'=>$id,'limitnum'=>100];
+         $list = $Package->getList($map);
+         $type = 'all';
+         $countweight = $Package->getListSum($map);
+         return $this->fetch('packlist', compact('list','set','type','countweight'));
     }
     
     /**
@@ -136,6 +154,21 @@ class Batch extends Controller
         return $this->renderSuccess('移除成功');
     }
     
+    
+    /**
+     * 移除订单的批次号
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function yichupack(){
+        $param = $this->request->param();
+        $Package = new Package;
+        $detial = $Package->detail($param['id']);
+        $res = $detial->save(['batch_id'=>0,'status'=>2]);
+        return $this->renderSuccess('移除成功');
+    }
+    
      /**
      * 更新批次内的所有订单的物流轨迹
      * @return mixed
@@ -145,16 +178,25 @@ class Batch extends Controller
     public function logistics(){
         $param = $this->request->param();
         $Inpack = new Inpack;
-        $list = $Inpack->getList('all',['batch_id'=>$param['batch_id']]);
+        $Package = new Package;
+        $list = $Inpack->getList('all',['batch_id'=>$param['batch_id'],'limitnum'=>300]);
+        $packlist = $Package->getList('all',['batch_id'=>$param['batch_id'],'limitnum'=>300]);
         if(count($list)==0){
             return $this->renderError('该批次下暂无订单');
         }
         if(empty($param['logistics_describe'])){
             return $this->renderError('请输入物流轨迹内容');
         }
+        if(!empty($list)){
+            foreach($list as $key =>$val){
+                Logistics::addInpackLogsPlus($val['order_sn'],$param['logistics_describe'],$param['created_time']);
+            }
+        }
         
-        foreach($list as $key =>$val){
-            Logistics::addInpackLogsPlus($val['order_sn'],$param['logistics_describe'],$param['created_time']);
+        if(!empty($packlist)){
+           foreach($packlist as $key =>$val){
+                Logistics::add($val['id'],$param['logistics_describe']);
+            } 
         }
         return $this->renderSuccess('添加成功');
     }
@@ -178,7 +220,27 @@ class Batch extends Controller
         }
         return $this->renderSuccess('加入批次成功');
     }
-    
+
+    /**
+     * 批量将包裹加入到批次中
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function addpacktobatch(){
+        $model = new BatchModel;
+        $Package = new Package;
+        $param = $this->request->param();
+        $arr = explode(',',$param['selectIds']);
+
+        if(isset($param['batch_id']) && empty($param['batch_id'])){
+            return $this->renderError('请选择批次');
+        }
+        foreach ($arr as $key =>$val){
+            $Package->where('id',$val)->update(['batch_id'=>$param['batch_id'],'status'=>7]);
+        }
+        return $this->renderSuccess('加入批次成功');
+    }
     
      /**
      * 运送中
@@ -309,7 +371,9 @@ class Batch extends Controller
     public function editbatch($batch_id)
     {
         $model = new Shop;
+        $Inpack = new Inpack;
         $Batch = new BatchModel;
+        $package = new Package;
         $list = $model->getAllList();
         $set = SettingModel::getItem('store',$this->getWxappId());
         $ExpressModel = new ExpressModel();
@@ -323,8 +387,17 @@ class Batch extends Controller
              return $this->fetch('edit',compact('list','detail','set','track','ditchlist','templatelist'));
         }
         $param = $this->postData('batch');
+        // dump($batch_id);die;
+        //将集运单和包裹都设置为已发货状态
         if($detail['status']==1 && $param['status']==1){
+            $Inpack->where('batch_id',$batch_id)->update(['status'=>6]);
+            $package->where('batch_id',$batch_id)->update(['status'=>9]);
             unset($param['status']);
+        }
+        //将集运单和包裹都设置为已到货状态
+        if($param['status']==2){
+            $Inpack->where('batch_id',$batch_id)->update(['status'=>7]);
+            $package->where('batch_id',$batch_id)->update(['status'=>11]);
         }
         // 新增记录
         if ($detail->editbatch($param)){

@@ -56,7 +56,7 @@ class Setting extends Controller
     }
     
      /**
-     * 智能AI识别
+     * 仓管端
      * @return mixed
      * @throws \think\exception\DbException
      */
@@ -64,6 +64,17 @@ class Setting extends Controller
     {
         return $this->updateUserclient('keeper');
     }
+    
+    /**
+     * 管理端
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function adminstyle()
+    {
+        return $this->updateUserclient('adminstyle');
+    }
+    
     
     /**
      * 智能AI识别的记录日志
@@ -89,6 +100,7 @@ class Setting extends Controller
     {
         if (!$this->request->isAjax()) {
             $vars['values'] = SettingModel::getItem($key);
+            // dump($key);die;
             $vars['values']['baiduai'] = WxappModel::detail($this->store['wxapp']['wxapp_id'])['baiduai'];
            
             if($key=='userclient' && isset($vars['values']['guide']['first_image'])){

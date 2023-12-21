@@ -37,12 +37,14 @@ class Controller extends \think\Controller
     protected $allowAllAction = [
         // 登录页面
         'passport/login',
+        'tools/search'
     ];
 
     /* @var array $notLayoutAction 无需全局layout */
     protected $notLayoutAction = [
         // 登录页面
         'passport/login',
+        'tools/search'
     ];
 
     /**
@@ -92,9 +94,10 @@ class Controller extends \think\Controller
     private function layout()
     {
         // 验证当前请求是否在白名单
+        // dump(in_array($this->routeUri, $this->notLayoutAction));die;
         if (!in_array($this->routeUri, $this->notLayoutAction)) {
             $storeData = $this->store;
-            // dump($storeData);die;
+            
             $storeData['wxapp']['end_time'] = date("Y-m-d",$storeData['wxapp']['end_time']);
             // 输出到view
             $this->assign([
@@ -108,6 +111,10 @@ class Controller extends \think\Controller
                 'version' => get_version(),                    // 系统版本号
             ]);
         }
+        // else{
+        //     $this->routeUri = $this->routeUri.'&wxapp_id=10001';
+        // }
+        
     }
     
     public function withImageById($data,$field,$name=null){

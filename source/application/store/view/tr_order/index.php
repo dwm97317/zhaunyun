@@ -239,7 +239,7 @@
                             <?php if (!$list->isEmpty()): foreach ($list as $item): ?>
                             <?php $status = [1=>'待查验',2=>'待发货',3=>'待发货','4'=>'待发货','5'=>'待发货','6'=>'已发货','7'=>'已到货','8'=>'已完成','-1'=>'问题件']; ?>
                             <?php $paytime_status = [ 1=>'已支付',2=>'未支付'] ; ?>
-                            <?php $isPayType = [0=>'后台操作', 1=>'微信支付',2=>'余额支付',3 =>'汉特支付',4=>'OMIPAY',5=>'现金支付'] ; ?>
+                        
                                 <tr>
                                     <td class="am-text-middle">
                                        <input name="checkIds" type="checkbox" value="<?= $item['id'] ?>"> 
@@ -326,10 +326,23 @@
                                         包装费:<span style="color:#ff6666;cursor:pointer" text="<?= $item['pack_free'] ?>" onclick="copyUrl2(this)"><?= $item['pack_free'] ?></span></br>
 
                                         其他费用:<span style="color:#ff6666;cursor:pointer" text="<?= $item['other_free'] ?>" onclick="copyUrl2(this)"><?= $item['other_free'] ?></span></br>
-                                        合计:<span style="color:#ff6666;cursor:pointer" text="<?= $item['free'] + $item['pack_free'] + $item['other_free'] ?>" onclick="copyUrl2(this)"><?= $item['free'] + $item['pack_free'] + $item['other_free'] ?></span></br></br>
-                                        <?php if (isset($userclient['packit']['is_waitreceivedmoney']) && $userclient['packit']['is_waitreceivedmoney']==1): ?> 
-                                        代收款:<span style="color:#ff6666;cursor:pointer" text="<?= $item['waitreceivedmoney'] ?>" onclick="copyUrl2(this)"><?= $item['waitreceivedmoney'] ?></span></br>
+                                        
+                                        优惠金额：<span style="color:#ff6666;cursor:pointer" text="<?= $item['user_coupon_money'] ?>" onclick="copyUrl2(this)"><?= $item['user_coupon_money']; ?></span></br>
+                                        
+                                        费用合计:<span style="color:#ff6666;cursor:pointer" text="<?= $item['free'] + $item['pack_free'] + $item['other_free'] ?>" onclick="copyUrl2(this)"><?= $item['free'] + $item['pack_free'] + $item['other_free'] ?></span></br>
+                                        
+                                        <?php if ($item['is_pay']==1): ?>
+                                        实际支付：<span style="color:#ff6666;cursor:pointer" text="<?= $item['real_payment'] ?>" onclick="copyUrl2(this)"><?= $item['real_payment']; ?></span></br></br>
                                         <?php endif ;?>
+                                        
+                                        <?php if (isset($userclient['packit']['is_waitreceivedmoney']) && $userclient['packit']['is_waitreceivedmoney']==1): ?> 
+                                        代收款:<span style="color:#ff6666;cursor:pointer" text="<?= $item['waitreceivedmoney'] ?>" onclick="copyUrl2(this)"><?= $item['waitreceivedmoney'] ?></span></br></br>
+                                        <?php endif ;?>
+                                        <?php if ($item['usercoupon']): ?>
+                                        优惠券:<span style="color:#ff6666;cursor:pointer" text="<?= $item['usercoupon']['name'] ?>" onclick="copyUrl2(this)"><?= $item['usercoupon']['name'] ?></span></br>
+                                        
+                                        <?php endif ;?>
+                                        
                                     </td>
                   
                                     <td class="am-text-middle">
@@ -372,7 +385,7 @@
                                         
                                         <?php if ($item['is_pay']==1): ?>
                                         <span class="am-badge <?= $item['is_pay']==1?'am-badge-success':'am-badge-danger'?>">
-                                            <?= $isPayType[$item['is_pay_type']];?>
+                                            <?= $item['is_pay_type']['text'];?>
                                         </span><br>
                                         <?php endif; ?>
                                         

@@ -27,8 +27,11 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <?= $detail['order_sn'] ?><br>
-                                    <?= $detail['express_num'] ?>
+                                    <?php if(!empty($detail['inpack_id']) && $detail['inpack']['order_sn']) :?>
+                                    <a href="<?= url('store/trOrder/orderdetail', ['id' => $detail['inpack']['id']]) ?>">
+                                            所属订单：<?= $detail['inpack']['order_sn'] ?></a><br>
+                                    <?php endif;?>
+                                    包裹单号：<?= $detail['express_num'] ?>
                                 </td>
                                 <td>
                                     <p><?= $detail['user']['nickName'] ?></p>
@@ -40,23 +43,34 @@
                                             <li class="am-text-right">长：</li>
                                             <li class="am-text-right"><?= $detail['length'] ?> <?= $set['size_mode']['unit'] ?></li>
                                         </ul>
-                                            <ul class="am-avg-sm-2">
-                                                <li class="am-text-right">宽：</li>
-                                                <li class="am-text-right"><?= $detail['width'] ?> <?= $set['size_mode']['unit'] ?></li>
-                                            </ul>
-                                            <ul class="am-avg-sm-2">
-                                                <li class="am-text-right">高：</li>
-                                                <li class="am-text-right"><?= $detail['height'] ?> <?= $set['size_mode']['unit'] ?></li>
-                                            </ul>
+                                        <ul class="am-avg-sm-2">
+                                            <li class="am-text-right">宽：</li>
+                                            <li class="am-text-right"><?= $detail['width'] ?> <?= $set['size_mode']['unit'] ?></li>
+                                        </ul>
+                                        <ul class="am-avg-sm-2">
+                                            <li class="am-text-right">高：</li>
+                                            <li class="am-text-right"><?= $detail['height'] ?> <?= $set['size_mode']['unit'] ?></li>
+                                        </ul>
+                                        <ul class="am-avg-sm-2">
+                                            <li class="am-text-right">体积：</li>
+                                            <li class="am-text-right"><?= $detail['volume'] ?> 立方</li>
+                                        </ul>
                                         <ul class="am-avg-sm-2">
                                             <li class="am-text-right">重量：</li>
                                             <li class="am-text-right"><?= $detail['weight'] ?><?= $set['weight_mode']['unit'] ?> (<?= $set['weight_mode']['unit_name'] ?>)</li>
+                                        </ul>
+                                        <ul class="am-avg-sm-2">
+                                            <li class="am-text-right">包裹数：</li>
+                                            <li class="am-text-right"><?= $detail['num'] ?></li>
                                         </ul>
                                     </div>
                                 </td>
                                 <td>
                                        <p><?= $detail['storage']['shop_name'] ?></p>
                                        <p class="am-link-muted">(仓库id：<?= $detail['storage']['shop_id'] ?>)</p> 
+                                       <?php if($detail['shelfunititem'] && $detail['shelfunititem']['shelfunit']) :?>
+                                            货架：<span style="color:#ff6666;cursor:pointer"><?= $detail['shelfunititem']['shelfunit']['shelf']['shelf_no'].' - '.$detail['shelfunititem']['shelfunit']['shelf_unit_no'] ?></span><br>
+                                        <?php endif;?>
                                 </td>
                                 <td>
                                        <p><?= $detail['country']['title']?$detail['country']['title']:'暂未选择' ?></p>
@@ -98,7 +112,7 @@
                             am-text-nowrap am-margin-bottom-xs">
                             <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>子包裹ID</th>
                                 <th>快递单号</th>
                                 <th>快递公司</th>
                                 <th>类目名称</th>
@@ -140,7 +154,7 @@
                             am-text-nowrap am-margin-bottom-xs">
                             <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>包裹记录ID</th>
                                 <th>状态值</th>
                                 <th>状态名</th>
                                 <th>内容</th>

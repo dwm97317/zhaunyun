@@ -44,6 +44,7 @@ class Setting extends BaseModel
     public static function getItem($key, $wxapp_id = null)
     {
         $data = self::getAll($wxapp_id);
+        // dump($data);die;
         return isset($data[$key]) ? $data[$key]['values'] : [];
     }
 
@@ -126,7 +127,6 @@ class Setting extends BaseModel
                     'client' =>[
                         'mode' =>20, //10 只开启H5，20，小程序+H5，    
                     ],
-                    'is_usermark'=>0, //是否开启唛头，1=开启
                     'moren'=>[
                         'send_mode'=> 10, //默认10 拼邮模式  20 直邮模式  代用户打包默认的
                         'pack_in_shop' => 10, //默认10 拼邮模式  20 直邮模式  后台录入的
@@ -207,7 +207,6 @@ class Setting extends BaseModel
                     'is_auto_free' => 1, //0不自动计算费用，1自动计算费用
                     'retention_day'=> 7, //滞留件时效天数，超过这个天数则再次通知用户领取
                     'is_ren_image' =>1, //0 不开启
-                    'is_open_shelf'=> 1, //是否开启货架功能，默认开启，可以不开启
                     // 快递100
                     'kuaidi100' => [
                         'customer' => '',
@@ -341,6 +340,32 @@ class Setting extends BaseModel
                         'is_photo' => 1,
                         'is_photo_force' => 0,
                     ]
+                ]
+            ],
+            'adminstyle' => [
+                'key' => 'adminstyle',
+                'describe' => '仓管端设置',
+                'values' =>[
+                    'is_usermark'=>1, //是否开启唛头
+                    'is_force_usermark'=>0,//是否唛头必填
+                    'is_country'=>1,
+                    'is_force_country'=>0,
+                    'is_shop'=>1,
+                    'is_force_shop'=>0,
+                    'is_express'=>1,
+                    'is_force_express'=>0,
+                    'is_packinfo'=>1, //包裹长宽高等信息
+                    'is_force_packinfo'=>0, //包裹长宽高等信息
+                    'is_totalvalue'=>1,
+                    'is_force_totalvalue'=>0,
+                    'is_category'=>1,
+                    'is_force_category'=>0,
+                    'is_adminremark'=>1,
+                    'is_force_adminremark'=>0,
+                    'is_packimage'=>1,
+                    'is_force_packimage'=>0,
+                    'is_shelf'=>1,
+                    'is_force_shelf'=>0
                 ]
             ],
             // 用户端设置
@@ -679,7 +704,7 @@ class Setting extends BaseModel
                     'is_open' => '0',   // 是否开启打印
                     'printer_id' => '', // 打印机id
                     'order_status' => [], // 订单类型 10下单打印 20付款打印 30确认收货打印
-                    'printsite'=> 1, //1=后台录入包裹时打印  2=仓管扫码入库时
+                    'printsite'=> [], //1=后台录入包裹时打印  2=仓管扫码入库时
                 ],
             ],
             // 物流信息设置

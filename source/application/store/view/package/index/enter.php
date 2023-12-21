@@ -225,7 +225,7 @@
                         		Webcam.attach( '#my_camera' );
                         	</script>
                         	 <?php endif; ?>
-                        	<?php if ($set['is_open_shelf']==1): ?>
+                        
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">包裹存放位置</label>
                                 
@@ -247,7 +247,7 @@
                                 </div>
                                 </div>
                             </div>
-                            <?php endif; ?>
+                           
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <input type="hidden" name="data[id]" value="<?= $data['id']??'' ?>">

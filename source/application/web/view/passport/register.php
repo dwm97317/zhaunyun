@@ -109,7 +109,7 @@
                 swal(res.msg);
             }
           setTimeout((res)=>{
-                window.location.href = '/index.php/web/index/';
+                window.location.href = "<?php echo(urlCreate('/index.php/web/index')) ?>";
             },1000);    
         }
      })

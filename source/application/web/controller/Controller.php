@@ -30,11 +30,13 @@ class Controller extends \think\Controller
     protected $allowAllAction = [
         // 登录页面
         'passport/login',
+        'track/search'
     ];
     /* @var array $notLayoutAction 无需全局layout */
     protected $notLayoutAction = [
         // 登录页面
         'passport/login',
+        'track/search'
     ];
     /**
      * API基类初始化
@@ -45,22 +47,42 @@ class Controller extends \think\Controller
     {
         $this->user = Session::get('yoshop_user');
         // 当前小程序id
+      
         $wxapp_id_en = str_replace(' ','+',$this->request->get('wxappid'));
-     
+        //  dump(encrypt($wxapp_id_en,'D'));die;
         if (!$wxapp_id = encrypt($wxapp_id_en,'D')){
              throw new BaseException(['msg' => '无效wxapp_id']);   
         }
+        // dump($wxapp_id);die;
         $this->wxapp_id = $wxapp_id;
-    
+        $this->getRouteinfo();
         // 验证当前小程序状态
         $this->checkWxapp();
         // 判断当前控制器 是否是login
         $controller=request()->controller();
-        if ($controller!='Passport'){
+        // dump($this->notLayoutAction);die;
+        if (!in_array($this->routeUri, $this->notLayoutAction)){
            $this->checkLogin();
         }
         $this->layout();
     }
+    
+    /**
+     * 解析当前路由参数 （分组名称、控制器名称、方法名）
+     */
+    protected function getRouteinfo()
+    {
+        // 控制器名称
+        $this->controller = toUnderScore($this->request->controller());
+        // 方法名称
+        $this->action = $this->request->action();
+        // 控制器分组 (用于定义所属模块)
+        $groupstr = strstr($this->controller, '.', true);
+        $this->group = $groupstr !== false ? $groupstr : $this->controller;
+        // 当前uri
+        $this->routeUri = $this->controller . '/' . $this->action;
+    }
+
 
     /**
      * 获取当前小程序ID

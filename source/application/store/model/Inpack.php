@@ -53,7 +53,7 @@ class Inpack extends InpackModel
         $res= $this
             ->alias('pa')
             ->field('pa.*,ba.batch_id,ba.batch_name,ba.batch_no,u.nickName')
-            ->with(['line','address','storage','user','shop'])
+            ->with(['line','address','storage','user','shop','usercoupon'])
             ->join('user u','u.user_id = pa.member_id','left')
             ->join('user_address add','add.address_id = pa.address_id','left')
             ->join('batch ba','ba.batch_id = pa.batch_id','left')

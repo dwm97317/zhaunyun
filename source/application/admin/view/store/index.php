@@ -23,6 +23,7 @@
                         <tr>
                             <th>商家ID</th>
                             <th>商家名称</th>
+                            <th>小程序APPID</th>
                             <th>有效期至</th>
                             <th>版本号</th>
                             <th>添加时间</th>
@@ -37,6 +38,9 @@
                                 </td>
                                 <td class="am-text-middle">
                                     <p class="item-title"><?= $names[$item['wxapp_id']] ?></p>
+                                </td>
+                                 <td class="am-text-middle">
+                                    <p class="item-title"><?= $item['app_id'] ?></p>
                                 </td>
                                 <td class="am-text-middle"><?= date("Y-m-d",$item['end_time']) ?></td>
                                 <td class="am-text-middle"><?= $item['version'] ?></td>

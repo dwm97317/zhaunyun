@@ -42,11 +42,7 @@
                                         <input type="radio" name="op" class="op" value="1" data-am-ucheck checked>
                                         入库
                                     </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="op" class="op" value="2" data-am-ucheck
-                                               >
-                                        出库
-                                    </label>
+                                   
                                 </div>
                             </div>
                             <div class="am-form-group">

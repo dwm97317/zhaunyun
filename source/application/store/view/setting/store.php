@@ -419,26 +419,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     </label>
                                 </div>
                             </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require">
-                                    是否开启唛头功能
-                                </label>
-                                <div class="am-u-sm-9">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_usermark]" value="1"
-                                               data-am-ucheck
-                                            <?= $values['is_usermark'] == '1' ? 'checked' : '' ?>
-                                               required>
-                                        开启
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_usermark]" value="0"
-                                               data-am-ucheck
-                                            <?= $values['is_usermark'] == '0' ? 'checked' : '' ?>>
-                                        不开启
-                                    </label>
-                                </div>
-                            </div>
+                            
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl"> 自定义功能设置</div>
                             </div>
@@ -765,29 +746,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     </div>
                                 </div>
                             </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require">
-                                    是否开启货架功能
-                                </label>
-                                <div class="am-u-sm-9">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_open_shelf]" value="1"
-                                               data-am-ucheck
-                                            <?= $values['is_open_shelf'] == '1' ? 'checked' : '' ?>
-                                               required>
-                                        开启
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_open_shelf]" value="0"
-                                               data-am-ucheck
-                                            <?= $values['is_open_shelf'] == '0' ? 'checked' : '' ?>>
-                                        关闭
-                                    </label>
-                                    <div class="help-block">
-                                        <small>开启货架功能后，将可以进行货架的管理，货位的查看，入库时选择包裹存放在什么货位</small>
-                                    </div>
-                                </div>
-                            </div>
+                          
                             <div class="am-form-group">
                                 <label class="am-u-sm-3  am-form-label form-require"> 用户复制仓库地址收件人显示模式 </label>
                                 <div class="am-u-sm-9 am-u-end">

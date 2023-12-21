@@ -15,6 +15,8 @@ class Setting extends EnumBasics
     const AIIDENTIFY = 'aiidentify';
     // 交易设置
     const TRADE = 'trade';
+    // 电脑端设置
+    const ADMINSTYLE = 'adminstyle';
     // 仓管端设置
     const KEEPER = 'keeper';
     // 短信通知
@@ -71,6 +73,10 @@ class Setting extends EnumBasics
             self::STORE => [
                 'value' => self::STORE,
                 'describe' => '系统设置',
+            ],
+            self::ADMINSTYLE => [
+                'value' => self::ADMINSTYLE,
+                'describe' => '电脑端设置',
             ],
             self::BATCH => [
                 'value' => self::BATCH,

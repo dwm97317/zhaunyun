@@ -206,6 +206,10 @@
                         <?php if (checkPrivilege('package.index/loaddingoutexcel')): ?>
                         <button type="button" id="j-export" class="am-btn am-btn-default am-radius"><i class="iconfont icon-daochu am-margin-right-xs"></i>导出</button>
                         <?php endif;?>
+                         <!--加入批次-->
+                        <?php if (checkPrivilege('batch/addpacktobatch')): ?>
+                        <button type="button" id="j-batch" class="am-btn am-btn-secondary am-radius"><i class="iconfont icon-pintuan"></i> 加入批次</button>
+                        <?php endif;?>
                     </div>
                     <div class="am-scrollable-horizontal am-u-sm-12">
                         <table width="100%" class="am-table am-table-compact am-table-striped
@@ -214,9 +218,9 @@
                             <tr>
                                 <th><input id="checkAll" type="checkbox" ></th>
                                 <th>包裹ID</th>
-                                <th width='300'>包裹预报单号/快递单号</th>
+                                <th width='300'>包裹单号/快递单号</th>
                                 <th>用户昵称</th>
-                                <th>仓库</th>
+                                <th>仓库/货架</th>
                                 <th>运往国家</th>
                                 <th>包裹信息</th>
                                 <th>状态</th>
@@ -226,7 +230,7 @@
                             </thead>
                             <tbody id="body">
                             <?php if (!$list->isEmpty()): foreach ($list as $item): ?>
-                             <?php $status = [ 0=>'问题件',1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成','-1'=>'问题件',''=>'无状态']   ; ?>
+                             <?php $status = [ 0=>'问题件',1=>'未入库',2=>'已入库',3=>'已上货架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已加入批次',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成','-1'=>'问题件',''=>'无状态']   ; ?>
                              <?php $taker_status = [1=>'待认领',2=>'已认领',3=>'已丢弃']; ?>
                          
                              <?php $source = [1=>'小程序预报',2=>'从平台录入','3'=>'代购单同步',4=>'批量导入','5'=>'网页端录入','6'=>'拼团','7'=>'预约取件','8'=>'仓管录入',9=>'API录入']; ?>
@@ -236,10 +240,16 @@
                                     </td>
                                     <td class="am-text-middle"><?= $item['id'] ?></td>
                                     <td class="am-text-middle">
-                                        <?= $item['express_num'] ?> 
+                                        <a href="javascript:;" onclick="getlog(this)" value="<?= $item['express_num'] ?>" > 
+                                            <?= $item['express_num'] ?> 
+                                        </a>
+                                        
                                         <span style="color:#ff6666;cursor:pointer" text="<?= $item['express_num'];?>" onclick="copyUrl2(this)">[复制]</span> 
                                         <?= $item['express_name']?$item['express_name']:'' ?> </br> 
-                                        
+                                        <?php if($item['batch'] && $item['batch']['batch_id']) :?>
+                                            所属批次：<a href="<?= url('store/batch/index', ['batch_id' => $item['batch']['batch_id']]) ?>">
+                                            <?= $item['batch']['batch_name'] ?></a><br>
+                                        <?php endif;?>
                                         <?php if($item['inpack_id'] && $item['inpack']['order_sn']) :?>
                                             所属订单：<a href="<?= url('store/trOrder/orderdetail', ['id' => $item['inpack']['id']]) ?>">
                                             <?= $item['inpack']['order_sn'] ?></a><br>
@@ -250,7 +260,7 @@
                                         <?php if (!$item['category_attr']->isEmpty()): foreach ($item['category_attr'] as $attr): ?>
                                               <span class="am-badge am-badge-success"><?= $attr['class_name']?></span> </br>
                                         <?php endforeach;endif; ?>
-                                        <?php if(isset($set['is_usermark']) && $set['is_usermark']==1 && $item['usermark'] ) :?>
+                                        <?php if(isset($adminstyle['is_usermark']) && $adminstyle['is_usermark']==1 && $item['usermark'] ) :?>
                                              唛头：<?= $item['usermark']; ?></br>
                                         <?php endif;?>
                                     </td>
@@ -263,13 +273,20 @@
                                     <span>[Code:] <?= $item['user_code'] ?></span>
                                     <?php endif;?>
                                     </td>
-                                    <td class="am-text-middle"><?= $item['shop_name'] ?></td>
+                                    <td class="am-text-middle">
+                                        <?= $item['shop_name'] ?></br>
+                                        <?php if($item['shelfunititem'] && $item['shelfunititem']['shelfunit']) :?>
+                                            货架：<span style="color:#ff6666;cursor:pointer"><?= $item['shelfunititem']['shelfunit']['shelf']['shelf_no'].' - '.$item['shelfunititem']['shelfunit']['shelf_unit_no'] ?></span><br>
+                                        <?php endif;?>
+                                    </td>
                                     <td class="am-text-middle"><?= $item['title'] ?></td>
                                     <td class="am-text-middle">
                                         重量(<?= $set['weight_mode']['unit'] ?>):<?= $item['weight'] ?></br>
-                                        体积(<?= $set['weight_mode']['unit'] ?>):<?= !empty($item['volume'])?$item['volume']:0 ?></br>
+                                        体积(立方m³):<?= !empty($item['volume'])?$item['volume']:0 ?></br>
                                         
                                         价值(<?= $set['price_mode']['unit'] ?>):<?= $item['price'] ?></br>
+                                        包裹数:<?= $item['num'] ?></br>
+                                        
                                     </td>
                                     <td class="am-text-middle">包裹状态:<?= $status[$item['a_status']];?></br>认领状态:<?= $taker_status[$item['is_take']];?></td>
                       
@@ -525,7 +542,79 @@
         </form>
     </div>
 </script>
+<script id="tpl-batch" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择集运单数
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'> 共选中 {{ selectCount }} 订单</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择批次
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="batch_id"
+                                data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" onchange="getSelectData(this)" data-select_type='shelf'>
+                            <option value="">请选择</option>
+                            <?php if (isset($batchlist) && !$batchlist->isEmpty()):
+                                foreach ($batchlist as $item): ?>
+                                    <option value="<?= $item['batch_id'] ?>"><?= $item['batch_name'] ?> - <?= $item['batch_no'] ?></option>
+                                <?php endforeach; endif; ?>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-log" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+            {{each data value}}
+                <div class="am-form-group">
+                    <div class="am-u-sm-12">
+                       <p style="height:auto;" class='am-form-static'>{{ value.created_time }}  - {{ value.logistics_describe }}</p>
+                    </div>
+                </div>
+            {{/each}}     
+            </div>
+        </form>
+    </div>
+</script>
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
+<script>
+    function getlog(_this){
+        var number = _this.getAttribute('value');
+        console.log(3434);
+        $.ajax({
+			type: 'post',
+			url: "<?= url('store/package.Index/getlog') ?>",
+			data: {number: number},
+			dataType: "json",
+			success: function(res) {
+				if (res.code == 1) {
+				    console.log(res.data,87);
+        				$.showModal({
+                         title: '物流信息'
+                        , area: '800px'
+                        , content: template('tpl-log', res.data)
+                        , uCheck: false
+                        , success: function (index) {}
+                        ,yes: function (index) {window.location.reload();}
+                    });
+				}
+			}
+		})
+    } 
+</script>
 <script>
     var _render = false;
     var getSelectData = function(_this){
@@ -788,6 +877,35 @@
             });
         });
         
+        /**
+         * 加入批次
+         */
+        $('#j-batch').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            console.log(data.selectId)
+            $.showModal({
+                title: '将包裹加入到批次中'
+                , area: '460px'
+                , content: template('tpl-batch', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('store/batch/addpacktobatch') ?>',
+                        data: {selectIds:data.selectId},
+                    });
+                    return true;
+                }
+            });
+        });
         
         /**
          * 批量删除
@@ -869,10 +987,10 @@
                 }
                 
             });
-            if(isEmpty(serializeObj['search']) && selectIds.length==0){
-                    layer.alert('请先选择包裹或者搜索后再点导出', {icon: 5});
-                    return;
-            }
+            // if(isEmpty(serializeObj['search']) && selectIds.length==0){
+            //         layer.alert('请先选择包裹或者搜索后再点导出', {icon: 5});
+            //         return;
+            // }
             $.ajax({
                 type:'post',
                 url:"<?= url('store/package.index/loaddingOutExcel') ?>",

@@ -633,13 +633,14 @@ class Useropration extends Controller
         if(empty($res) && $tyoi==0){
             $ex = explode('-',$post);
             $post = $ex[0];
-            $map[] = ['is_delete','=',0];
-            $map[] = ['express_num','=',$post]; 
+            $maps[] = ['is_delete','=',0];
+            $maps[] = ['express_num','=',$post]; 
             $res = (new Package())
-                ->setQuery($map)
+                ->setQuery($maps)
                 ->field('id,express_num,order_sn,member_id,storage_id,status,width,height,weight,length,remark,admin_remark')
                 ->with('storage')
                 ->find();
+            // dump($res);die;
         }
         
         if(empty($res)){

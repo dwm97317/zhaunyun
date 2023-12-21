@@ -85,8 +85,14 @@
                                 <label for="selectable<?= $item['id']; ?>"><?= $item['id'] ?></label>
                             </div> 
                         </td>
-                        <td><a target="_blank" class="j-search" data-id="<?= $item['express_num'] ?>" href="javascript:void(0)"><?= $item['express_num'] ?></a></td>
-                        <td><?= $item['express']['express_name'] ?></td>
+                        <td>
+                            <a target="_blank" class="j-search" data-id="<?= $item['express_num'] ?>" href="javascript:void(0)"><?= $item['express_num'] ?></a><br>
+                            唛头：<?= $item['usermark'] ?>
+                        </td>
+                        <td>
+                            <?= $item['express']['express_name'] ?>
+                            
+                        </td>
 						<td><span class="badge badge-pill badge-gradient-success"><?= $item['status'] ?></span></td>
 						<td><?= $item['storage']['shop_name'] ?></td>
 						<td><?= $item['class_name'] ?></td>

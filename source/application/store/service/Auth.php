@@ -65,7 +65,8 @@ class Auth
         'tr_order/changeremark',
         'user/findusermark',
         'user/findusercode',
-        'apps.sharing.order/inpacklist'
+        'apps.sharing.order/inpacklist',
+        'tools/search'
     ];
 
     /** @var array $accessUrls 商家用户权限url */

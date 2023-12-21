@@ -5,12 +5,25 @@ use app\common\model\User;
 use think\Model;
 use think\Db;
 use traits\model\SoftDelete;
-use app\common\model\Logistics;
+use app\api\model\Logistics;
 use app\store\model\PackageImage;
 use app\common\service\Email;
 use app\store\model\store\Shop;
 use app\common\service\Message;
 use app\common\model\Setting as SettingModel;
+
+use app\api\model\Express;
+use app\api\service\trackApi\TrackApi;
+use app\common\library\Ditch\config;
+use app\common\model\Ditch as DitchModel;
+use app\store\model\store\Shop as ShopModel;
+use app\common\library\Ditch\BaiShunDa\bsdexp;
+use app\common\library\Ditch\Jlfba\jlfba;
+use app\common\library\Ditch\kingtrans;
+use app\common\library\Ditch\Hualei;
+use app\common\library\Ditch\Xzhcms5;
+use app\common\library\Ditch\Aolian;
+use app\common\library\Ditch\Yidida;
 /**
  * 订单管理
  * Class Order
@@ -25,7 +38,30 @@ class Package extends PackageModel
     public function getWxappId(){
         return self::$wxapp_id;
     }
-
+    
+    //查询物流轨迹
+    public function getlog($query=[]){
+        $PackageModel = new PackageModel();
+        $Logistics = new Logistics();
+        $Express = new Express();
+        $setting = SettingModel::detail("notice")['values'];
+        $packData = $PackageModel->where(['express_num'=>$query['number'],'is_delete' => 0])->find();
+        $logib = [];
+        if(!empty($packData)){
+            //查出的系统内部物流信息
+            $logic = $Logistics->getList($query['number']); 
+            $express_code = $Express->getValueById($packData['express_id'],'express_code');
+           
+            if($setting['is_track_yubao']['is_enable']==1 && !empty($express_code)){//如果预报推送物流，则查询出来
+                $logib = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
+            }
+     
+            $logic = array_merge($logic,$logib);
+            return $logic;
+        }
+        return [];
+    }
+    
     /**
      * 获取某天的总入库包裹
      * @param null $startDate
@@ -89,19 +125,23 @@ class Package extends PackageModel
         }
         
         // dump($data['class_ids']);die;
-         $class_ids = $data['class_ids'];
-         $classItem = $this->parseClass($data['class_ids']);
-         foreach ($classItem as $k => $val){
-               $classItem[$k]['class_id'] = $val['category_id'];
-               $classItem[$k]['express_name'] = '';
-               $classItem[$k]['class_name'] = $val['name'];
-               $classItem[$k]['express_num'] = $data['express_num'];
-               $classItem[$k]['wxapp_id'] = self::$wxapp_id;
-               unset($classItem[$k]['category_id']); 
-               unset($classItem[$k]['name']);        
+         
+         if(isset($data['class_ids'])){
+            //  $class_ids = isset($data['class_ids'])?$data['class_ids']:[];
+            $classItem = $this->parseClass($data['class_ids']);
+             foreach ($classItem as $k => $val){
+                   $classItem[$k]['class_id'] = $val['category_id'];
+                   $classItem[$k]['express_name'] = '';
+                   $classItem[$k]['class_name'] = $val['name'];
+                   $classItem[$k]['express_num'] = $data['express_num'];
+                   $classItem[$k]['wxapp_id'] = self::$wxapp_id;
+                   unset($classItem[$k]['category_id']); 
+                   unset($classItem[$k]['name']);        
+             }
          }
-         $status = isset($data['shelf_unit_id'])?3:2;
-
+           
+         $status = (isset($data['shelf_unit_id']) && !empty($data['shelf_unit_id']))?3:2;
+// dump($status);die;
          //将图片存进去
         //  $package_image_id = isset($data['package_image_id'])?$data['package_image_id']:'';
          $image = isset($data['enter_image_id'])?$data['enter_image_id']:'';
@@ -109,16 +149,17 @@ class Package extends PackageModel
             'status' => $status,
             'member_id' => !empty($data['user_id'])?$data['user_id']:$result['member_id'],
             'express_num' =>$data['express_num'],
-            'storage_id' => $data['shop_id']?$data['shop_id']:$result['storage_id'],
-            'country_id' => $data['country']?$data['country']:$result['country_id'],
-            'width' => $data['width']?$data['width']:$result['width'],
-            'length' => $data['length']?$data['length']:$result['length'],
-            'height' => $data['height']?$data['height']:$result['height'],
-            'weight' => $data['weigth']?$data['weigth']:$result['width'],
-            'remark' => $data['remark']?$data['remark']:$result['remark'],
-            'express_id' => $data['express_id']?$data['express_id']:$result['express_id'],
+            'storage_id' => isset($data['shop_id'])?$data['shop_id']:$result['storage_id'],
+            'country_id' => isset($data['country'])?$data['country']:$result['country_id'],
+            'width' => isset($data['width'])?$data['width']:$result['width'],
+            'length' => isset($data['length'])?$data['length']:$result['length'],
+            'height' => isset($data['height'])?$data['height']:$result['height'],
+            'weight' => isset($data['weigth'])?$data['weigth']:$result['width'],
+            'remark' => isset($data['remark'])?$data['remark']:$result['remark'],
+            'express_id' => isset($data['express_id'])?$data['express_id']:$result['express_id'],
             'image' => json_encode($image),
-            'price' => $data['price'],
+            'price' => isset($data['price'])?$data['price']:$result['price'],
+            'num'=>isset($data['num'])?$data['num']:$result['num'],
             'usermark'=> isset($data['mark'])?$data['mark']:$result['usermark'],
             'visit_free' => isset($data['visit_free'])?$data['visit_free']:0,
             'member_name' => isset($this->userName)?$this->userName:'',
@@ -129,6 +170,10 @@ class Package extends PackageModel
             'updated_time' => $result['updated_time']?$result['updated_time']:getTime(),
             'entering_warehouse_time' => $result['entering_warehouse_time']?$result['entering_warehouse_time']:getTime(),
          ];
+         //计算包裹的体积
+         if($post['length']>0 && $post['width']>0 && $post['height']>0){
+             $post['volume'] = $post['length']*$post['width']*$post['height']/1000000;
+         }
          //存在id则为更新
          if ($data['id']){
               $post['status'] = 2;
@@ -228,10 +273,10 @@ class Package extends PackageModel
               'created_time' => getTime(),
               'pack_id' => $res,
              ];
-             $res = (new ShelfUnitItem())->post($upShelf);
+             $ress = (new ShelfUnitItem())->post($upShelf);
          }
          $packItemModel = new PackageItem();
-         if ($classItem){
+         if (!empty($classItem)){
              $packItemRes = $packItemModel->saveAllData($classItem,$res);
              if (!$packItemRes){
                 $this->error = "包裹录入失败";
@@ -240,7 +285,7 @@ class Package extends PackageModel
          }
        $post['id'] = $res;
        //仓库id存在，则查询到仓库名称，传入模板消息
-        if($data['shop_id']){
+        if(isset($data['shop_id'])){
             $shopData =  (new Shop())->where('shop_id',$data['shop_id'])->find();
             $post['shop_name'] = $shopData['shop_name'];
         }
@@ -306,6 +351,7 @@ class Package extends PackageModel
             'weight' => $data['weigth'],
             'remark' => $data['remark'],
             'pack_attr' => $data['pack_attr'],
+            'num'=>$data['num'],
             'goods_attr' => isset($data['goods_attr'])?json_encode($data['goods_attr']):'',
             'image' => json_encode($image),
             'price' => $data['price'],
@@ -450,18 +496,55 @@ class Package extends PackageModel
      }
     
     public function onCheck($data){
+      $adminsetting = SettingModel::getItem('adminstyle');
+    //   dump($adminsetting);die;
        if (!isset($data['express_num']) || !$data['express_num']){
             $this->error = "快递单号,为必填";
             return false;
        }  
-    //   if (empty($data['length']) || empty($data['width']) || empty($data['height']) || empty($data['weigth'])){
-    //         $this->error = "包裹长宽高,为必填";
-    //         return false;
-    //   }
-       if (!isset($data['shop_id']) || !$data['shop_id']){
+
+       if ($adminsetting['is_force_shop']==1 && (!isset($data['shop_id']) || !$data['shop_id'])){
             $this->error = "所在仓库为必填";
             return false;
-       } 
+       }
+       if ($adminsetting['is_force_country']==1 && (!isset($data['country']) || !$data['country'])){
+            $this->error = "目的地国家为必填";
+            return false;
+       }
+       if ($adminsetting['is_force_usermark']==1 && (!isset($data['mark']) || !$data['mark'])){
+            $this->error = "用户唛头为必填";
+            return false;
+       }
+       if ($adminsetting['is_force_express']==1 && (!isset($data['express_id']) || !$data['express_id'])){
+            $this->error = "快递公司为必填";
+            return false;
+       }
+       if ($adminsetting['is_force_packinfo']==1){
+            if (empty($data['length']) || empty($data['width']) || empty($data['height']) || empty($data['weigth'])){
+                $this->error = "包裹长宽高重量,为必填";
+                return false;
+            }
+       }
+       if ($adminsetting['is_force_totalvalue']==1 && (!isset($data['price']) || !$data['price'])){
+            $this->error = "总价值为必填";
+            return false;
+       }
+       if ($adminsetting['is_force_category']==1 && (!isset($data['class_ids']) || !$data['class_ids'])){
+            $this->error = "物品品类为必填";
+            return false;
+       }
+       if ($adminsetting['is_force_adminremark']==1 && (!isset($data['remark']) || !$data['remark'])){
+            $this->error = "备注为必填";
+            return false;
+       }
+       if ($adminsetting['is_force_packimage']==1 && (!isset($data['enter_image_id']) || !$data['enter_image_id'])){
+            $this->error = "包裹图片为必填";
+            return false;
+       }
+       if ($adminsetting['is_force_shelf']==1 && (!isset($data['shelf_unit_id']) || !$data['shelf_unit_id'])){
+            $this->error = "包裹货位为必填";
+            return false;
+       }
        if (!empty($data['user_id'])){
            $res = (new User())->find($data['user_id']);
            if (!$res){
@@ -493,8 +576,8 @@ class Package extends PackageModel
     {
         return $this->setindexListQueryWhere($query)
             ->alias('a')
-            ->with(['categoryAttr','Member','country','storage','inpack','packageimage.file'])
-            ->field('a.inpack_id,a.usermark,a.id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title')
+            ->with(['categoryAttr','Member','country','storage','inpack','packageimage.file','batch','shelfunititem.shelfunit.shelf'])
+            ->field('a.inpack_id,a.num,a.batch_id,a.usermark,a.id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -518,7 +601,7 @@ class Package extends PackageModel
         return $this->setindexListQueryWhere($query)
             ->alias('a')
             ->with(['categoryAttr','Member','country','storage','inpack'])
-            ->field('a.id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title')
+            ->field('a.id,a.batch_id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.num,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -569,7 +652,7 @@ class Package extends PackageModel
         !empty($param['is_take'])&& $this->where('is_take','in',$param['is_take']);
         !empty($param['source'])&& $this->where('source','=',$param['source']);
         !empty($param['is_delete'])&& $this->where('a.is_delete','=',$param['is_delete']);
-        
+        !empty($param['batch_id'])&& $this->where('a.batch_id',$param['batch_id']);
         !empty($param['extract_shop_id'])&&is_numeric($param['extract_shop_id']) && $param['extract_shop_id'] > -1 && $this->where('storage_id', '=', (int)$param['extract_shop_id']);
         !empty($param['start_time']) && $this->where('created_time', '>', $param['start_time']);
         !empty($param['end_time']) && $this->where('created_time', '<', $param['end_time']." 23:59:59");
@@ -604,7 +687,7 @@ class Package extends PackageModel
             // ->with(['categoryAttr','categoryAttr' => function($quer) use($query) {
             //     $quer->where('class_id','=',$query['category_id']);
             // }])
-            ->field('a.id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
+            ->field('a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -633,7 +716,7 @@ class Package extends PackageModel
             // ->with(['categoryAttr','categoryAttr' => function($quer) use($query) {
             //     $quer->where('class_id','=',$query['category_id']);
             // }])
-            ->field('a.id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
+            ->field('a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -652,7 +735,7 @@ class Package extends PackageModel
     {
         return $this->setListQueryWhere($query)
             ->alias('a')
-            ->field('a.id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,ad.*')
+            ->field('a.id,a.num,a.batch_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,ad.*')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -677,7 +760,7 @@ class Package extends PackageModel
             ->alias('a')
             ->with('categoryAttr')
             ->where('a.is_delete',1)
-            ->field('a.id,a.inpack_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
+            ->field('a.id,a.num,a.batch_id,a.inpack_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -737,7 +820,7 @@ class Package extends PackageModel
     public function getOne($id){
             return $this->alias('a')
             ->where('a.id','=',$id)
-            ->field('a.id,a.usermark,a.order_sn,u.nickName,s.shop_name,a.country_id,a.weight,a.length,a.width,a.height,a.storage_id,a.status,a.is_take,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
+            ->field('a.id,a.num,a.batch_id,a.usermark,a.order_sn,u.nickName,s.shop_name,a.country_id,a.weight,a.length,a.width,a.height,a.storage_id,a.status,a.is_take,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id','LEFT')
             ->join('store_shop s', 'a.storage_id = s.shop_id')
@@ -791,7 +874,7 @@ class Package extends PackageModel
     
      public function detail($id){
        return $this->alias('pa')
-       ->with(['packageimage.file','Member','country','shelfunititem.shelfunit.shelf'])
+       ->with(['packageimage.file','Member','country','shelfunititem.shelfunit.shelf','inpack'])
        ->where('pa.id',$id)
        ->find();
     }
@@ -814,5 +897,9 @@ class Package extends PackageModel
     
     public function categoryAttr(){
         return $this->hasMany('app\store\model\PackageItem','order_id','id');
+    }
+    
+    public function batch(){
+        return $this->belongsTo('app\store\model\Batch');
     }
 }

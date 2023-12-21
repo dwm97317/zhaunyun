@@ -721,6 +721,7 @@ class TrOrder extends Controller
         $set = Setting::detail('store')['values'];
         $userclient =  Setting::detail('userclient')['values'];
         $list = $model->getList($dataType, $this->request->param());
+        // dump($list->toArray());die;
         $servicelist = $Clerk->where('FIND_IN_SET(:ids,clerk_type)', ['ids' => 7])->select();
         $pintuanlist = (new SharingOrder())->getList([]);
         $batchlist = (new Batch())->getAllwaitList([]);
@@ -852,23 +853,24 @@ class TrOrder extends Controller
         $caleWeigth = 0;
         $volumn = 0;
         $setting = SettingModel::getItem('store',$pakdata['wxapp_id']);
-            if($setting['is_discount']==1){
-                $UserLine =  (new UserLine());
-                $linedata= $UserLine->where('user_id',$pakdata['member_id'])->where('line_id',$line['id'])->find();
-                    if($linedata){
-                       $value['discount']  = $linedata['discount'];
-                    }else{
-                       $value['discount'] =1;
-                    }
-                    //会员等级折扣
-                    $suer  = User::detail($pakdata['member_id']);
-                    // dump($suer->toArray());die;
-                    if(!empty($suer['grade']) && $suer['grade']['status']==1 && $suer['grade']['equity']['discount']>0){
-                        $value['discount'] = $suer['grade']['equity']['discount'] * 0.1;
-                    }
-            }else{
-                $value['discount'] =1;
-            }
+        
+        if($setting['is_discount']==1){
+            $UserLine =  (new UserLine());
+            $linedata= $UserLine->where('user_id',$pakdata['member_id'])->where('line_id',$line['id'])->find();
+                if($linedata){
+                   $value['discount']  = $linedata['discount'];
+                }else{
+                   $value['discount'] =1;
+                }
+                //会员等级折扣
+                $suer  = User::detail($pakdata['member_id']);
+                // dump($suer->toArray());die;
+                if(!empty($suer['grade']) && $suer['grade']['status']==1 && $suer['grade']['equity']['discount']>0){
+                    $value['discount'] = $suer['grade']['equity']['discount'] * 0.1;
+                }
+        }else{
+            $value['discount'] =1;
+        }
           
             
         // 计算体检重
@@ -882,7 +884,10 @@ class TrOrder extends Controller
             $oWeigth = round(($data['length']*$data['width']*$data['height'])/$line['volumeweight'],2);
         }
         //关税和增值服务费用
-        $otherfree = $line['service_route'];
+        // $otherfree = $line['service_route'];
+        $long = max($data['length'],$data['width'],$data['height']);
+        $otherfree = getServiceFree($line['services_require'],$oWeigth,$long);
+        // dump($otherfree);die;
         $reprice=0;  
         $lines['predict'] = [
               'weight' => $oWeigth,
@@ -990,6 +995,9 @@ class TrOrder extends Controller
         if($settingdata['is_auto_free']==0){
            $lines['predict']['price'] = 0;
         }
+        
+        //
+        
          
         return $this->renderSuccess(['oWeigth'=>$oWeigth,'price'=>str_replace(',','',$lines['predict']['price']),'weightV'=>$weigthV,'packfree'=>$pricethree]);
     }
@@ -1042,6 +1050,7 @@ class TrOrder extends Controller
      public function hedan()
     {
        $model = new Inpack();
+       $Package = new Package;
        $ids= input();
        $ids = array_keys($ids);
        $idsArr = explode(',',$ids[0]);
@@ -1054,6 +1063,7 @@ class TrOrder extends Controller
            $arruser[] = $pack['member_id'];
            $packids = $packids.",".$pack['pack_ids'];
       }
+     
       if(count(array_unique($arruser))>1){
           return $this->renderError('请选择相同用户的集运单');
       }
@@ -1061,38 +1071,32 @@ class TrOrder extends Controller
        //合并包裹思路一：将其他集运单状态改为删除，将快递单id添加到第一个集运单中；
        //合并包裹思路二：新创建新的集运单，之前的集运单全部改为删除状态；此方案可用于创建多用户拼邮；
        $packids = explode(',',$packids,2)[1];
-      //思路一
-            //   foreach($idsArr as $key =>$val ){
-            //     if($key ==0){
-            //         $res = $model->where('id',$val)->update(['pack_ids' => $packids ]);
-            //         if(!$res){
-            //              return $this->renderError('合并失败');
-            //         }
-            //     }else{
-            //         $res = $model->where('id',$val)->update(['is_delete' => 1 ]);
-            //         if(!$res){
-            //              return $this->renderError('合并失败');
-            //         }
-            //     }
-            //   }
-        //思路二 随意找到集运单的一个基本信息，去除id即可使用基础数据，创建新的order_sn即可
-           foreach($idsArr as $key =>$val ){
+      
+        //思路 随意找到集运单的一个基本信息，去除id即可使用基础数据，创建新的order_sn即可
+          foreach($idsArr as $key =>$val ){
                   $res = $model->where('id',$val)->update(['is_delete' => 1 ]);
                   if(!$res){
                     return $this->renderError('合并失败');
                   }
             }     
-        
-          $newpack = $model->find($idsArr[0]);
+         
+          $newpack = $model->find($idsArr[0])->toArray();
+          
           $newpack['pack_ids'] = $packids;
           unset($newpack['id']);
-          $newpack['order_sn'] = createSn();
+        //   $newpack['order_sn'] = createSn();
           $newpack['updated_time'] = getTime();
           $newpack['created_time'] = getTime();
           $newpack['is_delete'] = 0;
-          $result = $model->insert($newpack->toArray());
+          $newpack['is_pay_type'] = $newpack['is_pay_type']['value'];
+          $newpack['pay_type'] = $newpack['pay_type']['value'];
+          $result = $model->insertGetId($newpack);
           if (!$result){
               return $this->renderSuccess('合并失败');
+          }
+          $packidss = explode(',',$packids);
+          foreach ($packidss as $va){
+             $Package->where('id',$va)->update(['inpack_id'=>$result]); 
           }
        //返回成功状态并提示合并成功；
        return $this->renderSuccess('合并成功');

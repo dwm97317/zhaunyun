@@ -54,7 +54,7 @@ class User extends Controller
             // dump($wxappData);die;
         if(empty($wxappData)){
             return $this->renderSuccess([
-            'other_url' => "https://zhuanyun.sllowly.cn/",
+            'other_url' => base_url(),
             'wxapp_id' => 10001
             ]);
         }

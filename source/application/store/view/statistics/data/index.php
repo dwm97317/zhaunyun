@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+<link rel="stylesheet" href="assets/store/css/index.css">
 <div id="app" v-cloak class="page-statistics-data row-content am-cf">
     <!-- 数据概况 -->
     <div class="row">
@@ -199,7 +199,7 @@
 <script src="assets/common/js/echarts.min.js"></script>
 <script src="assets/common/js/echarts-walden.js"></script>
 <script src="assets/common/js/vue.min.js?v=1.1.35"></script>
-<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="assets/store/js/index.js"></script>
 
 <script type="text/javascript">
 

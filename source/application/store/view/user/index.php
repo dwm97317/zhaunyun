@@ -165,9 +165,12 @@
                                     </td>
                                     <td class="am-text-middle">
                                          <?php if (isset($item['usermark']) && !$item['usermark']->isEmpty()):
-                                            foreach ($item['usermark'] as $items): ?>
+                                            foreach ($item['usermark'] as $kry=>$items): ?>
+                                            <?php if ($kry <=3): ?>
                                             <?= $items['mark']; ?> - <?= $items['markdes']; ?> <br>
-                                        <?php endforeach; endif; ?>
+                                        <?php endif;endforeach; endif; ?>
+                                        <a href="<?= url('store/user/marklist', ['search' => $item['user_id']]) ?>">
+                                            查看更多唛头</a><br>
                                     </td>
                                     <td class="am-text-middle">
                                         注册时间：<?= $item['create_time'] ?><br/>

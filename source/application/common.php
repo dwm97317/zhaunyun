@@ -16,6 +16,7 @@ use app\api\model\Line;
 use app\api\model\Inpack;
 use app\api\model\User;
 use app\store\model\user\UserLine;
+use app\store\model\LineService;
 
     require (VENDOR_PATH.'phpmailer/phpmailer/src/PHPMailer.php');
     require (VENDOR_PATH.'phpmailer/phpmailer/src/SMTP.php');
@@ -154,6 +155,35 @@ return "";
   } 
  } 
 
+//获取增值服务的费用
+function getServiceFree($services_require,$oWeigth,$long){
+    $LineService = new LineService;
+    $services_require = explode(',',$services_require);
+    $free = 0;
+    foreach ($services_require as $value){
+        $lineser = $LineService->detail($value);
+        //重量模式
+        if($lineser['type']==10){
+            $rule = json_decode($lineser['rule'],true);
+            foreach ($rule as $key=>$v){
+                if($oWeigth>=$v['weight'][0] && $oWeigth<$v['weight'][1]){
+                    $free += $v['weight_price'];
+                }
+            }
+        }
+        //长度模式
+        if($lineser['type']==20){
+            $rule = json_decode($lineser['rule'],true);
+            foreach ($rule as $key=>$v){
+                if($long>=$v['weight'][0] && $long<$v['weight'][1]){
+                    $free += $v['weight_price'];
+                }
+            }
+        }
+        
+    }
+    return $free;
+}
  
 /**
  * 打印调试函数
@@ -1470,7 +1500,10 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
     ];
     $reprice = 0;
     $free_rule = json_decode($packData['line']['free_rule'],true);//运费规则
-    $otherfree = $packData['line']['service_route']; //路线的增值服务费用；
+    // $otherfree = $packData['line']['service_route']; //路线的增值服务费用；
+    $long = max($packData['length'],$packData['width'],$packData['height']);
+    $otherfree = getServiceFree($line['services_require'],$oWeigth,$long);
+    
     $setting = SettingModel::getItem('store',$packData['wxapp_id']);
     if($setting['is_discount']==1){
         $userData = $User::detail(['user_id'=>$packData['member_id']]);

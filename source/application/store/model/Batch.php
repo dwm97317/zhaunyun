@@ -21,7 +21,7 @@ class Batch extends BatchModel
     public function getList($param = [])
     {
         // 查询列表数据
-        //dump(\request()->request());die;
+        // dump($param);die;
         return $this->setListQueryWhere($param)
             ->with(['shop','template'])
             ->where('is_delete',0)
@@ -31,7 +31,7 @@ class Batch extends BatchModel
     }
     
     /**
-     * 获取列表数据
+     * 获取待发货批次列表数据
      * @param array $param
      * @return \think\Paginator
      * @throws \think\exception\DbException
@@ -39,7 +39,7 @@ class Batch extends BatchModel
     public function getAllwaitList($param = [])
     {
         // 查询列表数据
-        //dump(\request()->request());die;
+        // dump(\request()->request());die;
         return $this->setListQueryWhere($param)
              ->with(['shop','template'])
             ->where('is_delete',0)
@@ -129,7 +129,7 @@ class Batch extends BatchModel
         is_numeric($param['is_check']) && $param['is_check'] > -1 && $this->where('is_check', '=', (int)$param['is_check']);
         !empty($param['search']) && $this->where('shop_name|linkman|phone', 'like', "%{$param['search']}%");
         !empty($param['shop_id']) && $this->where('shop_id', '=', $param['shop_id']);
-        // !empty($param['storage_id']) && $this->where('shop_id', '=', $param['storage_id']);
+        !empty($param['batch_id']) && $this->where('batch_id', '=', $param['batch_id']);
         is_numeric($param['status']) && $this->where('status', '=', (int)$param['status']);
         return $this->order(['create_time' => 'desc']);
     }

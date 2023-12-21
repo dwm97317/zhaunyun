@@ -116,7 +116,7 @@ class Login extends Basics
                 'user_name' => $user['nickName'],
                 'mobile'=>$user['mobile'],
                 'avatarUrl' => $user['avatarUrl'],
-                'user_code'=>$user['user_code'],
+                'user_code'=>isset($user['user_code'])?$user['user_code']:'',
                 'email'=>$user['email'],
                 'gender'=>$user['gender'],
             ],
@@ -149,10 +149,10 @@ class Login extends Basics
               $this->error = '两次输入密码不一致';
               return false;
           }
-          if(!is_mobile($data['mobile'])){
-              $this->error = '请输入正确的手机号码';
-              return false;
-          }
+        //   if(!is_mobile($data['mobile'])){
+        //       $this->error = '请输入正确的手机号码';
+        //       return false;
+        //   }
           $UserModel = new UserModel();
           $res = $UserModel->where(['mobile'=>$data['mobile']])->find();
           if ($res){
@@ -229,6 +229,7 @@ class Login extends Basics
         $data = [
             'mobile' => $data['mobile'],
             'nickName' => $data['username']??'',
+            'gender'=>0,
             'avatarUrl' => '',
             'platform' => "PC",
             'open_id' => $data['mobile'],
