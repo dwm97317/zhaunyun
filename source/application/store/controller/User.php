@@ -39,6 +39,24 @@ class User extends Controller
         $line = (new Line())->getListAll();
         return $this->fetch('index', compact('list', 'gradeList','line','coupon','set'));
     }
+    /**
+     * 获取用户信息
+     * @param $user_id
+     * @return array|bool
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function findUser($member_id)
+    {
+        // 用户详情
+        $model = UserModel::detail($member_id);
+        if(!empty($model)){
+            return $this->renderSuccess('获取成功','',$model);
+        }
+         return $this->renderError('找不到该ID的用户');
+    }
+
+    
     
     
     /**

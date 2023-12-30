@@ -53,7 +53,21 @@ class Data extends Controller
         return $this->fetch('datascreen',compact('url'));
     }
     
+    //集运类目排行榜    
+    public function category(){
+      return $this->fetch('category', ['categoryRanking' => $this->statisticsDataService->getCategoryRanking()]); 
+    }
+    
+    //国家排行榜    
+    public function country(){
+      return $this->fetch('country', ['countryRanking' => $this->statisticsDataService->geOrderCountryRanking()]); 
+    }
 
+     //渠道排行榜    
+    public function ditch(){
+      return $this->fetch('ditch', ['ditchRanking' => $this->statisticsDataService->geOrderDitchRanking()]); 
+    }
+    
 
     /**
      * 数据概况API

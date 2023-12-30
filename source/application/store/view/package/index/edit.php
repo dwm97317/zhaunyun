@@ -35,12 +35,7 @@
                                     <input type="hidden" name="data[id]" value="<?= $detail['id'] ?>">
                                 </div>
                             </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">系统订单号</label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <div  class='am-form-static'><?= $detail['order_sn'] ?></div>
-                                </div>
-                            </div>
+                          
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">预报单号 </label>
                                 <div class="am-u-sm-9 am-u-end">

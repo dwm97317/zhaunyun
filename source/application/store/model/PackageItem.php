@@ -11,7 +11,7 @@ class PackageItem extends PackageItemModel
     protected $createTime = null;
     protected $updateTime = null;
     
-     // 批量保存
+   // 批量保存
     public function saveAllData($data,$id){
         $wxapp_id = self::$wxapp_id;
         foreach ($data as $k => $v){
@@ -19,6 +19,14 @@ class PackageItem extends PackageItemModel
             $data[$k]['wxapp_id'] = $wxapp_id;
         }
         return $this->insertAll($data); 
+    }
+    
+    // 批量保存
+    public function saveAllDataTWO($data,$id){
+        $wxapp_id = self::$wxapp_id;
+        $data['order_id'] = $id;
+        $data['wxapp_id'] = $wxapp_id;
+        return $this->save($data); 
     }
     
     public function getList($where){

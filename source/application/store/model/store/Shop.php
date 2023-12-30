@@ -21,7 +21,7 @@ class Shop extends ShopModel
     public function getList($param = [])
     {
         // 查询列表数据
-        //dump(\request()->request());die;
+        
         return $this->setListQueryWhere($param)
             ->paginate(15, false, [
                 'query' => \request()->request()
@@ -69,11 +69,15 @@ class Shop extends ShopModel
      * @return false|\PDOStatement|string|\think\Collection
      */
     public static function getAllList($param = [])
-    {
-        return (new static)
+    {   
+        // dump($param);die;
+        $list = (new static)
         ->setListQueryWhere($param)
         ->with('shelf.shelfunit')
+        ->where('status',1)
         ->select();
+        // dump((new static)->getLastsql());die;
+        return $list;
     }
 
     //获取门店名和id
@@ -93,7 +97,8 @@ class Shop extends ShopModel
         is_numeric($param['is_check']) && $param['is_check'] > -1 && $this->where('is_check', '=', (int)$param['is_check']);
         !empty($param['search']) && $this->where('shop_name|linkman|phone', 'like', "%{$param['search']}%");
         !empty($param['shop_id']) && $this->where('shop_id', '=', $param['shop_id']);
-        // !empty($param['storage_id']) && $this->where('shop_id', '=', $param['storage_id']);
+        !empty($param['wxapp_id']) && $this->where('wxapp_id', '=', $param['wxapp_id']);
+        !empty($param['storage_id']) && $this->where('shop_id', '=', $param['storage_id']);
         is_numeric($param['status']) && $this->where('status', '=', (int)$param['status']);
         return $this->where('is_delete', '=', '0')->order(['sort' => 'asc', 'create_time' => 'desc']);
     }

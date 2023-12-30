@@ -23,6 +23,10 @@ return [
               'index' => 'package.index/add',
           ],
           [
+              'name' => '一票多件录入',
+              'index' => 'package.newpack/addpackage',
+          ],
+          [
               'name' => '代客预报',
               'index' => 'package.index/adminreport',
           ],
@@ -471,6 +475,18 @@ return [
             [
                 'name' => '数据统计',
                 'index' => 'statistics.data/index',
+            ],
+            [
+                'name' => '国家统计',
+                'index' => 'statistics.data/country',
+            ],
+            [
+                'name' => '类目统计',
+                'index' => 'statistics.data/category',
+            ],
+            [
+                'name' => '渠道统计',
+                'index' => 'statistics.data/ditch',
             ],
             [
                 'name' => '数据大屏',

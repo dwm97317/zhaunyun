@@ -38,30 +38,19 @@
                                     <p class="am-link-muted">(用户id：<?= $detail['user']['user_id'] ?>)</p>
                                 </td>
                                 <td class="">
-                                    <div class="td__order-price am-text-left">
-                                        <ul class="am-avg-sm-2">
-                                            <li class="am-text-right">长：</li>
-                                            <li class="am-text-right"><?= $detail['length'] ?> <?= $set['size_mode']['unit'] ?></li>
+                                    <div class="td__order-price am-text-left" style="display: inline;">
+                                        <ul class="am-avg-sm-4">
+                                            <li style="margin-right:10px;" class="am-text-right">长：<?= $detail['length'] ?> <?= $set['size_mode']['unit'] ?></li>
+                                            <li style="margin-right:10px;" class="am-text-right">宽：<?= $detail['width'] ?> <?= $set['size_mode']['unit'] ?></li>
+                                            <li style="margin-right:10px;" class="am-text-right">高：<?= $detail['height'] ?> <?= $set['size_mode']['unit'] ?></li>
                                         </ul>
-                                        <ul class="am-avg-sm-2">
-                                            <li class="am-text-right">宽：</li>
-                                            <li class="am-text-right"><?= $detail['width'] ?> <?= $set['size_mode']['unit'] ?></li>
+                                        <ul class="am-avg-sm-3">
+                                            <li class="am-text-right">体积：<?= $detail['volume'] ?> 立方</li>
+                                            <li class="am-text-right">重量：<?= $detail['weight'] ?><?= $set['weight_mode']['unit'] ?> (<?= $set['weight_mode']['unit_name'] ?>)</li>
+                                            <li class="am-text-right">体积重：<?= $detail['volumeweight'] ?></li>
                                         </ul>
-                                        <ul class="am-avg-sm-2">
-                                            <li class="am-text-right">高：</li>
-                                            <li class="am-text-right"><?= $detail['height'] ?> <?= $set['size_mode']['unit'] ?></li>
-                                        </ul>
-                                        <ul class="am-avg-sm-2">
-                                            <li class="am-text-right">体积：</li>
-                                            <li class="am-text-right"><?= $detail['volume'] ?> 立方</li>
-                                        </ul>
-                                        <ul class="am-avg-sm-2">
-                                            <li class="am-text-right">重量：</li>
-                                            <li class="am-text-right"><?= $detail['weight'] ?><?= $set['weight_mode']['unit'] ?> (<?= $set['weight_mode']['unit_name'] ?>)</li>
-                                        </ul>
-                                        <ul class="am-avg-sm-2">
-                                            <li class="am-text-right">包裹数：</li>
-                                            <li class="am-text-right"><?= $detail['num'] ?></li>
+                                        <ul class="am-avg-sm-4">
+                                            <li class="am-text-right">包裹数：<?= $detail['num'] ?></li>
                                         </ul>
                                     </div>
                                 </td>
@@ -116,9 +105,14 @@
                                 <th>快递单号</th>
                                 <th>快递公司</th>
                                 <th>类目名称</th>
-                                <th>数量</th>
-                                <th>单位重量</th>
-                                <th>商品价值</th>
+                                <th>货物名称</th>
+                                <th>货物数量</th>
+                                <th>单个重量</th>
+                                <th>总重量</th>
+                                <th>包裹体积</th>
+                                <th>包裹体积重</th>
+                                <th>商品单价</th>
+                                <th>商品总价</th>
                                 <th>备注</th>
                             </tr>
                             </thead>
@@ -129,8 +123,13 @@
                                     <td class="am-text-middle"><?= $item['express_num'] ?></td>
                                     <td class="am-text-middle"><?= $item['express_name'] ?></td>
                                     <td class="am-text-middle"><?= $item['class_name'] ?></td>
+                                    <td class="am-text-middle"><?= $item['goods_name'] ?></td>
                                     <td class="am-text-middle"><?= $item['product_num'] ?></td>
-                                    <td class="am-text-middle"><?= $detail['weight'] ?></td>
+                                    <td class="am-text-middle"><?= $item['unit_weight'] ?></td>
+                                    <td class="am-text-middle"><?= $item['all_weight'] ?></td>
+                                    <td class="am-text-middle"><?= $item['volume'] ?></td>
+                                    <td class="am-text-middle"><?= $item['volumeweight'] ?></td>
+                                    <td class="am-text-middle"><?= $item['one_price'] ?></td>
                                     <td class="am-text-middle"><?= $item['all_price'] ?></td>
                                     <td class="am-text-middle"><?= $detail['remark'] ?></td>
                                 </tr>
@@ -182,7 +181,7 @@
                     <div class="widget-head am-cf">
                         <div class="widget-title am-fl">入库信息</div>
                     </div>
-                       <figure style="display:inline-flex;" data-am-widget="figure" class="am am-figure am-figure-default "   data-am-figure="{  pureview: 'true' }">
+                       <figure style="display: inline-flex;flex-direction: row;flex-wrap: wrap;" data-am-widget="figure" class="am am-figure am-figure-default "   data-am-figure="{  pureview: 'true' }">
                                 <?php  foreach ($detail['packageimage'] as $item): ?>
                                 <img style="max-width: 200px;max-height: 200px;" src="<?= $item['file_path'] ?>"/>
                                 <?php endforeach?>

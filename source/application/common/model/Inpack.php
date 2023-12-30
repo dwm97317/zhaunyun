@@ -19,8 +19,8 @@ use think\Hook;
 class Inpack extends BaseModel
 {
     protected $name = 'inpack';
-    protected $updateTime = false;
-
+    protected $createTime = null;
+    protected $updateTime = null;
     /**
      * 订单模型初始化
      */

@@ -1,11 +1,11 @@
-<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+<link rel="stylesheet" href="assets/store/css/index.css">
 <div id="app" v-cloak class="page-statistics-data row-content am-cf">
    <!-- 排行榜 -->
     <div class="row">
-        <div class="am-u-sm-6 am-margin-bottom">
+        <div class="am-u-sm-12 am-margin-bottom">
             <div class="widget-ranking widget am-cf">
                 <div class="widget-head">
-                    <div class="widget-title">集运路线榜</div>
+                    <div class="widget-title">类目排行榜</div>
                 </div>
                 <div class="widget-body am-cf">
                     <table width="100%" class="am-table am-table-compact am-table-striped
@@ -13,13 +13,13 @@
                         <thead>
                         <tr>
                             <th class="am-text-center" width="15%">排名</th>
-                            <th class="am-text-left" width="45%">路线名称</th>
+                            <th class="am-text-left" width="45%">类目名称</th>
                             <th class="am-text-center" width="20%">走单量</th>
                             <th class="am-text-center" width="20%">销售额</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="(item, index) in goodsRanking">
+                        <tr v-for="(item, index) in categoryRanking">
                             <td class="am-text-middle am-text-center">
                                 <div v-if="index < 3 && item.total_sales_num > 0" class="ranking-img">
                                     <img :src="'assets/store/img/statistics/ranking/0' + (index + 1) + '.png'" alt="">
@@ -43,23 +43,20 @@
 <script src="assets/common/js/echarts.min.js"></script>
 <script src="assets/common/js/echarts-walden.js"></script>
 <script src="assets/common/js/vue.min.js?v=1.1.35"></script>
-<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="assets/store/js/index.js"></script>
 
 <script type="text/javascript">
 
     new Vue({
         el: '#app',
         data: {
-
             // 商品销售榜
-            goodsRanking: <?= \app\common\library\helper::jsonEncode($goodsRanking) ?>,
-            // 用户消费榜
-            userExpendRanking: <?= \app\common\library\helper::jsonEncode($userExpendRanking) ?>
+            categoryRanking: <?= \app\common\library\helper::jsonEncode($categoryRanking) ?>,
+
         },
 
         mounted() {
-            // 近七日交易走势
-            this.drawLine();
+
         },
 
         methods: {
@@ -100,52 +97,6 @@
                     app.survey.loading = false;
                 });
             },
-
-            /**
-             * 近七日交易走势
-             * @type {HTMLElement}
-             */
-            drawLine() {
-                var dom = document.getElementById('echarts-trade');
-                echarts.init(dom, 'walden').setOption({
-                    tooltip: {
-                        trigger: 'axis'
-                    },
-                    legend: {
-                        data: ['成交量', '成交额']
-                    },
-                    toolbox: {
-                        show: true,
-                        showTitle: false,
-                        feature: {
-                            mark: {show: true},
-                            magicType: {show: true, type: ['line', 'bar']}
-                        }
-                    },
-                    calculable: true,
-                    xAxis: {
-                        type: 'category',
-                        boundaryGap: false,
-                        data: <?= $echarts7days['date'] ?>
-                    },
-                    yAxis: {
-                        type: 'value'
-                    },
-                    series: [
-                        {
-                            name: '成交额',
-                            type: 'line',
-                            data: <?= $echarts7days['order_total_price'] ?>
-                        },
-                        {
-                            name: '成交量',
-                            type: 'line',
-                            data: <?= $echarts7days['order_total'] ?>
-                        }
-                    ]
-                }, true);
-            }
-
         }
 
     });

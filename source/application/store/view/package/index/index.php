@@ -154,7 +154,7 @@
                                     <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input type="text" class="am-form-field" name="search"
-                                                   placeholder="请输入用户昵称/ID/CODE" value="<?= $request->get('search') ?>">
+                                                   placeholder="请输入用户昵称/ID/CODE/唛头" value="<?= $request->get('search') ?>">
                                             <div class="am-input-group-btn">
                                                 <button class="am-btn am-btn-default am-icon-search"
                                                         type="submit"></button>

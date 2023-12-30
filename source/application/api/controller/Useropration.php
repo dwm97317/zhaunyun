@@ -640,15 +640,16 @@ class Useropration extends Controller
                 ->field('id,express_num,order_sn,member_id,storage_id,status,width,height,weight,length,remark,admin_remark')
                 ->with('storage')
                 ->find();
-            // dump($res);die;
-        }
-        
-        if(empty($res)){
            
+        }
+      
+        if(empty($res) && !$tyoi){
+      
             $Inpack = new Inpack();
-            $maps['is_delete'] =0;
-            $maps['t_order_sn'] = $post; 
-            $inpackres = $Inpack->where($maps)->with('storage')->find();
+            $mapss['is_delete'] =0;
+            $mapss['t_order_sn'] = $post; 
+                    //   dump($maps);die;
+            $inpackres = $Inpack->where($mapss)->with('storage')->find();
             $where = ['user_id'=>$inpackres['member_id']];
             $userdata = UserModel::detail($where,$with=[]);
             if(!empty($userdata)){
@@ -660,8 +661,6 @@ class Useropration extends Controller
                 $clerk['is_pre'] = 0; //是包裹单号
                 return $this->renderSuccess($clerk);
             }
-           
-            
         }
         $where = ['user_id'=>$res['member_id']];
         $userdata = UserModel::detail($where,$with=[]);

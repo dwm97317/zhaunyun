@@ -167,6 +167,30 @@ class TrOrder extends Controller
         return $this->renderSuccess('修改提交成功');
     }
     
+     /**
+     * 获取集运路线的数据
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function getlinedata(){
+        $param = $this->request->param();
+        $model = new Inpack;
+        $Line = new Line;
+        $line = $model->field('line_id')->where('t_number',$param['ditch_id'])->where('is_delete',0)->group('line_id')->select();
+        foreach ($line as $key =>$val){
+            $data[$key] = $Line->details($val['line_id']);
+            $data[$key]['total_order'] = $model->where('t_number',$param['ditch_id'])->where('line_id',$val['line_id'])->where('is_delete',0)->count();
+            $data[$key]['exceed'] = $model->where('t_number',$param['ditch_id'])->where('line_id',$val['line_id'])->where('is_delete',0)->where('is_exceed',1)->count();
+            if($data[$key]['total_order']==0){
+                $data[$key]['exced_ratio'] = '0%';
+            }else{
+                $data[$key]['exced_ratio'] = number_format($data[$key]['exceed']/$data[$key]['total_order'],4)*100 .'%';
+            }
+            $data[$key]['total_free'] = $model->where('t_number',$param['ditch_id'])->where('line_id',$val['line_id'])->where('is_delete',0)->sum('real_payment');
+        }
+        return $this->renderSuccess('更新成功','',compact('data'));
+    }
+    
     /**
      * 集运单详情
      * @return mixed

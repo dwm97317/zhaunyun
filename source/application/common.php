@@ -1502,7 +1502,7 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
     $free_rule = json_decode($packData['line']['free_rule'],true);//运费规则
     // $otherfree = $packData['line']['service_route']; //路线的增值服务费用；
     $long = max($packData['length'],$packData['width'],$packData['height']);
-    $otherfree = getServiceFree($line['services_require'],$oWeigth,$long);
+    $otherfree = getServiceFree($packData['line']['services_require'],$oWeigth,$long);
     
     $setting = SettingModel::getItem('store',$packData['wxapp_id']);
     if($setting['is_discount']==1){

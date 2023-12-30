@@ -51,7 +51,7 @@
                                 <label class="am-u-sm-3  am-u-lg-2 am-form-label"> 输入用户编号（CODE） </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="widget-become-goods am-form-file am-margin-top-xs">
-                                        <input onblur="findusercode()" type="text" class="tpl-form-input" name="data[user_code]"
+                                        <input onblur="findusercode()" id="user_code" type="text" class="tpl-form-input" name="data[user_code]"
                                            value="<?= $data['member']['user_code']??'' ;?>" placeholder="输入用户CODE">
                                         <div class="am-block">
                                             <small>输入用户CODE与【选择用户】两者选其一</small>
@@ -91,9 +91,6 @@
                                         <option value="1">请选择</option>
                                     </select>
                                     <?php endif; ?>
-                                    <div class="help-block">
-                                        <small>请选择包裹将要寄往的国家</small>
-                                    </div>
                                 </div>
                                 <label class="am-u-sm-2 am-u-lg-1 am-form-label">输入唛头</label>
                                 <div class="am-u-sm-5 am-u-end">
@@ -534,6 +531,7 @@ function getNowFormatDate() {
 }
    function findusercode(){
             var usercode = $("#user_code")[0].value;
+            console.log(34)
             var op = '<option>不选择唛头</option>';
              $.ajax({
                    type:'post',

@@ -365,7 +365,9 @@ class Setting extends BaseModel
                     'is_packimage'=>1,
                     'is_force_packimage'=>0,
                     'is_shelf'=>1,
-                    'is_force_shelf'=>0
+                    'is_force_shelf'=>0,
+                    'is_line'=>1,
+                    'is_force_line'=>0
                 ]
             ],
             // 用户端设置

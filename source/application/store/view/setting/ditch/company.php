@@ -53,9 +53,9 @@
                             </tr>
                             <tr>
                                 <td>10005</td>
-                                <td>星泰国际</td>
-                                <td>星泰国际</td>
-                                <td>星泰国际</td>
+                                <td>新智慧TMS</td>
+                                <td>新智慧TMS</td>
+                                <td>新智慧TMS</td>
                                 <td>http://xingtx.nextsls.com/</td>
                             </tr>
                             <tr>

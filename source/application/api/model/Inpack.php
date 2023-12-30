@@ -39,8 +39,6 @@ class Inpack extends InpackModel
      */
     public function getGList($query=[],$order=''){
         // 检索查询条件
-        // dump($this->setWherePack($query));die;
-        //  !empty($query) && $this->setWherePack($query);
          return $this->setWherePack($query)
          ->alias('in')
         ->with(['line','address','storage','Member'])

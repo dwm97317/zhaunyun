@@ -39,6 +39,23 @@ class Package extends PackageModel
         return self::$wxapp_id;
     }
     
+    //保存货架
+    public function saveshelf($shelf,$package_id){
+        $upShelf = [
+          'shelf_unit_id' => $shelf['shelf_unit_id'],
+          'express_num' => $shelf['express_num'],
+          'user_id' => $shelf['user_id']??0,
+          'created_time' => getTime(),
+          'pack_id' => $package_id,
+         ];
+         $shelfdata = (new ShelfUnitItem())->where('pack_id',$package_id)->find();
+         if($shelfdata){
+                (new ShelfUnitItem())->where('pack_id',$package_id)->update(['shelf_unit_id'=>$shelf['shelf_unit_id']]);
+         }else{
+            $res = (new ShelfUnitItem())->post($upShelf);
+         }
+    }
+    
     //查询物流轨迹
     public function getlog($query=[]){
         $PackageModel = new PackageModel();
@@ -78,6 +95,14 @@ class Package extends PackageModel
             $filter['entering_warehouse_time'] = ["between time",[$startDate, date('Y-m-d',strtotime($endDate)+86400)]];        
         }
         return $this->where($filter)->count('id');
+    }
+    
+    //通过单号查询是否有对应单号
+    public function getNumber($number){
+       return $this->alias('pa')
+       ->with(['packageimage.file','Member','country','shelfunititem.shelfunit.shelf'])
+       ->where('pa.express_num',$number)
+       ->find();
     }
 
     //PC端包裹后台录入
@@ -154,7 +179,7 @@ class Package extends PackageModel
             'width' => isset($data['width'])?$data['width']:$result['width'],
             'length' => isset($data['length'])?$data['length']:$result['length'],
             'height' => isset($data['height'])?$data['height']:$result['height'],
-            'weight' => isset($data['weigth'])?$data['weigth']:$result['width'],
+            'weight' => isset($data['weigth'])?$data['weigth']:$result['weight'],
             'remark' => isset($data['remark'])?$data['remark']:$result['remark'],
             'express_id' => isset($data['express_id'])?$data['express_id']:$result['express_id'],
             'image' => json_encode($image),
@@ -463,6 +488,7 @@ class Package extends PackageModel
        return true;
     }
     
+    
     /**
      * 处理包裹重物品类目
      * 
@@ -493,6 +519,56 @@ class Package extends PackageModel
          $class_ids = explode(',',$class_ids);
          $class = (new Category())->whereIn('category_id',$class_ids)->field('category_id,name')->select()->toArray(); 
          return $class;
+     }
+    
+    /**
+     * 处理包裹重物品类目
+     * 
+    */
+    public function doClassIdstwo($param,$express_num,$id){
+        $classItem = [];
+        if(!empty($param['class_ids'])){
+            $classItems = $this->parseClasstwo($param['class_ids']);
+        }
+        // DUMP($param);DIE;
+
+         $packItemModel = new PackageItem();
+         $packItemModel->where('order_id',$id)->delete();
+         
+        //  $classItem['class_id'] = $param['class_ids'];
+         $classItem['width'] = isset($param['width'])?$param['width']:0;
+         $classItem['height'] = isset($param['height'])?$param['height']:0;
+         $classItem['length'] = isset($param['length'])?$param['length']:0;
+         $classItem['all_weight'] = (isset($param['weight']) && isset($param['product_num']))?($param['weight']*$param['product_num']):0;
+         $classItem['unit_weight'] = isset($param['weight'])?$param['weight']:0;
+         $classItem['product_num'] = isset($param['product_num'])?$param['product_num']:0;
+         $classItem['one_price'] = isset($param['one_price'])?$param['one_price']:0;
+         $classItem['all_price'] = (isset($param['one_price']) && !empty($param['one_price']) && isset($param['product_num']))?($param['one_price']*$param['product_num']):0;
+         $classItem['goods_name'] =isset($param['goods_name'])?$param['goods_name']:0;
+         $classItem['volume'] = isset($param['volume'])?$param['volume']:0;
+         $classItem['volumeweight'] =isset($param['volumeweight'])?$param['volumeweight']:0;
+         $classItem['class_name'] = !empty($classItems)?$classItems:'';
+         $classItem['express_num'] = $express_num;
+         $classItem['wxapp_id'] = self::$wxapp_id;
+         $packItemRes = $packItemModel->saveAllDataTWO($classItem,$id);
+         if (!$packItemRes){
+            $this->error = "包裹类目录入失败";
+            return false;
+         }
+         return true;
+    }
+    
+    // 格式化
+     public function parseClasstwo($class_ids){
+         $class_item = [];
+         $class_ids = explode(',',$class_ids);
+         $class = (new Category())->whereIn('category_id',$class_ids)->field('name')->select()->toArray(); 
+         if(count($class)>0){
+             foreach ($class as $v){
+                 $class_item[] = $v['name'];
+             }
+         }
+         return implode(',',$class_item);
      }
     
     public function onCheck($data){
@@ -665,7 +741,7 @@ class Package extends PackageModel
             $this->where($where);
         }
         !empty($param['likesearch']) && $this->where('a.express_num','like','%'.$param['likesearch'].'%');
-        !empty($param['search']) && $this->where('a.member_id|u.nickName|u.user_code','like','%'.$param['search'].'%');
+        !empty($param['search']) && $this->where('a.member_id|u.nickName|u.user_code|a.usermark','like','%'.$param['search'].'%');
         return $this;
     }
     

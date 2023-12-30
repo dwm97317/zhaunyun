@@ -46,9 +46,10 @@ class Index extends Controller
         $Category = new Category();
         $map = \request()->param();
         $list = $packageModel->getList($map);
-        // dump($list->toArray());die;
+      
         $countweight = $packageModel->getListSum($map);
-        $shopList = ShopModel::getAllList();
+        $shopList = ShopModel::getAllList(['wxapp_id'=> $this->getWxappId()]);
+        //   dump($shopList->toArray());die;
         $batchlist = (new Batch())->getAllwaitList([]);
         $line = (new Line())->getList([]);
         $packageService = (new PackageService())->getList([]);
@@ -1250,8 +1251,12 @@ class Index extends Controller
                 return $this->renderSuccess($data['err'],'',$return);
                 die;
             }
-
-            $res = $data->save(['is_scan'=>2,'status'=>7,'batch_id'=>$batch_id,'updated_time'=>getTime()]);
+            $param = ['is_scan'=> 2,'status'=>4,'updated_time'=>getTime()];
+            if($batch_id>0){
+                $param['status'] = 7;
+                $param['batch_id'] = $batch_id;
+            }
+            $res = $data->save($param);
             if ($res){
                $data['err'] = '检测到包裹,包裹已标记出库';
                $data['is_scan'] = 2;

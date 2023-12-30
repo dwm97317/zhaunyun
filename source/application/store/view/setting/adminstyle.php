@@ -229,7 +229,28 @@
                                     </label>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    集运路线设置
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_line]" value="1"
+                                               data-am-ucheck  <?= $values['is_line'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_line]" value="0"
+                                               data-am-ucheck <?= $values['is_line'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="adminstyle[is_force_line]" value="1" data-am-ucheck
+                                            <?= $values['is_force_line']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
