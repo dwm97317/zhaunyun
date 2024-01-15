@@ -46,8 +46,11 @@ class Index extends Controller
         $Category = new Category();
         $map = \request()->param();
         $list = $packageModel->getList($map);
-      
-        $countweight = $packageModel->getListSum($map);
+        $countweight = '+∞';
+        if(isset($map['search']) || isset($map['likesearch']) || isset($map['express_num'])){
+            $countweight = $packageModel->getListSum($map);
+        }
+        
         $shopList = ShopModel::getAllList(['wxapp_id'=> $this->getWxappId()]);
         //   dump($shopList->toArray());die;
         $batchlist = (new Batch())->getAllwaitList([]);
@@ -102,7 +105,8 @@ class Index extends Controller
         $map = array_merge($map1,$map2);
    
         $list = $packageModel->getdeleteList($map);
-        $countweight = $packageModel->getListSum($map);
+        $countweight = '+∞';
+        // $countweight = $packageModel->getListSum($map);
         $line = (new Line())->getListAll([]);
         $shopList = ShopModel::getAllList();
         $packageService = (new PackageService())->getList([]);
@@ -278,20 +282,16 @@ class Index extends Controller
         $map = array_merge($map1,$map2);
         //  dump($map2);die;
         $list = $packageModel->getUnpackList($map);
-        $countweight = $packageModel->getListSum($map); 
+        
+        $countweight = '+∞';
+        if(isset($map['search']) || isset($map['likesearch']) || isset($map['express_num'])){
+            $countweight = $packageModel->getListSum($map);
+        }
         $shopList = ShopModel::getAllList();
         $line = (new Line())->getListAll([]);
         $packageService = (new PackageService())->getListAll();
        
         $set = Setting::detail('store')['values'];
-        //   dump($set);die;
-        $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
-        $statusTotal = [];
-        foreach($status as $key => $val){
-            $map_where['status'] = $key;
-            $map_where['is_take'] = 2;
-            $statusTotal[$key] = $packageModel->where($map_where)->count();
-        } 
         $type = 'uninpack';
         $topcategory = $Category->getListTop($name=null)->toArray()['data'];
         if(!empty($topcategory)){
@@ -317,7 +317,7 @@ class Index extends Controller
             }
             $packlists = implode(',',$packlist);
         }
-        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','statusTotal','type','storeAddress','topcategory','category','set','datatotal','countweight'));
+        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','type','storeAddress','topcategory','category','set','datatotal','countweight'));
     }
     
     public function setErrors(){
@@ -336,27 +336,27 @@ class Index extends Controller
         return $this->renderError('操作失败');
     } 
     
-    // 申请打包
-    public function inpacks(){
-        $list = [];
-        $packageModel = new Package();
-        $map1 = ['is_take'=>2,'status'=>[5,6,7,8,9,10,11]];
-        $map2 = \request()->param();
-        $map = array_merge($map1,$map2);
-        $list = $packageModel->getList($map);
-        $shopList = ShopModel::getAllList();
-        $line = (new Line())->getList([]);
-        $packageService = (new PackageService())->getList([]);
-        $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
-        $statusTotal = [];
-        foreach($status as $key => $val){
-            $map_where['status'] = $key;
-            $map_where['is_take'] = 2;
-            $statusTotal[$key] = $packageModel->where($map_where)->count();
-        } 
-        $type = 'applypacks';
-        return $this->fetch('index', compact('list','shopList','title','line','packageService','statusTotal','type'));
-    }
+    // // 申请打包
+    // public function inpacks(){
+    //     $list = [];
+    //     $packageModel = new Package();
+    //     $map1 = ['is_take'=>2,'status'=>[5,6,7,8,9,10,11]];
+    //     $map2 = \request()->param();
+    //     $map = array_merge($map1,$map2);
+    //     $list = $packageModel->getList($map);
+    //     $shopList = ShopModel::getAllList();
+    //     $line = (new Line())->getList([]);
+    //     $packageService = (new PackageService())->getList([]);
+    //     $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
+    //     $statusTotal = [];
+    //     foreach($status as $key => $val){
+    //         $map_where['status'] = $key;
+    //         $map_where['is_take'] = 2;
+    //         $statusTotal[$key] = $packageModel->where($map_where)->count();
+    //     } 
+    //     $type = 'applypacks';
+    //     return $this->fetch('index', compact('list','shopList','title','line','packageService','statusTotal','type'));
+    // }
     
     // 异常单     
     public function errors(){
@@ -372,17 +372,11 @@ class Index extends Controller
         $line = (new Line())->getList([]);
         $packageService = (new PackageService())->getList([]);
         $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
-        $statusTotal = [];
         $topcategory = $Category->getListTop($name=null)->toArray()['data'];
         if(!empty($topcategory)){
            empty($map2['top_id']) && $map2['top_id'] = '';
            $category = $Category->getListTopChild($map2['top_id'])->toArray()['data']; 
         }
-        foreach($status as $key => $val){
-            $map_where['status'] = $key;
-            
-            $statusTotal[$key] = $packageModel->where($map_where)->count();
-        } 
         $type = 'errors';
         $storeAddress =(new UserAddress())->getDsList();
         $set = Setting::detail('store')['values'];
@@ -403,7 +397,7 @@ class Index extends Controller
             }
             $packlists = implode(',',$packlist);
         }
-        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','category','statusTotal','topcategory','type','storeAddress','set','datatotal','countweight'));
+        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','category','topcategory','type','storeAddress','set','datatotal','countweight'));
     }
     
     
@@ -415,16 +409,8 @@ class Index extends Controller
         $map2 = \request()->param();
         $map = array_merge($map1,$map2);
         $list = $packageModel->getList($map);
-        // dump($list->toArray());die;
         $shopList = ShopModel::getAllList();
-        $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
-        $statusTotal = [];
-        foreach($status as $key => $val){
-            $map_where['status'] = $key;
-            $map_where['is_take'] = 1;
-            $statusTotal[$key] = $packageModel->where($map_where)->count();
-        } 
-        return $this->fetch('nouser', compact('list','shopList','statusTotal'));
+        return $this->fetch('nouser', compact('list','shopList'));
     }
     
     /**
@@ -441,14 +427,7 @@ class Index extends Controller
         $map = array_merge($map1,$map2);
         $list = $packageModel->getYList($map);
         $shopList = ShopModel::getAllList();
-        $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
-        $statusTotal = [];
-        foreach($status as $key => $val){
-            $map_where['status'] = $key;
-            $map_where['is_take'] = 1;
-            $statusTotal[$key] = $packageModel->where($map_where)->count();
-        } 
-        return $this->fetch('appointment', compact('list','shopList','statusTotal'));
+        return $this->fetch('appointment', compact('list','shopList'));
     }
 
 

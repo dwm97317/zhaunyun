@@ -455,17 +455,28 @@ class Inpack extends InpackModel
     public function appendData($data){
         //$pack : 要插入的快递信息
         //$inpack : 被插入的集运单
-            
-        if (!$pack = (new Package())->where(['express_num'=>$data['express_num']])->find()){
-            $this->error = '该包裹不在库中';
-            return false;
+        $inpack = (new Inpack())->find($data['id']);    
+        if (!$pack = (new Package())->where(['express_num'=>$data['express_num'],'is_delete'=>0])->find()){
+            $resl =  (new Package())->where(['inpack_id'=>$data['id'],'is_delete'=>0])->find();
+            // dump($data);die;
+            if(empty($resl)){
+                $this->error = '该包裹不在库中';
+                return false;
+            }
+            unset($resl['id']);
+            $resl['express_num'] = $data['express_num'];
+            $resl['entering_warehouse_time'] = getTime();
+            $resl['updated_time'] = getTime();
+            $resl['created_time'] = getTime();
+            $newid = (new Package())->insertGetId($resl->toArray());
+            $inpack->save(['pack_ids'=>$inpack['pack_ids'].','.$newid]);
         }
         // 判断包裹是否已经在其他集运包裹中；如果不在，则可以添加进来；
         if(in_array($pack['status'],[5,6,7,8,9,10,11])){
             $this->error = '该包裹已在集运单中';
             return false;
         }
-        $inpack = (new Inpack())->find($data['id']);
+        
         //判断需要插入的快递单号是否被领取，如果领取memberid不存在，则设置为集运单的memberid；并修改状态为已认领；
         if(!$pack['member_id']){
            (new Package())->where(['id'=>$pack['id']])->update(['member_id'=>$inpack['member_id'],'is_take' => 2]);

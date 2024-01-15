@@ -137,6 +137,7 @@ class Newpack extends Controller
              foreach ($param['num'] as $key => $val){
                  for ($i = 0; $i < $val; $i++) {
                      $data['express_num'] = $num==1?$param['express_num']:$param['express_num'].'-'.($j+1);
+                     $data['origin_express_num'] = $param['express_num'];
                      $data['width'] = !empty($param['width'])?$param['width'][$key]:$detail['width'];
                      $data['height'] = !empty($param['height'])?$param['height'][$key]:$detail['height'];
                      $data['length'] = !empty($param['length'])?$param['length'][$key]:$detail['length'];
@@ -187,6 +188,10 @@ class Newpack extends Controller
                         'volume'=>$data['width']*$data['height']*$data['length']/1000000,
                     ];
                     $Package->doClassIdstwo($class,$data['express_num'],$package_id);
+                    
+                    if($noticesetting['enter']['is_enable']==1){
+                        Logistics::add($package_id,$noticesetting['enter']['describe']);
+                    }
                     //发送订阅消息以及模板消息
                     //  if(isset($param['member_id']) || !empty($detail['member_id'])){
                     //       $EmailUser = User::detail($data['member_id']);
@@ -237,6 +242,7 @@ class Newpack extends Controller
                  for ($i = 0; $i < $val; $i++) {
                      $data['order_sn'] = createSn();
                      $data['express_num'] = $num==1?$param['express_num']:$param['express_num'].'-'.($j+1);
+                     $data['origin_express_num'] = $param['express_num'];
                      $data['member_id'] = $param['member_id'];
                      $data['storage_id'] = isset($param['storage_id'])?$param['storage_id']:'';
                      $data['country_id'] = isset($param['country_id'])?$param['country_id']:'';
@@ -294,6 +300,9 @@ class Newpack extends Controller
                         'volume'=>$data['width']*$data['height']*$data['length']/1000000,
                     ];
                     $Package->doClassIdstwo($class,$data['express_num'],$package_id);
+                    if($noticesetting['enter']['is_enable']==1){
+                        Logistics::add($package_id,$noticesetting['enter']['describe']);
+                    }
                  }
             }
         }

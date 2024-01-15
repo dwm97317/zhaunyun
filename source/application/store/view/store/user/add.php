@@ -31,7 +31,7 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 所属仓库 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <select name="user[shop_id]"
+                                    <select name="user[shop_id][]" multiple
                                             data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'所有仓库', maxHeight: 400}">
                                             <option value=""></option>
                                         <?php if (isset($shopList) && !$shopList->isEmpty()):
@@ -45,7 +45,7 @@
                                             <?php endforeach; endif; ?>
                                     </select>
                                     <div class="help-block">
-                                        <small>你想录入到哪个仓库?</small>
+                                        <small>可以设置多个仓库，让管理员能够查看多个仓库的包裹和订单信息</small>
                                     </div>
                                 </div>
                             </div>

@@ -43,6 +43,7 @@ use app\common\library\Ditch\Hualei;
 use app\common\library\Ditch\Xzhcms5;
 use app\common\library\Ditch\Aolian;
 use app\common\library\Ditch\Yidida;
+use app\api\model\ShelfUnitItem;
 /**
  * 页面控制器
  * Class Index
@@ -139,6 +140,39 @@ class Package extends Controller
         //包裹处理完成后，需要把包裹的id加入到集运订单中，创建新的快速打包订单；
         
         //快速打包订单添加好后，需要对订单进行用户归属，路线选择，用户地址选择等操作才能划分到正常订单行列；
+    }
+    
+    // 包裹批量出库
+    //将提交的包裹进行1、货架下架；2、标记扫码状态；3、更改状态为已发货；
+    public function alloutshop(){
+        $param = $this->request->param();
+        $PackageModel = new PackageModel;
+        $ShelfUnitItem = new ShelfUnitItem;
+        $noticesetting = SettingModel::getItem('notice');
+        // dump());die;
+        if(count($param['express_num'])==0){
+             return $this->renderError("请录入需要出库的包裹单号");
+        }
+        // 开启事务
+        Db::startTrans();
+        foreach($param['express_num'] as $val){
+            $pack = $PackageModel->where('is_delete',0)->where('express_num',$val)->whereOr(['origin_express_num'=>$val])->select();
+            if(empty($pack)){
+                $ShelfUnitItem->where('express_num',$val)->delete();
+                return $this->renderError($val."暂未入库，请先入库后再执行出库操作");
+            }
+            
+            if(!empty($pack) && count($pack)>=1){
+                foreach ($pack as $v){
+                    $v->save(['status'=>9,'is_scan'=>2]);
+                    if($noticesetting['dosend']['is_enable']==1){
+                        Logistics::add($v['id'],"包裹已发货");
+                    }
+                }
+            }
+        }
+        Db::commit();
+        return $this->renderSuccess('批量出库成功');
     }
     
 
@@ -331,6 +365,7 @@ class Package extends Controller
          $res = $packModel->saveData($post);
         //  dump($res);die;
          if (!$res){
+             Db::rollback();
              return $this->renderError('申请预报失败');
          }
          
@@ -1836,6 +1871,7 @@ class Package extends Controller
         
 
         if(!empty($inpackData) ){
+          
             if($inpackData['transfer']==0){
                 $ditchdatas = $DitchModel->where('ditch_id','=',$inpackData['t_number'])->find();
                 // dump($ditchdatas);die;
@@ -1892,6 +1928,7 @@ class Package extends Controller
              
             }else{
                 $logic = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
+                    //  dump($inpackData['t_number']);die;
             }
             // dump($inpackData);die;
             $packinck = $PackageModel->where(['inpack_id'=>$inpackData['id'],'is_delete' => 0])->find();
@@ -1908,7 +1945,7 @@ class Package extends Controller
             
             // $logictii = $Logistics->getlogisticssn($inpackData['t_order_sn']);dump($logictii);die;
             $logic = array_merge($logic,$logictik);
-        //   dump($logic);die;
+        
             // $logic = array_merge($logic,$result);
         }
         

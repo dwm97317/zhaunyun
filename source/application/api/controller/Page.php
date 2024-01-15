@@ -89,6 +89,7 @@ class Page extends Controller
     
     public function batchLog(){
         $Batch = new Batch;
+        
         return true;
     }
     

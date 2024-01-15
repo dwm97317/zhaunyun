@@ -101,11 +101,11 @@ class BaseModel extends Model
         if (self::$wxapp_id > 0) {
             $query->where($query->getTable() . '.wxapp_id', self::$wxapp_id);
         }
-        
-        if (self::$shop_id > 0) {
-        if($query->getTable() == 'yoshop_inpack' || $query->getTable() == 'yoshop_package')
-        // dump($query->getTable());die;
-        $query->where($query->getTable() . '.storage_id', self::$shop_id);
+        // dump();die;
+        if (isset(self::$shop_id) && self::$shop_id !== '0') {
+            if($query->getTable() == 'yoshop_inpack' || $query->getTable() == 'yoshop_package'){
+                $query->whereIn($query->getTable() . '.storage_id', explode(',',self::$shop_id));
+            }
         }
     }
 

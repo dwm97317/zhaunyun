@@ -858,7 +858,7 @@ class TrOrder extends Controller
         if ($Inpack->appendData($this->postData('delivery'))) {
             return $this->renderSuccess('修改成功','javascript:history.back(1)');
         }
-        return $this->renderError($model->getError() ?: '修改失败');
+        return $this->renderError($Inpack->getError() ?: '修改失败');
     }
     
     // 计算价格

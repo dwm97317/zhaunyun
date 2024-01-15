@@ -56,7 +56,7 @@ class Track extends Controller
         //查询出来这个单号是包裹单号、国际单号、转单号
         $packData = $PackageModel->where(['express_num'=>$express,'is_delete' => 0])->find();
         
-        $inpackData = $Inpack->where('t_order_sn',$express)->where(['is_delete' => 0])->find(); //国际单号
+        $inpackData = $Inpack->where('t_order_sn|order_sn',$express)->where(['is_delete' => 0])->find(); //国际单号
         $inpackData2 = $Inpack->where(['t2_order_sn'=>$express,'is_delete' => 0])->find();  //转单号
         $inpackData4 = $Inpack->where(['order_sn'=>$express,'is_delete' => 0])->find();
         //如果是包裹单号，可以反查下处于哪个集运单；
@@ -96,7 +96,7 @@ class Track extends Controller
         if(!empty($inpackData) ){
             if($inpackData['transfer']==0){
                 $ditchdatas = $DitchModel->where('ditch_id','=',$inpackData['t_number'])->find();
-    
+                
                  //锦联
                 if($ditchdatas['ditch_no']==10001){
                     $jlfba =  new jlfba(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token']]);
@@ -144,16 +144,17 @@ class Track extends Controller
                 //   $logictjki = $Logistics->getorderno($inpackData['order_sn']);  
                 // }
                 // //查询国际物流部分
-                // // $logic = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
-              
+            //     $logictjki = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
+            //   dump($logictjki);die;
                 // $logic = array_merge($result,$logictjki);
                 $logic = array_merge($logic,$result);
              
             }else{
                 $logicdd = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
+                  
                 $logic = array_merge($logic,$logicdd);
             }
-            // dump($logic);die;
+           
             $packinck = $PackageModel->where(['inpack_id'=>$inpackData['id'],'is_delete' => 0])->find();
             // dump($packinck);die;
             if(!empty($packinck)){
@@ -174,6 +175,11 @@ class Track extends Controller
             $logici = $Logistics->getZdList($inpackData2['t2_order_sn'],$inpackData2['t2_number'],$inpackData2['wxapp_id']);
          
         }
+        
+        // if(!empty($inpackData2)){
+        //     $logici = $Logistics->getZdList($inpackData2['t2_order_sn'],$inpackData2['t2_number'],$inpackData2['wxapp_id']);
+         
+        // }
  
         $logic = array_merge($logic,$logici);
         return $this->renderSuccess(['data' => $logic], '查询成功');

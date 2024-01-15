@@ -26,24 +26,25 @@ class Batch extends BaseModel
     }
     
     public function setBatchLog($list){
+        // dump($list->toArray());die;
         $Inpack = new Inpack;
         foreach ($list as $key=>$val){
             if($val['last_time']<=time()){
+           
                 $templatelist = (new BatchTemplateItem())->where('template_id',$val['template']['template_id'])->order('step_num asc')->select();
-                
+            
                 $logtemplate = $templatelist[$val['step_num']];
                 
                 if(count($templatelist)>$val['step_num']+1){
                     $next_logtemplate = $templatelist[$val['step_num']+1];  
-                }elseif(count($templatelist) ==$val['step_num']+1){
-                    $next_logtemplate = $templatelist[$val['step_num']];  
+                }elseif(count($templatelist) == $val['step_num']+1){
+                    $next_logtemplate = $templatelist[$val['step_num']]; 
                     $val->save(['is_over'=>1]);
                 }else{
                     continue;
                 }
-                
-                $next_logtemplate = $templatelist[$val['step_num']+1]; 
                 $inpacklist = $Inpack->where('batch_id',$val['batch_id'])->where('is_delete',0)->select();
+               
                 foreach ($inpacklist as $v){
                     Logistics::addbatchLogs($v['order_sn'],$logtemplate['title'],$logtemplate['content']);
                 }

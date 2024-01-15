@@ -34,9 +34,9 @@ class Logistics extends BaseModel
     }
     
     public static function add($id,$desc){
-
+//  dump($id);die;
         $id = (new Package())->find($id);
-     
+            
         $model = new static;
         return $model->insert([
             'order_sn' => $id['order_sn'],

@@ -37,11 +37,11 @@ class Ditch extends DitchModel
     public function remove()
     {
         // 判断当前物流公司是否已被订单使用
-        $Order = new Order;
-        if ($orderCount = $Order->where(['express_id' => $this['express_id']])->count()) {
-            $this->error = '当前物流公司已被' . $orderCount . '个订单使用，不允许删除';
-            return false;
-        }
+        // $Order = new Order;
+        // if ($orderCount = $Order->where(['ditch_id' => $this['ditch_id']])->count()) {
+        //     $this->error = '当前物流公司已被' . $orderCount . '个订单使用，不允许删除';
+        //     return false;
+        // }
         return $this->delete();
     }
 

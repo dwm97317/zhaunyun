@@ -40,10 +40,11 @@ class Logistics extends LogisticsModel
      public function getZdList($sn,$number,$wxappId){
         $setting = Setting::detail("store")['values'];
         $data = [];
-
+        // dump($setting);die;
         //查询17track物流信息
         if (!empty($setting['track17']['key'])){
         $track = (new TrackApi())->track(['track_sn'=>$sn,'t_number'=>$number,'wxapp_id'=> $wxappId]);
+        // dump($number);die;
         if(!empty($track)){
                 foreach ($track['tracking']['providers'][0]['events'] as $v){
                     $data[] = [

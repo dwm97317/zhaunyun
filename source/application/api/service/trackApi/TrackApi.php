@@ -89,7 +89,6 @@ Class TrackApi {
           $body = [['number' => $data['track_sn'],'carrier' => $data['t_number']]];
           $datas = json_encode($body);
           $res = $this->curl_post($api,$datas);
-    //   dump($res);die;
           if (!$res['code']){
               echo "请求出错";
               die;
