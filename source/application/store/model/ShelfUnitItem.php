@@ -52,7 +52,7 @@ class ShelfUnitItem extends ShelfUnitItemModel
     //  
     public function getItemWithPackage($where){ 
         
-        return $this->where($where)->select();
+        return $this->with(['shelfunit.shelf'])->where($where)->order('created_time desc')->select();
     }
 
       

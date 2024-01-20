@@ -56,6 +56,99 @@ class ApiPost extends Controller
      * Class Passport
      * @package app\api\controller
      */
+    public function newreportpack(){
+        $param = $this->request->param();
+    
+        if(!isset($param['app_key']) || empty($param['app_key'])){
+            return $this->renderError("TOKEN不能为空");
+        }
+        if(!isset($param['tracking_number']) || empty($param['tracking_number'])){
+            return $this->renderError("快递单号不能为空");
+        }
+        if(!isset($param['equipment_no']) || empty($param['equipment_no'])){
+            return $this->renderError("仓库号不能为空");
+        }
+        $Wxapp = new Wxapp;
+        $Package = new Package;
+        $detail = $Wxapp::detail($param['wxapp_id']);
+        if($detail['token'] != $param['app_key']){
+            return $this->renderError("TOKEN错误");
+        }
+       
+        
+        $result = $Package->where(['express_num'=>$param['tracking_number'],'is_delete'=>0])->find();
+        // dump($_FILES);die;
+        if(!empty($_FILES['file']['name'])){
+            $StorageDriver = new StorageDriver($this->config);
+            // dump($this->config);die;
+            $file = Request::instance()->file();
+            // 设置上传文件的信息
+            $StorageDriver->setUploadFile('file');
+            // 上传图片
+            if (!$StorageDriver->upload()) {
+                return json(['code' => 0, 'msg' => '图片上传失败' . $StorageDriver->getError()]);
+            }
+    
+            // 图片上传路径
+            $fileName = $StorageDriver->getFileName();
+            // 图片信息
+            $fileInfo = $StorageDriver->getFileInfo();
+            // 添加文件库记录
+            $uploadFile = $this->addUploadFile($group_id = -1, $fileName, $fileInfo, 'image');
+            // dump();die;$uploadFile['file_id']
+        }
+         
+        
+        if(!empty($result)){
+            $result->save([
+                'status'=>2,
+                'storage_id'=>$param['equipment_no'],
+                'weight'=>$param['package_weight'],
+                'length'=>isset($param['length'])?$param['length']:$result['length'],
+                'width'=>isset($param['width'])?$param['width']:$result['width'],
+                'height'=>isset($param['height'])?$param['height']:$result['height'],
+                'entering_warehouse_time'=>getTime()
+            ]);
+            
+            if(isset($uploadFile)){
+                $imgdata = [
+                    'package_id'=> $result['id'],
+                    'image_id'=>$uploadFile['file_id'],
+                    'wxapp_id'=>$param['wxapp_id'],
+                    'create_time'=>time()
+                ];
+                (new PackageImage())->save($imgdata);
+            }
+            return $this->renderSuccess("更新成功");
+        }
+        $data = [
+            'order_sn'=> createSn(),
+            'express_num'=>$param['tracking_number'],
+            'status'=>2,
+            'storage_id'=>$param['equipment_no'],
+            'wxapp_id'=>$param['wxapp_id'],
+            'weight'=>$param['package_weight'],
+            'source'=>9,
+            'entering_warehouse_time'=>getTime()
+        ];
+        $id = $Package->saveData($data);
+        if(isset($uploadFile)){
+            $imgdata = [
+                'package_id'=> $id,
+                'image_id'=>$uploadFile['file_id'],
+                'wxapp_id'=>$param['wxapp_id'],
+                'create_time'=>time()
+            ];
+            (new PackageImage())->save($imgdata);
+        }
+        return $this->renderSuccess("预报成功");
+    }
+    
+    /**
+     * 预报
+     * Class Passport
+     * @package app\api\controller
+     */
     public function reportpack(){
         $param = $this->request->param();
     

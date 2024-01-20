@@ -1344,14 +1344,14 @@ class TrOrder extends Controller
 	</tr>
 	<tr>
 		<td colspan=2 class="paddingleft left font_xl" height="36">
-		   '.$data['address']['name']. $data['address']['phone'].'<br>
+		   '.$data['address']['name']. hide_mobile($data['address']['phone']).'<br>
 		   '.$data['address']['country'].'
-					'.$data['address']['province'].'
-					'.$data['address']['city'].'
-					'.$data['address']['region'].'
-					'.$data['address']['district'].'
-					'.$data['address']['street'].'
-					'.$data['address']['door'].'
+					'.(!empty($data['address']['province'])?$data['address']['province']:'').'
+					'.(!empty($data['address']['city'])?$data['address']['city']:'').'
+					'.(!empty($data['address']['region'])?$data['address']['region']:'').'
+					'.(!empty($data['address']['district'])?$data['address']['district']:'').'
+					'.(!empty($data['address']['street'])?$data['address']['street']:'').'
+					'.(!empty($data['address']['door'])?$data['address']['door']:'').'
 				<strong>'.$data['address']['detail'].'</strong>
 					'.$data['address']['code'].'
 		</td>

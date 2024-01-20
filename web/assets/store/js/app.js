@@ -6,7 +6,69 @@
      * Jquery类方法
      */
     $.fn.extend({
-
+        superFormForPrint: function (option) {
+            // 默认选项
+            var options = $.extend(true, {}, {
+                buildData: $.noop,
+                validation: $.noop,
+                success: $.noop
+            }, option);
+            var today = getNowFormatDate();
+            // 表单元素
+            var $form = $(this), $btnSubmit = $('.j-submit');
+            $form.validator({
+                onValid: function (validity) {
+                    $(validity.field).next('.am-alert').hide();
+                },
+                /**
+                 * 显示错误信息
+                 * @param validity
+                 */
+                onInValid: function (validity) {
+                    var $field = $(validity.field)
+                        , $group = $field.parent()
+                        , $alert = $group.find('.am-alert');
+                    if ($field.data('validationMessage') !== undefined) {
+                        // 使用自定义的提示信息 或 插件内置的提示信息
+                        var msg = $field.data('validationMessage') || this.getValidationMessage(validity);
+                        if (!$alert.length) {
+                            $alert = $('<div class="am-alert am-alert-danger"></div>').hide().appendTo($group);
+                        }
+                        $alert.html(msg).show();
+                    }
+                },
+                submit: function () {
+                    if (this.isFormValid() === true) {
+                        // 自定义验证
+                        if (options.validation.call(true) === false) {
+                            return false;
+                        }
+                        // 禁用按钮, 防止二次提交
+                        $btnSubmit.attr('disabled', true);
+                        // 表单提交
+                        $form.ajaxSubmit({
+                            type: 'post',
+                            dataType: 'json',
+                            data: options.buildData.call(true),
+                            success: function (result) {
+                                if (options.success === $.noop) {
+                                    for (var i = 0; i < result.data.length; i++) {
+                                        drawTextTest(result.data[i].express_num,result.data[i].usermark,today);
+                                    }
+                                    // setTimeout(function(){location.reload();},1000);
+                                    result.code === 1 ? $.show_success(result.msg, result.url)
+                                        : $.show_error(result.msg);
+                                } else {
+                                    options.success.call(true, result);
+                                }
+                                $btnSubmit.attr('disabled', false);
+                            }
+                        });
+                    }
+                    return false;
+                }
+            });
+        },
         superForm: function (option) {
             // 默认选项
             var options = $.extend(true, {}, {

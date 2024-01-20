@@ -370,8 +370,9 @@ class Newpack extends Controller
                 // dump($reus);die;
             }
          }
-       
-        return $this->renderSuccess('操作成功');  
+         $list = $Package->where('origin_express_num',$param['express_num'])->select();
+        //  $data['origin_express_num'] = $param['express_num'];
+        return $this->renderSuccess('操作成功','',$list);  
    
     }
     

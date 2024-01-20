@@ -30,13 +30,15 @@ class Controller extends \think\Controller
     protected $allowAllAction = [
         // 登录页面
         'passport/login',
-        'track/search'
+        'track/search',
+        'home/index'
     ];
     /* @var array $notLayoutAction 无需全局layout */
     protected $notLayoutAction = [
         // 登录页面
         'passport/login',
-        'track/search'
+        'track/search',
+        'home/index'
     ];
     /**
      * API基类初始化

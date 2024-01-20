@@ -630,10 +630,6 @@
         }
         var today = getNowFormatDate();
         $("#usermarkplus").val(usermark);
-        
-        if(expremm){
-            drawTextTest(expremm,usermark,today);
-        }
     } 
      // 选择用户
     $('.j-selectUser').click(function () {
@@ -1042,13 +1038,13 @@ function getNowFormatDate() {
         $('.upload-file_enter').selectImages({
             name: 'data[enter_image_id][]' , multiple: true
         });
-
-
+        
+        
         /**
          * 表单验证提交
          * @type {*}
          */
-        $('#my-form').superForm();
+        $('#my-form').superFormForPrint();
        
     });
 </script>

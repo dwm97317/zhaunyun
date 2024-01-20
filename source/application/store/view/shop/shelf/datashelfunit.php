@@ -79,7 +79,7 @@
                             </tr>
                             </thead>
                             <tbody id="body">
-                            <?php if (!$data->isEmpty()): ?>
+                            <?php if (count($data)>0): ?>
                                 <?php foreach ($data as $item): ?>
                                     <tr>
                                         <td class="am-text-middle">

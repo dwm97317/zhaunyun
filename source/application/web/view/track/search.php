@@ -26,9 +26,7 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-				<h1>
-				    <a class="navbar-brand" href="<?=urlCreate('/index.php/web/track/search') ?>"><i class="fa fa-plane" aria-hidden="true"></i> <?= $setting['name'] ;?> </a></h1>
-
+				<h1><a class="navbar-brand" href="<?=urlCreate('/index.php/web/track/search') ?>"><i class="fa fa-plane" aria-hidden="true"></i> <?= $setting['name'] ;?> </a></h1>
 				</div>
 			</nav>	
 			<div class="clearfix"> </div> 

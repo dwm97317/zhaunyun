@@ -26,6 +26,7 @@ class ShelfUnit extends ShelfUnitModel
         !empty($query['shelf_ids']) && $this->where('shelf_id','in',$query['shelf_ids']);
         !empty($query['shelf_id']) && $this->where('shelf_id','=',$query['shelf_id']);
         !empty($query['shelf_unit_id']) && $this->where('shelf_unit_id','=',$query['shelf_unit_id']);
+        !empty($query['shelf_unit_ids']) && $this->where('shelf_unit_id','in',$query['shelf_unit_ids']);
         !empty($query['search']) && $this->where('shelf_unit_no|shelf_unit_id','like','%'.$query['search'].'%');
         return $this;
     }

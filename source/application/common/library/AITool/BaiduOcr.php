@@ -19,8 +19,7 @@ class BaiduOcr extends BaiduBase
      */
     public function generalBasic($img){
        $token = $this->getAccessToken();
-       $url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token={$token}";
-            //   dump($img);die;
+       $url = "https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic?access_token={$token}";
        $header = ["Content-Type:application/x-www-form-urlencoded"];
        $bodys = array(
             'url' => $img,

@@ -53,9 +53,13 @@ class Shelf extends Controller
       }else{
            !empty($postData['express_num']) && $_map['express_num'] = $postData['express_num'];
             $item = (new ShelfUnitItem())->getItemWithPackage($_map);
-            // dump($item);die;
+            foreach ($item as $k =>$v){
+                $shelf_unit_id[] = $v['shelf_unit_id'];
+            }
+           
             if(!empty($item)){
-              $sheft_map = ['shelf_unit_id'=>$item['0']['shelf_unit_id']];
+                $sheft_map = ['shelf_unit_ids'=>$shelf_unit_id];
+                // dump($sheft_map['shelf_unit_ids']);die;
                 $dataShelf = (new ShelfUnit())->getWithShelf($sheft_map);
                 foreach($dataShelf as &$v){
                   if ($item){

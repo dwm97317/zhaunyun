@@ -1671,6 +1671,7 @@ class Useropration extends Controller
             $map['status'] = [2,3,4,5];
         }
         $map['is_delete'] = 0;
+        $map['storage_id'] = $clerk['shop_id'];
         $map['keyword'] = $keyword;
         $packModel = (new Inpack());
         $Package = new Package();
