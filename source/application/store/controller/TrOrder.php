@@ -752,7 +752,7 @@ class TrOrder extends Controller
         $shopList = ShopModel::getAllList();
         $lineList = $Line->getListAll();
         foreach ($list as &$value) {
-            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['num'] =  (new Package())->where(['inpack_id'=>$value['id'],'is_delete'=>0])->count();
             $value['down_shelf'] = 0;
             $value['inpack'] = 0;
            if ($dataType=='payed'){

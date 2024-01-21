@@ -49,6 +49,7 @@
                             <thead>
                             <tr>
                                 <th><input id="checkAll" type="checkbox"></th>
+                                <th>序号</th>
                                 <th>包裹ID</th>
                                 <th>快递单号</th>
                                 <th>包裹图片</th>
@@ -64,11 +65,12 @@
                             <tbody id="body">
                                 <?php $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成']; $is_scan=[1=>'未扫描',2=>'已扫描'] ;?>
                             <?php if (!$list->isEmpty()): ?>
-                                <?php foreach ($list as $item): ?>
+                                <?php foreach ($list as $key=> $item): ?>
                                     <tr id="tr_<?= $item['express_num'] ?>">
                                         <td class="am-text-middle">
                                              <input name="checkIds" type="checkbox" value="<?= $item['id'];?>" id="<?= $id;?>"> 
                                         </td>
+                                        <td class="am-text-middle"><?= $key +1 ?></td>
                                         <td class="am-text-middle"><?= $item['id'] ?></td>
                                         <td class="am-text-middle"><?= $item['express_num'] ?></td>
                                         <td class="am-text-middle">

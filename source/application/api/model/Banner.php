@@ -36,6 +36,17 @@ class Banner extends BannerModel
         return $this
         ->with('image')
         ->where(['status'=>1,'banner_site'=> 40])
+        ->where('redirect_type','<>',3)
+        ->field('id,title,image_id,redirect_type,url,banner_site')
+        ->order('created_time','asc')
+        ->limit(10)->select();
+    }
+    
+    //弹窗公告图
+    public function wechatBanner(){
+        return $this
+        ->with('image')
+        ->where(['status'=>1,'banner_site'=> 40,'redirect_type'=>3])
         ->field('id,title,image_id,redirect_type,url,banner_site')
         ->order('created_time','asc')
         ->limit(10)->select();

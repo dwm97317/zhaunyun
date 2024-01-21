@@ -25,7 +25,8 @@ class Banner extends Controller
         if (!$list->isEmpty()){
             $list = dataMapRender($list,'redirect_type',[
                 1 => '小程序内部链接',
-                2 => '外部链接'
+                2 => '外部链接',
+                3 => '微信公众号'
             ]);
         }
         // dump($list->toArray());die;

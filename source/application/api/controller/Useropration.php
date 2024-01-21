@@ -1679,13 +1679,13 @@ class Useropration extends Controller
         foreach ($sdata as $key => $val){
             $pack_id = explode(',',$val['pack_ids']);
             $sdata[$key]['is_scan'] = 2;
-            foreach ($pack_id as $k =>$va){
-                $is_scan = $Package->where('id',$va)->value('is_scan');
-                if($is_scan==1){
-                    $sdata[$key]['is_scan'] = 1;
+                $is_scan = $Package->field('is_scan')->where('inpack_id',$val['id'])->select();
+                foreach ($is_scan as $k =>$va){
+                    if($va['is_scan']==1){
+                        $sdata[$key]['is_scan'] = 1;
+                    }
+                    break;
                 }
-                break;
-            }
         }
         $data =$sdata;
         return $this->renderSuccess($data);

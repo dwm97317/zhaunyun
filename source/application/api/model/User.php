@@ -26,7 +26,7 @@ class User extends UserModel
      * @var array
      */
     protected $hidden = [
-        'open_id',
+        'password',
         'is_delete',
         'wxapp_id',
         'create_time',
@@ -87,6 +87,16 @@ class User extends UserModel
         return $user_id;
     }
     
+    public function loginwxTogetOpenid($post)
+    {
+        // 微信登录 获取session_key
+        $session = $this->wxApplogin($post['code']);
+        $user = self::detail(['union_id' => $session['unionid']]);
+        // dump();die;
+        $user->save(['gzh_openid'=>$session['openid']]);
+        return true;
+    }
+    
     public function loginwx($post)
     {
         // 微信登录 获取session_key
@@ -141,7 +151,6 @@ class User extends UserModel
      */
     private function wxlogin($code)
     {
-
         // 获取当前小程序信息
         $wxConfig = Wxapp::getWxappCache();
         // 验证appid和appsecret是否填写
@@ -154,10 +163,6 @@ class User extends UserModel
         if (!$session = $WxUser->sessionKey($code)) {
             throw new BaseException(['msg' => $WxUser->getError()]);
         }
-        // dump($session);die;
-        //   ["session_key"] => string(24) "s9PUOgepCuGlqyAlKO2gpg=="
-        //   ["openid"] => string(28) "o56ut5D9RfSR3URYu5RoCosbW3hQ"
-        //   ["unionid"] => string(28) "o-lTS5u1dHXaU4BVIZvvdBecj2ak"
         return $session;
     }
 

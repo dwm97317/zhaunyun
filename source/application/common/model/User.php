@@ -14,7 +14,8 @@ use app\store\model\Package;
 class User extends BaseModel
 {
     protected $name = 'user';
-
+    
+    protected $hidden = ['password'];
     // 性别
     private $gender = ['保密', '男', '女'];
     

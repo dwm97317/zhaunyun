@@ -210,6 +210,13 @@ class Page extends Controller
         return $this->renderError("操作失败");
     }
     
+    // 微信公众号
+    public function wechatBanner(){
+       $bannerModel = (new Banner());
+       $data = $bannerModel->wechatBanner();
+       return $this->renderSuccess($data);
+    }
+    
     // 弹窗公告图
     //逻辑描述：当用户没登录不提示，用户登录后提示
     public function noticeBanner(){

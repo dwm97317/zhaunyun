@@ -34,6 +34,10 @@
                                         <input type="radio" name="banner[redirect_type]" value="2" data-am-ucheck <?= $model['redirect_type'] == 2 ? 'checked' : '' ?>>
                                         外部链接
                                     </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="banner[redirect_type]" value="3" data-am-ucheck <?= $model['redirect_type'] == 3 ? 'checked' : '' ?>>
+                                        微信公众号
+                                    </label>
                                      <div class="help-block am-padding-top-xs">
                                         <small>请点击<a target="_blank" href="index.php?s=/store/wxapp.page/links">内部链接地址</a>查看地址</small>
                                     </div>

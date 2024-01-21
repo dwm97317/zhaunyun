@@ -65,6 +65,19 @@ class User extends Controller
         ]);
     }
     
+    public function getopenidCode(){
+        $wxappId = $this->request->param('wxapp_id');
+        $app_wxappid = WxappModel::detail($wxappId);
+        // dump($app_wxappid);die;
+        if(!empty($app_wxappid['other_url'])){
+            $redirectUri = $app_wxappid['other_url']."html5/pages/getopenid/getopenidwebview"; 
+        }else{
+            $redirectUri = base_url()."html5/pages/getopenid/getopenidwebview"; 
+        }
+        $url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=".$app_wxappid['app_wxappid']."&redirect_uri=".$redirectUri."&response_type=code&scope=snsapi_userinfo&state=".$wxappId."#wechat_redirect";
+      return $this->renderSuccess($url);
+    }
+    
     public function getCode(){
         $wxapp = WxappModel::getWxappCache();
         
@@ -73,7 +86,16 @@ class User extends Controller
         // dump($url);die;
        return $url;
     }
-
+    
+     public function loginwxTogetOpenid(){
+        $model = new UserModel;
+        $data = $this->request->param();
+        return $this->renderSuccess([
+            'user_id' => $model->loginwxTogetOpenid($data),
+            'token' => $model->getToken()
+        ]);
+    }
+    
      public function loginwx(){
         $model = new UserModel;
         $data = $this->request->param();
