@@ -96,7 +96,8 @@ class User extends Controller
         ]);
     }
     
-     public function loginwx(){
+    //微信小程序登录
+    public function loginwx(){
         $model = new UserModel;
         $data = $this->request->param();
         return $this->renderSuccess([
@@ -104,6 +105,17 @@ class User extends Controller
             'token' => $model->getToken()
         ]);
     }
+    
+    //微信app授权登录
+    public function loginwxopen(){
+        $model = new UserModel;
+        $data = $this->request->param();
+        return $this->renderSuccess([
+            'user_id' => $model->loginwxopen($data),
+            'token' => $model->getToken()
+        ]);
+    }
+    
     /**
      * 当前用户详情
      * @return array

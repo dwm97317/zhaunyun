@@ -27,13 +27,9 @@
                                            value="<?= $model['app_wxrealid'] ?>" required>
                                 </div>
                             </div>
-                            
-                            <div class="widget-head am-cf">
-                                <div class="widget-title am-fl">开发者信息</div>
-                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
-                                    开发者ID <span class="tpl-form-line-small-title">(AppID)</span>
+                                    公众号AppID <span class="tpl-form-line-small-title">(AppID)</span>
                                 </label>
                                 <div class="am-u-sm-9">
                                     <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxappid]"
@@ -44,7 +40,7 @@
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
-                                    开发者密码 <span class="tpl-form-line-small-title">(AppSecret)</span>
+                                    公众号AppSecret <span class="tpl-form-line-small-title">(AppSecret)</span>
                                 </label>
                                 <div class="am-u-sm-9">
                                     <input autocomplete="off" type="password" class="tpl-form-input" name="wxapp[app_wxsecret]"
@@ -52,7 +48,30 @@
                                            <small>登录微信公众平台，设置与开发 - 基本配置 - 公众号开发信息，设置开发者密码(AppSecret)</small>
                                 </div>
                             </div>
-                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">微信开放平台</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label">
+                                    微信开放平台AppID <span class="tpl-form-line-small-title">(AppID)</span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxoepnid]"
+                                           value="<?= $model['app_wxoepnid'] ?>">
+                                           <small>登录微信开放平台，申请移动应用，然后获取AppID，只有需要APP微信授权登录的才需要填写此项</small>
+                                </div>
+                                
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label">
+                                    微信开放平台AppSecret <span class="tpl-form-line-small-title">(AppSecret)</span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <input autocomplete="off" type="password" class="tpl-form-input" name="wxapp[app_wxopensecret]"
+                                           value="<?= $model['app_wxopensecret'] ?>">
+                                           <small>登录微信开放平台，申请移动应用，然后获取AppSecret，只有需要APP微信授权登录的才需要填写此项</small>
+                                </div>
+                            </div>
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">站点设置</div>
                             </div>
@@ -62,7 +81,7 @@
                                 </label>
                                 <div class="am-u-sm-9">
                                     <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[other_url]"
-                                           value="<?= $model['other_url'] ?>" required>
+                                           value="<?= $model['other_url'].'html5' ?>" required>
                                            <small>系统默认域名为https://zhuanyun10001.sllowly.cn,10001是动态变化的，根据商家的id自动变化。如果你需要配置自己的域名，请联系客服人员协助处理；</small>
                                 </div>
                             </div>

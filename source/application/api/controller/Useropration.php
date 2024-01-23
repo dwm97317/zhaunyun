@@ -1846,8 +1846,8 @@ class Useropration extends Controller
         }
         
         $data['packs'] =json_encode($dataPack);
-          
         $data['packs'] =json_decode($data['packs']);
+        $data['countpack'] =count($packData);
         // 获取物品详情
         // $packItem = (new PackageItemModel())->where(['order_id'=>$data['id']])->field('class_name,id,class_id,order_id')->select();
        
