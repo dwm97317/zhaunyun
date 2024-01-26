@@ -53,7 +53,8 @@
                                 <th>包裹ID</th>
                                 <th>快递单号</th>
                                 <th>包裹图片</th>
-                                <th>包裹信息</th>
+                                <th width='150'>包裹类别</th>
+                                <th>包裹明细</th>
                                 <th>备注信息</th>
                                 <th>包裹位置</th>
                                 <th>状态</th>
@@ -85,6 +86,11 @@
                                         <td class="am-text-middle">
                                             <?php foreach ($item['pakitem'] as $items): ?>
                                             类别：<?= $items['class_name'] ?><br>
+                                            <?php endforeach; ?>
+                                        </td>
+                                        <td class="am-text-middle">
+                                            <?php foreach ($item['pakitem'] as $items): ?>
+                                            <?= $items['goods_name'].'*'.$items['product_num'].' 价值:'.$items['all_price'] ?><br>
                                             <?php endforeach; ?>
                                         </td>
                                          <td class="am-text-middle"><?= $item['remark'];?></td>

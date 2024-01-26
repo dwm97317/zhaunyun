@@ -81,7 +81,7 @@
                                 </label>
                                 <div class="am-u-sm-9">
                                     <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[other_url]"
-                                           value="<?= $model['other_url'].'html5' ?>" required>
+                                           value="<?= $model['other_url'] ?>" required>
                                            <small>系统默认域名为https://zhuanyun10001.sllowly.cn,10001是动态变化的，根据商家的id自动变化。如果你需要配置自己的域名，请联系客服人员协助处理；</small>
                                 </div>
                             </div>

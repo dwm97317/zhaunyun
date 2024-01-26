@@ -120,7 +120,7 @@ class User extends UserModel
     public function loginwxopen($post)
     {
         // 微信登录 获取session_key
-        $session = $this->wxApplogin($post['code']);
+        $session = $this->wxApploginopenid($post['code']);
         // dump($session);die;
         // 自动注册用户
         $refereeId = isset($post['referee_id']) ? $post['referee_id'] : null;
@@ -137,7 +137,25 @@ class User extends UserModel
         return $user['user_id'];
     }
     
+    
+    
     public function wxApplogin($code){
+       // 获取当前小程序信息
+        $wxConfig = Wxapp::getWxappCache();
+        // 验证appid和appsecret是否填写
+        if (empty($wxConfig['app_wxappid']) || empty($wxConfig['app_wxsecret'])) {
+            throw new BaseException(['msg' => '请到 [后台-小程序设置] 填写app_wxappid 和 app_wxsecret']);
+        }
+        // 微信登录 (获取session_key)
+        $WxUser = new WxUser();
+        if (!$session = $WxUser->sessionWxKey($code,$wxConfig['app_wxappid'],$wxConfig['app_wxsecret'])) {
+            throw new BaseException(['msg' => $WxUser->getError()]);
+        }
+        // dump($session);die;
+        return $session; 
+    }
+    
+    public function wxApploginopenid($code){
        // 获取当前小程序信息
         $wxConfig = Wxapp::getWxappCache();
         // 验证appid和appsecret是否填写

@@ -25,6 +25,7 @@ class PackageItem extends PackageItemModel
             $data[$k]['order_id'] = $id;
             $data[$k]['wxapp_id'] = $wxapp_id;
         }
-        return $this->insertAll($data); 
+        // dump($data);die;
+        return $this->allowField(true)->insertAll($data); 
     }
 }

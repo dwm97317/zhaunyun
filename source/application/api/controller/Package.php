@@ -241,30 +241,22 @@ class Package extends Controller
                   return $this->renderError('您无权限参与该拼团活动，或受到限制');
              }
          } 
-         $classItem = [];
+         $classItems = [];
          if ($class_ids || $goodslist){
              $classItem = $this->parseClass($class_ids);
-             if(empty($classItem)){
+    
                 foreach ($goodslist as $k => $val){
-                     $classItem[$k]['class_name'] = $val['pinming'];
-                     $classItem[$k]['one_price'] = $val['danjia'];
-                     $classItem[$k]['all_price'] = (!empty($val['danjia'])?$val['danjia']:0) * (!empty($val['shuliang'])?$val['shuliang']:0);
-                     $classItem[$k]['product_num'] = $val['shuliang'];
-                     $classItem[$k]['express_num'] = $post['express_sn'];
-                     $classItem[$k]['express_name'] = $express;
+                     $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['pinming'];
+                     $classItems[$k]['one_price'] = $val['danjia'];
+                     $classItems[$k]['all_price'] = (!empty($val['danjia'])?$val['danjia']:0) * (!empty($val['shuliang'])?$val['shuliang']:0);
+                     $classItems[$k]['product_num'] = $val['shuliang'];
+                     $classItems[$k]['express_num'] = $post['express_sn'];
+                     $classItems[$k]['goods_name'] = $val['pinming'];
+                     $classItems[$k]['express_name'] = $express;
                 }
-             }else{
-                 foreach ($classItem as $k => $val){
-                   $classItem[$k]['class_id'] = $val['category_id'];
-                   $classItem[$k]['express_name'] = $express;
-                   $classItem[$k]['class_name'] = $val['name'];
-                   $classItem[$k]['express_num'] = $post['express_sn'];
-                   $classItem[$k]['all_price'] = $post['price'];
-                   unset($classItem[$k]['category_id']); 
-                   unset($classItem[$k]['name']);        
-                }
-             }
+
          }
+        //  dump($classItems);die;
          $packModel = new PackageModel();
          $packItemModel = new PackageItemModel();
          // todo 判断预报的单号是否存在（待认领或者已认领），如果存在且被认领则提示已认领，如果存在但未被认领则修改存在的记录所属用户，认领状态；
@@ -326,9 +318,9 @@ class Package extends Controller
             if (!$resup){
                return $this->renderError('申请预报失败');
             }
-          
-            if ($classItem){
-                 $packItemRes = $packItemModel->saveAllData($classItem,$packres['id']);
+        
+            if ($classItems){
+                 $packItemRes = $packItemModel->saveAllData($classItems,$packres['id']);
                  if (!$packItemRes){
                     Db::rollback();
                     return $this->renderError('申请预报失败');
@@ -376,8 +368,8 @@ class Package extends Controller
          if(!empty($post['imageIds'])){
             $this->inImages($res,$post['imageIds'],$wxapp_id);
          }
-         if ($classItem){
-             $packItemRes = $packItemModel->saveAllData($classItem,$res);
+         if ($classItems){
+             $packItemRes = $packItemModel->saveAllData($classItems,$res);
              if (!$packItemRes){
                 Db::rollback();
                 return $this->renderError('申请预报失败');
