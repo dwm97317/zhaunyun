@@ -656,7 +656,8 @@ class Index extends Controller
         
         $idsArr = explode(',',$ids);
         $pack = (new Package())->whereIn('id',$idsArr)->select();
-        
+        $weight = (new Package())->whereIn('id',$idsArr)->sum('weight');
+        // dump($weight);die;
         if (!$pack || count($pack) !== count($idsArr)){
             return $this->renderError('打包包裹数据错误');
         }
@@ -696,7 +697,7 @@ class Index extends Controller
           'storage_id' => $pack[0]['storage_id'],
           'address_id' => $address_id,
           'free' => 0,
-          'weight' =>0,
+          'weight' => $weight,
           'cale_weight' =>0,
           'pay_type'=> !empty($userinfo)?$userinfo['paytype']:0,
           'volume' => 0, //体积重
@@ -720,7 +721,7 @@ class Index extends Controller
         $createSnfistword = $storesetting['createSnfistword'];
         $xuhao = ((new Inpack())->where(['member_id'=>$pack_member[0],'is_delete'=>0])->count()) + 1;
         $shopname = ShopModel::detail($pack[0]['storage_id']);     
-        $orderno = createNewOrderSn($storesetting['orderno']['default'],$xuhao,$createSnfistword,$user_id,$shopname['shop_alias_name'],$address['country_id'],$address['country_id']);
+        $orderno = createNewOrderSn($storesetting['orderno']['default'],$xuhao,$createSnfistword,$user_id,$shopname['shop_alias_name'],$address['country_id']);
         $inpackOrder['order_sn'] = $orderno;
         
         

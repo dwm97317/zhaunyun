@@ -502,7 +502,7 @@ class Inpack extends InpackModel
     public function setWhere($query){
         // dump($query);die;
         !empty($query['status']) && $this->where('pa.status','in',$query['status']);
-        !empty($query['order_sn']) && $this->where('pa.order_sn|pa.t_order_sn','like','%'.$query['order_sn'].'%');
+        !empty($query['order_sn']) && $this->where('pa.order_sn|pa.t_order_sn|pa.t2_order_sn','like','%'.$query['order_sn'].'%');
         !empty($query['extract_shop_id']) && $this->where('pa.storage_id','=',$query['extract_shop_id']);
         !empty($query['line_id']) && $this->where('pa.line_id','=',$query['line_id']);
         !empty($query['service_id']) && $this->where('u.service_id','=',$query['service_id']);

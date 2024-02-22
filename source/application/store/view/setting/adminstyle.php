@@ -251,6 +251,40 @@
                                     </label>
                                 </div>
                             </div>
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">发货单号功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    发货订单号生成规则
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <select id="selectize-tags-1" onclick="changeorder()" onchange="changeorder()" name="adminstyle[orderno][default]" multiple="" class="tag-gradient-success">
+                                        <?php if (isset($values['orderno']['model']) && isset($values['orderno']['default'])): foreach ($values['orderno']['default'] as $key =>$item): ?>
+                                            <option value="<?= $item ?>" selected ><?= $values['orderno']['model'][$item] ?></option>
+                                        <?php endforeach; endif; ?>
+                                        
+                                        <?php if (isset($values['orderno']['model']) && isset($values['orderno']['default'])): foreach ($values['orderno']['model'] as $key =>$items): ?>
+                                            <option value="<?= $key ?>" <?= in_array($key,$values['orderno']['default'])?"selected":'' ?>><?= $items ?></option>
+                                        <?php endforeach; endif; ?>
+                                    </select>
+                                    <input id="orderno" autocomplete="off" type="hidden" name="adminstyle[orderno][default]"  value="<?= implode(',',$values['orderno']['default']) ?>">
+                                    <small>注：请至少选择两个规则，注意选择固定+动态的单号规则；</small>
+                                </div>
+                            </div>
+                            
+                            
+                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 自定义发货单号首字母 </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="adminstyle[orderno][first_title]"
+                                           value="<?= $values['orderno']['first_title']??'' ?>" required>
+                                            <div class="help-block">
+                                        <small>注：当上面发货订单号生成规则选择了首字母才会使用该首字母；</small>
+                                </div>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
@@ -264,14 +298,32 @@
         </div>
     </div>
 </div>
+<link href="/web/static/css/selectize.default.css" rel="stylesheet">
 <script src="/web/static/js/selectize.min.js"></script>
+<script src="/web/static/js/summernote-bs4.min.js"></script>
+
 <!-- 图片文件列表模板 -->
 {{include file="layouts/_template/tpl_file_item" /}}
 
 <!-- 文件库弹窗 -->
 {{include file="layouts/_template/file_library" /}}
 <script>
+    function changeorder(){
+        console.log($('#selectize-tags-1')[0]);
+        $('#orderno').val($('#selectize-tags-1')[0].selectize.items);
+    }
+    
     $(function () {
+        $('#selectize-tags-1').selectize({
+    	    delimiter: ',',
+    	    persist: false,
+    	    create: function(input) {
+    	        return {
+    	            value: input,
+    	            text: input
+    	        }
+    	    }
+	    });
         /**
          * 表单验证提交
          * @type {*}

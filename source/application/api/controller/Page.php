@@ -173,6 +173,14 @@ class Page extends Controller
         return $this->renderSuccess($paytype);
     }
     
+    //获取支付设置
+    public function getBalancePaySetting(){
+        $SettingModel = new SettingModel();
+        $paytype = $SettingModel::getItem("paytype");
+        unset($paytype['balance']);
+        return $this->renderSuccess($paytype);
+    }
+    
     //测试hook
     public function testhook(){
         $result = Hook::exec('app\\task\\behavior\\Inpack','run');

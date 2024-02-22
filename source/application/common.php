@@ -556,6 +556,43 @@ function array_merge_multiple($array1, $array2)
 }
 
 /**
+ * 根据id合并多维数组
+ * @param $array1
+ * @param $array2
+ * @return array
+ */
+function array_merge_hebing($array1,$array2){
+    $result = [];
+    if(count($array1) > count($array2)){
+        $data1 = $array2;
+        $data2 = $array1;
+    }else{
+        $data1 = $array1;
+        $data2 = $array2;
+    }
+    foreach ($data1 as $item) {
+        if (!isset($result[$item['id']])) {
+            $result[$item['id']]['id'] = $item['id'];
+        }
+    }
+    foreach ($data2 as $item) {
+       
+        if (isset($result[$item['id']])) {
+            // 若存在相同ID则合并数据
+            foreach ($item as $key => $value) {
+                $result[$item['id']][$key] = $value;
+            }
+        } else {
+            // 不存在相同ID则直接添加到结果数组
+            array_push($result, $item);
+        }
+    } 
+       
+    return $result;
+}
+
+
+/**
  * 二维数组排序
  * @param $arr
  * @param $keys
@@ -877,6 +914,7 @@ function createQrcodeCode($prefix){
         // dump($qrcodeConfig['style'] =="circle");die;
      // 读取背景图 资源
     list($bg_img_weigth,$bg_img_height) = getimagesize($default_bg);
+
     $width = $bg_img_weigth; // 宽
     $height = $bg_img_height; // 高
     $sourceImage = imagecreatetruecolor($width,$height);
@@ -897,7 +935,7 @@ function createQrcodeCode($prefix){
     }
 
 
-    imagecopyresized($sourceImage, $qsource,$qrcodeConfig['left']*$width/375,$qrcodeConfig['top']*$width/375, 0, 0, $qrcodeConfig['width']*$width/375,$qrcodeConfig['width']*$width/375, $qrcode_width, $qrcode_height);
+    imagecopyresized($sourceImage, $qsource,$qrcodeConfig['left']*$width/750,$qrcodeConfig['top']*$width/750, 0, 0, $qrcodeConfig['width']*$width/750,$qrcodeConfig['width']*$width/750, $qrcode_width, $qrcode_height);
     $file_path = 'uploads/shareImages/'.date("Ymd").'/';
     $file_name=md5(microtime()).'.png';
     if(!file_exists($file_path)){

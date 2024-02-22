@@ -511,8 +511,10 @@
 <!-- 文件库弹窗 -->
 {{include file="layouts/_template/file_library" /}}
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
+<?php if (isset($printsetting) && $printsetting['is_open']==1): ?>
 <script type="text/javascript" src="assets/store/js/lib/dtpweb.js"></script>
 <script type="text/javascript" src="assets/store/js/lib/index.js"></script>
+<?php endif; ?>
 <script language="JavaScript">
     var shutter = new Audio();
 	var data_img = '';

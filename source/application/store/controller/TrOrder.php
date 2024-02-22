@@ -136,6 +136,25 @@ class TrOrder extends Controller
     }
     
     
+    /**
+     * 生成转运单号
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function createbatchname()
+    {
+        $param = $this->request->param();
+        $Inpack =new Inpack;
+        $settingDate = SettingModel::getItem('adminstyle',$this->getWxappId());
+        $detail = Inpack::details($param['id']);
+        $shopname = ShopModel::detail($detail['storage_id']);
+        $address = (new UserAddress())->where(['address_id'=>$detail['address_id']])->find();
+        // dump($address);die;
+        $xuhao = ((new Inpack())->where(['member_id'=>$detail['member_id'],'is_delete'=>0])->count()) + 1;
+        $batch = createNewOrderSn($settingDate['orderno']['default'],$xuhao,$settingDate['orderno']['first_title'],$detail['member_id'],$shopname['shop_alias_name'],$address['country_id']);
+        return $this->renderSuccess('获取成功','',$batch);
+    }
+    
     public function package($id){
          // 订单详情
         // $detail = Inpack::details($id);

@@ -683,6 +683,216 @@ class Package extends Controller
         return $this->renderSuccess($data);
      }
      
+     // 批量预报
+     public function reportBatchForquick($post){
+        if (!$this->user['user_id']){
+            return $this->renderError('请先登录');
+         }
+         $user = (new User())->find($this->user['user_id']);
+        //  $post = $this->postData();
+         if ($post['country_id']){
+             $country = (new Country())->getValueById($post['country_id'],'title');
+             if (!$country){
+                 return $this->renderError('国家信息错误');
+             }
+         }
+         
+         if (!$post['storage_id']){
+              return $this->renderError('请选择仓库');
+         }
+         $storage = (new Shop())->getValueById($post['storage_id'],'shop_name');
+         if (!$storage){
+             return $this->renderError('仓库信息错误');
+         }
+         if (!$post['express_id']){
+             return $this->renderError('请选择快递');
+         }
+         if (!$post['express_sn']){
+             return $this->renderError('快递单号错误');
+         }
+         if (preg_match('/[\x7f-\xff]/', $post['express_sn'])){
+             return $this->renderError('快递单号不能使用汉字或字符');
+         }
+         if(!preg_match('/^[^\s]*$/',$post['express_sn'])){
+             return $this->renderError('快递单号不能有空格');
+         }
+         if(!preg_match('^\w{3,20}$^',$post['express_sn'])){
+             return $this->renderError('快递单号不能使用特殊字符');
+         }
+         $express = (new Express())->getValueById($post['express_id'],'express_name');
+         if (!$express){
+             return $this->renderError('快递信息错误');
+         }
+         $class_ids = $post['class_ids'];
+         
+         $packModel = new PackageModel();
+         $packItemModel = new PackageItemModel();
+         
+         //将多个快递单号分拆为一个数组中英文逗号都可以进行转换
+         $post['express_sn'] =trim($post['express_sn']);
+         $post['express_sn'] =preg_replace("/\s|　/","",$post['express_sn']);
+         $post['express_sn'] =str_replace('，',',',$post['express_sn']);
+         $post['express_sn'] =str_replace('+',',',$post['express_sn']);
+         $express_nums = [];
+         $expno = explode(',',$post['express_sn']);
+         $classItem = [];
+              
+         // 开启事务
+         Db::startTrans();
+         $post['express_name'] = $express;
+         $post['member_id'] = $this->user['user_id'];
+         $post['member_name'] = $user['nickName'];
+        //  dump($expno);
+         //循环对每个包裹进行预判是否已经入库
+         foreach ($expno as $key => $v){
+        //   dump($v);
+            if(empty($v)  || $v==" " || $v==""){
+               return $this->renderError('请不要加多余的逗号'); 
+            }
+            
+            $post['express_num'] =  $v;
+            $packres = $packModel->where('express_num',$v)->where('is_delete',0)->find();
+            //当快递单号为一个数字加空格形式时候，则会提示报错
+            if($packres && ($packres['is_take']==2)){
+                return $this->renderError('快递单号'.$v.'已被预报');
+            }
+              
+            if($packres && ($packres['is_take']==1)){
+                $resup = $packModel->where('id',$packres['id'])->update(
+                   ['price'=>$post['price'],
+                   'remark'=>$post['remark'],
+                   'country_id'=>$post['country_id'],
+                   'express_name'=>$post['express_name'],
+                   'express_id'=>$post['express_id'],
+                   'member_id'=>$user['user_id'],
+                   'member_name'=>$user['nickName'],
+                   'storage_id'=>$post['storage_id'],
+                   'is_take'=>2
+                   ]);
+    
+                if (!$resup){return $this->renderError('申请预报失败');}
+                //存包裹信息
+        
+                if ($class_ids){
+                    $classItem = $this->parseClass($class_ids);
+                 
+                     foreach ($classItem as $k => $val){
+                           $classItem[$k]['class_id'] = $val['category_id'];
+                           $classItem[$k]['express_name'] = $express;
+                           $classItem[$k]['class_name'] = $val['name'];
+                           $classItem[$k]['express_num'] = $v;
+                           unset($classItem[$k]['category_id']); 
+                           unset($classItem[$k]['name']);     
+                     }
+                     
+                     if ($classItem){
+                         $packItemRes = $packItemModel->saveAllData($classItem,$packres['id']);
+                         if (!$packItemRes){
+                            Db::rollback();
+                            return $this->renderError('申请预报失败');
+                         }
+                     }
+                 }
+              
+                 Logistics::add($packres['id'],'包裹预报成功');
+                //  Db::commit();
+             }
+             
+             if(!$packres){
+                 $post['order_sn'] = CreateSn();
+                 $post['is_take'] = 2;
+                 $res = $packModel->saveData($post);
+                 $express_nums[] = $res;
+                 if (!$res){
+                     return $this->renderError('申请预报失败');
+                 }
+  
+                 if ($class_ids){
+                        $classItem = $this->parseClass($class_ids);
+                     
+                         foreach ($classItem as $k => $val){
+                        
+                               $classItem[$k]['class_id'] = $val['category_id'];
+                               $classItem[$k]['express_name'] = $express;
+                               $classItem[$k]['class_name'] = $val['name'];
+                               $classItem[$k]['express_num'] = $v;
+                               unset($classItem[$k]['category_id']); 
+                               unset($classItem[$k]['name']);     
+                         }
+                        
+                         if ($classItem){
+                             $packItemRes = $packItemModel->saveAllData($classItem,$res);
+                             if (!$packItemRes){
+                                Db::rollback();
+                                return $this->renderError('申请预报失败');
+                             }
+                         }
+                    }        
+                    Logistics::add($res,'包裹预报成功');
+             }
+         }
+         Db::commit();
+         return $express_nums;
+     }
+     
+     // 快速打包处理
+     public function postpackquick(){
+         $param = $this->postData();
+         $this->user = $this->getUser();
+         $address = (new UserAddress())->find($param['address_id']); //获取地址信息
+         $storesetting = SettingModel::getItem('store');
+         $packModel = new PackageModel();
+        //  dump($ids);die;
+         $inpackOrder = [
+          'order_sn' => $storesetting['createSn']==10?createSn():createSnByUserIdCid($this->user['user_id'],$address['country_id']),
+          'remark' =>$param['remark'],
+        //   'pack_ids' => $ids,
+          'waitreceivedmoney'=>$param['waitreceivedmoney'],
+          'storage_id' => isset($param['express']['storage_id'])?$param['express']['storage_id']:0,
+          'address_id' => $param['address_id'],
+          'free' => 0,
+          'weight' => 0,
+          'cale_weight' => 0,
+          'volume' => 0,
+          'pack_free' => 0,
+          'member_id' => $this->user['user_id'],
+          'country' => $address['country'],
+          'unpack_time' => getTime(),  //提交打包时间
+          'created_time' => getTime(),  
+          'updated_time' => getTime(),
+          'status' => 1,
+          'line_id' => $param['line_id'],
+          'wxapp_id' => \request()->get('wxapp_id'),
+        ];
+        $user_id =$this->user['user_id'];
+        if($storesetting['usercode_mode']['is_show']==1){
+           $member =  (new User())->where('user_id',$this->user['user_id'])->find();
+           $user_id = $member['user_code'];
+        }
+        $createSnfistword = $storesetting['createSnfistword'];
+        $xuhao = ((new Inpack())->where(['member_id'=>$this->user['user_id'],'is_delete'=>0])->count()) + 1;
+        if($param['express']['storage_id']){
+            $shopname = ShopModel::detail($param['express']['storage_id']);  
+        }else{
+            $shopname['shop_alias_name'] = 'XS';
+        }
+           
+        $orderno = createNewOrderSn($storesetting['orderno']['default'],$xuhao,$createSnfistword,$user_id,$shopname['shop_alias_name'],$address['country_id']);
+        $inpackOrder['order_sn'] = $orderno;
+        $inpack = (new Inpack())->insertGetId($inpackOrder); 
+        if (!$inpack){
+           return $this->renderError('打包包裹提交失败');
+        }
+        
+        $ids = $this->reportBatchForquick($param['express']);
+        $packModel->whereIn('id',$ids)->update(['inpack_id'=>$inpack]);
+        
+        if(!empty($param['pack_ids'])){
+             (new InpackServiceModel())->doservice($inpack,$param['pack_ids']);
+        }
+        return $this->renderSuccess('打包包裹提交成功');
+     }
+     
      // 提交打包处理
      public function postPack(){
         $ids = $this->postData('packids')[0];
@@ -716,7 +926,7 @@ class Package extends Controller
         }
         $free_rule = json_decode($line['free_rule'],true);
         $price = 0; // 总运费
-        $allWeigth = 0;
+        $allWeigth = (new PackageModel())->whereIn('id',$idsArr)->sum('weight');
         $caleWeigth = 0;
         $volumn = 0;
         $storesetting = SettingModel::getItem('store');
@@ -1805,7 +2015,7 @@ class Package extends Controller
       * 输入参数进行国际和国内信息的查询，对所有快递单号进行检索属于的集运单以及对应的国际单号
       * 并将该国际单号数据进行获取展示；
       * */
-     public function logicist(){
+     public function logicistplus(){
         $express = $this->postData('code')[0];
         $logic = $logic4 = $logictik =[];
         $result=[];
@@ -1819,7 +2029,7 @@ class Package extends Controller
         $PackageModel = new PackageModel();
         $DitchModel= new DitchModel();
         $Inpack = new Inpack();
-        $Express = new Express();
+        $Expresss = new Express();
         $setting = SettingModel::detail("notice")['values'];
         //查询出来这个单号是包裹单号、国际单号、转单号
         $packData = $PackageModel->where(['express_num'=>$express,'is_delete' => 0])->find();
@@ -1828,7 +2038,7 @@ class Package extends Controller
         $inpackData2 = $Inpack->where(['t2_order_sn'=>$express,'is_delete' => 0])->find();  //转单号
         $inpackData4 = $Inpack->where(['order_sn'=>$express,'is_delete' => 0])->find();
         //如果是包裹单号，可以反查下处于哪个集运单；
-        //   dump($inpackData);die;
+        //   dump($inpackData4);die;
         
         if(!empty($packData)){
             //查出的系统内部物流信息
@@ -1838,7 +2048,7 @@ class Package extends Controller
                 // dump($inpackData);die;
                 $logia = $Logistics->getorderno($logic[0]['order_sn']);
             }
-            $express_code = $Express->getValueById($packData['express_id'],'express_code');
+            $express_code = $Expresss->getValueById($packData['express_id'],'express_code');
             // dump($express_code);die; 
             if($setting['is_track_yubao']['is_enable']==1){//如果预报推送物流，则查询出来
                 $logib = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
@@ -1919,8 +2129,15 @@ class Package extends Controller
                 $logic = $result;
              
             }else{
-                $logic = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
-                    //  dump($inpackData['t_number']);die;
+                // $logic = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
+                    if(!empty($inpackData['t2_order_sn'])){
+                        $logic = $Logistics->getZdList($inpackData['t2_order_sn'],$inpackData['t2_number'],$inpackData['wxapp_id']);
+                    }
+                   
+                    if(!empty($inpackData['t_order_sn'])){
+                        $logic = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
+                    }
+
             }
             // dump($inpackData);die;
             $packinck = $PackageModel->where(['inpack_id'=>$inpackData['id'],'is_delete' => 0])->find();
@@ -1940,15 +2157,147 @@ class Package extends Controller
         
             // $logic = array_merge($logic,$result);
         }
-        
-        if(!empty($inpackData2)){
-            $logici = $Logistics->getZdList($inpackData2['t2_order_sn'],$inpackData2['t2_number'],$inpackData2['wxapp_id']);
+        //  dump($inpackData4);die;
+        if(!empty($inpackData4)){
+            //   dump($inpackData2);die;
+            if(!empty($inpackData4['t2_order_sn'])){
+                $logici = $Logistics->getZdList($inpackData4['t2_order_sn'],$inpackData4['t2_number'],$inpackData4['wxapp_id']);
+            }
+           
+            if(!empty($inpackData['t_order_sn'])){
+                $logici = $Logistics->getZdList($inpackData4['t_order_sn'],$inpackData4['t_number'],$inpackData4['wxapp_id']);
+            }
+            
         }
  
         $logic = array_merge($logic,$logici);
 
         return $this->renderSuccess(compact('logic'));
      }
+     
+     
+     public function logicist(){
+        $express = $this->postData('code')[0];
+        $logic = $logic4 = $logictik =[];
+        $result = [];
+        $logib = [];
+        $logicddd = [];
+        $logicdd = [];
+        $logia = [];
+        $logicv = [];
+        $logguoji=[];
+        $logzd = [];
+        $logici = [];
+        $logicti = [];
+        $Logistics = new Logistics();
+        $PackageModel = new PackageModel();
+        $DitchModel= new DitchModel();
+        $Inpack = new Inpack();
+        $Express = new Express();
+        $setting = SettingModel::detail("notice")['values'];
+        //查询出来这个单号是包裹单号、国际单号、转单号|
+        $packData = $PackageModel->where(['express_num'=>$express,'is_delete' => 0])->find();
+         
+        $inpackData = $Inpack->where('t_order_sn|order_sn|t2_order_sn',$express)->where(['is_delete' => 0])->find(); //国际单号
+        // $inpackData2 = $Inpack->where(['t2_order_sn'=>$express,'is_delete' => 0])->find();  //转单号
+        // $inpackData4 = $Inpack->where(['order_sn'=>$express,'is_delete' => 0])->find();
+        //如果是包裹单号，可以反查下处于哪个集运单；
+        //   dump($inpackData);die;
+        
+        if(!empty($packData)){
+            //查出的系统内部物流信息
+            $logic = $Logistics->getList($express);
+                // dump($logic);die;
+            if(count($logic)>0){
+                // dump($inpackData);die;
+                $logia = $Logistics->getorderno($logic[0]['order_sn']);
+            }
+            $express_code = $Express->getValueById($packData['express_id'],'express_code');
+            
+            if($setting['is_track_yubao']['is_enable']==1){//如果预报推送物流，则查询出来
+                $logib = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
+            }
+            $logicv = array_merge($logia,$logib,$logic);
+            // dump($logicv);die;
+            if(!empty($packData['inpack_id'])){
+                $inpackData = $Inpack->where('id',$packData['inpack_id'])->where(['is_delete' => 0])->find(); //国际单号
+            }
+        }
+        //   dump($inpackData);die;
+
+        if(!empty($inpackData) ){
+          
+            if($inpackData['transfer']==0){
+                $ditchdatas = $DitchModel->where('ditch_id','=',$inpackData['t_number'])->find();
+                
+                 //锦联
+                if($ditchdatas['ditch_no']==10001){
+                    $jlfba =  new jlfba(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token']]);
+                    $result = $jlfba->query($express);
+                }
+                //百顺达
+                if($ditchdatas['ditch_no']==10002){
+                    $bsdexp =  new bsdexp(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token']]);
+                    //   dump($bsdexp);die;
+                    $result = $bsdexp->query($express);
+                }
+                //K5
+                if($ditchdatas['ditch_no']==10003){
+                    $kingtrans =  new kingtrans(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
+                    $result = $kingtrans->query($express);
+                }
+                //华磊api
+                if($ditchdatas['ditch_no']==10004){
+                    $Hualei =  new Hualei(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
+                    $result = $Hualei->query($express);
+                    //  dump($result);die;
+                }
+                
+                //星泰api
+                if($ditchdatas['ditch_no']==10005){
+                    $Xzhcms5 =  new Xzhcms5(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
+                    $result = $Xzhcms5->query($express);
+                }
+                
+                //澳联
+                if($ditchdatas['ditch_no']==10006){
+                    $Aolian =  new Aolian(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
+                    $result = $Aolian->query($express);
+                }
+                
+                //易抵达
+                if($ditchdatas['ditch_no']==10007){
+                    $Yidida =  new Yidida(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
+                    $result = $Yidida->query($express);
+                }
+                $logic = $result;
+            }else{
+                if(!empty($inpackData['t_order_sn'])){
+                     $logicddd = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
+                }
+                if(!empty($inpackData['t2_order_sn'])){
+                     $logicdd = $Logistics->getZdList($inpackData['t2_order_sn'],$inpackData['t2_number'],$inpackData['wxapp_id']);
+                }
+                $logic = array_merge($logicddd,$logicdd);
+            }
+           
+            $packinck = $PackageModel->where(['inpack_id'=>$inpackData['id'],'is_delete' => 0])->find();
+            if(!empty($packinck)){
+                $logictik = $Logistics->getorderno($inpackData['order_sn']);
+                // dump($logictik);die;
+            }else{
+                if(!empty($packinck['express_num'])){
+                    $logictik = $Logistics->getList($packinck['express_num']);
+                }
+            }
+            $logici = array_merge_hebing($logicv,$logictik);
+            // dump($logici);die;
+        }
+        
+        $logic = array_merge($logic,$logici);
+        return $this->renderSuccess(compact('logic'));
+     }
+     
      
      // 包裹统计
      public function packTotal(){

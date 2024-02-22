@@ -58,10 +58,11 @@
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 转运单 </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="delivery[t_order_sn]"
+                                <div class="am-u-sm-4 am-u-end">
+                                    <input type="text" id='t_order_sn' class="tpl-form-input" name="delivery[t_order_sn]"
                                            placeholder="请输入转运单号" required>
                                 </div>
+                                <button type="button" class="am-btn am-btn-secondary"><span onclick="toClick()">生成单号</span></button>
                             </div>
                             <div class="am-form-group">
                                 <input type="hidden" name="delivery[type]" value="change"/>
@@ -98,6 +99,20 @@
 
 <script src="assets/store/js/select.region.js?v=1.2"></script>
 <script>
+    function toClick(){
+        var hedanurl = "<?= url('store/tr_order/createbatchname') ?>";
+        layer.confirm('请确定是否生成单号', {title: '生成运单号'}
+        , function (index) {
+            $.post(hedanurl,{id:<?= $detail['id'] ?>}, function (result) {
+                if(result.code == 1){
+                    $("#t_order_sn").val(result.data);
+                }else{
+                   $.show_error(result.msg); 
+                }
+            });
+            layer.close(index);
+        });        
+    } 
     /**
      * 设置坐标
      */

@@ -4,3 +4,4 @@ composer.lock
 *.txt
 *.css.map
 .sass-cache
+web/excel

@@ -42,10 +42,13 @@ class Base
         // 小程序配置信息
         $wxConfig = WxappModel::getWxappCache($wxapp_id);
         // 请求api获取小程序码
+        // dump($dirPath);die;
         $Qrcode = new Qrcode($wxConfig['app_id'], $wxConfig['app_secret']);
         $content = $Qrcode->getQrcode($scene, $page);
+      
         // 保存到文件
         file_put_contents($savePath, $content);
+        //   dump($savePath);die;
         return $savePath;
     }
 

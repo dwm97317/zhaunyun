@@ -100,9 +100,7 @@ class Setting extends Controller
     {
         if (!$this->request->isAjax()) {
             $vars['values'] = SettingModel::getItem($key);
-            // dump($key);die;
             $vars['values']['baiduai'] = WxappModel::detail($this->store['wxapp']['wxapp_id'])['baiduai'];
-           
             if($key=='userclient' && isset($vars['values']['guide']['first_image'])){
                 $vars['values']['guide']['first_file_path'] = UploadFile::detail($vars['values']['guide']['first_image'])['file_path'];
                 $vars['values']['guide']['second_file_path'] = UploadFile::detail($vars['values']['guide']['second_image'])['file_path'];
@@ -251,6 +249,7 @@ class Setting extends Controller
              
         if (!$this->request->isAjax()) {
             $vars['values'] = SettingModel::getItem($key);
+            //  dump($vars);die;
             if(isset($vars['values']['cover_id'])){
                 $vars['values']['file_path'] = UploadFile::detail($vars['values']['cover_id'])['file_path'];
             }

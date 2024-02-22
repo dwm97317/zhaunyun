@@ -32,6 +32,7 @@ class Batch extends BatchModel
             ->with(['template'])
             ->where('status', '=', 1)
             ->where('is_delete', '=', 0)
+            ->where('is_over', '=', 0)
             ->where('last_time', '<=',time())
             ->where('wxapp_id',$wxappid)
             ->where('template_id','>',0)

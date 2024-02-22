@@ -258,13 +258,16 @@
                                         <?php if (!empty($item['user']['service'])): ?> 
                                         专属客服：<?= $item['user']['service']['real_name']; ?></br>
                                         <?php endif ;?>
+                                        
+                                        <?php if (!empty($item['t_order_sn'])): ?> 
                                         承运商:
                                         <span style="cursor:pointer" text="<?= $item['t_name'] ?>" onclick="copyUrl2(this)"><?= $item['t_name'] ?></span></br>
-                                        <?php if (!empty($item['t_order_sn'])): ?> 
                                         国际单号:
                                         <span style="cursor:pointer" text="<?= $item['t_order_sn'] ?>" onclick="copyUrl2(this)"><?= $item['t_order_sn'] ?></span></br>
                                         <?php endif ;?>
-                                        <?php if (!empty($item['t2_order_sn'])): ?> 
+                                        <?php if (!empty($item['t2_order_sn'])): ?>
+                                        转运商:
+                                        <span style="cursor:pointer" text="<?= $item['t2_name'] ?>" onclick="copyUrl2(this)"><?= $item['t2_name'] ?></span></br>
                                         转单单号:
                                         <span style="cursor:pointer" text="<?= $item['t2_order_sn'] ?>" onclick="copyUrl2(this)"><?= $item['t2_order_sn'] ?></span></br>
                                         <?php endif ;?>

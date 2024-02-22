@@ -111,6 +111,14 @@ class Setting extends SettingModel
             }
         }
         
+        if($key=='adminstyle'){
+            $values['orderno']['default'] = explode(',',$values['orderno']['default']);
+            if(count($values['orderno']['default'])<2){
+                $this->error = '生成规则至少选择两个';
+                return false; 
+            }
+        }
+        
         if($key=='userclient'){
             $values = $this->setVlaue($values); 
         }

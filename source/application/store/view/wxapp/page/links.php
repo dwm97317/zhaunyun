@@ -9,6 +9,15 @@
                     <div class="link-list">
                         <ul class="" style='display: inline-block;'>
                             <li class="link-item">
+                                <div class="row page-name">微信模板消息授权链接</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/pages/getopenid/webview</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
                                 <div class="row page-name">小程序首页</div>
                                 <div class="row am-cf">
                                     <div class="am-fl">地址：</div>
@@ -50,6 +59,15 @@
                                     <div class="am-fl">地址：</div>
                                     <div class="am-fl">
                                         <span class="x-color-green">/pages/indexs/baoguoyg/baoguoyg</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">预报包裹生成订单</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/pages/indexs/baoguoygksdb/baoguoygksdb</span>
                                     </div>
                                 </div>
                             </li>

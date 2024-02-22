@@ -30,9 +30,9 @@ class Batch extends BaseModel
         $Inpack = new Inpack;
         foreach ($list as $key=>$val){
             if($val['last_time']<=time()){
-           
+        //   dump($val->toArray());
                 $templatelist = (new BatchTemplateItem())->where('template_id',$val['template']['template_id'])->order('step_num asc')->select();
-            
+                
                 $logtemplate = $templatelist[$val['step_num']];
                 
                 if(count($templatelist)>$val['step_num']+1){

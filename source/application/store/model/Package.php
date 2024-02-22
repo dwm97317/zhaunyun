@@ -180,7 +180,7 @@ class Package extends PackageModel
             'length' => isset($data['length'])?$data['length']:$result['length'],
             'height' => isset($data['height'])?$data['height']:$result['height'],
             'weight' => isset($data['weigth'])?$data['weigth']:$result['weight'],
-            'remark' => isset($data['remark'])?$data['remark']:$result['remark'],
+            'remark' => (isset($data['remark']) && !empty($data['remark']))?$data['remark']:$result['remark'],
             'express_id' => isset($data['express_id'])?$data['express_id']:$result['express_id'],
             'image' => json_encode($image),
             'price' => isset($data['price'])?$data['price']:$result['price'],

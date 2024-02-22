@@ -44,6 +44,7 @@ class Setting extends Controller
     {
         if (!$this->request->isAjax()) {
             $data = SettingModel::getItem('qrcode');
+            // dump($data);die;
             return $this->fetch('qrcode', [
                 'data' => json_encode($data, JSON_UNESCAPED_UNICODE)
             ]);

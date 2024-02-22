@@ -11,7 +11,7 @@
                             <p> 注：可拖动头像、二维码、昵称调整位置，如修改</p>
                             <p> 注：修改后如需生效请前往 <a href="<?= url('setting.cache/clear') ?>" target="_blank">设置-清理缓存</a>，清除临时图片
                             </p>
-                            <p> 注：海报尺寸 375 * 725 </p>
+                            <p> 注：海报尺寸 750 * 1500 </p>
                         </div>
                     </div>
                     <div id="app" v-cloak class="poster-pannel am-cf am-padding-bottom-xl">
@@ -165,6 +165,7 @@ window.onload = function(){
                         var sentX = ev.clientX - $ele.offsetLeft;
                            
                         var sentY = ev.clientY - $ele.offsetTop;
+                        //  ev.clientY - $ele.offsetTop;
                         
                          console.log(ev,555);
                         document.onmousemove = function (ev) {
