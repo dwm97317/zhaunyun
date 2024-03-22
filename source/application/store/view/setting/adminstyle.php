@@ -253,7 +253,7 @@
                             </div>
                             
                             <div class="widget-head am-cf">
-                                <div class="widget-title am-fl">发货单号功能设置</div>
+                                <div class="widget-title am-fl">集运订单功能设置</div>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
@@ -273,9 +273,7 @@
                                     <small>注：请至少选择两个规则，注意选择固定+动态的单号规则；</small>
                                 </div>
                             </div>
-                            
-                            
-                             <div class="am-form-group">
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require"> 自定义发货单号首字母 </label>
                                 <div class="am-u-sm-9">
                                      <input type="text" class="tpl-form-input" name="adminstyle[orderno][first_title]"
@@ -285,6 +283,123 @@
                                 </div>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    集运订单账号费用显示设置
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[freestyle]" value="10"
+                                               data-am-ucheck  <?= $values['freestyle'] == 10 ? 'checked' : '' ?>>
+                                        显示总金额
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[freestyle]" value="20"
+                                               data-am-ucheck <?= $values['freestyle'] == 20 ? 'checked' : '' ?>>
+                                        显示费用明细
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">排序功能设置</div>
+                            </div>
+                            <div class="am-form-group usercoded"> 
+                                <label class="am-u-sm-3  am-form-label form-require"> 包裹列表排序参数 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="adminstyle[packageorderby][order_mode]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="updated_time" <?= $values['packageorderby']['order_mode'] == 'updated_time' ? 'selected' : '' ?>>包裹更新时间</option>
+                                            <option value="created_time" <?= $values['packageorderby']['order_mode'] == 'created_time' ? 'selected' : '' ?>>包裹创建时间</option>
+                                            <option value="entering_warehouse_time" <?= $values['packageorderby']['order_mode'] == 'entering_warehouse_time' ? 'selected' : '' ?>>包裹入库时间</option>
+                                            <option value="scan_time" <?= $values['packageorderby']['order_mode'] == 'scan_time' ? 'selected' : '' ?>>包裹查验时间</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>选择此参数后，包裹将按照此参与的大小进行排序，默认按照更新时间排序</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group usercoded">
+                                <label class="am-u-sm-3  am-form-label form-require"> 包裹列表排序方式 </label> 
+                            <div class="am-u-sm-9 am-u-end">
+                                    <select name="adminstyle[packageorderby][order_type]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="desc" <?= $values['packageorderby']['order_type'] == 'desc' ? 'selected' : '' ?>>DESC(按大到小，新到旧的方式排序)</option>
+                                            <option value="asc" <?= $values['packageorderby']['order_type'] == 'asc' ? 'selected' : '' ?>>DESC(按小到大，旧到新的方式排序)</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>选择此参数后，包裹将按照此参与的大小进行排序，默认按照更新时间排序</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group usercoded"> 
+                                <label class="am-u-sm-3  am-form-label form-require"> 集运订单排序参数 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="adminstyle[inpackorderby][order_mode]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="created_time" <?= $values['inpackorderby']['order_mode'] == 'created_time' ? 'selected' : '' ?>>提交打包时间</option>
+                                            <option value="pick_time" <?= $values['inpackorderby']['order_mode'] == 'pick_time' ? 'selected' : '' ?>>查验完成时间</option>
+                                            <option value="pay_time" <?= $values['inpackorderby']['order_mode'] == 'pay_time' ? 'selected' : '' ?>>支付完成时间</option>
+                                            <option value="sendout_time" <?= $values['inpackorderby']['order_mode'] == 'sendout_time' ? 'selected' : '' ?>>订单发货时间</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>选择此参数后，包裹将按照此参与的大小进行排序，默认按照更新时间排序</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group usercoded">
+                                <label class="am-u-sm-3  am-form-label form-require"> 集运订单排序方式 </label> 
+                            <div class="am-u-sm-9 am-u-end">
+                                    <select name="adminstyle[inpackorderby][order_type]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="desc" <?= $values['inpackorderby']['order_type'] == 'desc' ? 'selected' : '' ?>>DESC(按大到小，新到旧的方式排序)</option>
+                                            <option value="asc" <?= $values['inpackorderby']['order_type'] == 'asc' ? 'selected' : '' ?>>DESC(按小到大，旧到新的方式排序)</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>选择此参数后，包裹将按照此参与的大小进行排序，默认按照更新时间排序</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">快递面单模板设置</div>
+                            </div>
+                            <div class="am-form-group usercoded"> 
+                                <label class="am-u-sm-3  am-form-label form-require"> 集运面单模板 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="adminstyle[delivertempalte][orderface]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="10" <?= $values['delivertempalte']['orderface'] == '10' ? 'selected' : '' ?>>模板A</option>
+                                            <option value="20" <?= $values['delivertempalte']['orderface'] == '20' ? 'selected' : '' ?>>模板B</option>
+                                            <!--<option value="30" <?= $values['delivertempalte']['orderface'] == '30' ? 'selected' : '' ?>>模板C</option>-->
+                                            <!--<option value="40" <?= $values['delivertempalte']['orderface'] == '40' ? 'selected' : '' ?>>模板D</option>-->
+                                    </select>
+                                    <div class="help-block">
+                                        <small>注意：默认开启A模式，如需其他模式亲自行设置
+                                              <a href="<?= url('store/setting.help/orderface') ?>" target="_blank">点击查看效果图？</a>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group usercoded"> 
+                                <label class="am-u-sm-3  am-form-label form-require"> 集运标签模板 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="adminstyle[delivertempalte][labelface]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="10" <?= $values['delivertempalte']['labelface'] == '10' ? 'selected' : '' ?>>模板A</option>
+                                            <!--<option value="20" <?= $values['delivertempalte']['labelface'] == '20' ? 'selected' : '' ?>>模板B</option>-->
+                                            <!--<option value="30" <?= $values['delivertempalte']['labelface'] == '30' ? 'selected' : '' ?>>模板C</option>-->
+                                            <!--<option value="40" <?= $values['delivertempalte']['labelface'] == '40' ? 'selected' : '' ?>>模板D</option>-->
+                                    </select>
+                                    <div class="help-block">
+                                        <small>注意：默认开启A模式，如需其他模式亲自行设置
+                                              <a href="<?= url('store/setting.help/labelface') ?>" target="_blank">点击查看效果图？</a>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交

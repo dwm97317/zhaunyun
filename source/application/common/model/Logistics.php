@@ -1,6 +1,7 @@
 <?php
 namespace app\common\model;
 use app\store\model\Inpack;
+
 /**
  * 包裹日志模型
  * Class OrderAddress
@@ -29,6 +30,23 @@ class Logistics extends BaseModel
             'logistics_describe' => $desc?$desc:'包裹状态更新',
             'logistics_sn'=> $id['t_order_sn'],
             'created_time' => $creatime,
+            'wxapp_id'=>self::$wxapp_id?self::$wxapp_id:$id['wxapp_id'],
+        ]);
+    }
+    
+    public static function add2($id,$desc,$clerk_id){
+//  dump($id);die;
+        $id = (new Package())->find($id);
+            
+        $model = new static;
+        return $model->insert([
+            'order_sn' => $id['order_sn'],
+            'express_num' => $id['express_num'],
+            'status' => $id['status'],
+            'status_cn' => $model->map[$id['status']],
+            'logistics_describe' => $desc?$desc:'包裹状态更新',
+            'created_time' => getTime(),
+            'operate_id'=> $clerk_id,
             'wxapp_id'=>self::$wxapp_id?self::$wxapp_id:$id['wxapp_id'],
         ]);
     }
@@ -144,6 +162,24 @@ class Logistics extends BaseModel
         ]);
     }
     
+          //集运单到货的日志
+      public static function addInpackGetLog2($id,$desc,$t_order_sn,$clerk_id){
+        
+        $Inpack = (new Inpack())->where('id',$id)->find();
+        $model = new static;
+        return $model->insert([
+            'order_sn' => $Inpack['order_sn'],
+            // 'express_num' => $Inpack['t_order_sn'],
+            'status' => $Inpack['status'],
+            'status_cn' => $model->maps[$Inpack['status']],
+            'logistics_describe' => $desc?$desc:'包裹状态更新',
+            'logistics_sn'=> $t_order_sn,
+            'created_time' => getTime(),
+            'operate_id'=> $clerk_id,
+            'wxapp_id'=>self::$wxapp_id?self::$wxapp_id:$Inpack['wxapp_id'],
+        ]);
+    }
+    
      public static function updateOrderSn($packnum,$order_sn){
         return (new Logistics())->where('express_num',$packnum)->update(["order_sn" =>$order_sn ]);
     }
@@ -162,4 +198,5 @@ class Logistics extends BaseModel
     public function details($id){
         return $this->find($id);
     }
+
 }

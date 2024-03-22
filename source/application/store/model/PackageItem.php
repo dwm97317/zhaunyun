@@ -23,9 +23,7 @@ class PackageItem extends PackageItemModel
     
     // 批量保存
     public function saveAllDataTWO($data,$id){
-        $wxapp_id = self::$wxapp_id;
         $data['order_id'] = $id;
-        $data['wxapp_id'] = $wxapp_id;
         return $this->save($data); 
     }
     

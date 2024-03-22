@@ -112,7 +112,7 @@ class Newpack extends Controller
      */
     public function savepackage(){
         $param = $this->request->param();
-        // dump($param);die;
+        $waappId = $this->store['wxapp']['wxapp_id'];
         $param = $param['data'];
         
         $Package = new Package;
@@ -136,6 +136,7 @@ class Newpack extends Controller
              $detail->save(['is_delete'=>1]);
              foreach ($param['num'] as $key => $val){
                  for ($i = 0; $i < $val; $i++) {
+                     $data['order_sn'] = $detail['order_sn'];
                      $data['express_num'] = $num==1?$param['express_num']:$param['express_num'].'-'.($j+1);
                      $data['origin_express_num'] = $param['express_num'];
                      $data['width'] = !empty($param['width'])?$param['width'][$key]:$detail['width'];
@@ -187,7 +188,7 @@ class Newpack extends Controller
                         'volumeweight'=> $param['volume'][$key],
                         'volume'=>$data['width']*$data['height']*$data['length']/1000000,
                     ];
-                    $Package->doClassIdstwo($class,$data['express_num'],$package_id);
+                    $Package->doClassIdstwo($class,$data['express_num'],$package_id,$waappId);
                     
                     if($noticesetting['enter']['is_enable']==1){
                         Logistics::add($package_id,$noticesetting['enter']['describe']);
@@ -268,7 +269,7 @@ class Newpack extends Controller
                     if($set['moren']['send_mode']==20 && $set['moren']['is_zhiyou_pack']==1){
                         $data['status'] = 8;  //已入库
                     }
-                    
+                    // dump();
                     $package_id = $Package->insertGetId($data);
                     $arraypack[$j] = $package_id;
                     $j +=1;
@@ -299,7 +300,8 @@ class Newpack extends Controller
                         'volumeweight'=> $param['volume'][$key],
                         'volume'=>$data['width']*$data['height']*$data['length']/1000000,
                     ];
-                    $Package->doClassIdstwo($class,$data['express_num'],$package_id);
+                    // dump($package_id);
+                    $Package->doClassIdstwo($class,$data['express_num'],$package_id,$waappId);
                     if($noticesetting['enter']['is_enable']==1){
                         Logistics::add($package_id,$noticesetting['enter']['describe']);
                     }
@@ -367,11 +369,11 @@ class Newpack extends Controller
                 $inpackres->save($zinpackOrder);
             }else{
                 $reus = $Inpack->save($zinpackOrder);
-                // dump($reus);die;
+              
             }
          }
          $list = $Package->where('origin_express_num',$param['express_num'])->select();
-        //  $data['origin_express_num'] = $param['express_num'];
+            // dump($list->toArray());die;
         return $this->renderSuccess('操作成功','',$list);  
    
     }

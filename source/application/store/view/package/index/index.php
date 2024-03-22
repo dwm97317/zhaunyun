@@ -4,14 +4,14 @@
             <div class="widget am-cf">
                 <div class="widget-head am-cf">
                     <div class="widget-title am-cf">包裹列表<small style="padding-left:10px;color:#1686ef">(提示：需要导出某个用户所有包裹，可先通过id搜索该用户，然后点导出（无需勾选），勾选后只导出勾选部分的信息)</small></div>
-                    <div>
-                        <span class="am-badge am-badge-warning">今日入库：<?= $datatotal['todayin'] ?></span>
-                        <span class="am-badge am-badge-warning">今日出库：<?= $datatotal['todayout'] ?></span>
-                        <span class="am-badge am-badge-success">昨日入库：<?= $datatotal['yesin'] ?></span>
-                        <span class="am-badge am-badge-success">昨日出库：<?= $datatotal['yesout'] ?></span>
-                        <span class="am-badge am-badge-success">未入库(已预报)：<?= $datatotal['report'] ?></span>
-                        <span class="am-badge am-badge-danger">在库中：<?= $datatotal['instore'] ?></span>
-                        <span class="am-badge am-badge-success">已发货：<?= $datatotal['other'] ?></span>
+                    <div style="margin-top:30px;">
+                        <span style="line-height:30px;"  class="am-badge am-badge-warning">今日入库（个数/重量）：<?= $datatotal['todayin'] ?>/<?= $datatotal['todayin_weight'] ?></span>
+                        <span style="line-height:30px;"  class="am-badge am-badge-warning">今日出库（个数/重量）：<?= $datatotal['todayout'] ?>/<?= $datatotal['todayout_weight'] ?></span>
+                        <span style="line-height:30px;"  class="am-badge am-badge-success">昨日入库（个数/重量）：<?= $datatotal['yesin'] ?>/<?= $datatotal['yesin_weight'] ?></span>
+                        <span style="line-height:30px;"  class="am-badge am-badge-success">昨日出库（个数/重量）：<?= $datatotal['yesout'] ?>/<?= $datatotal['yesout_weight'] ?></span>
+                        <span style="line-height:30px;"  class="am-badge am-badge-success">未入库(已预报)：<?= $datatotal['report'] ?></span>
+                        <span style="line-height:30px;"  class="am-badge am-badge-danger">在库中（个数/重量）：<?= $datatotal['instore'] ?>/<?= $datatotal['instore_weight'] ?></span>
+                        <span style="line-height:30px;"  class="am-badge am-badge-success">已发货（个数/重量）：<?= $datatotal['other'] ?>/<?= $datatotal['other_weight'] ?></span>
                     </div>
                     
                 </div>
@@ -290,7 +290,16 @@
                                     </td>
                                     <td class="am-text-middle">包裹状态:<?= $status[$item['a_status']];?></br>认领状态:<?= $taker_status[$item['is_take']];?></td>
                       
-                                    <td class="am-text-middle">预报时间:<?= $item['created_time'] ?></br>更新时间:<?= $item['updated_time'] ?></br>入库时间:<?= $item['entering_warehouse_time'] ?></td>
+                                    <td class="am-text-middle">
+                                        预报时间:<?= $item['created_time'] ?></br>
+                                        更新时间:<?= $item['updated_time'] ?></br>
+                                        <?php if (!empty($item['entering_warehouse_time'])): ?>
+                                        入库时间:<?= $item['entering_warehouse_time'] ?></br>
+                                        <?php endif; ?>
+                                        <?php if (!empty($item['scan_time'])): ?>
+                                        查验时间:<?= $item['scan_time'] ?></br>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="am-text-middle">
                                         <div class="tpl-table-black-operation">
                                             <!--编辑-->
@@ -578,13 +587,28 @@
     <div class="am-padding-xs am-padding-top">
         <form class="am-form tpl-form-line-form" method="post" action="">
             <div class="am-tab-panel am-padding-0 am-active">
-            {{each data value}}
                 <div class="am-form-group">
                     <div class="am-u-sm-12">
-                       <p style="height:auto;" class='am-form-static'>{{ value.created_time }}  - {{ value.logistics_describe }}</p>
+                    <table class="am-table">
+                        <thead>
+                            <tr class="am-primary">
+                                <th>操作时间</th>
+                                <th>轨迹内容</th>
+                                <th>操作人</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{each data value}}
+                                <tr class="am-success">
+                                    <td>{{ value.created_time }}</td>
+                                    <td>{{ value.logistics_describe }}</td>
+                                    <td>{{ value.clerk.real_name }}</td>
+                                </tr>
+                            {{/each}}  
+                        </tbody>
+                    </table>
                     </div>
                 </div>
-            {{/each}}     
             </div>
         </form>
     </div>

@@ -202,7 +202,7 @@ class Setting extends BaseModel
                     'is_sort'=>10,
                     'sort_mode'=>10,
                     'link_mode'=>10, //联系人的模式
-                    'address_mode'=>10,//10=纯地址，20=地址+UID:ID 30=地址+ID+室
+                    'address_mode'=>10,//10=纯地址，20=地址+UID:ID 30=地址+ID+室  40=地址+ID+室+客服名
                     "is_change_uid"=>0, //是否更改UID显示为xxx室
                     'is_auto_free' => 1, //0不自动计算费用，1自动计算费用
                     'retention_day'=> 7, //滞留件时效天数，超过这个天数则再次通知用户领取
@@ -285,7 +285,7 @@ class Setting extends BaseModel
                         ],
                         '50'=>[
                             'number'=>'50',
-                            'unit'=>'A$',
+                            'unit'=>'AUD',
                             'unit_name'=>'澳元',
                         ],
                         '60'=>[
@@ -339,6 +339,10 @@ class Setting extends BaseModel
                         'is_adminremark_force' => 0,
                         'is_photo' => 1,
                         'is_photo_force' => 0,
+                    ],
+                    'shopkeeper'=>[
+                        'is_rfid'=>0, //0=不开启，1=开启    
+                        'is_shelf'=>0, //0=不开启，1=开启    
                     ]
                 ]
             ],
@@ -386,6 +390,19 @@ class Setting extends BaseModel
                             
                         ]// 10 时间
                     ],
+                    'freestyle'=>10, //10展示全部 20=显示所有费用清单
+                    'packageorderby'=>[
+                        'order_mode'=>'updated_time', //默认使用更新时间
+                        'order_type'=>'desc' // desc =  asc 
+                    ],
+                    'inpackorderby'=>[
+                        'order_mode'=>'updated_time', //默认使用更新时间
+                        'order_type'=>'desc' // desc =  asc 
+                    ],
+                    'delivertempalte'=>[
+                        'orderface'=> 10, //原始面单  20=系统名称改为集运路线  30=带查询物流二维码的
+                        'labelface'=>10,  // 原始标签  20=二维码上显示包裹信息的
+                    ]
                 ]
             ],
             // 用户端设置
@@ -434,6 +451,7 @@ class Setting extends BaseModel
                         'is_waitreceivedmoney'=>0, //是否展示代收款
                         'is_packagestation'=>1,//开启自提点
                         'is_todoor'=>1,//开启送货上门
+                        'is_image'=>0,//是否开启打包页面包裹图片展示
                     ],
                     'loginsetting'=>[
                         'is_passwordlogin'=>0, //在小程序或公众号模式中是否开启账号密码登录方式;

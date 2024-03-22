@@ -179,7 +179,7 @@ class Package extends PackageModel
     
      // 查询数据
     public function Dbquery300($where,$field){
-      return $this->setQuery($where)->with(['country','storage'])->field($field)->Order('created_time DESC')->paginate(300);
+      return $this->setQuery($where)->with(['country','storage','packageimage.file'])->field($field)->Order('created_time DESC')->paginate(300);
     }
 
     // 查询数据

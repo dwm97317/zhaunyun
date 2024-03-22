@@ -6,6 +6,7 @@ use app\api\model\Line;
 use app\api\model\Category;
 use app\api\model\Logistics;
 use app\api\model\Package;
+use app\api\model\Shelf;
 use app\api\model\ShelfUnit;
 use app\api\model\ShelfUnitItem;
 use app\api\model\PackageItem as PackageItemModel;
@@ -248,7 +249,7 @@ class Useropration extends Controller
 
         $userInfo = $this->user;
         
-        $order['status'] = 7;
+        $order['status'] = 8;
         $order['shop_id'] = $clerk['shop_id'];
         if ($user_id){
             $order['member_id'] = $user_id;
@@ -284,7 +285,7 @@ class Useropration extends Controller
         // dump($clerk['shop']['shop_name']);die;
         $Inpack->UpdateShop($id,$clerk['shop_id'],$takecode);
         //2、添加一条入库记录； 
-        Logistics::addInpackGetLog($id,'包裹已到达'.$clerk['shop']['shop_name'].'请及时前来取货',$express_num);
+        Logistics::addInpackGetLog($id,'包裹已到达'.$clerk['shop']['shop_name'].'请及时前来取货',$express_num,$clerk['clerk_id']);
         //3、发送模板消息到货并通知用户取货；
         $data['id'] = $packData['id'];
         $data['order_sn'] = $packData['order_sn'];
@@ -423,7 +424,13 @@ class Useropration extends Controller
         unset($indata['imageIds']);
         unset($indata['deleteIds']);
         $inpack = new Inpack();
-        // dump($indata);die;
+        $settingkeeper  = SettingModel::getItem('keeper');
+        if($settingkeeper['shopkeeper']['is_rfid']==1 && !empty($data['rfid_id'])){
+             $rfidses = $inpack->where('rfid_id',$data['rfid_id'])->where('id','<>',$data['id'])->find();
+             if($rfidses){
+                 return $this->renderError('RFID已被使用，请更换RFID');
+             }
+        }
         $res = $inpack->where('id',$data['id'])->update($indata);
         //更新集运单图片
         $resimg = $resdeleteimg = true;
@@ -445,9 +452,13 @@ class Useropration extends Controller
         }
         //完成集运单价格的计算；
         $settingdata  = SettingModel::getItem('store');
+        
         if($settingdata['is_auto_free']==1){
             getpackfree($data['id']);   
         }
+        // dump($settingkeeper);die;
+        
+        
         if($res || $resimg || $resdeleteimg){
             return $this->renderSuccess('编辑成功');
         }
@@ -562,6 +573,7 @@ class Useropration extends Controller
         if(!$id){
              return $this->renderError('参数错误');
         }
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->with('shop')->find();
         $Inpack = new Inpack();
         $res = $Inpack->where('id',$id)->update(['status'=> 8,'receipt_time'=>getTime()]);
         $packData = $Inpack::detail($id);
@@ -570,7 +582,7 @@ class Useropration extends Controller
         $logis['code'] = $packData['t_order_sn'];
         $logis['logistics_describe']='包裹已签收，感谢您的支持';
         //2、添加一条入库记录； 
-        Logistics::addInpackGetLog($id,'包裹已签收，感谢您的支持',$packData['t_order_sn']);
+        Logistics::addInpackGetLog2($id,'包裹已签收，感谢您的支持',$packData['t_order_sn'],$clerk['clerk_id']);
         //3、发送模板消息到货并通知用户取货；
         $data['order_sn'] = $packData['order_sn'];
         $data['order'] = $packData;
@@ -781,14 +793,17 @@ class Useropration extends Controller
             $this->inImages($restwo,$imageIds,$wxapp_id);
             $shopData =  (new Shop())->where('shop_id',$clerk['shop_id'])->find();
             //存入货架信息
-             $shelfunit = new ShelfUnitItem();
-             $shelf = [
-                'pack_id' => $restwo,
-                'user_id' => $user_id,
-                'express_num' => $express_num,
-                'shelf_unit' => $shelf_unit,
-             ];  
-             $shelfunit->post($shelf);
+            if(!empty($shelf_unit)){
+                 $shelfunit = new ShelfUnitItem();
+                 $shelf = [
+                    'pack_id' => $restwo,
+                    'user_id' => $user_id,
+                    'express_num' => $express_num,
+                    'shelf_unit' => $shelf_unit,
+                 ];  
+                 $shelfunit->post($shelf);
+            }
+             
             //邮件通知
             //判断是否有用户id，发送邮件
               if(isset($user_id) || !empty($user_id)){
@@ -812,7 +827,7 @@ class Useropration extends Controller
                       Message::send('order.enter',$data);  
                     }
               }
-            Logistics::add($restwo,'仓管员手动入库');
+            Logistics::add2($restwo,'仓管员手动入库',$clerk['clerk_id']);
             return $this->renderSuccess('包裹入库成功');
        }elseif($is_pre==10){
        //有对应数据情况下
@@ -852,7 +867,7 @@ class Useropration extends Controller
        //插入图片
        $this->inImages($id,$imageIds,$wxapp_id);
        //更新日志
-       Logistics::add($id,'包裹已到达仓库');
+       Logistics::add2($id,'包裹已到达仓库',$clerk['clerk_id']);
        if (!$res){
         return $this->renderError('包裹入库失败');
        }
@@ -879,15 +894,18 @@ class Useropration extends Controller
              }
          }
        
-       //存入货架信息
-         $shelfunit = new ShelfUnitItem();
-         $shelf = [
-            'pack_id' => $data['id'],
-            'user_id' => isset($user_id)?$user_id:$data['member_id'],
-            'express_num' => $data['express_num'],
-            'shelf_unit' => $shelf_unit,
-         ];  
-         $shelfunit->post($shelf);
+         //存入货架信息
+         if(!empty($shelf_unit)){
+             $shelfunit = new ShelfUnitItem();
+             $shelf = [
+                'pack_id' => $data['id'],
+                'user_id' => isset($user_id)?$user_id:$data['member_id'],
+                'express_num' => $data['express_num'],
+                'shelf_unit' => $shelf_unit,
+             ];  
+             $shelfunit->post($shelf);
+         }
+         
        
        //仓库id存在，则查询到仓库名称，传入模板消息
         if($data['storage_id']){
@@ -929,7 +947,7 @@ class Useropration extends Controller
         // dump($clerk['shop']['shop_name']);die;
         $Inpack->UpdateShop($id,$clerk['shop_id'],$takecode);
         //2、添加一条入库记录； 
-        Logistics::addInpackGetLog($id,'包裹已到达'.$clerk['shop']['shop_name'].'请及时前来取货',$express_num);
+        Logistics::addInpackGetLog2($id,'包裹已到达'.$clerk['shop']['shop_name'].'请及时前来取货',$express_num,$clerk['clerk_id']);
         //3、发送模板消息到货并通知用户取货；
         
         $data['order_sn'] = $packData['order_sn'];
@@ -1118,7 +1136,7 @@ class Useropration extends Controller
        //插入图片
        $this->inImages($id,$imageIds,$wxapp_id);
        //更新日志
-       Logistics::add($id,'包裹已到达仓库');
+       Logistics::add2($id,'包裹已到达仓库',$clerk['clerk_id']);
        if (!$res){
         return $this->renderError('包裹入库失败');
        }
@@ -1484,9 +1502,23 @@ class Useropration extends Controller
         $data = $this->request->param();
         // $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         $packModel = (new Package());
+        $today = date('Y-m-d',time());
+        $todayend = date('Y-m-d',time()+86400);
+        $yestoday = date('Y-m-d',time() - 86400);
+        $firstMouth = date('Y-m-01');
         $map['status']  = array('in',[2,3,4,5,6,7]);
         // dump(base_url());die;
         return $this->renderSuccess([
+            ['icon' => base_url().'assets/api/images//today.png' ,'content'=>'今日入库','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->count()], //今日入库包裹
+            ['icon' => base_url().'assets/api/images//today_weight.png' ,'content'=>'今日入库重量','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->SUM('weight')], //今日入库包裹重量
+            
+            ['icon' => base_url().'assets/api/images/yesterday.png' ,'content'=>'昨日入库','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$yestoday,$today])->count()], //今日入库包裹
+            ['icon' => base_url().'assets/api/images//today_weight.png' ,'content'=>'昨日入库重量','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$yestoday,$today])->SUM('weight')], //今日入库包裹重量
+            
+            ['icon' => base_url().'assets/api/images//mouth.png' ,'content'=>'本月累计入库','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$firstMouth,$today])->count()], //今日入库包裹
+            ['icon' => base_url().'assets/api/images//today_weight.png' ,'content'=>'本月入库重量','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$firstMouth,$today])->SUM('weight')], //今日入库包裹重量
+            
+            
             ['icon' => base_url().'assets/api/images//dzx_img212.png' ,'content'=>'未入库包裹','num'=> $packModel->where(['status' => 1,'is_delete'=>0,'storage_id' =>$data['shop_id']])->count()], //未入库包裹
             ['icon' => base_url().'assets/api/images//dzx_img213.png','content'=>'已入库包裹','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->count()], //已入库包裹
             ['icon' => base_url().'assets/api/images//dzx_img214.png','content'=>'在途中包裹','num'=> $packModel->where(['status' => 9,'is_delete'=>0,'storage_id' =>$data['shop_id']])->count()], //在途中包裹
@@ -1786,7 +1818,7 @@ class Useropration extends Controller
             if(!$res){
                   return $this->renderError('包裹操作失败');
             }
-           Logistics::add($id,'包裹已拣货下架完毕,等待打包员进行打包'); 
+           Logistics::add2($id,'包裹已拣货下架完毕,等待打包员进行打包',$clerk['clerk_id']); 
       }else{
           $inpackData = (new Inpack())->where('id',$id)->find();
      
@@ -1928,7 +1960,7 @@ class Useropration extends Controller
         return $this->renderError('未查询到此快递单');
       }
       if(in_array($packid['id'],$arrayPackid)){
-           $res =(new Package())->where('express_num',$code)->update(['is_scan'=>2]);
+           $res =(new Package())->where('express_num',$code)->update(['is_scan'=>2,'scan_time'=>getTime()]);
            return $this->renderSuccess($code);
       }else{
            return $this->renderError('此单号不在此集运单中');
@@ -2026,7 +2058,7 @@ class Useropration extends Controller
              return $this->renderError('参数错误');
         }
         $scan = $scan==1?2:1;
-        $res =(new Package())->where('express_num',$express_num)->update(['is_scan'=>$scan]);
+        $res =(new Package())->where('express_num',$express_num)->update(['is_scan'=>$scan,'scan_time'=>getTime()]);
         return $this->renderSuccess("操作成功");
     }
 
@@ -2067,11 +2099,40 @@ class Useropration extends Controller
         $update['height'] = $height;
         $update['weight'] = $weight;
         $up = (new Package())->where(['id'=>$id])->update($update);
-        Logistics::add($id,'包裹已拣货查验');
+        Logistics::add2($id,'包裹已拣货查验',$clerk['clerk_id']);
         if (!$up){
           return $this->renderError('包裹操作失败');
         }
         return $this->renderSuccess('包裹已入货架');
+    }
+    
+    // 分拣员 - 查询用户的包裹所在的货架id
+    public function searchuserShelf(){
+        if (!$this->checkRole(2)){
+          return $this->renderError('角色权限非法');
+        }
+        $settingdata  = SettingModel::getItem('store');
+        $user_id = $this->postData('user_id')[0];
+        if($settingdata['usercode_mode']['is_show']==1){
+            $userinfo = (new UserModel)->where(['user_code'=>$user_id,'is_delete'=>0])->find();
+            $user_id = $userinfo['user_id'];
+        }else{
+            $userinfo = UserModel::detail($user_id);
+        }
+      
+        $shelfunititem = (new ShelfUnitItem())->where('user_id',$user_id)->where('shelf_unit_id','>',0)->order('created_time desc')->find();
+        $shelfunit = (new ShelfUnit())->where('shelf_unit_id',$shelfunititem['shelf_unit_id'])->find();
+        $shelf = (new Shelf())->where('id',$shelfunit['shelf_id'])->find();
+        if(!empty($shelfunititem)){
+            $data = [
+                'shelf_unit_id'=>$shelfunititem['shelf_unit_id'],
+                'shelf_unit'=> $shelfunit,
+                'shelf'=> $shelf
+            ];
+           return $this->renderSuccess($data,'包裹已入货架',''); 
+        }
+        //   dump($shelf['shelf_unit_id']);die;
+        return $this->renderError('请扫码货架码');
     }
 
     public function createdOrderByScan(){
@@ -2101,7 +2162,7 @@ class Useropration extends Controller
       // 创建预发货单
       $res = (new SendPreOrder())->post($order);
       (new Package())->where(['id'=>$package['id']])->update(['status'=>8]);
-      Logistics::add($package['id'],'包裹已打包封箱,等待集中发货');
+      Logistics::add2($package['id'],'包裹已打包封箱,等待集中发货',$clerk['clerk_id']);
       $map['storage_id'] = $clerk['shop_id'];
       (new Inpack())->CheckISPack($map); 
       if (!$res){
@@ -2144,7 +2205,7 @@ class Useropration extends Controller
          (new Package())->whereIn('id',$packIds)->update(['status'=>8]);
          (new Inpack())->where('id',$id)->update(['status'=>5]);
          foreach($packIds as $v){
-             Logistics::add($v,'包裹已打包封箱,等待集中发货');
+             Logistics::add2($v,'包裹已打包封箱,等待集中发货',$clerk['clerk_id']);
          } 
          if (!$res){
            return $this->renderError('打包封箱失败');

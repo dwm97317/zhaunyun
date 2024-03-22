@@ -11,7 +11,7 @@ use app\common\service\Email;
 use app\store\model\store\Shop;
 use app\common\service\Message;
 use app\common\model\Setting as SettingModel;
-
+use think\Session;
 use app\api\model\Express;
 use app\api\service\trackApi\TrackApi;
 use app\common\library\Ditch\config;
@@ -110,21 +110,23 @@ class Package extends PackageModel
         if(!$this->onCheck($data)){
              return false;
         }
-        //   dump($data);die;
+        $session = Session::get('yoshop_store');
+        // dump($session);die;
         // self::$wxapp_id == 10013 && file_put_contents("包裹入库.txt", "时间：".getTime().", 数据:".json_encode($data)."\r\n", FILE_APPEND);
         $tyoi = stripos($data['express_num'], "JD");
-        if($tyoi==0){
+         
+        if($tyoi==0 && $tyoi!=false){
             $ex = explode('-',$data['express_num']);
             $data['express_num'] = $ex[0];
         }
-        
+        //   dump($data);die;
         $result = $this->where('express_num',$data['express_num'])->where('is_delete',0)->find();
    
         if($result){
             $data['id'] = $result['id'];
         }
 
-        
+         
         $noticesetting = SettingModel::getItem('notice');
         
         $resull = strstr($data['express_num'],'JD');
@@ -525,12 +527,12 @@ class Package extends PackageModel
      * 处理包裹重物品类目
      * 
     */
-    public function doClassIdstwo($param,$express_num,$id){
+    public function doClassIdstwo($param,$express_num,$id,$waappId){
         $classItem = [];
         if(!empty($param['class_ids'])){
             $classItems = $this->parseClasstwo($param['class_ids']);
         }
-        // DUMP($param);DIE;
+        // DUMP($waappId);
 
          $packItemModel = new PackageItem();
          $packItemModel->where('order_id',$id)->delete();
@@ -549,7 +551,7 @@ class Package extends PackageModel
          $classItem['volumeweight'] =isset($param['volumeweight'])?$param['volumeweight']:0;
          $classItem['class_name'] = !empty($classItems)?$classItems:'';
          $classItem['express_num'] = $express_num;
-         $classItem['wxapp_id'] = self::$wxapp_id;
+         $classItem['wxapp_id'] = $waappId;
          $packItemRes = $packItemModel->saveAllDataTWO($classItem,$id);
          if (!$packItemRes){
             $this->error = "包裹类目录入失败";
@@ -650,15 +652,20 @@ class Package extends PackageModel
     //查询
     public function getList($query = [])
     {
+        $setting = SettingModel::detail("adminstyle")['values'];
+        $order = ['updated_time'=>'desc','express_num'=>'desc'];
+        if(isset($setting['packageorderby'])){
+            $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
+        }
         return $this->setindexListQueryWhere($query)
             ->alias('a')
             ->with(['categoryAttr','Member','country','storage','inpack','packageimage.file','batch','shelfunititem.shelfunit.shelf'])
-            ->field('a.inpack_id,a.num,a.batch_id,a.usermark,a.id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title')
+            ->field('a.inpack_id,a.num,a.batch_id,a.usermark,a.id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title,a.scan_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
             ->join('package_item pi','pi.order_id = a.id','LEFT')
-            ->order('updated_time DESC')
+            ->order($order)
             ->group('a.id')
             ->paginate(isset($query['limitnum'])?$query['limitnum']:15,false,[
                 'query'=>\request()->request()
@@ -674,6 +681,11 @@ class Package extends PackageModel
     //查询
     public function getListSum($query = [])
     {
+        $setting = SettingModel::detail("adminstyle")['values'];
+        $order = ['updated_time'=>'desc'];
+        if(isset($setting['packageorderby'])){
+            $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
+        }
         return $this->setindexListQueryWhere($query)
             ->alias('a')
             ->with(['categoryAttr','Member','country','storage','inpack'])
@@ -682,7 +694,7 @@ class Package extends PackageModel
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
             ->join('package_item pi','pi.order_id = a.id','LEFT')
-            ->order('updated_time DESC')
+            ->order($order)
             // ->group('a.id')
             ->limit(isset($query['limitnum'])?$query['limitnum']:15)
             ->sum('a.weight');
@@ -702,12 +714,24 @@ class Package extends PackageModel
         // dump($query);die;
         return $result = [
            'todayin'=> $this->where('is_delete',0)->where('entering_warehouse_time','between',[$today,$todayend])->count(),
+           'todayin_weight'=> $this->where('is_delete',0)->where('entering_warehouse_time','between',[$today,$todayend])->SUM('weight'),
+           
            'todayout'=>$this->where('is_delete',0)->where('status','in',[5,6,7,8])->where('entering_warehouse_time','between',[$today,$todayend])->count(),
+           'todayout_weight'=>$this->where('is_delete',0)->where('status','in',[5,6,7,8])->where('entering_warehouse_time','between',[$today,$todayend])->SUM('weight'),
+           
            'yesin'=> $this->where('is_delete',0)->where('entering_warehouse_time','between',[$yestoday,$today])->count(),
+           'yesin_weight'=> $this->where('is_delete',0)->where('entering_warehouse_time','between',[$yestoday,$today])->SUM('weight'),
+           
            'yesout'=>$this->where('is_delete',0)->where('status','in',[5,6,7,8])->where('entering_warehouse_time','between',[$yestoday,$today])->count(),
+           'yesout_weight'=>$this->where('is_delete',0)->where('status','in',[5,6,7,8])->where('entering_warehouse_time','between',[$yestoday,$today])->SUM('weight'),
+           
            'report'=>$this->where(['status'=>1,'is_delete'=>0])->count(),
+           
            'instore'=>$this->where('is_delete',0)->where('status','in',[2,3,4,5,6,7,8])->count(),
+           'instore_weight'=>$this->where('is_delete',0)->where('status','in',[2,3,4,5,6,7,8])->SUM('weight'),
+           
            'other'=>$this->where('is_delete',0)->where('status','in',[9,10,11])->count(),
+           'other_weight'=>$this->where('is_delete',0)->where('status','in',[9,10,11])->SUM('weight'),
         ];
     }
     
@@ -755,20 +779,23 @@ class Package extends PackageModel
     //查询
     public function getAllList($query = [])
     {
-        // dump($query);die;
-        // $query['category_id'] = 884;
+        $setting = SettingModel::detail("adminstyle")['values'];
+        $order = ['updated_time'=>'desc'];
+        if(isset($setting['packageorderby'])){
+            $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
+        }
         return $this->setListQueryWhere($query)
             ->alias('a')
             ->with(['categoryAttr','inpack'])
             // ->with(['categoryAttr','categoryAttr' => function($quer) use($query) {
             //     $quer->where('class_id','=',$query['category_id']);
             // }])
-            ->field('a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
+            ->field('a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
             ->join('package_item pi','pi.order_id = a.id','LEFT')
-            ->order('updated_time DESC')
+            ->order($order)
             ->group('a.id')
             ->paginate(isset($query['limitnum'])?$query['limitnum']:15,false,[
                 'query'=>\request()->request()
@@ -784,22 +811,25 @@ class Package extends PackageModel
     //查询
     public function getUnpackList($query = [])
     {
-        // dump($query);die;
-        // $query['category_id'] = 884;
+        $setting = SettingModel::detail("adminstyle")['values'];
+        $order = ['updated_time'=>'desc'];
+        if(isset($setting['packageorderby'])){
+            $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
+        }
         return $this->setListQueryWhere($query)
             ->alias('a')
             ->with(['categoryAttr','inpack'])
             // ->with(['categoryAttr','categoryAttr' => function($quer) use($query) {
             //     $quer->where('class_id','=',$query['category_id']);
             // }])
-            ->field('a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
+            ->field('a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
             ->join('package_item pi','pi.order_id = a.id','LEFT')
             ->where('a.inpack_id',null)
             // ->whereOr('a.')
-            ->order('updated_time DESC')
+            ->order($order)
             ->group('a.id')
             ->paginate(isset($query['limitnum'])?$query['limitnum']:15,false,[
                 'query'=>\request()->request()
@@ -809,14 +839,19 @@ class Package extends PackageModel
      //查询预约包裹
     public function getYList($query = [])
     {
+        $setting = SettingModel::detail("adminstyle")['values'];
+        $order = ['updated_time'=>'desc'];
+        if(isset($setting['packageorderby'])){
+            $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
+        }
         return $this->setListQueryWhere($query)
             ->alias('a')
-            ->field('a.id,a.num,a.batch_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,ad.*')
+            ->field('a.id,a.num,a.batch_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,ad.*,a.scan_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
             ->join('user_address ad','a.address_id = ad.address_id',"LEFT")
-            ->order('updated_time DESC')
+            ->order($order)
             ->paginate(10,false,[
                 'query'=>\request()->request()
             ]);
@@ -831,16 +866,20 @@ class Package extends PackageModel
     //查询
     public function getdeleteList($query = [])
     {
-        // dump($this->setListQueryWhere($query));die;
+        $setting = SettingModel::detail("adminstyle")['values'];
+        $order = ['updated_time'=>'desc'];
+        if(isset($setting['packageorderby'])){
+            $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
+        }
         return $this->setListQueryWhere($query)
             ->alias('a')
             ->with('categoryAttr')
             ->where('a.is_delete',1)
-            ->field('a.id,a.num,a.batch_id,a.inpack_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time')
+            ->field('a.id,a.num,a.batch_id,a.inpack_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
-            ->order('updated_time DESC')
+            ->order($order)
             ->paginate(isset($query['limitnum'])?$query['limitnum']:15,false,[
                 'query'=>\request()->request()
             ]);

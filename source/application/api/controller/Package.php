@@ -142,6 +142,23 @@ class Package extends Controller
         //快速打包订单添加好后，需要对订单进行用户归属，路线选择，用户地址选择等操作才能划分到正常订单行列；
     }
     
+       // 根据批次获取订单列表
+     public function withbatchidpackagelist(){
+         $param = $this->request->param();
+         $query = $param;
+         if(isset($query['rfid_id'])){
+             unset($query['rfid_id']);
+         }
+         $list = (new Inpack())->getAllList($query);
+         foreach ($list as &$value) {
+             $value['is_scan'] = false;
+            if(isset($param['rfid_id']) && (in_array($value['rfid_id'],$param['rfid_id']))){
+                $value['is_scan'] = true;;
+            }
+         }
+         return $this->renderSuccess($list);
+     }
+    
     // 包裹批量出库
     //将提交的包裹进行1、货架下架；2、标记扫码状态；3、更改状态为已发货；
     public function alloutshop(){
@@ -254,9 +271,9 @@ class Package extends Controller
                      $classItems[$k]['goods_name'] = $val['pinming'];
                      $classItems[$k]['express_name'] = $express;
                 }
-
+                
          }
-        //  dump($classItems);die;
+       
          $packModel = new PackageModel();
          $packItemModel = new PackageItemModel();
          // todo 判断预报的单号是否存在（待认领或者已认领），如果存在且被认领则提示已认领，如果存在但未被认领则修改存在的记录所属用户，认领状态；
@@ -1506,19 +1523,28 @@ class Package extends Controller
           }
           $class_ids = $post['class_ids'];
           $classItem = [];
-          if ($class_ids){
-              $classItem = $this->parseClass($class_ids);
-              foreach ($classItem as $k => $val){
-                    $classItem[$k]['class_id'] = $val['category_id'];
-                    $classItem[$k]['express_name'] = $express;
-                    $classItem[$k]['class_name'] = $val['name'];
-                    $classItem[$k]['express_num'] = $post['express_sn'];
-                    unset($classItem[$k]['category_id']); 
-                    unset($classItem[$k]['name']);        
-              }
-          }
+         $goodslist = isset($post['goodslist'])?$post['goodslist']:[];
+         $classItems = [];
+         $packItemModel = new PackageItemModel();
+         if ($class_ids || $goodslist){
+             $classItem = $this->parseClass($class_ids);
+ 
+                foreach ($goodslist as $k => $val){
+                     $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['goods_name'];
+                     $classItems[$k]['one_price'] = $val['one_price'];
+                     $classItems[$k]['all_price'] = (!empty($val['one_price'])?$val['one_price']:0) * (!empty($val['product_num'])?$val['product_num']:0);
+                     $classItems[$k]['product_num'] = $val['product_num'];
+                     $classItems[$k]['express_num'] = $post['express_sn'];
+                     $classItems[$k]['goods_name'] = $val['goods_name'];
+                     $classItems[$k]['express_name'] = $express;
+                    
+                    //  $packItemModel->where('id',$val['id'])->update($classItems);
+                }
+         }
+           
+          
           $packModel = new PackageModel();
-          $packItemModel = new PackageItemModel();
+         
         //   $result = $packModel->where('express_num',$post['express_sn'])->find();
         //   if(!$result){
         //       return $this->renderError('包裹不已存在');
@@ -1531,17 +1557,19 @@ class Package extends Controller
           unset($post['express_sn']);
           unset($post['class_ids']);
           unset($post['token']);
+          unset($post['goodslist']);
           $res = $packModel->saveData($post);
           if (!$res){
+              Db::rollback();
               return $this->renderError('申请修改失败');
           }
-          if ($classItem){
+          if ($classItems){
               // 删除之前的数据
               $map = [
                  'order_id' => $post['id'],
               ];
               $packItemModel -> where($map) -> delete();
-              $packItemRes = $packItemModel->saveAllData($classItem,$post['id']);
+              $packItemRes = $packItemModel->saveAllData($classItems,$post['id']);
               if (!$packItemRes){
                 Db::rollback();
                 return $this->renderError('申请修改失败');
@@ -1876,12 +1904,13 @@ class Package extends Controller
         $id = \request()->post('id');
         $method = $this->postData('method');
         $data = (new PackageModel())->getDetails($id,$field_group[$method[0]]);
-        $packItem = (new PackageItemModel())->where(['order_id'=>$data['id']])->field('class_name,id,class_id,order_id')->select();
+        $packItem = (new PackageItemModel())->where(['order_id'=>$data['id']])->select();
         $data['free_total'] = $data['free']+$data['pack_free'];
         $data['shop'] = '';
         if ($packItem){
             $data['shop'] = implode(',',array_column($packItem->toArray(),'class_name'));
             $data['shop_ids'] = implode(',',array_column($packItem->toArray(),'class_id'));
+            $data['item'] = $packItem;
         }
         if ($data['address_id']){
             $data['address'] = (new UserAddress())->find($data['address_id']);
@@ -2035,6 +2064,7 @@ class Package extends Controller
         $packData = $PackageModel->where(['express_num'=>$express,'is_delete' => 0])->find();
         
         $inpackData = $Inpack->where('t_order_sn',$express)->where(['is_delete' => 0])->find(); //国际单号
+        //  dump($inpackData);die;
         $inpackData2 = $Inpack->where(['t2_order_sn'=>$express,'is_delete' => 0])->find();  //转单号
         $inpackData4 = $Inpack->where(['order_sn'=>$express,'is_delete' => 0])->find();
         //如果是包裹单号，可以反查下处于哪个集运单；
@@ -2045,7 +2075,7 @@ class Package extends Controller
             $logic = $Logistics->getList($express);
               
             if(count($logic)>0){
-                // dump($inpackData);die;
+               
                 $logia = $Logistics->getorderno($logic[0]['order_sn']);
             }
             $express_code = $Expresss->getValueById($packData['express_id'],'express_code');
@@ -2073,7 +2103,7 @@ class Package extends Controller
         
 
         if(!empty($inpackData) ){
-          
+           
             if($inpackData['transfer']==0){
                 $ditchdatas = $DitchModel->where('ditch_id','=',$inpackData['t_number'])->find();
                 // dump($ditchdatas);die;
@@ -2203,7 +2233,7 @@ class Package extends Controller
         // $inpackData4 = $Inpack->where(['order_sn'=>$express,'is_delete' => 0])->find();
         //如果是包裹单号，可以反查下处于哪个集运单；
         //   dump($inpackData);die;
-        
+        //   dump($inpackData);die;
         if(!empty($packData)){
             //查出的系统内部物流信息
             $logic = $Logistics->getList($express);
@@ -2223,10 +2253,10 @@ class Package extends Controller
                 $inpackData = $Inpack->where('id',$packData['inpack_id'])->where(['is_delete' => 0])->find(); //国际单号
             }
         }
-        //   dump($inpackData);die;
+       
 
         if(!empty($inpackData) ){
-          
+           
             if($inpackData['transfer']==0){
                 $ditchdatas = $DitchModel->where('ditch_id','=',$inpackData['t_number'])->find();
                 

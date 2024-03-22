@@ -7,6 +7,8 @@ use app\common\model\Setting;
 use app\common\model\Inpack;
 use app\api\model\Package;
 use app\api\model\Express;
+
+use app\api\model\store\shop\Clerk;
 /**
  * 线路模型
  * Class Express
@@ -32,7 +34,7 @@ class Logistics extends LogisticsModel
      
      // 获取系统内部信息
      public function getList($sn){
-        $data = $this->where('express_num',$sn)->order('created_time desc')->select()->toArray();
+        $data = $this->with(['clerk'])->where('express_num',$sn)->order('created_time desc')->select()->toArray();
         return $data;
      }
      
@@ -58,4 +60,8 @@ class Logistics extends LogisticsModel
         return $data;
      }
  
+        
+    public function clerk(){
+        return $this->belongsTo('app\api\model\store\shop\Clerk','operate_id','clerk_id');
+    }
 }

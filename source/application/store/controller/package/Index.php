@@ -46,6 +46,7 @@ class Index extends Controller
         $Category = new Category();
         $map = \request()->param();
         $list = $packageModel->getList($map);
+        // dump($list->toArray());die;
         $countweight = '+∞';
         if(isset($map['search']) || isset($map['likesearch']) || isset($map['express_num'])){
             $countweight = $packageModel->getListSum($map);
@@ -718,6 +719,7 @@ class Index extends Controller
            $member =  (new User())->where('user_id',$pack_member[0])->find();
            $user_id = $member['user_code'];
         }
+        // dump($storesetting['orderno']['default']);die;
         $createSnfistword = $storesetting['createSnfistword'];
         $xuhao = ((new Inpack())->where(['member_id'=>$pack_member[0],'is_delete'=>0])->count()) + 1;
         $shopname = ShopModel::detail($pack[0]['storage_id']);     

@@ -214,6 +214,43 @@
                                     </label>
                                 </div>
                             </div>
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">仓管端APP设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否启用RFID拣货
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_rfid]" value="1"
+                                               data-am-ucheck  <?= $values['shopkeeper']['is_rfid'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_rfid]" value="0"
+                                               data-am-ucheck <?= $values['shopkeeper']['is_rfid'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    包裹入库时，是否自动获取用户近期使用货位
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_shelf]" value="1"
+                                               data-am-ucheck  <?= $values['shopkeeper']['is_shelf'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_shelf]" value="0"
+                                               data-am-ucheck <?= $values['shopkeeper']['is_shelf'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交

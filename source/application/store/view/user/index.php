@@ -10,8 +10,8 @@
                     <div class="page_toolbar am-margin-bottom-xs am-cf">
                         <form class="toolbar-form" action="">
                             <input type="hidden" name="s" value="/<?= $request->pathinfo() ?>">
-                            <div class="am-u-sm-12 am-u-md-9 am-u-sm-push-3">
-                                <div class="am fr">
+                            <div class="am-u-sm-12 am-u-md-12">
+                                <div class="am fl">
                                     <div class="am-form-group am-fl">
                                         <?php $grade = $request->get('grade'); ?>
                                         <select name="grade"
@@ -44,6 +44,21 @@
                                         </select>
                                     </div>
                                     <div class="am-form-group am-fl">
+                                        <?php $extractserviceid = $request->get('service_id'); ?>
+                                        <select name="service_id"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '专属客服'}">
+                                            <option value=""></option>
+                                            <option value="-1"
+                                                <?= $extractserviceid === '-1' ? 'selected' : '' ?>>全部
+                                            </option>
+                                            <?php if (isset($servicelist)): foreach ($servicelist as $item): ?>
+                                                <option value="<?= $item['clerk_id'] ?>"
+                                                    <?= $item['clerk_id'] == $extractserviceid ? 'selected' : '' ?>><?= $item['real_name'] ?>
+                                                </option>
+                                            <?php endforeach; endif; ?>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input type="text" class="am-form-field" name="user_id"
                                                    placeholder="请输入用户ID" value="<?= $request->get('user_id') ?>">
@@ -55,6 +70,7 @@
                                                    placeholder="请输入用户编号" value="<?= $request->get('user_code') ?>">
                                         </div>
                                     </div>
+                                    
                                     <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input type="text" class="am-form-field" name="nickName"
@@ -135,15 +151,11 @@
                                              CODE: <span><?= $item['user_code'] ?></span><br>
                                         <?php endif;?>
                                         性别：<?= $item['gender']['text'] ?><br>
-                                        <?php if($item['user_type']!=4) :?>
-                                             <?= $typeMap[$item['user_type']];?><br>
-                                          <?php else:?>
-                                              <?php if($item['grade']['name']) :?>
+                                        <?php if($item['grade']['name']) :?>
                                                     <?= $item['grade']['name'];?><br>
                                               <?php else:?>
                                                普通会员<br>
                                               <?php endif;?>
-                                          <?php endif;?>
                                           <?php if($item['mobile'] !=0 ) :?>
                                             手机号：<?= $item['mobile']; ?>
                                           <?php endif;?>
@@ -161,7 +173,8 @@
                                     <td class="am-text-middle">
                                         用户余额：<?= $item['balance'] ?><br> 
                                         可用积分：<?= $item['points'] ?><br>
-                                        实际消费金额：<?= $item['pay_money'] ?>
+                                        实际消费金额：<?= $item['pay_money'] ?><br>
+                                        累计发货重量：<?= $item['total_weight'] ?>
                                     </td>
                                     <td class="am-text-middle">
                                          <?php if (isset($item['usermark']) && !$item['usermark']->isEmpty()):
@@ -268,6 +281,11 @@
                                                         <li>
                                                             <a class="am-dropdown-item" target="_blank"
                                                                href="<?= url('user/discountlist', ['user_id' => $item['user_id']]) ?>">折扣路线</a>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (checkPrivilege('user.balance/log')): ?>
+                                                        <li>
+                                                            <a class="am-dropdown-item" onclick="getlog(this)" value="<?= $item['user_id'] ?>" href="javascript:;" getlog>出货统计</a>
                                                         </li>
                                                     <?php endif; ?>
                                                         <li>
@@ -577,6 +595,61 @@
             </div>
         </form>
     </div>
+</script>
+<script id="tpl-log" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <div class="am-u-sm-12">
+                    <table class="am-table">
+                        <thead>
+                            <tr class="am-primary">
+                                <th>月份</th>
+                                <th>出货单量</th>
+                                <th>出货重量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{each data value}}
+                                <tr class="am-success">
+                                    <td>{{ value.mouth }}</td>
+                                    <td>{{ value.total }}</td>
+                                    <td>{{ value.sum }}</td>
+                                </tr>
+                            {{/each}}  
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+              
+            </div>
+        </form>
+    </div>
+</script>
+<script>
+    function getlog(_this){
+        var user_id = _this.getAttribute('value');
+        $.ajax({
+			type: 'post',
+			url: "<?= url('store/tr_order/getUserMouthWeight') ?>",
+			data: {user_id: user_id},
+			dataType: "json",
+			success: function(res) {
+				if (res.code == 1) {
+				    console.log(res.data,87);
+        				$.showModal({
+                         title: '出货统计'
+                        , area: '800px'
+                        , content: template('tpl-log', res)
+                        , uCheck: false
+                        , success: function (index) {}
+                        ,yes: function (index) {window.location.reload();}
+                    });
+				}
+			}
+		})
+    } 
 </script>
 <script>
     $(function () {

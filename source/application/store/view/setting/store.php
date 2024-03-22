@@ -715,7 +715,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                             <option value="20" <?= $values['price_mode']['mode'] == 20 ? 'selected' : '' ?>>美元/$</option>
                                             <option value="30" <?= $values['price_mode']['mode'] == 30 ? 'selected' : '' ?> >加币/C$</option>
                                             <option value="40" <?= $values['price_mode']['mode'] == 40 ? 'selected' : '' ?> >欧元/€</option>
-                                            <option value="50" <?= $values['price_mode']['mode'] == 50 ? 'selected' : '' ?> >澳元/A$</option>
+                                            <option value="50" <?= $values['price_mode']['mode'] == 50 ? 'selected' : '' ?> >澳元/AUD</option>
                                             <option value="60" <?= $values['price_mode']['mode'] == 60 ? 'selected' : '' ?> >港币/HK$</option>
                                     </select>
                                     <div class="help-block">
@@ -771,6 +771,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                             <option value="10" <?= $values['address_mode']== 10 ? 'selected' : '' ?>>纯仓库地址</option>
                                             <option value="20" <?= $values['address_mode'] == 20 ? 'selected' : '' ?>>地址+UID</option>
                                             <option value="30" <?= $values['address_mode'] == 30 ? 'selected' : '' ?>>地址+UID+室</option>
+                                            <option value="40" <?= $values['address_mode'] == 40 ? 'selected' : '' ?>>地址+UID+室+客服</option>
                                     </select>
                                     <div class="help-block">
                                         <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>

@@ -663,6 +663,7 @@ return [
             ],
             [
                 'name' => '自定义中心',
+                'active' => true,
                 'index' => 'setting/stylecenter',
                 'submenu' => [
                     [
@@ -691,19 +692,7 @@ return [
                 'name' => '小程序导航',
                 'index' => 'setting.nav/index',
             ],
-            [
-                'name' => '汇款管理',
-                'submenu' => [
-                    [
-                        'name' => '汇款凭证',
-                        'index' => 'setting.certificate/index',
-                    ],
-                    [
-                        'name' => '汇款账号',
-                        'index' => 'setting.bank/index'
-                    ]
-                ]
-            ],
+            
             [
               'name' => '集运线路',
               'index' => 'setting.line/index',
@@ -778,7 +767,20 @@ return [
                 'setting.banner/index',
                 'setting.banner/add',
                 'setting.banner/edit',
+                ],
             ],
+            [
+                'name' => '汇款管理',
+                'submenu' => [
+                    [
+                        'name' => '汇款凭证',
+                        'index' => 'setting.certificate/index',
+                    ],
+                    [
+                        'name' => '汇款账号',
+                        'index' => 'setting.bank/index'
+                    ]
+                ]
             ],
             [
                 'name' => '短信通知',

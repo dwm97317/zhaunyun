@@ -455,7 +455,26 @@
                                     </div>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    打包页面是否展示图片
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[packit][is_image]" value="1"
+                                               data-am-ucheck  <?= $values['packit']['is_image'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[packit][is_image]" value="0"
+                                               data-am-ucheck <?= $values['packit']['is_image'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>选择开启后，在用户端提交打包时就能看到包裹的图片</small>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">用户登录功能设置</div>

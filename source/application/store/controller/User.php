@@ -6,6 +6,7 @@ use app\store\model\user\Grade as GradeModel;
 use app\store\model\Line;
 use app\store\model\user\UserLine;
 use app\store\model\Coupon;
+use app\store\model\ShelfUnitItem;
 use app\store\model\UserCoupon;
 use app\store\model\Setting;
 use app\store\model\store\shop\Clerk;
@@ -25,19 +26,21 @@ class User extends Controller
      * @return mixed
      * @throws \think\exception\DbException
      */
-    public function index($nickName = '', $gender = null, $grade = null,$user_code = '',$user_id= '')
+    public function index($nickName = '', $gender = null, $grade = null,$user_code = '',$user_id= '',$service_id=null)
     {
         $model = new UserModel;
-        $list = $model->getList($nickName, $gender, $grade,$user_code,$user_id);
+        $Clerk = new Clerk;
+        $list = $model->getList($nickName, $gender, $grade,$user_code,$user_id,$service_id);
+        // dump($list->toArray());die;
         // 会员等级列表
         $gradeList = GradeModel::getUsableList();
         //获取设置
         $set = Setting::detail('store')['values']['usercode_mode'];
-        // dump($list->toArray());die;
+        $servicelist = $Clerk->where('FIND_IN_SET(:ids,clerk_type)', ['ids' => 7])->select();
         // 可以分发的优惠券
         $coupon = (new Coupon())->getAllList();
         $line = (new Line())->getListAll();
-        return $this->fetch('index', compact('list', 'gradeList','line','coupon','set'));
+        return $this->fetch('index', compact('list', 'gradeList','line','coupon','set','servicelist'));
     }
     /**
      * 获取用户信息

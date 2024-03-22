@@ -86,6 +86,11 @@
                                     <p>更新时间：
                                       <span> <?=  $detail['updated_time'] ?></span>
                                     </p>
+                                    <?php if (!empty($detail['scan_time'])): ?>
+                                    <p>更新时间：
+                                      <span> <?=  $detail['scan_time'] ?></span>
+                                    </p>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             </tbody>

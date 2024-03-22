@@ -72,7 +72,7 @@ class Setting extends SettingModel
                     $values['price_mode']['unit_name'] = '欧元';
                     break;
                 case '50':
-                    $values['price_mode']['unit'] = 'A$';
+                    $values['price_mode']['unit'] = 'AUD';
                     $values['price_mode']['unit_name'] = '澳元';
                     break;
                 case '60':

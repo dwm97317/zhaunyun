@@ -50,6 +50,13 @@ class Inpack extends InpackModel
         // 检索查询条件
         !empty($query) && $this->setWhere($query);
         !isset($query['limitnum']) && $query['limitnum'] = 10;
+        
+        $setting = SettingModel::detail("adminstyle")['values'];
+        $order = ['updated_time'=>'desc'];
+        if(isset($setting['inpackorderby'])){
+            $order = [$setting['inpackorderby']['order_mode']=>$setting['inpackorderby']['order_type']];
+        }
+        
         // 获取数据列表
         $res= $this
             ->alias('pa')
@@ -60,7 +67,7 @@ class Inpack extends InpackModel
             ->join('batch ba','ba.batch_id = pa.batch_id','left')
             ->where('pa.status','in',$this->status[$dataType])
             ->where('pa.is_delete',0)
-            ->order(['pa.created_time' => 'desc'])
+            ->order($order)
             ->paginate($query['limitnum'], false, [
                 'query' => \request()->request()
             ]);
@@ -81,6 +88,12 @@ class Inpack extends InpackModel
         // 检索查询条件
         !empty($query) && $this->setWhere($query);
         !isset($query['limitnum']) && $query['limitnum'] = 10;
+        
+        $setting = SettingModel::detail("adminstyle")['values'];
+        $order = ['updated_time'=>'desc'];
+        if(isset($setting['inpackorderby'])){
+            $order = [$setting['inpackorderby']['order_mode']=>$setting['inpackorderby']['order_type']];
+        }
         // 获取数据列表
         $res= $this
             ->alias('pa')
@@ -90,7 +103,7 @@ class Inpack extends InpackModel
             ->where('pa.status','in',$this->status[$dataType])
             ->where('pa.is_delete',0)
             ->where('pa.is_pay',2)
-            ->order(['pa.created_time' => 'desc'])
+            ->order($order)
             ->paginate($query['limitnum'], false, [
                 'query' => \request()->request()
             ]);
@@ -110,6 +123,12 @@ class Inpack extends InpackModel
         // 检索查询条件
         !empty($query) && $this->setWhere($query);
         !isset($query['limitnum']) && $query['limitnum'] = 10;
+        
+        $setting = SettingModel::detail("adminstyle")['values'];
+        $order = ['updated_time'=>'desc'];
+        if(isset($setting['inpackorderby'])){
+            $order = [$setting['inpackorderby']['order_mode']=>$setting['inpackorderby']['order_type']];
+        }
         // 获取数据列表
         $res= $this
             ->alias('pa')
@@ -119,7 +138,7 @@ class Inpack extends InpackModel
             ->where('pa.status','in',$this->status[$dataType])
             ->where('pa.is_delete',0)
             ->where('pa.address_id',null)
-            ->order(['pa.created_time' => 'desc'])
+            ->order($order)
             ->paginate($query['limitnum'], false, [
                 'query' => \request()->request()
             ]);
@@ -179,23 +198,12 @@ class Inpack extends InpackModel
         }
   
         $pack = $this->where('id',$data['id'])->find();
-        // if(isset($data['is_pay']) && $data['is_pay'] == 1){
-        //       $data['pay_time'] = getTime();
-        //       $data['is_pay_type'] = 0;
-        //       $data['is_pay'] = 1;
-        //       if($pack['status']==2){
-        //           $data['status'] = 3;
-        //       }else{
-        //           $data['status'] = $pack['status'];
-        //       }
-        // }
-        
-        
         $userData = (new UserModel)->where('user_id',$pack['member_id'])->find();
         $pack['userName']=$userData['nickName'];
         //判断是否更新状态到已查验
         if(isset($data['verify']) && ($data['verify'] ==1)){
             $data['status'] = 2;
+            $data['pick_time'] = getTime();
             //发送订阅消息以及模板消息,包裹查验完成，等待支付
             $noticesetting = SettingModel::getItem('notice');
             //根据设置内容，判断是否需要发送通知；
@@ -496,7 +504,7 @@ class Inpack extends InpackModel
     
     //获取集运单的相关信息->with(['line','storage','inpackimage.file'])
     public static function details($id){
-        return self::get($id, ['inpackimage.file']);
+        return self::get($id, ['inpackimage.file','line']);
     }
 
     public function setWhere($query){

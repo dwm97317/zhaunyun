@@ -9,6 +9,7 @@ use app\api\model\Setting as SettingModel;
 use app\api\model\Line;
 use app\api\model\Bank;
 use app\common\model\Batch;
+use app\api\model\Batch as BatchModel;
 use app\common\model\Setting as CommonSetting;
 use app\store\model\user\UserLine;
 use app\common\model\Wxapp as WxappModel;
@@ -91,6 +92,14 @@ class Page extends Controller
         $Batch = new Batch;
         
         return true;
+    }
+    
+    //获取批次列表
+    public function getBatchlist(){
+        $Batch = new BatchModel;
+        $list = $Batch->getList();
+        // dump($Batch->getLastsql());die;
+        return $this->renderSuccess(compact('list'));
     }
     
     //获取国家前缀
@@ -469,6 +478,7 @@ class Page extends Controller
     // 获取仓库详情
     public function storageDetails($id){
        $this->user = $this->getUser(); 
+    //   dump($this->user->toarray());die;
        $data = (new Shop())->getDetails($id);
        //当是国外仓库时候，不显示省市区
        if($data['type']==1){
@@ -515,10 +525,13 @@ class Page extends Controller
                         $data['address'] = $data['address'];
                         break;
                     case '20':
-                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_code'].' '.$data['address'];
+                        $data['address'] = 'UID'.' '.$this->user['user_code'].' '.$data['address'];
                         break;
                     case '30':
-                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_code'].' '.$data['address'];
+                        $data['address']  = 'UID'.' '.$this->user['user_code'].' '.$data['address'];
+                        break;
+                    case '40':
+                        $data['address'] = 'UID'.' '.$this->user['user_code'].' '.$data['address'].''.($this->user['service']['real_name']);
                         break;
                     default:
                         // code...
@@ -554,7 +567,10 @@ class Page extends Controller
                         $data['address'] = $data['address'].$this->user['user_code'];
                         break;
                     case '30':
-                        $data['address'] = $data['address'].$this->user['user_code'].'室';
+                        $data['address'] = $data['address'].$this->user['user_code'];
+                        break;
+                    case '40':
+                        $data['address'] = $data['address'].$this->user['user_code'].($this->user['service']['real_name']);
                         break;
                     default:
                         // code...
@@ -595,6 +611,9 @@ class Page extends Controller
                     case '30':
                         $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.$data['address'];
                         break;
+                    case '40':
+                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.$data['address'].''.($this->user['service']['real_name']);
+                        break;
                     default:
                         // code...
                         break;
@@ -627,7 +646,10 @@ class Page extends Controller
                         $data['address'] = $data['address'].$this->user['user_id'];
                         break;
                     case '30':
-                        $data['address'] = $data['address'].$this->user['user_id'].'室';
+                        $data['address'] = $data['address'].$this->user['user_id'];
+                        break;
+                    case '40':
+                        $data['address'] = $data['address'].$this->user['user_id'].($this->user['service']['real_name']);
                         break;
                     default:
                         // code...
@@ -667,6 +689,9 @@ class Page extends Controller
                     case '30':
                         $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.'-CODE:'.$this->user['user_code'].$data['address'];
                         break;
+                    case '40':
+                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.'-CODE:'.$this->user['user_code'].$data['address'].($this->user['service']['real_name']);
+                        break;
                     default:
                         // code...
                         break;
@@ -699,7 +724,10 @@ class Page extends Controller
                         $data['address'] = $data['address'].$this->user['user_id'];
                         break;
                     case '30':
-                        $data['address'] = $data['address'].$this->user['user_id'].'室';
+                        $data['address'] = $data['address'].$this->user['user_id'];
+                        break;
+                    case '40':
+                        $data['address'] = $data['address'].$this->user['user_id'].($this->user['service']['real_name']);
                         break;
                     default:
                         // code...
@@ -885,11 +913,18 @@ class Page extends Controller
            
                $free_rule = json_decode($value['free_rule'],true);
                foreach ($free_rule as $k => $v) {
+                   //判断时候需要取整
+                    if($value['is_integer']==1){
+                        $ww = ceil((($oWeigth-$v['first_weight'])/$v['next_weight']));
+                    }else{
+                        $ww = ($oWeigth-$v['first_weight'])/$v['next_weight'];
+                    }
+                   
                   if ($oWeigth >= $v['first_weight']){
-                          $lines[$key]['sortprice'] =($v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree)*$value['discount'];
+                          $lines[$key]['sortprice'] =($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'];
                           $lines[$key]['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => number_format(($v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree)*$value['discount'],2),
+                              'price' => number_format(($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'],2),
                               'rule' => $v
                           ]; 
                   }else{
@@ -922,14 +957,19 @@ class Page extends Controller
                 $free_rule = json_decode($value['free_rule'],true);
                 // dump($value['free_rule']);
                foreach ($free_rule as $k => $v) {
-                   
+                   //判断时候需要取整
+                    if($value['is_integer']==1){
+                        $ww = ceil(floatval($oWeigth)/floatval($v['weight_unit']));
+                    }else{
+                        $ww = floatval($oWeigth)/floatval($v['weight_unit']);
+                    }
                    if ($oWeigth >= $v['weight'][0]){
                       if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
                           !isset($v['weight_unit']) && $v['weight_unit']=1;
-                          $lines[$key]['sortprice'] =(floatval($v['weight_price']) * ceil(floatval($oWeigth)/floatval($v['weight_unit'])) + floatval($otherfree))*$value['discount'] ;
+                          $lines[$key]['sortprice'] =(floatval($v['weight_price']) *$ww  + floatval($otherfree))*$value['discount'] ;
                           $lines[$key]['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => number_format((floatval($v['weight_price']) * ceil(floatval($oWeigth)/floatval($v['weight_unit'])) + floatval($otherfree))*$value['discount'],2),
+                              'price' => number_format((floatval($v['weight_price']) * $ww + floatval($otherfree))*$value['discount'],2),
                               'rule' => $v,
                               'service' =>0,
                           ]; 

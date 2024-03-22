@@ -233,7 +233,6 @@ function drawTextTest(content,usermark,date) {
             var text = content;
             var mark = '唛头：' + usermark;
             var margin = 1;
-            console.log(3456,76655)
             if (api.startJob({ width: width, height: height, orientation: orientation, jobName: jobName })) {
                 //先画出条形码
                 api.drawText({ text: mark,x:1,y:1, width: width, height: height, fontHeight: fontHeight });

@@ -51,13 +51,17 @@
                             dataType: 'json',
                             data: options.buildData.call(true),
                             success: function (result) {
+                                console.log(result,7565);
                                 if (options.success === $.noop) {
                                     for (var i = 0; i < result.data.length; i++) {
                                         drawTextTest(result.data[i].express_num,result.data[i].usermark,today);
                                     }
-                                    // setTimeout(function(){location.reload();},1000);
-                                    result.code === 1 ? $.show_success(result.msg, result.url)
+                                    
+                                    setTimeout(function(){
+                                        result.code === 1 ? $.show_success(result.msg, result.url)
                                         : $.show_error(result.msg);
+                                    },result.data.length * 400);
+                                    
                                 } else {
                                     options.success.call(true, result);
                                 }

@@ -50,6 +50,14 @@ return [
                     'tools/index/add',
                 ]
             ],
+            [
+                'name' => '城市管理',
+                'index' => 'tools.city/citylist',
+                'uris' => [
+                    'tools.city/citylist',
+                    'tools.city/add',
+                ]
+            ],
         ],
     ],
     'setting' => [

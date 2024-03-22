@@ -221,6 +221,9 @@ function parseJson($str){
  */
 function hide_mobile(string $mobile): string
 {
+    if(empty($mobile)){
+        return '';
+    }
     return substr_replace($mobile, '****', 3, 4);
 }
 /**
@@ -1597,10 +1600,16 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                  //首重价格+续重价格*（总重-首重）
 
                foreach ($free_rule as $k => $v) {
-                          $data['sortprice'] =($v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree)*$discount;
+                    if($packData['line']['is_integer']==1){
+                        $ww = ceil((($oWeigth-$v['first_weight'])/$v['next_weight']));
+                    }else{
+                        $ww = ($oWeigth-$v['first_weight'])/$v['next_weight'];
+                    }
+                   
+                          $data['sortprice'] =($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$discount;
                           $data['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => ($v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree)*$discount,
+                              'price' => ($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$discount,
                               'rule' => $v
                           ];   
                }
@@ -1623,12 +1632,17 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                
                 case '4':
                foreach ($free_rule as $k => $v) {
+                   if($packData['line']['is_integer']==1){
+                        $ww = ceil(floatval($oWeigth)/floatval($v['weight_unit']));
+                    }else{
+                        $ww = floatval($oWeigth)/floatval($v['weight_unit']);
+                    }
                    if ($oWeigth > $v['weight'][0]){
                       if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
-                          $data['sortprice'] = ($v['weight_price']*ceil($oWeigth/$v['weight_unit']) + $otherfree)*$discount ;
+                          $data['sortprice'] = ($v['weight_price']*$ww + $otherfree)*$discount ;
                           $data['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => ($v['weight_price']*ceil($oWeigth/$v['weight_unit']) + $otherfree)*$discount,
+                              'price' => ($v['weight_price']*$ww + $otherfree)*$discount,
                               'rule' => $v
                           ];   
                       }

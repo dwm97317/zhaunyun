@@ -62,6 +62,20 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否向上取整 </label>
+                                <div class="am-u-sm-9 am-u-end" >
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[is_integer]" <?= $model['is_integer'] == 1 ? 'checked' : '' ?> value="1" data-am-ucheck
+                                               checked>
+                                        向上取整
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[is_integer]"  <?= $model['is_integer'] == 2 ? 'checked' : '' ?> value="2" data-am-ucheck>
+                                        按实际重量
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 线路重量单位 </label>
                                 <div class="am-u-sm-9 am-u-end">
                             

@@ -123,7 +123,7 @@ class Region extends BaseModel
     {
         // 缓存的数据
         // Cache::tag('cache')->set('region', null);
-        $complete = Cache::get('region');
+        // $complete = Cache::get('region');
         // dump($complete);die;
         // 如果存在缓存则返回缓存的数据，否则从数据库中查询
         // 条件1: 获取缓存数据
@@ -148,7 +148,7 @@ class Region extends BaseModel
         ];
         // dump($complete);die;
         // 写入缓存
-        Cache::tag('cache')->set('region', $complete);
+        // Cache::tag('cache')->set('region', $complete);
         return $complete;
     }
 
@@ -206,7 +206,7 @@ class Region extends BaseModel
     private function getAllList()
     {
         $list = self::useGlobalScope(false)
-            ->field('id, pid, name, level')
+            ->field('id, pid, name, level,shortname,merger_name')
             ->select()
             ->toArray();
         return helper::arrayColumn2Key($list, 'id');

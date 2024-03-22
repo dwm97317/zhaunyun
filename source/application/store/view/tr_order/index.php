@@ -227,7 +227,9 @@
                                 <th>单号信息</th>
                                 <th>转运信息</th>
                                 <th>收货信息</th>
+                                <?php if (checkPrivilege('tr_order/freelist')): ?>
                                 <th>费用信息</th>
+                                <?php endif;?>
                                 <th>包裹信息</th>
                                 <th>时间</th>
                                 <th>支付状态</th>
@@ -323,6 +325,7 @@
                                         邮箱：<?= !isset($item['address']['email'])?'未填':$item['address']['email'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['email'];?>" onclick="copyUrl2(this)">[复制]</span>
                                         <?php endif ;?>
                                     </td>
+                                    <?php if (checkPrivilege('tr_order/freelist')): ?>
                                     <td class="am-text-middle">
                                         基础线路费用:<span style="color:#ff6666;cursor:pointer" text="<?= $item['free'] ?>" onclick="copyUrl2(this)"><?= $item['free'] ?></span></br>
                                         
@@ -347,7 +350,7 @@
                                         <?php endif ;?>
                                         
                                     </td>
-                  
+                                    <?php endif ;?>
                                     <td class="am-text-middle">
                                         实际重量(<?= $set['weight_mode']['unit'] ?>):<?= $item['weight'] ?></br>
                                         体积重量(<?= $set['weight_mode']['unit'] ?>):<?= $item['volume'] ?></br>
@@ -359,15 +362,15 @@
                                     <td class="am-text-middle">
                                         提交打包：<?= $item['created_time'] ?> </br>
                                         
-                                        <?php if ($item['is_pay']==1): ?>
+                                        <?php if ($item['pay_time'] && $item['is_pay']==1): ?>
                                         支付时间：<?= $item['pay_time'] ?> </br>
                                         <?php endif; ?>
                                         
-                                        <?php if ($item['status']==7): ?>
+                                        <?php if ($item['shoprk_time']): ?>
                                         到货时间：<?= $item['shoprk_time'] ?> </br>
                                         <?php endif; ?>
                                         
-                                        <?php if ($item['status']==8): ?>
+                                        <?php if ($item['receipt_time']): ?>
                                         签收时间：<?= $item['receipt_time'] ?> </br>
                                         <?php endif; ?>
                                          
@@ -375,9 +378,10 @@
                                         结算时间：<?= $item['settle_time'] ?> </br>
                                         <?php endif; ?>
                                         
-                                        <?php if ($item['status']==5 && $item['pick_time'] ): ?>
+                                        <?php if ($item['pick_time'] ): ?>
                                         打包完成：<?= $item['pick_time'] ?> </br>
                                         <?php endif; ?>
+                                        
                                         
                                     </td>
                                     

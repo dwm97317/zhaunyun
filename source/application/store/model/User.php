@@ -48,7 +48,7 @@ class User extends UserModel
      * @return \think\Paginator
      * @throws \think\exception\DbException
      */
-    public function getList($nickName = '', $gender = -1, $grade = null,$user_code='',$user_id='')
+    public function getList($nickName = '', $gender = -1, $grade = null,$user_code='',$user_id='',$service_id=null)
     {
         // 检索：微信昵称
         !empty($nickName) && $this->where('nickName', 'like', "%$nickName%");
@@ -56,6 +56,7 @@ class User extends UserModel
         // 检索：微信昵称
         !empty($user_code) && $this->where('user_code', 'like', "%$user_code%");
         !empty($user_id) && $this->where('user_id', 'like', "%$user_id%");
+        !empty($service_id) && $this->where('service_id', '=', $service_id);
         // 检索：性别
         if ($gender !== '' && $gender > -1) {
             $this->where('gender', '=', (int)$gender);
@@ -73,7 +74,7 @@ class User extends UserModel
             ])
             ->each(function($item, $key) use (&$inpack,&$package) {
                 $tiems = $inpack->where('member_id',$item['user_id'])->order('created_time desc')->limit(1)->value('created_time');
-               
+                $item['total_weight'] = $inpack->where('member_id',$item['user_id'])->where('is_delete',0)->sum('weight');
                if(!empty($tiems)){
                    $item['update_time'] = strtotime($tiems);
                }else{

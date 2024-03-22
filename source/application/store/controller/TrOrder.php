@@ -31,6 +31,7 @@ use app\api\model\dealer\Setting as SettingDealerModel;
 use app\common\model\dealer\User as DealerUser;
 use app\api\model\dealer\Referee as RefereeModel;
 use app\common\model\dealer\Order as DealerOrder;
+
 /**
  * 订单管理
  * Class Order
@@ -137,6 +138,46 @@ class TrOrder extends Controller
     
     
     /**
+     * 获取用户每个月都出货量
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function getUserMouthWeight()
+    {
+        $param = $this->request->param();
+        $Inpack =new Inpack;
+        $mouthlist = [];
+        $mouthlistt = [];
+        $currentYear = date("Y");
+        $lastYear = date("Y", strtotime("-1 year"));
+        
+        $setting = SettingModel::getItem('store',$this->getWxappId());
+        $nowmouth = date('m');
+        $nowmouth = ltrim($nowmouth, '0');
+        for ($i = $nowmouth; $i <= 12; $i++) {
+             $mouthlist[$i]['mouth'] = $lastYear.'-'.$i;
+             $specifiedDate = date($currentYear.'-'.$i);
+             $lastDayOfSpecifiedMonth = date($lastYear.'-m-t', strtotime($specifiedDate));
+             
+            //   dump($lastDayOfSpecifiedMonth);die;
+             $mouthlist[$i]['sum'] = $Inpack->where('member_id',$param['user_id'])->where('is_delete',0)->where('created_time','between',[date('Y-'.$i.'-01'),$lastDayOfSpecifiedMonth])->SUM('weight') . $setting['weight_mode']['unit'];
+             $mouthlist[$i]['total'] = $Inpack->where('member_id',$param['user_id'])->where('is_delete',0)->where('created_time','between',[date('Y-'.$i.'-01'),$lastDayOfSpecifiedMonth])->count();
+        }
+        
+        
+        for ($i = 1; $i <= $nowmouth; $i++) {
+             $mouthlistt[$i]['mouth'] = $currentYear.'-'.$i;
+             $specifiedDate = date($currentYear.'-'.$i);
+             $lastDayOfSpecifiedMonth = date('Y-m-t', strtotime($specifiedDate));
+             $mouthlistt[$i]['sum'] = $Inpack->where('member_id',$param['user_id'])->where('is_delete',0)->where('created_time','between',[date('Y-'.$i.'-01'),$lastDayOfSpecifiedMonth])->SUM('weight') . $setting['weight_mode']['unit'];
+             $mouthlistt[$i]['total'] = $Inpack->where('member_id',$param['user_id'])->where('is_delete',0)->where('created_time','between',[date('Y-'.$i.'-01'),$lastDayOfSpecifiedMonth])->count();
+        }
+        
+        $mouthlist = array_merge($mouthlist,$mouthlistt);
+        return $this->renderSuccess('获取成功','',$mouthlist);
+    }
+    
+    /**
      * 生成转运单号
      * @return array|bool|mixed
      * @throws \Exception
@@ -159,6 +200,7 @@ class TrOrder extends Controller
          // 订单详情
         // $detail = Inpack::details($id);
         $Package = new Package();
+        $storesetting = SettingModel::getItem('store',$this->getWxappId());
         $list = $Package->with("packageimage.file")->where('inpack_id',$id)->select();
     //   dump($list->toArray());die;
         foreach ($list as $k => $v){
@@ -166,7 +208,7 @@ class TrOrder extends Controller
             $list[$k]['pakitem'] = (new PackageItem())->where('order_id',$v['id'])->select();
         }
         //   dump($list->toarray());die;
-        return $this->fetch('package', compact('list','id'));
+        return $this->fetch('package', compact('list','id','storesetting'));
     }
     
     //修改集运单所属用户id
@@ -224,15 +266,16 @@ class TrOrder extends Controller
         if ($detail['status']>=2){
             $detail['total'] = $detail['free']+$detail['pack_free']+$detail['other_free'];
         }
-        $packages = explode(",",$detail['pack_ids']);
-        
-        foreach($packages as $key => $value){
-           $package[$key] = (new Package())->where("id",$value)->find();
-           $packageItems[$key] = (new PackageItem())->where("order_id",$value)->find();
-           if(!empty($packageItems[$key])){
-               $packageItem[$key] = $packageItems[$key];
-           }
+        // $packages = explode(",",$detail['pack_ids']);
+         $packagelist= (new Package())->where("inpack_id",$detail['id'])->select();
+        //   dump($packagelist);die;
+        foreach($packagelist as $key => $value){
+          $packageItems[$key] = (new PackageItem())->where("order_id",$value['id'])->find();
+          if(!empty($packageItems[$key])){
+              $packageItem[$key] = $packageItems[$key];
+          }
         }
+        //  dump($packageItem->toArray());die;
         $packageService = (new PackageService())->getList([]);
         $detail['service'] = (new InpackService())->with('service')->where('inpack_id',$id)->select();
         // dump($PackageItem);die;
@@ -900,6 +943,7 @@ class TrOrder extends Controller
         if($setting['is_discount']==1){
             $UserLine =  (new UserLine());
             $linedata= $UserLine->where('user_id',$pakdata['member_id'])->where('line_id',$line['id'])->find();
+           
                 if($linedata){
                    $value['discount']  = $linedata['discount'];
                 }else{
@@ -907,10 +951,11 @@ class TrOrder extends Controller
                 }
                 //会员等级折扣
                 $suer  = User::detail($pakdata['member_id']);
-                // dump($suer->toArray());die;
+                
                 if(!empty($suer['grade']) && $suer['grade']['status']==1 && $suer['grade']['equity']['discount']>0){
                     $value['discount'] = $suer['grade']['equity']['discount'] * 0.1;
                 }
+                //   dump($value['discount']);die;
         }else{
             $value['discount'] =1;
         }
@@ -966,9 +1011,15 @@ class TrOrder extends Controller
                 //首重价格+续重价格*（总重-首重）
                $free_rule = json_decode($line['free_rule'],true);
                foreach ($free_rule as $k => $v) {
+                    //判断时候需要取整
+                    if($line['is_integer']==1){
+                        $ww = ceil((($oWeigth-$v['first_weight'])/$v['next_weight']));
+                    }else{
+                        $ww = ($oWeigth-$v['first_weight'])/$v['next_weight'];
+                    }
                           $lines['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => ($v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree)*$value['discount'],
+                              'price' => ($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'],
                               'rule' => $v,
                               'service' =>0,
                           ];   
@@ -995,14 +1046,20 @@ class TrOrder extends Controller
                
             case '4':
                 $free_rule = json_decode($line['free_rule'],true);
-                // dump($value['free_rule']);
+                
                foreach ($free_rule as $k => $v) {
+                    //判断时候需要取整
+                    if($line['is_integer']==1){
+                        $ww = ceil(floatval($oWeigth)/floatval($v['weight_unit']));
+                    }else{
+                        $ww = floatval($oWeigth)/floatval($v['weight_unit']);
+                    }
                    if ($oWeigth >= $v['weight'][0]){
                       if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
                           !isset($v['weight_unit']) && $v['weight_unit']=1;
                           $lines['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => (floatval($v['weight_price']) * ceil(floatval($oWeigth)/floatval($v['weight_unit'])) + floatval($otherfree))*$value['discount'],
+                              'price' => (floatval($v['weight_price']) * $ww + floatval($otherfree))*$value['discount'],
                               'rule' => $v,
                               'service' =>0,
                           ]; 
@@ -1155,32 +1212,39 @@ class TrOrder extends Controller
      public function packageinout()
     {
          $model = new Inpack();
+         $Package = new Package;
+         $PackageItem = new PackageItem();
         //批量移出集运单
           $ids= input("post.selectId/a");  //需要移出的包裹id；
           $item =input("post.selectItem"); // 集运单编号
           $detail = $model->find($item);
-          $package_ids = explode(',',$detail['pack_ids']);
-          //移除数组
-          $package_ids = array_diff($package_ids,$ids);
-          //更新集运单的包裹
-          $inpackUpdate['pack_ids'] = implode(',',$package_ids);
-          $res = $model->where(['id'=>$item])->update($inpackUpdate);
           
-          if (!$res){
+          $result = $Package->where('id','in',$ids)->update(['inpack_id'=>null]);
+          if (!$result){
               return $this->renderSuccess('拆包失败');
           }
           //将选中的包裹单号合并为packs_id需要的数据类型
-          $newpack = $detail;
-          $newpack['pack_ids'] = implode(',',$ids); 
+          $newpack = $detail->toArray();
+        //   dump($detail);die;
           unset($newpack['id']);
+          unset($newpack['is_pay_type']);
+          unset($newpack['pay_type']);
+          unset($newpack['pack_ids']);
           $newpack['order_sn'] = createSn();
-        //   dump($detail->toArray());die;
-          $result = $model->insert($newpack->toArray());
-        //   dump($model->getLastsql());die;
-          if ($result){
+          $newpack['is_pay_type'] = $detail['is_pay_type']['value'];
+          $newpack['pay_type'] = $detail['pay_type']['value'];
+          
+          $resultid = $model->insertGetId($newpack);
+             
+          $resultpack = $Package->where('id','in',$ids)->update(['inpack_id'=>$resultid]);
+        //   foreach ($ids as $value) {
+        //       // code...
+        //   }
+          if ($resultpack){
+            //   $PackageItem->where('order_id','in',$ids)->update(['order_id'=>]);
               return $this->renderSuccess('拆包合包成功');
           }
-          return $this->renderError($model->getError() ?: '拆包合包失败');
+          return $this->renderError($Package->getError() ?: '拆包合包失败');
     }
     
     
@@ -1216,11 +1280,22 @@ class TrOrder extends Controller
        if(!$data['t_order_sn']){
            return $this->renderError('转运单号为空');
        }
-
+       $adminstyle = Setting::getItem('adminstyle',$data['wxapp_id']);
        $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
        $data['barcode'] = $generatorSVG->getBarcode($data['t_order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor = 1.5, $totalHeight = 40);
-       echo $this->fill($data);
+    // dump($data->toArray());die;
+       switch ($adminstyle['delivertempalte']['orderface']) {
+           case '10':
+               echo $this->template10($data);
+               break;
+           case '20':
+               echo $this->template20($data);
+               break;
+           default:
+                echo $this->template10($data);
+               break;
+       }
     }
     
      // 打印标签
@@ -1231,7 +1306,7 @@ class TrOrder extends Controller
        if(!$data['order_sn']){
            return $this->renderError('转运单号为空');
        }
-    //   dump($data);die;
+       $adminstyle = Setting::getItem('adminstyle',$data['wxapp_id']);
        $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
  
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
@@ -1246,6 +1321,7 @@ class TrOrder extends Controller
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorJPG(); #创建SVG类型条形码
        $data = $inpack->getExpressData($id);
        $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
+       $data['adminstyle'] = Setting::getItem('adminstyle',$data['wxapp_id']);
        $data['name'] = '';
        if(!empty($data['member_id'])){
            $member  = UserModel::detail($data['member_id']);
@@ -1266,7 +1342,40 @@ class TrOrder extends Controller
     }
     
    
-       public function free($data){
+    public function free($data){
+    if($data['adminstyle']['freestyle']==10){
+      $freestyle = '<tr>
+    		<td width="152" height="36" class="pl center font_xl">
+    		    金额Payment
+    		</td>
+    		<td width="240" class="center font_xl">
+    		     '.$data['total_free'].'
+    		</td>
+    	</tr>';  
+    }else{
+        $freestyle = '<tr>
+    		<td width="152" height="36" class="pl center font_xl">
+    		    金额Payment
+    		</td>
+    		<td width="240" class="center font_xl">
+    		    <table class="newtable">
+        		    <tr>
+        		        <td class="newtd">基础路线费用：'.$data['free'].'</td>
+        		     </tr>
+        		     <tr>
+        		        <td class="newtd">打包服务费：'.$data['pack_free'].'</td>
+        		     </tr>
+        		     <tr>
+        		        <td class="newtd">其他杂费：'.$data['other_free'].'</td>
+        		     </tr>
+        		     <tr>
+        		        <td class="newtd">总费用：'.$data['total_free'].'</td>
+        		     </tr>
+    		    </table>
+    		</td>
+    	</tr>';
+    }
+    
     return  $html = '<style>
 	* {
 		margin: 0;
@@ -1278,7 +1387,13 @@ class TrOrder extends Controller
 		font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
 		border-collapse: collapse
 	}
-
+	.newtable{
+	    width:100%;
+	    height:100%;
+	}
+    .newtd{
+        border:none;
+    }
 	table.container {
     	margin-top:10px;
 		width: 400px;
@@ -1353,14 +1468,7 @@ class TrOrder extends Controller
 		     '.$data['cale_weight'].'
 		</td>
 	</tr>
-	<tr>
-		<td width="152" height="36" class="pl center font_xl">
-		    金额Payment
-		</td>
-		<td width="240" class="center font_xl">
-		     '.$data['total_free'].'
-		</td>
-	</tr>
+	'.$freestyle.'
 	<tr>
 		<td colspan=2 class="paddingleft left font_xl" height="36">
 		   '.$data['address']['name']. hide_mobile($data['address']['phone']).'<br>
@@ -1531,7 +1639,7 @@ class TrOrder extends Controller
     }
     
     // 渲染面单生成网页数据
-    public function fill($data){
+    public function template10($data){
       return  $html = '<style>
 	* {
 		margin: 0;
@@ -1799,6 +1907,263 @@ class TrOrder extends Controller
 </table>
 ';
     }
+    
+  // 渲染面单生成网页数据
+    public function template20($data){
+      return  $html = '<style>
+	* {
+		margin: 0;
+		padding: 0
+	}
+
+	table {
+		margin-top: -1px;
+		font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
+		border-collapse: collapse
+	}
+
+	table.container {
+		width: 375px;
+		border: 1px solid #000;
+		border-bottom: 0
+	}
+
+	table td {
+		border-top: 1px solid #000;
+		border-bottom: 1px solid #000
+	}
+
+	table.nob {
+		width: 100%
+	}
+
+	table.nob td {
+		border: 0
+	}
+
+	table td.center {
+		text-align: center
+	}
+
+	table td.right {
+		text-align: right
+	}
+
+	table td.pl {
+		padding-left: 5px
+	}
+
+	table td.br {
+		border-right: 1px solid #000
+	}
+
+	table.nobt,
+	table td.nobt {
+		border-top: 0
+	}
+
+	table.nobb,
+	table td.nobb {
+		border-bottom: 0
+	}
+
+	.font_s {
+		font-size: 10px;
+		-webkit-transform: scale(0.84, 0.84);
+		*font-size: 10px
+	}
+
+	.font_m {
+		font-size: 16px
+	}
+
+	.font_l {
+		font-size: 16px;
+		font-weight: bold
+	}
+
+	.font_xl {
+		font-size: 18px;
+		font-weight: bold
+	}
+
+	.font_xxl {
+		font-size: 28px;
+		font-weight: bold
+	}
+
+	.font_xxxl {
+		font-size: 32px;
+		font-weight: bold
+	}
+	.country{
+    	font-size: 37px;
+        padding: 0px;
+        margin: 0px;
+        font-weight: bold;
+        width: 100px;
+	}
+	.barcode{text-align:center;}
+</style>
+<table class="container">
+	<tr>
+		<td width="140" height="76" class="pl center font_xl">'.$data['line']['name'].'</td>
+		<td width="252" class="center">
+			<table class="nob">
+				<tr>
+					<td>'.$data['barcode'].'
+					</td>
+				</tr>
+				<tr>
+					<td class="center font_l">'.$data['t_order_sn'].'</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td height="56">
+			<table class="nob">
+				<tr>
+					<td class="pl" height="28">寄件：</td>
+					<td>'.$data['storage']['shop_name'].$data['storage']['address'].'</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container nobb">
+	<tr>
+		<td height="66" class="nobb">
+			<table class="nob">
+				<tr>
+					<td class="pl" height="28">收件：</td>
+					<td><strong>'.$data['address']['name'].  '+'.$data['address']['tel_code'].'  '.$data['address']['phone'].'</strong></td>
+				</tr>
+				<tr>
+					<td height="38" class="country">CN</td>
+					<td valign="top"><strong>
+					'.$data['address']['country'].'
+					'.$data['address']['province'].'
+					'.$data['address']['city'].'
+					'.$data['address']['region'].'
+					'.$data['address']['district'].'
+					'.$data['address']['street'].'
+					'.$data['address']['door'].'
+					'.$data['address']['detail'].'</strong>
+					'.$data['address']['code'].'
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container nobt">
+	<tr>
+		<td class="nobt">
+			<table class="nob">
+				<tr>
+					<td class="pl" width="110" height="24">付款方式：</td>
+					<td width="60">寄付</td>
+					<td width="100">收件人/代签人：</td>
+					<td></td>
+				</tr>
+				<tr>
+					<td class="pl" height="24">计费重量（KG）：</td>
+					<td>'.$data['cale_weight'].'</td>
+					<td>签收时间：</td>
+					<td>年&emsp;月&emsp;日</td>
+				</tr>
+				<tr>
+					<td colspan="4" class="font_s">快件送达收件人地址，经收件人或收件人允许的代收人签字视为送达。</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td>
+			<table class="nob">
+				<tr>
+					<td class="pl" width="65" height="24">件数：</td>
+					<td width="60">1</td>
+					<td width="80">重：</td>
+					<td>'.$data['cale_weight'].'</td>
+				</tr>
+				<tr>
+					<td class="pl" height="50" valign="top">配货信息：</td>
+					<td colspan="3"></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td class="center" height="65">
+			<table class="nob">
+				<tr>
+					<td class="barcode">'.$data['barcode'].'</td>
+				</tr>
+				<tr>
+					<td class="center font_l">'.$data['t_order_sn'].'</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td width="187" height="65" class="br">
+			<table class="nob">
+				<tr>
+					<td class="pl">寄件：</td>
+					<td>'.$data['storage']['address'].'</td>
+				</tr>
+			</table>
+		</td>
+		<td>
+			<table class="nob">
+				<tr>
+					<td class="pl">收件：</td>
+					<td>'.$data['address']['name'].' 
+					'.$data['address']['phone'].'</br>
+					'.$data['address']['country'].'
+					'.$data['address']['detail'].'
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<table class="container">
+	<tr>
+		<td width="200" height="80">
+			<table class="nob">
+				<tr>
+					<td class="pl">备注：</td>
+				</tr>
+				<tr>
+					<td class="pl font_m font_s">'.$data['remark'].'</td>
+				</tr>
+			</table>
+		</td>
+		<td class="center">
+			<table class="nob">
+				<tr>
+					<td class="font_xxxl">'.substr($data['address']['phone'],-4).'</td>
+				</tr>
+				<tr>
+					<td class="">-手机尾号-</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+';
+    }
    
     // 批量打印面单 [生成pdf]
     public function expressBillbatch(){
@@ -1807,7 +2172,7 @@ class TrOrder extends Controller
         $data = $inpack->getExpressBatchData($selectIds);
         $html = '';
         foreach($data as $v){
-           $html.= $this->fill($v); 
+           $html.= $this->template10($v); 
            $html.="</hr>";
         }
         file_put_contents('expressBill.html', charsetToUTF8($html));
@@ -1952,21 +2317,22 @@ class TrOrder extends Controller
                 ->setCellValue('H4', '商品价格')
                 ->setCellValue('I4', '用户ID')
                 ->setCellValue('J4', '姓名')
-                ->setCellValue('K4', '个人通关号码')
-                ->setCellValue('L4', '身份证')
-                ->setCellValue('M4', '地址')
-                ->setCellValue('N4', '邮编')
-                ->setCellValue('O4', '承运商')
-                ->setCellValue('P4', '发货单号')
-                ->setCellValue('Q4', '备注')
-                ->setCellValue('R4', '状态')
-                ->setCellValue('S4', '业务日期')
-                ->setCellValue('T4', '专属客服');
+                ->setCellValue('K4', '手机号')
+                ->setCellValue('L4', '个人通关号码')
+                ->setCellValue('M4', '身份证')
+                ->setCellValue('N4', '地址')
+                ->setCellValue('O4', '邮编')
+                ->setCellValue('P4', '承运商')
+                ->setCellValue('Q4', '发货单号')
+                ->setCellValue('R4', '备注')
+                ->setCellValue('S4', '状态')
+                ->setCellValue('T4', '业务日期')
+                ->setCellValue('U4', '专属客服');
                    
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:T')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:U')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:T4')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:T')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:U4')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:U')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         
         $objPHPExcel->getActiveSheet()->getStyle('A:T')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
@@ -1986,20 +2352,21 @@ class TrOrder extends Controller
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('J')->setWidth(10);
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('K')->setWidth(18);
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('L')->setWidth(18);
-        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('M')->setWidth(25);
-        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('N')->setWidth(10);
-        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('O')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('M')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('N')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('O')->setWidth(10);
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('P')->setWidth(18);
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('Q')->setWidth(18);
-        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('R')->setWidth(10);
-        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('S')->setWidth(22);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('R')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('S')->setWidth(10);
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('T')->setWidth(22);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('U')->setWidth(22);
         
         for($i=0;$i<count($data);$i++){
             // dump($data->toArray());die;
             $objPHPExcel->getActiveSheet()->setCellValue('A'.($i+5),$i+1);//序号
             $objPHPExcel->getActiveSheet()->setCellValue('B'.($i+5),$data[$i]['t_name']);//集运路线
-            $objPHPExcel->getActiveSheet()->setCellValue('C'.($i+5),$data[$i]['order_sn']);//平台订单号
+            $objPHPExcel->getActiveSheet()->setCellValue('C'.($i+5),$data[$i]['order_sn'].' ');//平台订单号
             $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+5),$data[$i]['country']);//目的地
             $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+5),$data[$i]['weight']);//重量
             $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+5),$data[$i]['free']);//标准价
@@ -2007,16 +2374,17 @@ class TrOrder extends Controller
             $objPHPExcel->getActiveSheet()->setCellValue('H'.($i+5),$data[$i]['packprice']);//标准价 ***********
             $objPHPExcel->getActiveSheet()->setCellValue('I'.($i+5),$data[$i]['user']['user_id']);//用户id
             $objPHPExcel->getActiveSheet()->setCellValue('J'.($i+5),$data[$i]['address']['name']);//用户昵称
-            $objPHPExcel->getActiveSheet()->setCellValue('K'.($i+5),$data[$i]['address']['clearancecode']);//快递类别  ***********
-            $objPHPExcel->getActiveSheet()->setCellValue('L'.($i+5),$data[$i]['address']['identitycard']);//快递类别  ***********
-            $objPHPExcel->getActiveSheet()->setCellValue('M'.($i+5),$data[$i]['address']['detail']);//快递类别  ***********
-            $objPHPExcel->getActiveSheet()->setCellValue('N'.($i+5),$data[$i]['address']['code']);//快递类别  ***********
-            $objPHPExcel->getActiveSheet()->setCellValue('O'.($i+5),$data[$i]['t_name'].' ');//内部单号
-            $objPHPExcel->getActiveSheet()->setCellValue('p'.($i+5),$data[$i]['t_order_sn'].' ');//内部单号
-            $objPHPExcel->getActiveSheet()->setCellValue('Q'.($i+5),$data[$i]['remark']);//备注
-            $objPHPExcel->getActiveSheet()->setCellValue('R'.($i+5),$status[$data[$i]['status']]);//转单号码
-            $objPHPExcel->getActiveSheet()->setCellValue('S'.($i+5),$data[$i]['created_time']);//业务日期
-            $objPHPExcel->getActiveSheet()->setCellValue('T'.($i+5),$data[$i]['user']['user_id']);//专属客服
+            $objPHPExcel->getActiveSheet()->setCellValue('K'.($i+5),$data[$i]['address']['phone']);//专属客服
+            $objPHPExcel->getActiveSheet()->setCellValue('L'.($i+5),$data[$i]['address']['clearancecode']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('M'.($i+5),$data[$i]['address']['identitycard']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('N'.($i+5),$data[$i]['address']['detail']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('O'.($i+5),$data[$i]['address']['code']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('P'.($i+5),$data[$i]['t_name'].' ');//内部单号
+            $objPHPExcel->getActiveSheet()->setCellValue('Q'.($i+5),$data[$i]['t_order_sn'].' ');//内部单号
+            $objPHPExcel->getActiveSheet()->setCellValue('R'.($i+5),$data[$i]['remark']);//备注
+            $objPHPExcel->getActiveSheet()->setCellValue('S'.($i+5),$status[$data[$i]['status']]);//转单号码
+            $objPHPExcel->getActiveSheet()->setCellValue('T'.($i+5),$data[$i]['created_time']);//业务日期
+            $objPHPExcel->getActiveSheet()->setCellValue('U'.($i+5),$data[$i]['user']['user_id']);//专属客服
         }
         //7.设置保存的Excel表格名称
         //8.设置当前激活的sheet表格名称；

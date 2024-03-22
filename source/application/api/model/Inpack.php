@@ -54,16 +54,25 @@ class Inpack extends InpackModel
     public function getList($query=[]){
         // 检索查询条件
         !empty($query) && $this->setWhere($query);
-
         // 获取数据列表 
              return $this
             ->with(['line','address','storage'])
             ->order(['created_time' => 'desc'])
-            
             ->where('is_delete',0)
             ->paginate(10, false, [
                 'query' => \request()->request()
             ]);
+            
+    }
+    
+    public function getAllList($query=[]){
+        // 检索查询条件
+        !empty($query) && $this->setWhere($query);
+        // 获取数据列表 
+             return $this
+            ->order(['created_time' => 'desc'])
+            ->where('is_delete',0)
+            ->select();
     }
     
     /**
@@ -134,6 +143,8 @@ class Inpack extends InpackModel
         isset($query['member_id']) && $this->where('member_id','=',$query['member_id']);
         isset($query['inpack_type']) && $this->where('inpack_type','=',$query['inpack_type']);
         isset($query['shop_id']) && $this->where('shop_id','=',$query['shop_id']);
+        isset($query['batch_id']) && $this->where('batch_id','=',$query['batch_id']);
+        isset($query['rfid_id']) && $this->where('rfid_id','=',$query['rfid_id']);
         isset($query['is_settled']) && $this->where('is_settled','=',$query['is_settled']);
         return $this;
     }

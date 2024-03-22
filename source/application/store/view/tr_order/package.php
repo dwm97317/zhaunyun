@@ -55,11 +55,12 @@
                                 <th>包裹图片</th>
                                 <th width='150'>包裹类别</th>
                                 <th>包裹明细</th>
+                                <th>包裹重量</th>
                                 <th>备注信息</th>
                                 <th>包裹位置</th>
                                 <th>状态</th>
                                 <th>扫描状态</th>
-                                <th>添加时间</th>
+                                <th>操作时间</th>
                                 <th>操作</th>
                             </tr>
                             </thead>
@@ -88,17 +89,24 @@
                                             类别：<?= $items['class_name'] ?><br>
                                             <?php endforeach; ?>
                                         </td>
+                                       
                                         <td class="am-text-middle">
                                             <?php foreach ($item['pakitem'] as $items): ?>
                                             <?= $items['goods_name'].'*'.$items['product_num'].' 价值:'.$items['all_price'] ?><br>
                                             <?php endforeach; ?>
                                         </td>
+                                         <td class="am-text-middle"><?= $item['weight'].$storesetting['weight_mode']['unit'];?></td>
                                          <td class="am-text-middle"><?= $item['remark'];?></td>
                                         <td class="am-text-middle"><?php if($item['shelf']):?> <?= $item['shelf']; ?><?php else :?>包裹不在货架上<?php endif;?></td>
                                         <td class="am-text-middle"><?= $status[$item['status']];?></td>
                                         <td  <?php if ($item['is_scan']==2):?>style="color:red;"<?php endif; ?>class="am-text-middle scan">
                                         <?= $is_scan[$item['is_scan']];?></td>
-                                        <td class="am-text-middle"><?= $item['created_time']; ?></td>
+                                        <td class="am-text-middle">
+                                            创建时间：<?= $item['created_time']; ?></br>
+                                            <?php if (!empty($item['scan_time'])): ?>
+                                            查验时间：<?= $item['scan_time'] ?></br>
+                                            <?php endif; ?>
+                                        </td>
                                         <td class="am-text-middle">
                                             <div class="tpl-table-black-operation"  >
                                               <a href="javascript:void(0);" 

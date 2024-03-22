@@ -22,9 +22,19 @@ class Help extends Controller
         return $this->fetch('menuSet');
     }
     
-     public function hotCategory()
+    public function hotCategory()
     {
         return $this->fetch('hotCategory');
+    }
+    
+    public function orderface()
+    {
+        return $this->fetch('orderface');
+    }
+    
+    public function labelface()
+    {
+        return $this->fetch('labelface');
     }
 
 }

@@ -61,6 +61,7 @@
                                            value="<?= $detail['volume']??'' ;?>" placeholder="请输入价格">
                                 </div>
                             </div>
+                            <?php if (checkPrivilege('tr_order/freelist')): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">集运路线费用</label>
                                 <div class="am-u-sm-9 am-u-end wd">
@@ -96,6 +97,7 @@
                                 </div>
                                 
                             </div>
+                             <?php endif ;?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">包裹图片 </label>
                                 <div class="am-u-sm-9 am-u-end">

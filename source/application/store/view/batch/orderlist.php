@@ -273,6 +273,11 @@
                           
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td colspan="11" class="am-text-left"><?= $item['remark']?$item['remark']:'请输入订单备注' ?> 
+                                    <a class="j-audit" data-id="<?= $item['id'] ?>" data-remark="<?= $item['remark'] ?>" href="javascript:void(0);"><i class="am-icon-pencil"></i>
+                                    </a></td>
+                                </tr>
                             <?php endforeach; else: ?>
                                 <tr>
                                     <td colspan="11" class="am-text-center">暂无记录</td>
@@ -394,6 +399,21 @@
                     </div>
                 </div>
 
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-dealer-apply" type="text/template">
+    <div class="am-padding-top-sm">
+        <form class="form-dealer-apply am-form tpl-form-line-form" method="post"
+              action="<?= url('store/trOrder/changeRemark') ?>">
+            <input type="hidden" name="id" value="{{ id }}">
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-form-label"> 备注信息 </label>
+                <div class="am-u-sm-9">
+                    <input type="text" class="tpl-form-input" name="remark" placeholder="请填写备注"
+                           value="{{ remark }}">
+                </div>
             </div>
         </form>
     </div>
@@ -591,6 +611,40 @@
                         }
                     })
                     
+                }
+            });
+        });
+        
+        /**
+         * 审核操作
+         */
+        $('.j-audit').click(function () {
+            var $this = $(this);
+            layer.open({
+                type: 1
+                , title: '修改备注信息'
+                , area: '500px'
+                , offset: 'auto'
+                , anim: 1
+                , closeBtn: 1
+                , shade: 0.3
+                , btn: ['确定', '取消']
+                , content: template('tpl-dealer-apply', $this.data())
+                , success: function (layero) {
+                    // 注册radio组件
+                    layero.find('input[type=radio]').uCheck();
+                }
+                , yes: function (index, layero) {
+                    // 表单提交
+                    layero.find('.form-dealer-apply').ajaxSubmit({
+                        type: 'post',
+                        dataType: 'json',
+                        success: function (result) {
+                            result.code === 1 ? $.show_success(result.msg, result.url)
+                                : $.show_error(result.msg);
+                        }
+                    });
+                    layer.close(index);
                 }
             });
         });
