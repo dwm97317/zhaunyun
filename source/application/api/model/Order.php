@@ -143,10 +143,12 @@ class Order extends OrderModel
         // 获取订单详情
         $PaySuccess = new PaySuccess($orderNo);
         // 发起余额支付
+                
         $status = $PaySuccess->onPaySuccess(PayTypeEnum::BALANCE);
         if (!$status) {
             $this->error = $PaySuccess->getError();
         }
+     
         return $status;
     }
 

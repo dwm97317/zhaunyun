@@ -132,7 +132,7 @@
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
-                                    是否需要填写物品价值
+                                    是否需要填写物品总价格价值
                                 </label>
                                   <div class="am-u-sm-9">
                                     <label class="am-radio-inline">
@@ -233,13 +233,241 @@
                                                data-am-ucheck <?= $values['yubao']['is_goodslist'] == 0 ? 'checked' : '' ?>>
                                         不开启
                                     </label>
+                                    <!--<label class="am-checkbox-inline">-->
+                                    <!--    <input type="checkbox" name="userclient[yubao][is_goodslist_force]" value="1" data-am-ucheck-->
+                                    <!--        <?= $values['yubao']['is_goodslist_force']==1?'checked' : '' ?>>-->
+                                    <!--    是否必填-->
+                                    <!--</label>-->
+                                </div>
+                            </div>
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">物品信息设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    条码
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_barcode]" value="1"
+                                               data-am-ucheck  <?= $values['goods']['is_barcode'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_barcode]" value="0"
+                                               data-am-ucheck <?= $values['goods']['is_barcode'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    中文名称
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_goods_name]" value="1"
+                                               data-am-ucheck  <?= $values['goods']['is_goods_name'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_goods_name]" value="0"
+                                               data-am-ucheck <?= $values['goods']['is_goods_name'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
                                     <label class="am-checkbox-inline">
-                                        <input type="checkbox" name="userclient[yubao][is_goodslist_force]" value="1" data-am-ucheck
-                                            <?= $values['yubao']['is_goodslist_force']==1?'checked' : '' ?>>
+                                        <input type="checkbox" name="userclient[goods][is_goods_name_force]" value="1" data-am-ucheck
+                                            <?= $values['goods']['is_goods_name_force']==1?'checked' : '' ?>>
                                         是否必填
                                     </label>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    日文名称
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_goods_name_en]" value="1"
+                                               data-am-ucheck  <?= $values['goods']['is_goods_name_en'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_goods_name_en]" value="0"
+                                               data-am-ucheck <?= $values['goods']['is_goods_name_en'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[goods][is_goods_name_en_force]" value="1" data-am-ucheck
+                                            <?= $values['goods']['is_goods_name_en_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    英文名称
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_goods_name_jp]" value="1"
+                                               data-am-ucheck  <?= $values['goods']['is_goods_name_jp'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_goods_name_jp]" value="0"
+                                               data-am-ucheck <?= $values['goods']['is_goods_name_jp'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[goods][is_goods_name_jp_force]" value="1" data-am-ucheck
+                                            <?= $values['goods']['is_goods_name_jp_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    产品品牌
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_brand]" value="1"
+                                               data-am-ucheck  <?= $values['goods']['is_brand'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_brand]" value="0"
+                                               data-am-ucheck <?= $values['goods']['is_brand'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[goods][is_brand_force]" value="1" data-am-ucheck
+                                            <?= $values['goods']['is_brand_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    产品规格
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_spec]" value="1"
+                                               data-am-ucheck  <?= $values['goods']['is_spec'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_spec]" value="0"
+                                               data-am-ucheck <?= $values['goods']['is_spec'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[goods][is_spec_force]" value="1" data-am-ucheck
+                                            <?= $values['goods']['is_spec_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    产品价格
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_price]" value="1"
+                                               data-am-ucheck  <?= $values['goods']['is_price'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_price]" value="0"
+                                               data-am-ucheck <?= $values['goods']['is_price'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[goods][is_price_force]" value="1" data-am-ucheck
+                                            <?= $values['goods']['is_price_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    毛重
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_gross_weight]" value="1"
+                                               data-am-ucheck  <?= $values['goods']['is_gross_weight'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_gross_weight]" value="0"
+                                               data-am-ucheck <?= $values['goods']['is_gross_weight'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[goods][is_gross_weight_force]" value="1" data-am-ucheck
+                                            <?= $values['goods']['is_gross_weight_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    净重
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_net_weight]" value="1"
+                                               data-am-ucheck  <?= $values['goods']['is_net_weight'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_net_weight]" value="0"
+                                               data-am-ucheck <?= $values['goods']['is_net_weight'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[goods][is_net_weight_force]" value="1" data-am-ucheck
+                                            <?= $values['goods']['is_net_weight_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    长宽高
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_depth]" value="1"
+                                               data-am-ucheck  <?= $values['goods']['is_depth'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[goods][is_depth]" value="0"
+                                               data-am-ucheck <?= $values['goods']['is_depth'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[goods][is_depth_force]" value="1" data-am-ucheck
+                                            <?= $values['goods']['is_depth_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            
+          
+                            
+           
                             
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">用户资料功能设置</div>

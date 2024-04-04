@@ -43,7 +43,7 @@ class Page extends Controller
                 'jsonData' => json_encode(['page' => $model->getDefaultPage(), 'items' => []]),
                 'opts' => json_encode([
                     'catgory' => CategoryModel::getCacheTree(),
-                    'sharingCatgory' => SharingCategoryModel::getCacheTree(),
+                    // 'sharingCatgory' => SharingCategoryModel::getCacheTree(),
                     'articleCatgory' => ArticleCategoryModel::getALL(),
                 ])
             ]);
@@ -65,13 +65,14 @@ class Page extends Controller
     public function edit($page_id)
     {
         $model = WxappPageModel::detail($page_id);
+        //  dump($model->getDefaultItems());die;
         if (!$this->request->isAjax()) {
             return $this->fetch('edit', [
                 'defaultData' => json_encode($model->getDefaultItems()),
                 'jsonData' => json_encode($model['page_data']),
                 'opts' => json_encode([
                     'catgory' => CategoryModel::getCacheTree(),
-                    'sharingCatgory' => SharingCategoryModel::getCacheTree(),
+                    // 'sharingCatgory' => SharingCategoryModel::getCacheTree(),
                     'articleCatgory' => ArticleCategoryModel::getALL(),
                 ])
             ]);

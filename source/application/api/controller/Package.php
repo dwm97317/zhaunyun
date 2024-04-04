@@ -44,6 +44,8 @@ use app\common\library\Ditch\Xzhcms5;
 use app\common\library\Ditch\Aolian;
 use app\common\library\Ditch\Yidida;
 use app\api\model\ShelfUnitItem;
+use app\api\model\Barcode;
+
 /**
  * 页面控制器
  * Class Index
@@ -200,7 +202,7 @@ class Package extends Controller
          }
          $user = (new User())->find($this->user['user_id']);
          $userclient = SettingModel::detail("userclient")['values'];
-        //  dump($userclient);die;
+         $Barcode = new Barcode;
          
          $post = $this->postData();
          
@@ -259,17 +261,47 @@ class Package extends Controller
              }
          } 
          $classItems = [];
+         $barcodelist = [];
          if ($class_ids || $goodslist){
              $classItem = $this->parseClass($class_ids);
-    
                 foreach ($goodslist as $k => $val){
                      $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['pinming'];
-                     $classItems[$k]['one_price'] = $val['danjia'];
+                     $classItems[$k]['one_price'] = isset($val['danjia'])?$val['danjia']:'';
                      $classItems[$k]['all_price'] = (!empty($val['danjia'])?$val['danjia']:0) * (!empty($val['shuliang'])?$val['shuliang']:0);
-                     $classItems[$k]['product_num'] = $val['shuliang'];
+                     $classItems[$k]['product_num'] = isset($val['shuliang'])?$val['shuliang']:'';
                      $classItems[$k]['express_num'] = $post['express_sn'];
-                     $classItems[$k]['goods_name'] = $val['pinming'];
+                     $classItems[$k]['goods_name'] = isset($val['pinming'])?$val['pinming']:'';
                      $classItems[$k]['express_name'] = $express;
+                     $classItems[$k]['class_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:''; // 英文品名
+                     $classItems[$k]['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:'';
+                     $classItems[$k]['length'] = isset($val['depth'])?$val['depth']:'';
+                     $classItems[$k]['width'] = isset($val['width'])?$val['width']:'';
+                     $classItems[$k]['height'] = isset($val['height'])?$val['height']:'';
+                     $classItems[$k]['unit_weight'] = isset($val['gross_weight'])?$val['gross_weight']:'';
+                     $classItems[$k]['brand'] = isset($val['brand'])?$val['brand']:'';
+                     $classItems[$k]['spec'] = isset($val['spec'])?$val['spec']:'';
+                     $classItems[$k]['net_weight'] = isset($val['net_weight'])?$val['net_weight']:'';
+                     $classItems[$k]['barcode'] = isset($val['barcode'])?$val['barcode']:'';
+                     
+                     $barcodelist[$k]['barcode'] = isset($val['barcode'])?$val['barcode']:'';
+                     $barcodelist[$k]['brand'] = isset($val['brand'])?$val['brand']:'';
+                     $barcodelist[$k]['goods_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:'';
+                     $barcodelist[$k]['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:'';
+                     $barcodelist[$k]['goods_name'] = isset($val['pinming'])?$val['pinming']:'';
+                     $barcodelist[$k]['spec'] = isset($val['spec'])?$val['spec']:'';
+                     $barcodelist[$k]['price'] = isset($val['danjia'])?$val['danjia']:'';
+                     $barcodelist[$k]['gross_weight'] = isset($val['gross_weight'])?$val['gross_weight']:'';
+                     $barcodelist[$k]['net_weight'] = isset($val['net_weight'])?$val['net_weight']:'';
+                     $barcodelist[$k]['depth'] = isset($val['depth'])?$val['depth']:'';
+                     $barcodelist[$k]['width'] = isset($val['width'])?$val['width']:'';
+                     $barcodelist[$k]['height'] = isset($val['height'])?$val['height']:'';
+                     if(isset($val['barcode']) && !empty($val['barcode'])){
+                         $barcoderesu =  $Barcode::useGlobalScope(false)->where('barcode',$val['barcode'])->find();
+                         if(empty($barcoderesu)){
+                             $barresult = $Barcode::useGlobalScope(false)->insertAll($barcodelist);
+                         }
+                     }
+                     
                 }
                 
          }
@@ -1780,7 +1812,7 @@ class Package extends Controller
              
              $update['status'] = 6;
             //  dump($pack['pack_ids']);die;
-             $up = (new PackageModel())->where('id','in',explode(',',$pack['pack_ids']))->update($update);
+             $up = (new PackageModel())->where('inpack_id',$pack['id'])->update($update);
             // dump((new PackageModel())->getLastsql());die;
              if (!$up){
                 Db::rollback();

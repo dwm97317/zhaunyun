@@ -52,6 +52,7 @@ class Order extends Controller
             'goods_sku_id' => '',
             'address_id' => 0
         ]));
+      
         // 表单验证
         if (!$this->validate->scene('buyNow')->check($params)) {
             return $this->renderError($this->validate->getError());
@@ -69,15 +70,17 @@ class Order extends Controller
         if ($this->request->isGet()) {
             return $this->renderSuccess($orderInfo);
         }
-          
+      
         // 订单结算提交
         if ($Checkout->hasError()) {
             return $this->renderError($Checkout->getError());
         }
+        
         // 创建订单
         if (!$Checkout->createOrder($orderInfo)) {
             return $this->renderError($Checkout->getError() ?: '订单创建失败');
         }
+             
         // 构建微信支付请求
         $payment = $model->onOrderPayment($this->user, $Checkout->model, $params['pay_type']);
         // 返回结算信息
@@ -112,7 +115,7 @@ class Order extends Controller
         $goodsList = $CartModel->getList($params['cart_ids']);
         // 获取订单结算信息
         $orderInfo = $Checkout->onCheckout($this->user, $goodsList);
-        dump($orderInfo);die;
+        // dump($orderInfo);die;
         if ($this->request->isGet()) {
             return $this->renderSuccess($orderInfo);
         }

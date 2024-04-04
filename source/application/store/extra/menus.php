@@ -336,6 +336,79 @@ return [
             ],
         ]
     ],
+    'goods' => [
+        'name' => '商品管理',
+        'icon' => 'icon-goods',
+        'index' => 'goods/index',
+        'submenu' => [
+            [
+                'name' => '商品列表',
+                'index' => 'goods/index',
+                'uris' => [
+                    'goods/index',
+                    'goods/add',
+                    'goods/edit',
+                    'goods/copy'
+                ],
+            ],
+            [
+                'name' => '商品分类',
+                'index' => 'goods.category/index',
+                'uris' => [
+                    'goods.category/index',
+                    'goods.category/add',
+                    'goods.category/edit',
+                ],
+            ],
+            [
+                'name' => '商品评价',
+                'index' => 'goods.comment/index',
+                'uris' => [
+                    'goods.comment/index',
+                    'goods.comment/detail',
+                ],
+            ]
+        ],
+    ],
+    'order' => [
+        'name' => '商城订单',
+        'icon' => 'icon-order',
+        'index' => 'order/all_list',
+        'submenu' => [
+            [
+                'name' => '全部订单',
+                'index' => 'order/all_list',
+            ],
+            [
+                'name' => '待发货',
+                'index' => 'order/delivery_list',
+            ],
+            [
+                'name' => '待收货',
+                'index' => 'order/receipt_list',
+            ],
+            [
+                'name' => '待付款',
+                'index' => 'order/pay_list',
+            ],
+            [
+                'name' => '已完成',
+                'index' => 'order/complete_list',
+            ],
+            [
+                'name' => '已取消',
+                'index' => 'order/cancel_list',
+            ],
+            [
+                'name' => '售后管理',
+                'index' => 'order.refund/index',
+                'uris' => [
+                    'order.refund/index',
+                    'order.refund/detail',
+                ]
+            ],
+        ]
+    ],
     'content' => [
         'name' => '内容管理',
         'icon' => 'icon-wenzhang',
@@ -515,6 +588,29 @@ return [
             [
                 'name' => '语言设置',
                 'index' => 'wxapp/lang',
+            ],
+            [
+                'name' => '页面管理',
+                'active' => true,
+                'submenu' => [
+                    [
+                        'name' => '页面设计',
+                        'index' => 'wxapp.page/index',
+                        'uris' => [
+                            'wxapp.page/index',
+                            'wxapp.page/add',
+                            'wxapp.page/edit',
+                        ]
+                    ],
+                    [
+                        'name' => '分类模板',
+                        'index' => 'wxapp.page/category'
+                    ],
+                    [
+                        'name' => '页面链接',
+                        'index' => 'wxapp.page/links'
+                    ]
+                ]
             ],
             [
                 'name' => '页面链接',
@@ -727,6 +823,15 @@ return [
                     'setting.express/index',
                     'setting.express/add',
                     'setting.express/edit',
+                ],
+            ],
+            [
+                'name' => '商品条码库',
+                'index' => 'setting.barcode/index',
+                'uris' => [
+                    'setting.barcode/index',
+                    'setting.barcode/add',
+                    'setting.barcode/edit',
                 ],
             ],
             [

@@ -58,7 +58,7 @@ class ShelfUnitItem extends ShelfUnitItemModel
       
     // 根据包裹ID 查询货架货位数据
     public function getShelfUnitByPackId($id){
-        $shelfItem = $this->where(['pack_id'=>$id])->find();
+        $shelfItem = $this->where(['pack_id'=>$id])->order('created_time desc')->find();
         if (!$shelfItem){
             return '';
         }

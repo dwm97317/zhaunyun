@@ -31,6 +31,8 @@ use app\api\model\dealer\Setting as SettingDealerModel;
 use app\common\model\dealer\User as DealerUser;
 use app\api\model\dealer\Referee as RefereeModel;
 use app\common\model\dealer\Order as DealerOrder;
+use app\common\service\qrcode;
+use app\store\model\UploadFile;
 
 /**
  * 订单管理
@@ -198,16 +200,15 @@ class TrOrder extends Controller
     
     public function package($id){
          // 订单详情
-        // $detail = Inpack::details($id);
         $Package = new Package();
         $storesetting = SettingModel::getItem('store',$this->getWxappId());
         $list = $Package->with("packageimage.file")->where('inpack_id',$id)->select();
-    //   dump($list->toArray());die;
+       
         foreach ($list as $k => $v){
             $list[$k]['shelf'] = (new ShelfUnitItem())->getShelfUnitByPackId($v['id']);
             $list[$k]['pakitem'] = (new PackageItem())->where('order_id',$v['id'])->select();
         }
-        //   dump($list->toarray());die;
+        //   dump($list->toArray());die;
         return $this->fetch('package', compact('list','id','storesetting'));
     }
     
@@ -1110,7 +1111,7 @@ class TrOrder extends Controller
     public function comment()
     {
         $model = new CommentModel;
-        $list = $model->getList();
+        $list = $model->getList($type=1);
         // dump($list->toArray());die;
         foreach ($list as $k =>$v){
               $list[$k]["score"] = json_decode($v['score'],true);
@@ -1282,6 +1283,13 @@ class TrOrder extends Controller
        }
        $adminstyle = Setting::getItem('adminstyle',$data['wxapp_id']);
        $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
+       if(!empty($data['member_id'])){
+           $member  = UserModel::detail($data['member_id']);
+           $data['name'] = $member['nickName'];
+           if($data['setting']['usercode_mode']['is_show']!=0){
+              $data['member_id'] = $member['user_code'];
+           }
+       }
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
        $data['barcode'] = $generatorSVG->getBarcode($data['t_order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor = 1.5, $totalHeight = 40);
     // dump($data->toArray());die;
@@ -1308,10 +1316,33 @@ class TrOrder extends Controller
        }
        $adminstyle = Setting::getItem('adminstyle',$data['wxapp_id']);
        $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
- 
+       if(!empty($data['member_id'])){
+           $member  = UserModel::detail($data['member_id']);
+           $data['name'] = $member['nickName'];
+           if($data['setting']['usercode_mode']['is_show']!=0){
+              $data['member_id'] = $member['user_code'];
+           }
+       } 
+       
+       if(!empty($data['address_id'])){
+           $result = (new UserAddress())->where('address_id',$data['address_id'])->where('address_type',2)->find();
+           empty($result) && $data['address_id']="未选自提点";
+       }
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
-       $data['barcode'] = $generatorSVG->getBarcode($data['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =1.5, $totalHeight = 40);
-       echo $this->label($data);
+       $data['barcode'] = $generatorSVG->getBarcode($data['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
+       $data['cover_id'] = UploadFile::detail($data['setting']['cover_id']);
+
+       switch ($adminstyle['delivertempalte']['orderface']) {
+           case '10':
+               echo $this->label10($data);
+               break;
+           case '20':
+               echo $this->label20($data);
+               break;
+           default:
+                echo $this->label10($data);
+               break;
+       }
     }
     
          // 打印账单
@@ -1487,8 +1518,8 @@ class TrOrder extends Controller
 } 
     
     
-        // 渲染标签生成网页数据
-    public function label($data){
+    // 渲染标签模板A
+    public function label10($data){
       return  $html = '<style>
 	* {
 		margin: 0;
@@ -1637,6 +1668,182 @@ class TrOrder extends Controller
 </table>
 ';
     }
+    
+    
+        // 渲染标签模板A
+    public function label20($data){
+     return  $html = '<style>
+	* {
+		margin: 0;
+		padding: 0
+	}
+
+	table {
+		margin-top: -1px;
+		font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
+		border-collapse: collapse
+	}
+
+	table.container {
+	    width:527px;
+		border-bottom: 0
+	}
+	
+	.conta {
+            display: flex; /* 设置容器为flex布局 */
+            justify-content: center;
+            align-items: center;
+    }
+
+	table td {
+	}
+
+	table.nob {
+	    width:500px;
+	}
+
+	table.nob td {
+		border: 0
+	}
+
+	table td.center {
+		text-align: center
+	}
+
+	table td.right {
+		text-align: right
+	}
+
+	table td.pl {
+		padding-left: 5px;
+		margin:4px 0;
+	}
+
+	table td.br {
+		border-right: 1px solid #000
+	}
+
+	table.nobt,
+	table td.nobt {
+		border-top: 0
+	}
+
+	table.nobb,
+	table td.nobb {
+		border-bottom: 0
+	}
+
+	.font_s {
+		font-size: 10px;
+		-webkit-transform: scale(0.84, 0.84);
+		*font-size: 10px
+	}
+
+	.font_m {
+		font-size: 14px
+	}
+
+	.font_l {
+		font-size: 16px;
+		font-weight: bold
+	}
+
+	.font_xl {
+		font-size: 18px;
+		font-weight: bold
+	}
+
+	.font_xxl {
+		font-size: 28px;
+		font-weight: bold
+	}
+
+	.font_xxxl {
+		font-size: 32px;
+		font-weight: bold
+	}
+	tbody tr:nth-child(2n){
+	    color:#000;
+	}
+	.country{
+    	font-size: 37px;
+        padding: 0px;
+        margin: 0px;
+        font-weight: bold;
+        width: 100px;
+	}
+	.barcode{text-align:center;}
+	.barcode svg{width:378px;}
+	.font_12{font-size: 12px;font-weight: bold;}
+</style>
+<div style="547px;height:433px;margin:10px;border:2px solid #000;">
+<div style="padding:10px;">
+<table class="container" style="height:180px;">
+	<tr>
+		<td  height="76" class="font_xxxl">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_xxxl conta">'.$data['setting']['name'].'</td>
+		        </tr>
+		        <tr>
+		            <td  class="font_xl conta">'.$data['setting']['desc'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+	<tr>
+		<td  class="center">
+			<table class="nob">
+				<tr>
+					<td class="barcode center">'.$data['barcode'].'</td>
+				</tr>
+				<tr>
+					<td class="center font_xl">'.$data['order_sn'].'</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+
+<div style="height:1px;border-top:2px dashed #000;margin:10px 0px 20px 0px;"></div>
+<table class="container" >
+    <tr>
+        <td>
+            <table>
+            <tr>
+        		<td class="font_xl pl">
+        		   CustomerID : '.$data['member_id'].'
+        		</td>
+    	    </tr>
+        	<tr>
+        		<td class="font_xl pl">
+        		   Destination: '.$data['address']['country'].'
+        		</td>
+        	</tr>
+        	<tr>
+        		<td class="font_xl pl">
+        		   Pickup Point: '.$data['address']['code'].'
+        		</td>
+        	</tr>
+        	<tr>
+        		<td class="font_xl pl">
+        		   Qty: 1 pkgs
+        		</td>
+        	</tr>
+        	<tr>
+        		<td class="font_xl pl">
+        		   Weight: '.$data['cale_weight'].'kgs
+        		</td>
+        	</tr>
+            </table>
+        </td>
+        <td class="barcode"><img style="width:200px;" src="'.$data['cover_id']['file_path'].'"/></td>
+    </tr>
+</table>
+</div>
+</div>
+';
+}
     
     // 渲染面单生成网页数据
     public function template10($data){

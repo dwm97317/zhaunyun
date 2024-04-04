@@ -250,12 +250,13 @@ class Setting extends Controller
              
         if (!$this->request->isAjax()) {
             $vars['values'] = SettingModel::getItem($key);
-            //  dump($vars);die;
+           
             if(isset($vars['values']['cover_id'])){
                 $vars['values']['file_path'] = UploadFile::detail($vars['values']['cover_id'])['file_path'];
             }
             return $this->fetch($key, $vars);
         }
+        //   dump($this->postData($key));die;
         $model = new SettingModel;
         if ($model->edit($key, $this->postData($key))) {
             return $this->renderSuccess('操作成功');

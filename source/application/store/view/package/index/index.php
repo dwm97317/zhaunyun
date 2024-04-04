@@ -127,6 +127,16 @@
                                             <?php endforeach; endif; ?>
                                         </select>
                                     </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extracttimetype = $request->get('time_type'); ?>
+                                        <select name="time_type"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '时间类型'}">
+                                            <option value="entering_warehouse_time" <?= $extracttimetype == 'entering_warehouse_time' ? 'selected' : '' ?>>入库时间</option>
+                                            <option value="created_time" <?= $extracttimetype == 'created_time' ? 'selected' : '' ?>>预报时间</option>
+                                            <option value="scan_time" <?= $extracttimetype == 'scan_time' ? 'selected' : '' ?>>扫码查验时间</option>
+    
+                                        </select>
+                                    </div>
                                     <div class="am-form-group tpl-form-border-form am-fl">
                                         <input style="padding:6px 5px;" autocomplete="off" type="text" name="start_time"
                                                class="am-form-field"

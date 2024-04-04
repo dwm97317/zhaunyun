@@ -616,12 +616,14 @@ class Checkout
         if (!$this->validateOrderForm($order, $this->param['linkman'], $this->param['phone'])) {
             return false;
         }
+       
         // 创建新的订单
         $status = $this->model->transaction(function () use ($order) {
             // 创建订单事件
             return $this->createOrderEvent($order);
         });
         // 余额支付标记订单已支付
+        
         if ($status && $order['pay_type'] == PayTypeEnum::BALANCE) {
             return $this->model->onPaymentByBalance($this->model['order_no']);
         }

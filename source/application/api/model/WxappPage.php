@@ -4,7 +4,7 @@ namespace app\api\model;
 
 use app\api\model\Goods as GoodsModel;
 use app\api\model\store\Shop as ShopModel;
-use app\api\model\sharing\Goods as SharingGoodsModel;
+use app\api\model\sharingGoods\Goods as SharingGoodsModel;
 use app\api\model\bargain\Active as BargainActiveModel;
 use app\api\service\sharp\Active as SharpActiveService;
 use app\common\model\WxappPage as WxappPageModel;
@@ -54,7 +54,7 @@ class WxappPage extends WxappPageModel
             } else if ($item['type'] === 'goods') {
                 $items[$key]['data'] = $model->getGoodsList($user, $item);
             } else if ($item['type'] === 'sharingGoods') {
-                $items[$key]['data'] = $model->getSharingGoodsList($user, $item);
+                // $items[$key]['data'] = $model->getSharingGoodsList($user, $item);
             } else if ($item['type'] === 'bargainGoods') {
                 $items[$key]['data'] = $model->getBargainGoodsList($item);
             } else if ($item['type'] === 'sharpGoods') {

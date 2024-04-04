@@ -89,8 +89,10 @@ class Batch extends Controller
      */
     public function batchvspack($id){
          $Package = new Package;
+         $param = $this->request->param();
          $set = Setting::detail('store')['values'];
          $map = ['batch_id'=>$id,'limitnum'=>100];
+         $map = array_merge($param,$map);
          $list = $Package->getList($map);
          $type = 'all';
          $countweight = $Package->getListSum($map);

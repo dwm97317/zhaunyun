@@ -126,6 +126,18 @@
                                             <?php endforeach; endif; ?>
                                         </select>
                                     </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extracttimetype = $request->get('time_type'); ?>
+                                        <select name="time_type"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '时间类型'}">
+                                            <option value="created_time" <?= $extracttimetype == 'created_time' ? 'selected' : '' ?>>提交打包时间</option>
+                                            <option value="pay_time" <?= $extracttimetype == 'pay_time' ? 'selected' : '' ?>>支付完成时间</option>
+                                            <option value="pick_time" <?= $extracttimetype == 'pick_time' ? 'selected' : '' ?>>打包完成时间</option>
+                                            <option value="settle_time" <?= $extracttimetype == 'settle_time' ? 'selected' : '' ?>>佣金结算时间</option>
+                                            <option value="sendout_time" <?= $extracttimetype == 'sendout_time' ? 'selected' : '' ?>>订单发货时间</option>
+                                            <option value="receipt_time" <?= $extracttimetype == 'receipt_time' ? 'selected' : '' ?>>用户签收时间</option>
+                                        </select>
+                                    </div>
                                     <div class="am-form-group tpl-form-border-form am-fl">
                                         <input style="padding:6px 5px;" type="text" name="start_time"
                                                class="am-form-field"

@@ -75,6 +75,7 @@ class PaySuccess extends Basics
             $this->model['member_id'] = $this->user['user_id'];
             Hook::listen('order_pay_success', $this->model, OrderTypeEnum::MASTER);
         }
+       
         return $status;
     }
 

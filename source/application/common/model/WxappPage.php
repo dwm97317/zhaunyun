@@ -348,246 +348,246 @@ class WxappPage extends BaseModel
                     ]
                 ]
             ],
-            'coupon' => [
-                'name' => '优惠券组',
-                'type' => 'coupon',
-                'style' => [
-                    'paddingTop' => '10',
-                    'background' => '#ffffff'
-                ],
-                'params' => [
-                    'limit' => '5'
-                ],
-                'data' => [
-                    [
-                        'color' => 'red',
-                        'reduce_price' => '10',
-                        'min_price' => '100.00'
-                    ],
-                    [
-                        'color' => 'violet',
-                        'reduce_price' => '10',
-                        'min_price' => '100.00'
-                    ]
-                ]
-            ],
-            'sharingGoods' => [
-                'name' => '拼团商品组',
-                'type' => 'sharingGoods',
-                'params' => [
-                    'source' => 'auto', // choice; auto
-                    'auto' => [
-                        'category' => 0,
-                        'goodsSort' => 'all', // all; sales; price
-                        'showNum' => 6
-                    ]
-                ],
-                'style' => [
-                    'background' => '#F6F6F6',
-                    'show' => [
-                        'goodsName' => '1',
-                        'sellingPoint' => '1',
-                        'sharingPrice' => '1',
-                        'linePrice' => '1'
-                    ]
-                ],
-                // '自动获取' => 默认数据
-                'defaultData' => [
-                    [
-                        'goods_name' => '此处是拼团商品',
-                        'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'selling_point' => '此款商品美观大方 性价比较高 不容错过',
-                        'sharing_price' => '99.00',
-                        'line_price' => '139.00',
-                    ],
-                    [
-                        'goods_name' => '此处是拼团商品',
-                        'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'selling_point' => '此款商品美观大方 性价比较高 不容错过',
-                        'goods_price' => '99.00',
-                        'line_price' => '139.00',
-                    ],
-                    [
-                        'goods_name' => '此处是拼团商品',
-                        'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'selling_point' => '此款商品美观大方 性价比较高 不容错过',
-                        'sharing_price' => '99.00',
-                        'line_price' => '139.00',
-                    ],
-                    [
-                        'goods_name' => '此处是拼团商品',
-                        'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'selling_point' => '此款商品美观大方 性价比较高 不容错过',
-                        'sharing_price' => '99.00',
-                        'line_price' => '139.00',
-                    ]
-                ],
-                // '手动选择' => 默认数据
-                'data' => [
-                    [
-                        'goods_name' => '此处是拼团商品',
-                        'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'selling_point' => '此款商品美观大方 性价比较高 不容错过',
-                        'sharing_price' => '99.00',
-                        'line_price' => '139.00',
-                        'is_default' => true
-                    ],
-                    [
-                        'goods_name' => '此处是拼团商品',
-                        'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'selling_point' => '此款商品美观大方 性价比较高 不容错过',
-                        'sharing_price' => '99.00',
-                        'line_price' => '139.00',
-                        'is_default' => true
-                    ]
-                ]
-            ],
-            'bargainGoods' => [
-                'name' => '砍价商品组',
-                'type' => 'bargainGoods',
-                'params' => [
-                    'source' => 'auto', // choice; auto
-                    'auto' => [
-                        'category' => 0,
-                        'goodsSort' => 'all', // all; sales; price
-                        'showNum' => 6
-                    ]
-                ],
-                'style' => [
-                    'background' => '#F6F6F6',
-                    'show' => [
-                        'goodsName' => '1',
-                        'peoples' => '1',
-                        'floorPrice' => '1',
-                        'originalPrice' => '1'
-                    ]
-                ],
-                'demo' => [
-                    'helps_count' => 2,
-                    'helps' => [
-                        ['avatarUrl' => 'http://tva1.sinaimg.cn/large/0060lm7Tly1g4c7zrytvvj30dw0dwwes.jpg'],
-                        ['avatarUrl' => 'http://tva1.sinaimg.cn/large/0060lm7Tly1g4c7zs2u5ej30b40b4dfx.jpg'],
-                    ]
-                ],
-                // '自动获取' => 默认数据
-                'defaultData' => [
-                    [
-                        'goods_name' => '此处是砍价商品',
-                        'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'floor_price' => '0.01',
-                        'original_price' => '139.00',
-                    ],
-                    [
-                        'goods_name' => '此处是砍价商品',
-                        'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'floor_price' => '0.01',
-                        'original_price' => '139.00',
-                    ],
-                ],
-                // '手动选择' => 默认数据
-                'data' => [
-                    [
-                        'goods_name' => '此处是砍价商品',
-                        'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'floor_price' => '0.01',
-                        'original_price' => '139.00',
-                    ],
-                    [
-                        'goods_name' => '此处是砍价商品',
-                        'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'floor_price' => '0.01',
-                        'original_price' => '139.00',
-                    ],
-                ]
-            ],
-            'sharpGoods' => [
-                'name' => '秒杀商品组',
-                'type' => 'sharpGoods',
-                'params' => [
-                    'showNum' => 6
-                ],
-                'style' => [
-                    'background' => '#ffffff',
-                    'column' => '3',
-                    'show' => [
-                        'goodsName' => '1',
-                        'seckillPrice' => '1',
-                        'originalPrice' => '1'
-                    ]
-                ],
-                // '手动选择' => 默认数据
-                'data' => [
-                    [
-                        'goods_name' => '此处是秒杀商品',
-                        'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'seckill_price' => '69.00',
-                        'original_price' => '139.00',
-                    ],
-                    [
-                        'goods_name' => '此处是秒杀商品',
-                        'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'seckill_price' => '69.00',
-                        'original_price' => '139.00',
-                    ],
-                    [
-                        'goods_name' => '此处是秒杀商品',
-                        'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
-                        'seckill_price' => '69.00',
-                        'original_price' => '139.00',
-                    ],
-                ]
-            ],
-            'shop' => [
-                'name' => '线下门店',
-                'type' => 'shop',
-                'params' => [
-                    'source' => 'auto', // choice; auto
-                    'auto' => [
-                        'showNum' => 6
-                    ]
-                ],
-                'style' => [
-                ],
-                // '自动获取' => 默认数据
-                'defaultData' => [
-                    [
-                        'shop_name' => '此处显示门店名称',
-                        'logo_image' => self::$base_url . 'assets/store/img/diy/circular.png',
-                        'phone' => '010-6666666',
-                        'region' => [
-                            'province' => 'xx省',
-                            'city' => 'xx市',
-                            'region' => 'xx区'
-                        ],
-                        'address' => 'xx街道',
-                    ],
-                    [
-                        'shop_name' => '此处显示门店名称',
-                        'logo_image' => self::$base_url . 'assets/store/img/diy/circular.png',
-                        'phone' => '010-6666666',
-                        'region' => [
-                            'province' => 'xx省',
-                            'city' => 'xx市',
-                            'region' => 'xx区'
-                        ],
-                        'address' => 'xx街道',
-                    ],
-                ],
-                // '手动选择' => 默认数据
-                'data' => [
-                    [
-                        'shop_name' => '此处显示门店名称',
-                        'logo_image' => self::$base_url . 'assets/store/img/diy/circular.png',
-                        'phone' => '010-6666666',
-                        'region' => [
-                            'province' => 'xx省',
-                            'city' => 'xx市',
-                            'region' => 'xx区'
-                        ],
-                        'address' => 'xx街道',
-                    ],
-                ]
-            ],
+            // 'coupon' => [
+            //     'name' => '优惠券组',
+            //     'type' => 'coupon',
+            //     'style' => [
+            //         'paddingTop' => '10',
+            //         'background' => '#ffffff'
+            //     ],
+            //     'params' => [
+            //         'limit' => '5'
+            //     ],
+            //     'data' => [
+            //         [
+            //             'color' => 'red',
+            //             'reduce_price' => '10',
+            //             'min_price' => '100.00'
+            //         ],
+            //         [
+            //             'color' => 'violet',
+            //             'reduce_price' => '10',
+            //             'min_price' => '100.00'
+            //         ]
+            //     ]
+            // ],
+            // 'sharingGoods' => [
+            //     'name' => '拼团商品组',
+            //     'type' => 'sharingGoods',
+            //     'params' => [
+            //         'source' => 'auto', // choice; auto
+            //         'auto' => [
+            //             'category' => 0,
+            //             'goodsSort' => 'all', // all; sales; price
+            //             'showNum' => 6
+            //         ]
+            //     ],
+            //     'style' => [
+            //         'background' => '#F6F6F6',
+            //         'show' => [
+            //             'goodsName' => '1',
+            //             'sellingPoint' => '1',
+            //             'sharingPrice' => '1',
+            //             'linePrice' => '1'
+            //         ]
+            //     ],
+            //     // '自动获取' => 默认数据
+            //     'defaultData' => [
+            //         [
+            //             'goods_name' => '此处是拼团商品',
+            //             'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'selling_point' => '此款商品美观大方 性价比较高 不容错过',
+            //             'sharing_price' => '99.00',
+            //             'line_price' => '139.00',
+            //         ],
+            //         [
+            //             'goods_name' => '此处是拼团商品',
+            //             'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'selling_point' => '此款商品美观大方 性价比较高 不容错过',
+            //             'goods_price' => '99.00',
+            //             'line_price' => '139.00',
+            //         ],
+            //         [
+            //             'goods_name' => '此处是拼团商品',
+            //             'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'selling_point' => '此款商品美观大方 性价比较高 不容错过',
+            //             'sharing_price' => '99.00',
+            //             'line_price' => '139.00',
+            //         ],
+            //         [
+            //             'goods_name' => '此处是拼团商品',
+            //             'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'selling_point' => '此款商品美观大方 性价比较高 不容错过',
+            //             'sharing_price' => '99.00',
+            //             'line_price' => '139.00',
+            //         ]
+            //     ],
+            //     // '手动选择' => 默认数据
+            //     'data' => [
+            //         [
+            //             'goods_name' => '此处是拼团商品',
+            //             'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'selling_point' => '此款商品美观大方 性价比较高 不容错过',
+            //             'sharing_price' => '99.00',
+            //             'line_price' => '139.00',
+            //             'is_default' => true
+            //         ],
+            //         [
+            //             'goods_name' => '此处是拼团商品',
+            //             'image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'selling_point' => '此款商品美观大方 性价比较高 不容错过',
+            //             'sharing_price' => '99.00',
+            //             'line_price' => '139.00',
+            //             'is_default' => true
+            //         ]
+            //     ]
+            // ],
+            // 'bargainGoods' => [
+            //     'name' => '砍价商品组',
+            //     'type' => 'bargainGoods',
+            //     'params' => [
+            //         'source' => 'auto', // choice; auto
+            //         'auto' => [
+            //             'category' => 0,
+            //             'goodsSort' => 'all', // all; sales; price
+            //             'showNum' => 6
+            //         ]
+            //     ],
+            //     'style' => [
+            //         'background' => '#F6F6F6',
+            //         'show' => [
+            //             'goodsName' => '1',
+            //             'peoples' => '1',
+            //             'floorPrice' => '1',
+            //             'originalPrice' => '1'
+            //         ]
+            //     ],
+            //     'demo' => [
+            //         'helps_count' => 2,
+            //         'helps' => [
+            //             ['avatarUrl' => 'http://tva1.sinaimg.cn/large/0060lm7Tly1g4c7zrytvvj30dw0dwwes.jpg'],
+            //             ['avatarUrl' => 'http://tva1.sinaimg.cn/large/0060lm7Tly1g4c7zs2u5ej30b40b4dfx.jpg'],
+            //         ]
+            //     ],
+            //     // '自动获取' => 默认数据
+            //     'defaultData' => [
+            //         [
+            //             'goods_name' => '此处是砍价商品',
+            //             'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'floor_price' => '0.01',
+            //             'original_price' => '139.00',
+            //         ],
+            //         [
+            //             'goods_name' => '此处是砍价商品',
+            //             'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'floor_price' => '0.01',
+            //             'original_price' => '139.00',
+            //         ],
+            //     ],
+            //     // '手动选择' => 默认数据
+            //     'data' => [
+            //         [
+            //             'goods_name' => '此处是砍价商品',
+            //             'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'floor_price' => '0.01',
+            //             'original_price' => '139.00',
+            //         ],
+            //         [
+            //             'goods_name' => '此处是砍价商品',
+            //             'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'floor_price' => '0.01',
+            //             'original_price' => '139.00',
+            //         ],
+            //     ]
+            // ],
+            // 'sharpGoods' => [
+            //     'name' => '秒杀商品组',
+            //     'type' => 'sharpGoods',
+            //     'params' => [
+            //         'showNum' => 6
+            //     ],
+            //     'style' => [
+            //         'background' => '#ffffff',
+            //         'column' => '3',
+            //         'show' => [
+            //             'goodsName' => '1',
+            //             'seckillPrice' => '1',
+            //             'originalPrice' => '1'
+            //         ]
+            //     ],
+            //     // '手动选择' => 默认数据
+            //     'data' => [
+            //         [
+            //             'goods_name' => '此处是秒杀商品',
+            //             'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'seckill_price' => '69.00',
+            //             'original_price' => '139.00',
+            //         ],
+            //         [
+            //             'goods_name' => '此处是秒杀商品',
+            //             'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'seckill_price' => '69.00',
+            //             'original_price' => '139.00',
+            //         ],
+            //         [
+            //             'goods_name' => '此处是秒杀商品',
+            //             'goods_image' => self::$base_url . 'assets/store/img/diy/goods/01.png',
+            //             'seckill_price' => '69.00',
+            //             'original_price' => '139.00',
+            //         ],
+            //     ]
+            // ],
+            // 'shop' => [
+            //     'name' => '线下门店',
+            //     'type' => 'shop',
+            //     'params' => [
+            //         'source' => 'auto', // choice; auto
+            //         'auto' => [
+            //             'showNum' => 6
+            //         ]
+            //     ],
+            //     'style' => [
+            //     ],
+            //     // '自动获取' => 默认数据
+            //     'defaultData' => [
+            //         [
+            //             'shop_name' => '此处显示门店名称',
+            //             'logo_image' => self::$base_url . 'assets/store/img/diy/circular.png',
+            //             'phone' => '010-6666666',
+            //             'region' => [
+            //                 'province' => 'xx省',
+            //                 'city' => 'xx市',
+            //                 'region' => 'xx区'
+            //             ],
+            //             'address' => 'xx街道',
+            //         ],
+            //         [
+            //             'shop_name' => '此处显示门店名称',
+            //             'logo_image' => self::$base_url . 'assets/store/img/diy/circular.png',
+            //             'phone' => '010-6666666',
+            //             'region' => [
+            //                 'province' => 'xx省',
+            //                 'city' => 'xx市',
+            //                 'region' => 'xx区'
+            //             ],
+            //             'address' => 'xx街道',
+            //         ],
+            //     ],
+            //     // '手动选择' => 默认数据
+            //     'data' => [
+            //         [
+            //             'shop_name' => '此处显示门店名称',
+            //             'logo_image' => self::$base_url . 'assets/store/img/diy/circular.png',
+            //             'phone' => '010-6666666',
+            //             'region' => [
+            //                 'province' => 'xx省',
+            //                 'city' => 'xx市',
+            //                 'region' => 'xx区'
+            //             ],
+            //             'address' => 'xx街道',
+            //         ],
+            //     ]
+            // ],
             'officialAccount' => [
                 'name' => '关注公众号',
                 'type' => 'officialAccount',

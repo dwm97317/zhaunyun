@@ -110,10 +110,11 @@ class Comment extends BaseModel
      * @return \think\Paginator
      * @throws \think\exception\DbException
      */
-    public function getList()
+    public function getList($type)
     {
         return $this->with(['user', 'orderM.linedata','image.file'])
             ->where('is_delete', '=', 0)
+            ->where('common_type', '=', $type)
             ->where('wxapp_id', '=',self::$wxapp_id)
             ->order(['sort' => 'asc', 'create_time' => 'desc'])
             ->paginate(15, false, [

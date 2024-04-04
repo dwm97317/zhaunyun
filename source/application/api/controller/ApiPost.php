@@ -402,7 +402,6 @@ class ApiPost extends Controller
         if($setting['is_enable']==0){
             return $this->renderError("尚未开启智能AI识别功能，请更改API");
         }
-        // dump($setting);die;
         $BaiduOcr = new BaiduOcr($setting);
         if(!isset($param['token']) || empty($param['token'])){
             return $this->renderError("TOKEN不能为空");

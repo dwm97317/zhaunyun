@@ -381,5 +381,24 @@ class User extends UserModel
         }
         return $this;
     }
+    
+    /**
+     * 隐藏手机号
+     * @return 
+     * @throws \think\exception\DbException
+     */
+    public function getMobileAttr($value){
+        if(empty($value)){
+            return '';
+        }
+        $setting = SettingModel::getItem('adminstyle');
+        if($setting['is_phone_secret']==1){
+            return hide_mobile($value);
+        }else{
+            return $value;
+        }
+        
+    }
+
 
 }

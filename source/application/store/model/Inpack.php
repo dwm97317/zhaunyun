@@ -518,8 +518,10 @@ class Inpack extends InpackModel
         !empty($query['user_id']) && $this->where('pa.member_id','=',$query['user_id']);
         !empty($query['batch_no']) && $this->where('ba.batch_name|ba.batch_no','=',$query['batch_no']);
         !empty($query['batch_id']) && $this->where('pa.batch_id','=',$query['batch_id']);
-        !empty($query['start_time']) && $this->where('created_time', '>', $query['start_time']);
-        !empty($query['end_time']) && $this->where('created_time', '<', $query['end_time']." 23:59:59");
+        if(!empty($query['time_type'])){
+            !empty($query['start_time']) && $this->where($query['time_type'], '>=', $query['start_time']);
+            !empty($query['end_time']) && $this->where($query['time_type'], '<=', $query['end_time']." 23:59:59");
+        }
         !empty($query['search']) && $this->where('pa.member_id|u.nickName|u.user_code','like','%'.$query['search'].'%');
         if(!empty($query['tr_number'])){
             $express_num = str_replace("\r\n","\n",trim($query['tr_number']));

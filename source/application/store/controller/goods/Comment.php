@@ -20,7 +20,7 @@ class Comment extends Controller
     public function index()
     {
         $model = new CommentModel;
-        $list = $model->getList();
+        $list = $model->getList($type=2);
         return $this->fetch('index', compact('list'));
     }
 

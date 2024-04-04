@@ -372,6 +372,7 @@ class Setting extends BaseModel
                     'is_force_shelf'=>0,
                     'is_line'=>1,
                     'is_force_line'=>0,
+                    'is_phone_secret'=>1,//手机号是否加密 
                     'orderno'=>[
                         'default'=>[90,20,110],
                         'first_title'=>'XS',
@@ -482,6 +483,36 @@ class Setting extends BaseModel
                         'third_image'=>"",
                         'third_url'=>'',
                         'third_url_type'=>1, //默认1为站内，2为站外
+                    ],
+                    'goods'=>[
+                        'is_barcode'=> 0, //条码
+                        
+                        'is_goods_name'=>1, //中文名称    
+                        'is_goods_name_force'=>0, //中文名称    
+                        
+                        'is_goods_name_en'=>0, //英文名称    
+                        'is_goods_name_en_force'=>0, //英文名称  
+                        
+                        'is_goods_name_jp'=>0, //日文名称    
+                        'is_goods_name_jp_force'=>0, //日文名称
+                        
+                        'is_brand'=>0, //品牌名称    
+                        'is_brand_force'=>0, //中文名称    
+                        
+                        'is_spec'=>0, //规格名称    
+                        'is_spec_force'=>0, //规格名称  
+                        
+                        'is_price'=>1, //价格名称    
+                        'is_price_force'=>0, //价格名称  
+
+                        'is_gross_weight'=>0, //毛重名称    
+                        'is_gross_weight_force'=>0, //价格名称  
+                        
+                        'is_net_weight'=>0, //净重名称    
+                        'is_net_weight_force'=>0, //价格名称  
+                        
+                        'is_depth'=>0, //长度   
+                        'is_depth_force'=>0, //长度  
                     ]
                 ]
             ],
@@ -826,6 +857,7 @@ class Setting extends BaseModel
                     'is_cangguanduan'=>0, //仓管端
                     'is_houtaiduan'=>0,  //后台端
                     'is_dianzicheng'=>0, //电子秤
+                    'is_baiduaddress'=>0, //地址解析功能
                 ],
             ],
             // 充值凭证

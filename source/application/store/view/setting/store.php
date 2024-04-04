@@ -47,7 +47,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                                        title="点击查看大图" target="_blank">
                                                         <img src="<?= isset($values['file_path'])?$values['file_path']:'' ?>">
                                                     </a>
-                                                    <input type="hidden" name="store[cover_id]" value="">
+                                                    <input type="hidden" name="store[cover_id]" value="<?= $values['cover_id'] ?>">
                                                     <i class="iconfont icon-shanchu file-item-delete"></i>
                                                 </div>
                                         </div>
@@ -481,6 +481,12 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                                data-am-ucheck
                                             <?= $values['menu_type'] == '40' ? 'checked' : '' ?>>
                                         D模式:首页/查询/运费/拼团/我的
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[menu_type]" value="50"
+                                               data-am-ucheck
+                                            <?= $values['menu_type'] == '50' ? 'checked' : '' ?>>
+                                        E模式:首页/查询/运费/商城/我的
                                     </label>
                                     <div class="help-block">
                                         <small>注意：默认开启A模式，如需其他模式亲自行设置

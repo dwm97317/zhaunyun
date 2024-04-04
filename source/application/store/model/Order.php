@@ -190,7 +190,7 @@ class Order extends OrderModel
             // 获取已发货的订单
             $completed = self::detail($this['order_id'], ['user', 'address', 'goods', 'express']);
             // 发送消息通知
-            $this->sendDeliveryMessage([$completed]);
+            // $this->sendDeliveryMessage([$completed]);
             // 同步好物圈订单
             (new WowService($this['wxapp_id']))->update([$completed]);
         }

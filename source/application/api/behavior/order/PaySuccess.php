@@ -46,15 +46,19 @@ class PaySuccess
     public function run($order, $orderType = OrderTypeEnum::MASTER)
     {
         // 设置当前类的属性
+        
         $this->setAttribute($order, $orderType);
+        
         // 订单公共业务
         $this->onCommonEvent();
+        
         // 普通订单业务
         if ($orderType == OrderTypeEnum::MASTER) {
             $this->onMasterEvent();
         }
         // 订单来源回调业务
         $this->onSourceCallback();
+
         return true;
     }
 
@@ -79,10 +83,12 @@ class PaySuccess
     private function onCommonEvent()
     {
         // 发送消息通知
-        MessageService::send('order.payment', [
-            'order' => $this->order,
-            'order_type' => $this->orderType,
-        ]);
+                // dump($this->order);die;
+        // MessageService::send('order.payment', [
+        //     'order' => $this->order,
+        //     'order_type' => $this->orderType,
+        // ]);
+        
         // 小票打印
         (new PrinterService)->printTicket($this->order, OrderStatusEnum::ORDER_PAYMENT);
     }

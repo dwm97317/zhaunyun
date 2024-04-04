@@ -149,6 +149,29 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">地址识别</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 国内地址识别 </label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                     <div class="am-u-sm-9">
+                                        <label class="am-radio-inline">
+                                            <input type="radio" name="aiidentify[is_baiduaddress]" value="1"
+                                                   data-am-ucheck
+                                                <?= $values['is_baiduaddress'] == '1' ? 'checked' : '' ?>
+                                                   required>
+                                            开启
+                                        </label>
+                                        <label class="am-radio-inline">
+                                            <input type="radio" name="aiidentify[is_baiduaddress]" value="0"
+                                                   data-am-ucheck
+                                                <?= $values['is_baiduaddress'] == '0' ? 'checked' : '' ?>>
+                                            关闭
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
                             <div id="shuttle" class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     

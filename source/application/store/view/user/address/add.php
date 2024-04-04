@@ -8,11 +8,18 @@
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">添加会员地址</div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 粘贴地址 </label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <textarea  id="baiduaddress" class="tpl-form-input" value="" placeholder="请将用户中国地址粘贴在此处后点地址识别"></textarea>
+                                </div>
+                                <button type="button" class="am-btn am-btn-secondary"><span onclick="toClick()">中国地址识别</span></button>
+                            </div>
                             
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 收件人姓名 </label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="address[name]"
+                                    <input id="person" type="text" class="tpl-form-input" name="address[name]"
                                            value="" placeholder="请输入收件人姓名" required>
                                 </div>
                             </div>
@@ -44,7 +51,7 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">手机号</label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="address[phone]"
+                                    <input id="phonenum" type="text" class="tpl-form-input" name="address[phone]"
                                            value="" placeholder="请输入手机号" required>
                                 </div>
                             </div>
@@ -93,7 +100,7 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">省</label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="address[province]"
+                                    <input id="province" type="text" class="tpl-form-input" name="address[province]"
                                            value="" placeholder="请输入省" required>
                                 </div>
                             </div>
@@ -102,7 +109,7 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">市</label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="address[city]"
+                                    <input id="city" type="text" class="tpl-form-input" name="address[city]"
                                            value="" placeholder="请输入市" required>
                                 </div>
                             </div>
@@ -111,7 +118,7 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">区</label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="address[region]"
+                                    <input id="region" type="text" class="tpl-form-input" name="address[region]"
                                            value="" placeholder="请输入区" required>
                                 </div>
                             </div>
@@ -120,7 +127,7 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">街道</label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="address[street]"
+                                    <input id="town" type="text" class="tpl-form-input" name="address[street]"
                                            value="" placeholder="请输入街道" required>
                                 </div>
                             </div>
@@ -138,7 +145,7 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">详细地址</label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="address[detail]"
+                                    <input id="detail" type="text" class="tpl-form-input" name="address[detail]"
                                            value="" placeholder="请输入详细地址" required>
                                 </div>
                             </div>
@@ -186,6 +193,28 @@
 </script>
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
+    function toClick(){
+        var hedanurl = "<?= url('store/aitool.address/addressAi') ?>";
+        var address = $("#baiduaddress")[0].value;
+        layer.confirm('请确定开始解析地址', {title: '解析地址'}
+        , function (index) {
+            $.post(hedanurl,{text:address}, function (result) {
+                if(result.code == 1){
+                    $("#province").val(result.data.province);
+                    $("#city").val(result.data.city);
+                    $("#region").val(result.data.county);
+                    $("#phonenum").val(result.data.phonenum);
+                    $("#detail").val(result.data.detail);
+                    $("#person").val(result.data.person);
+                    $("#town").val(result.data.town);
+                }else{
+                   $.show_error(result.msg); 
+                }
+            });
+            layer.close(index);
+        });        
+    } 
+
     $(function () {
              // 选择用户
     $('.j-selectUser').click(function () {

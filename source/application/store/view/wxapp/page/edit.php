@@ -55,25 +55,25 @@
                                     <p class="item-icon"><i class="iconfont icon-shangpin5"></i></p>
                                     <p>商品组</p>
                                 </nav>
-                                <nav class="special" @click="onAddItem('coupon')">
-                                    <p class="item-icon"><i class="iconfont icon-youhuiquan2"></i></p>
-                                    <p>优惠券组</p>
-                                </nav>
-                                <nav class="special" @click="onAddItem('sharingGoods')">
-                                    <p class="item-icon"><i class="iconfont icon-shangpin5"></i></p>
-                                    <p>拼团商品</p>
-                                </nav>
-                                <nav class="special" @click="onAddItem('bargainGoods')">
-                                    <p class="item-icon"><i class="iconfont icon-kanjia"></i></p>
-                                    <p>砍价商品</p>
-                                </nav>
-                                <nav class="special" @click="onAddItem('sharpGoods')">
-                                    <p class="item-icon"><i class="iconfont icon-miaosha"></i></p>
-                                    <p>秒杀商品</p>
-                                </nav>
-                                <nav class="special" @click="onAddItem('shop')">
-                                    <p class="item-icon"><i class="iconfont icon-mendian"></i></p>
-                                    <p>线下门店</p>
+                                <!--<nav class="special" @click="onAddItem('coupon')">-->
+                                <!--    <p class="item-icon"><i class="iconfont icon-youhuiquan2"></i></p>-->
+                                <!--    <p>优惠券组</p>-->
+                                <!--</nav>-->
+                                <!--<nav class="special" @click="onAddItem('sharingGoods')">-->
+                                <!--    <p class="item-icon"><i class="iconfont icon-shangpin5"></i></p>-->
+                                <!--    <p>拼团商品</p>-->
+                                <!--</nav>-->
+                                <!--<nav class="special" @click="onAddItem('bargainGoods')">-->
+                                <!--    <p class="item-icon"><i class="iconfont icon-kanjia"></i></p>-->
+                                <!--    <p>砍价商品</p>-->
+                                <!--</nav>-->
+                                <!--<nav class="special" @click="onAddItem('sharpGoods')">-->
+                                <!--    <p class="item-icon"><i class="iconfont icon-miaosha"></i></p>-->
+                                <!--    <p>秒杀商品</p>-->
+                                <!--</nav>-->
+                                <!--<nav class="special" @click="onAddItem('shop')">-->
+                                <!--    <p class="item-icon"><i class="iconfont icon-mendian"></i></p>-->
+                                <!--    <p>线下门店</p>-->
                                 </nav>
                             </div>
                             <div class="title">工具组件</div>

@@ -260,11 +260,5 @@ class User extends BaseModel
         return $this->setInc('points', $points);
     }
     
-    // public function getMobileAttr($value){
-    //     if(empty($value)){
-    //         return '';
-    //     }
-    //     return hide_mobile($value);
-    // }
 
 }

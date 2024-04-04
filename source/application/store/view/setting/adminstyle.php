@@ -388,7 +388,7 @@
                                     <select name="adminstyle[delivertempalte][labelface]"
                                             data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
                                             <option value="10" <?= $values['delivertempalte']['labelface'] == '10' ? 'selected' : '' ?>>模板A</option>
-                                            <!--<option value="20" <?= $values['delivertempalte']['labelface'] == '20' ? 'selected' : '' ?>>模板B</option>-->
+                                            <option value="20" <?= $values['delivertempalte']['labelface'] == '20' ? 'selected' : '' ?>>模板B</option>
                                             <!--<option value="30" <?= $values['delivertempalte']['labelface'] == '30' ? 'selected' : '' ?>>模板C</option>-->
                                             <!--<option value="40" <?= $values['delivertempalte']['labelface'] == '40' ? 'selected' : '' ?>>模板D</option>-->
                                     </select>
@@ -399,11 +399,34 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">用户功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    用户手机号是否加密
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_phone_secret]" value="1"
+                                               data-am-ucheck  <?= $values['is_phone_secret'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_phone_secret]" value="0"
+                                               data-am-ucheck <?= $values['is_phone_secret'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <div class="help-block">
+                                        <small>注意：开启加密后的手机号中间四位数将会被*代替，如180****8550</small>
+                                    </div>
+                                </div>
+                                
+                            </div>
                             
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
-                                    <button type="submit" class="j-submit am-btn am-btn-secondary">提交
-                                    </button>
+                                    <button type="submit" class="j-submit am-btn am-btn-secondary">提交</button>
                                 </div>
                             </div>
                         </fieldset>

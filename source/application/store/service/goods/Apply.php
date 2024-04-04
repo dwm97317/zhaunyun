@@ -16,7 +16,7 @@ class Apply extends GoodsService
     public static function checkSpecLocked($goodsId)
     {
         $service = new static;
-        return $service->checkSharpGoods($goodsId);
+        // return $service->checkSharpGoods($goodsId);
     }
 
     /**
@@ -27,8 +27,8 @@ class Apply extends GoodsService
     public static function checkIsAllowDelete($goodsId)
     {
         $service = new static;
-        if ($service->checkSharpGoods($goodsId)) return false;
-        if ($service->checkBargainGoods($goodsId)) return false;
+        // if ($service->checkSharpGoods($goodsId)) return false;
+        // if ($service->checkBargainGoods($goodsId)) return false;
         return true;
     }
 

@@ -35,21 +35,33 @@ class Comment extends Controller
         if (!$this->user){
             return $this->renderError('请先登录');
         }
+        $model = new CommentModel;
         $post = $this->postData();
+        // dump($post);die;
         if (!isset($post['order_id'])){
             return $this->renderError('请选择要评论的ID');
-        }
-        $order = (new Inpack())->find($post['order_id']);
-        if (!$order){
-            return $this->renderError('订单数据错误');
         }
         if (!isset($post['content'])){
             return $this->renderError('请输入你评论的内容');
         }
-        $model = new CommentModel;
-        if (!$model->addForPack($order,$post)){
-            return $this->renderError($model->getError() ?: '评论创建失败');
+        
+        if($post['common_type']==1){
+            $order = (new Inpack())->find($post['order_id']);
+            if (!$order){
+                return $this->renderError('订单数据错误');
+            }
+            if (!$model->addForPack($order,$post)){
+                return $this->renderError($model->getError() ?: '评论创建失败');
+            }
+        }else{
+            if (!$model->addForOrder($order,$post)){
+                return $this->renderError($model->getError() ?: '评论创建失败');
+            }
         }
+        
+        
+        
+        
         return $this->renderSuccess('评论创建成功');
     }
     

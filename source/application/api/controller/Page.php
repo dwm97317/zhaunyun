@@ -23,6 +23,7 @@ use app\common\model\UploadFile;
 use  app\api\model\PackageService;
 use app\api\model\article\Category as CategoryModel;
 use app\api\model\Country;
+use app\api\model\Barcode;
 /**
  * 页面控制器
  * Class Index
@@ -45,6 +46,14 @@ class Page extends Controller
         // 页面元素
         $data = WxappPage::getPageData($this->getUser(false), $page_id);
         return $this->renderSuccess($data);
+    }
+    
+    //获取条码信息；
+    public function getbarcode(){
+        $param = $this->request->param();
+        $Barcode = new Barcode;
+        $result = $Barcode::useGlobalScope(false)->where('barcode',$param['barcode'])->find();
+        return $this->renderSuccess($result);
     }
     
     //获取H5跳转地址
