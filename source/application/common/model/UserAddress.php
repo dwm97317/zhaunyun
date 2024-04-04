@@ -15,5 +15,5 @@ class UserAddress extends BaseModel
      * @var array
      */
     protected $append = ['region'];
-
+    
 }

@@ -3,7 +3,7 @@
 namespace app\store\model;
 use think\Model;
 use app\common\model\UserAddress as UserAddressModel;
-
+use app\store\model\Setting as SettingModel;
 /**
  * 用户收货地址模型
  * Class UserAddress
@@ -157,5 +157,23 @@ class UserAddress extends UserAddressModel
     public static function detail($id)
     {
          return self::find($id);
+    }
+    
+    /**
+     * 隐藏手机号
+     * @return 
+     * @throws \think\exception\DbException
+     */
+    public function getPhoneAttr($value){
+        if(empty($value)){
+            return '';
+        }
+      
+        $setting = SettingModel::getItem('adminstyle');
+        if($setting['is_address_secret']==1){
+            return hide_mobile($value);
+        }else{
+            return $value;
+        }
     }
 }

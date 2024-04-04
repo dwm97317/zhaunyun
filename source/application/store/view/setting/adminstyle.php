@@ -300,6 +300,26 @@
                                     </label>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    用户地址手机号是否加密
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_address_secret]" value="1"
+                                               data-am-ucheck  <?= $values['is_address_secret'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_address_secret]" value="0"
+                                               data-am-ucheck <?= $values['is_address_secret'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <div class="help-block">
+                                        <small>注意：开启加密后的手机号中间四位数将会被*代替，如180****8550</small>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">排序功能设置</div>
@@ -421,7 +441,6 @@
                                         <small>注意：开启加密后的手机号中间四位数将会被*代替，如180****8550</small>
                                     </div>
                                 </div>
-                                
                             </div>
                             
                             <div class="am-form-group">
