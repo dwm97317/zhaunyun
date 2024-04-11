@@ -123,36 +123,23 @@ class Page extends Controller
     public function getLangSetting(){
         $SettingModel = new SettingModel();
         $lang = $SettingModel::getItem("lang");
-        // dump($lang);die;
-        
-        if($lang['zhHans']==1){
-            $zhHans=[
-                ['name' =>'简体','type' => 'zhHans']
-            ];
+  
+        $zhHans=[
+            ['name' =>'简体','type' => 'zhHans'],
+            ['name' =>'繁体','type' => 'zhHant']
+        ];
+        $i = 0;
+        $data = [];
+        foreach($lang['langlist'] as $val){
+            $val= json_decode($val,true);
+            if($val['status']==1){
+                $data[$i]['name'] = $val['name'];
+                $data[$i]['type'] = $val['enname'];
+                $i ++;
+            }
         }
-        $en = $thai = $vietnam = $zhHant = [];
-        if($lang['en']==1){
-            $en=[
-                ['name' =>'English','type' => 'en']
-            ]; 
-        }
-        if($lang['zhHant']==1){
-            $zhHant=[
-                ['name' =>'繁体','type' => 'zhHant']
-            ]; 
-        }
-        if($lang['thai']==1){
-            $thai =[
-                ['name' =>'thai','type' => 'thai']
-            ]; 
-        }
-        if($lang['vietnam']==1){
-            $vietnam=[
-                ['name' =>'vietnam','type' => 'vietnam']
-            ]; 
-        }
-        // dump();die;
-        $langs['data'] = array_merge($zhHans,$en,$zhHant,$thai,$vietnam);
+        $data = array_merge($zhHans,$data);
+        $langs['data'] =$data;
         $langs['default'] = $lang['default'];
         return $this->renderSuccess($langs);
     }
@@ -160,26 +147,9 @@ class Page extends Controller
     //获取语言包
     public function getLangPackage(){
         $data = $this->request->param();
-        switch ($data['type']) {
-            case 'zhHant':
-                $track = getFileDataForLang('lang/10001/zhHant.json');  
-                break;
-            case 'en':
-                $track = getFileDataForLang('lang/10001/English.json');
-                break;
-            case 'zhHans':
-                $track = getFileDataForLang('lang/10001/zhHans.json');
-                break;
-            case 'thai':
-                $track = getFileDataForLang('lang/10001/thai.json');
-                break;
-            case 'vietnam':
-                $track = getFileDataForLang('lang/10001/vietnam.json');
-                break;
-                
-            default:
-                $track = getFileDataForLang('lang/10001/zhHant.json');  
-                break;
+        $track = getFileDataForLang('lang/'.$this->wxapp_id.'/'.$data['type'].'.json');
+        if(count($track)==0){
+            $track = getFileDataForLang('lang/10001/'.$data['type'].'.json');
         }
         return $this->renderSuccess($track);
     }

@@ -42,7 +42,7 @@ class Package extends PackageModel
        'length',
        'weight',
        'address_id',
-
+       'usermark'
     ];
     
     // 预报包裹保存

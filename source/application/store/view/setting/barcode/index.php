@@ -17,6 +17,13 @@
                                         </a>
                                     </div>
                                 <?php endif; ?>
+                                <div class="am-btn-group am-btn-group-xs">
+                                        <a class="am-btn am-btn-danger am-btn-success am-radius"
+                                           href="<?= url('setting.barcode/import') ?>">
+                                            <i class="iconfont icon-daochu am-margin-right-xs"></i> 批量导入
+                                        </a>
+                                    </div>
+                                
                             </div>
                             
                         </div>

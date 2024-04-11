@@ -214,6 +214,30 @@
                                     </label>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否显示用户唛头
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[fahuocang][is_usermark]" value="1"
+                                               data-am-ucheck  <?= $values['fahuocang']['is_usermark'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[fahuocang][is_usermark]" value="0"
+                                               data-am-ucheck <?= $values['fahuocang']['is_usermark'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="keeper[fahuocang][is_usermark_force]" value="1" data-am-ucheck
+                                            <?= $values['fahuocang']['is_user_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">仓管端APP设置</div>
                             </div>
@@ -251,6 +275,7 @@
                                     </label>
                                 </div>
                             </div>
+                            
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交

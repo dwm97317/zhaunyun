@@ -339,6 +339,8 @@ class Setting extends BaseModel
                         'is_adminremark_force' => 0,
                         'is_photo' => 1,
                         'is_photo_force' => 0,
+                        'is_usermark' => 0,
+                        'is_usermark_force'=>0
                     ],
                     'shopkeeper'=>[
                         'is_rfid'=>0, //0=不开启，1=开启    
@@ -535,12 +537,15 @@ class Setting extends BaseModel
                 'key' => 'lang',
                 'describe' => '语言设置',
                 'values' => [
-                    'default' => 'zhHant',
+                    'default' => 'zhHans',
                     'zhHans' => '1', //简体中文
                     'en' => '0', //英文
                     'zhHant' => '0', //繁体
                     'thai'=>0, //泰语
                     'vietnam'=>0, //越南
+                    'langlist'=>[
+                    
+                    ]
                 ]
             ],
             // 支付设置

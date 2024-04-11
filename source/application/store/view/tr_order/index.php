@@ -486,11 +486,16 @@
                                             <!--打印账单-->
                                             <?php if (checkPrivilege('tr_order/freelistlabel')): ?>
                                             <?php if ($item['status']>=2): ?>
-                                             <a class='tpl-table-black-operation-warning j-freelist' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
+                                             <a class='tpl-table-black-operation-del j-freelist' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
                                                 <i class="iconfont icon-biaoqian"></i> 打印账单
                                             </a>
                                             <?php endif ;?>
                                             <?php endif ;?>
+                                            
+                                            <a class='tpl-table-black-operation-del j-exportdetail' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
+                                                <i class="iconfont icon-daochu"></i> 导出包裹
+                                            </a>
+                                            
                                             <!--转单-->
                                             <?php if (checkPrivilege('tr_order/changesn')): ?>
                                             <?php if (in_array($item['status'],[6,7,8])): ?>
@@ -499,13 +504,14 @@
                                             </a>
                                             <?php endif ;?>
                                             <?php endif ;?>
-                                            <?php if (checkPrivilege('tr_order/payyue') && $item['is_pay'] ==2) : ?>
+                                            
+                                         </div>
+                                         <div class="tpl-table-black-operation" style="margin-top:10px">
+                                             <?php if (checkPrivilege('tr_order/payyue') && $item['is_pay'] ==2) : ?>
                                             <a class='tpl-table-black-operation-warning j-payyue' href="javascript:void(0);" data-balance="0" data-price="0" data-name="<?= $item['nickName'] ?>" data-user_id="<?= $item['member_id'] ?>" data-id="<?= $item['id'] ?>">
                                                 <i class="iconfont icon-dizhi"></i> 余额扣除
                                             </a>
                                              <?php endif ;?>
-                                         </div>
-                                         <div class="tpl-table-black-operation" style="margin-top:10px">
                                             <?php if (checkPrivilege('tr_order/cashforprice') && $item['is_pay'] ==2) : ?>
                                             <a class='tpl-table-black-operation-warning j-payxianjin' href="javascript:void(0);" data-balance="0" data-price="0" data-name="<?= $item['nickName'] ?>" data-user_id="<?= $item['member_id'] ?>" data-id="<?= $item['id'] ?>">
                                                 <i class="iconfont icon-dizhi"></i> 现金收款
@@ -1162,6 +1168,33 @@
 						}
 					})
 				});
+				
+				/**
+				 * 导出包裹
+				 */
+				$('.j-exportdetail').on('click', function() {
+					var $tabs, data = $(this).data();
+				console.log(data,999)
+					$.ajax({
+						type: 'post',
+						url: "<?= url('store/trOrder/exportInpackpackage') ?>",
+						data: {
+							id: data.id,
+						},
+						dataType: "json",
+						success: function(res) {
+							if (res.code == 1) {
+								console.log(res.url.file_name);
+								var a = document.createElement('a');
+								document.body.appendChild(a);
+								a.href = res.url.file_name;
+								a.click();
+							}
+						}
+					})
+				});
+				
+				
         
         
                 /**

@@ -760,6 +760,12 @@ class Package extends PackageModel
             !empty($param['end_time']) && $this->where($param['time_type'], '<=', $param['end_time']." 23:59:59");
         }
         
+        if(!empty($param['min-weight']) && !empty($param['max-weight'])){
+            !empty($param['min-weight']) && $this->where('a.weight', '>=', $param['min-weight']);
+            !empty($param['max-weight']) && $this->where('a.weight', '<=', $param['max-weight']);
+        }
+        
+        
         // !empty($param['express_num']) && $this->where('a.express_num|a.order_sn', 'like', '%'.$param['express_num'].'%');
         if(!empty($param['express_num'])){
             $express_num = str_replace("\r\n","\n",trim($param['express_num']));
@@ -907,10 +913,17 @@ class Package extends PackageModel
         !empty($param['source'])&& $this->where('source','=',$param['source']);
         !empty($param['is_delete'])&& $this->where('a.is_delete','=',$param['is_delete']);
         !empty($param['extract_shop_id'])&&is_numeric($param['extract_shop_id']) && $param['extract_shop_id'] > -1 && $this->where('storage_id', '=', (int)$param['extract_shop_id']);
-        !empty($param['start_time']) && $this->where('created_time', '>', $param['start_time']);
-        !empty($param['end_time']) && $this->where('created_time', '<', $param['end_time']." 23:59:59");
+        
+        if(!empty($param['time_type'])){
+            !empty($param['start_time']) && $this->where($param['time_type'], '>=', $param['start_time']);
+            !empty($param['end_time']) && $this->where($param['time_type'], '<=', $param['end_time']." 23:59:59");
+        }
     
-        // !empty($param['express_num']) && $this->where('a.express_num|a.order_sn', 'like', '%'.$param['express_num'].'%');
+        if(!empty($param['min-weight']) && !empty($param['max-weight'])){
+            !empty($param['min-weight']) && $this->where('a.weight', '>=', $param['min-weight']);
+            !empty($param['max-weight']) && $this->where('a.weight', '<=', $param['max-weight']);
+        }
+        
         if(!empty($param['express_num'])){
             $express_num = str_replace("\r\n","\n",trim($param['express_num']));
             $express_num = explode("\n",$express_num);

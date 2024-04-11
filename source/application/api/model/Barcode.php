@@ -10,5 +10,9 @@ use app\common\model\Barcode as BarcodeModel;
  */
 class Barcode extends BarcodeModel
 {
+    public function saveData($param){
+        // dump($param);die;
+        return $this->save($param);
+    }
 
 }

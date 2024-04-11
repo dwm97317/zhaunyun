@@ -55,22 +55,155 @@ class Wxapp extends Controller
             return $this->fetch('h5', compact('model'));
         }
         $data = $this->postData('wxapp');
+       
         if ($model->save($data)) {
             return $this->renderSuccess('更新成功');
         }
         return $this->renderError($model->getError() ?: '更新失败');
     }
     
+    //新增语言
+    public function addlang(){
+        $SettingModel = new SettingModel;
+        $lang = $SettingModel::getItem("lang");
+        $list = $lang['langlist'];
+        if (!$this->request->isAjax()) {
+            return $this->fetch('lang', compact('lang','list'));
+        }
+        $data = $this->postData('lang');
+        foreach ($lang['langlist'] as $k =>$v){
+            $datalang[$k] = $lang['langlist'][$k];
+        }
+        $datalang[$data['enname']]= json_encode($data);
+        $datas['langlist'] = $datalang;
+        $datas['default'] = $lang['default'];
+        if ($SettingModel->edit("lang",$datas)) {
+            return $this->renderSuccess('更新成功');
+        }
+        return $this->renderError($SettingModel->getError() ?: '更新失败');
+    
+    }
+    
+    //编辑语言
+    public function  editlang(){
+        $SettingModel = new SettingModel;
+        $param = $this->request->param();
+        $lang = $SettingModel::getItem("lang"); 
+        $detail = $lang['langlist'][$param['name']]; 
+        return $this->renderSuccess("获取成功",'',json_decode($detail,true));
+    }
+    
+    //保存编辑语言
+    public function  saveeditlang(){
+        $SettingModel = new SettingModel;
+        $param = $this->request->param();
+ 
+        $lang = $SettingModel::getItem("lang");
+        $data = $this->postData('lang');
+        foreach ($lang['langlist'] as $k =>$v){
+            $datalang[$k] = $lang['langlist'][$k];
+        }
+        $datalang[$param['lang']['enname']] = json_encode($param['lang']);
+             
+        $datas['langlist'] = $datalang;
+        $datas['default'] = $lang['default'];
+        if ($SettingModel->edit("lang",$datas)) {
+            return $this->renderSuccess('更新成功');
+        }
+        return $this->renderError($SettingModel->getError() ?: '更新失败');
+    }
+    
+    //删除语言
+    public function  deletealang(){
+        $SettingModel = new SettingModel;
+        $param = $this->request->param();
+ 
+        $lang = $SettingModel::getItem("lang");
+        $data = $this->postData('lang');
+        foreach ($lang['langlist'] as $k =>$v){
+            $datalang[$k] = $lang['langlist'][$k];
+        }
+        unset($datalang[$param['name']]);
+        //  dump($datalang);die;  
+        $datas['langlist'] = $datalang;
+        $datas['default'] = $lang['default'];
+        if ($SettingModel->edit("lang",$datas)) {
+            return $this->renderSuccess('更新成功');
+        }
+        return $this->renderError($SettingModel->getError() ?: '更新失败');
+    }
+    
+    //多语言设置
+    public function langdetail(){
+        $SettingModel = new SettingModel;
+        $wxappId = $this->getWxappId();
+        $param = $this->request->param();
+        $lang = $SettingModel::getItem("lang");
+        
+        $zhHans=['zhHans' =>'简体','zhHant' =>'繁体'];
+        $i = 0;
+        foreach($lang['langlist'] as $key=> $val){
+            $val= json_decode($val,true);
+                $languages[$key] = $val['name'];
+                $i ++;
+        }
+        $languages = array_merge($zhHans,$languages);
+      
+        // $languages = ['zhHans' =>'简体','en' =>'英文','zhHant' =>'繁体','thai' =>'泰文','vietnam' =>'越南文'];
+        $language = $languages[$param['lang']];
+       
+        $lang = getFileDataForLang('lang/'.$wxappId.'/'.$param['lang'].'.json');
+        $zhHans = getFileDataForLang('lang/'.$wxappId.'/zhHans.json');
+        //   dump($param['lang']);die;
+        
+        if(count($zhHans)==0){
+            $zhHans = getFileDataForLang('lang/10001/zhHans.json');
+        }
+        if(count($lang)==0){
+            $lang = getFileDataForLang('lang/10001/zhHans.json');
+        }
+            // dump($lang);die;
+        if (!$this->request->isAjax()) {
+            return $this->fetch('langdetail', compact('lang','zhHans','language'));
+        }
+        $data = $this->postData('lang');
+     
+        $dir = 'lang/'.$wxappId.'/';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true); // 创建目录，并设置权限
+        }
+        $res = file_put_contents('lang/'.$wxappId.'/'.$param['lang'].'.json', json_encode($data));
+        if ($res) {
+            return $this->renderSuccess('更新成功');
+        }
+        return $this->renderError($SettingModel->getError() ?: '更新失败');
+    }
+    
+    
     //多语言设置
     public function lang(){
         $SettingModel = new SettingModel;
         $lang = $SettingModel::getItem("lang");
+        $list = [];
+            // dump($lang);die;
+        foreach ($lang['langlist'] as $key=>$val){
+                $list[] = json_decode($val,true);
+        }
         // dump($lang);die;
         if (!$this->request->isAjax()) {
-            return $this->fetch('lang', compact('lang'));
+            return $this->fetch('lang', compact('lang','list'));
+        }
+        $datalang = [];
+        foreach ($lang['langlist'] as $k =>$v){
+            $datalang[$k] = $lang['langlist'][$k];
         }
         $data = $this->postData('lang');
-        if ($SettingModel->edit("lang",$data)) {
+        $datas = [
+            'langlist' => $datalang,
+            'default' => $data['default']
+        ];
+        //   dump($datas);die;
+        if ($SettingModel->edit("lang",$datas)) {
             return $this->renderSuccess('更新成功');
         }
         return $this->renderError($SettingModel->getError() ?: '更新失败');

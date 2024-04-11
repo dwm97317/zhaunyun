@@ -5,8 +5,8 @@
                 <div class="widget-head am-cf">
                     <div class="widget-title am-cf">包裹列表<small style="padding-left:10px;color:#1686ef">(提示：需要导出某个用户所有包裹，可先通过id搜索该用户，然后点导出（无需勾选），勾选后只导出勾选部分的信息)</small></div>
                     <div style="margin-top:30px;">
-                        <span style="line-height:30px;"  class="am-badge am-badge-warning">今日入库（个数/重量）：<?= $datatotal['todayin'] ?>/<?= $datatotal['todayin_weight'] ?></span>
-                        <span style="line-height:30px;"  class="am-badge am-badge-warning">今日出库（个数/重量）：<?= $datatotal['todayout'] ?>/<?= $datatotal['todayout_weight'] ?></span>
+                        <span style="line-height:30px;"  class="am-badge am-badge-warning">今日入库（个数/重量）：<?= isset($datatotal)?$datatotal['todayin']:0 ?>/<?= isset($datatotal['todayin_weight'])?$datatotal['todayin_weight']:0 ?></span>
+                        <span style="line-height:30px;"  class="am-badge am-badge-warning">今日出库（个数/重量）：<?= isset($datatotal['todayout'])?$datatotal['todayout']:0 ?>/<?= isset($datatotal['todayout_weight'])?$datatotal['todayout_weight']:0 ?></span>
                         <span style="line-height:30px;"  class="am-badge am-badge-success">昨日入库（个数/重量）：<?= $datatotal['yesin'] ?>/<?= $datatotal['yesin_weight'] ?></span>
                         <span style="line-height:30px;"  class="am-badge am-badge-success">昨日出库（个数/重量）：<?= $datatotal['yesout'] ?>/<?= $datatotal['yesout_weight'] ?></span>
                         <span style="line-height:30px;"  class="am-badge am-badge-success">未入库(已预报)：<?= $datatotal['report'] ?></span>
@@ -148,6 +148,19 @@
                                                class="am-form-field"
                                                value="<?= $request->get('end_time') ?>" placeholder="请选择截止日期"
                                                data-am-datepicker>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" style="width:60px;" class="am-form-field" name="min-weight"
+                                                   placeholder="重量" value="<?= $request->get('min-weight') ?>">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" style="width:60px;" class="am-form-field" name="max-weight"
+                                                   placeholder="重量" value="<?= $request->get('max-weight') ?>">
+                                        </div>
                                     </div>
                                     <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">

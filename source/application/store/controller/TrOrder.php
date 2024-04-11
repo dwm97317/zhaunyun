@@ -2607,7 +2607,131 @@ class TrOrder extends Controller
         ]);
      }
      
-     
+     /**导出集运订单中的包裹明细**/
+    //导出成excel文档
+     public function exportInpackpackage(){
+         //引入excel插件
+        vendor('PHPExcel.PHPExcel');
+        $objPHPExcel = new \PHPExcel();
+        //获取需要导出的数据列表
+        $param= $this->request->param();
+        $data = (new Package())->with(['storage','Member','categoryAttr','batch'])->where('inpack_id',$param['id'])->where('is_delete',0)->select();
+        
+          $style_Array=array(
+            'font'    => array (
+               'bold'      => true
+              ),
+             'alignment' => array (
+                      'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+               ),
+              'borders' => array (
+                   'top'     => array (
+                           'style' => \PHPExcel_Style_Border::BORDER_THIN
+                       )
+                ),
+          );
+        $status = [1=>'待入库',2=>'已入库',3=>'已上架','4'=>'待打包','5'=>'待支付','6'=>'已支付','7'=>'加入批次','8'=>'已打包','9'=>'已发货','10'=>'已收货','11'=>'已完成'];
+        $setting = SettingModel::getItem('store',$data[0]['wxapp_id']);
+        $objPHPExcel->getActiveSheet()->getStyle( 'A4:P4')->applyFromArray($style_Array);
+        //第一行的样式
+        $objPHPExcel->getActiveSheet()->setCellValue('A1',$setting['name'].'── 包裹明细');
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(24);
+        $objPHPExcel->getActiveSheet()->mergeCells('A1:P1');
+        $objPHPExcel->getActiveSheet()->getRowDimension('1')->setRowHeight(36);
+        //第二行的样式
+        $objPHPExcel->getActiveSheet()->setCellValue('B2','致'.$data[0]['member']['nickName'].'导出日期：'.getTime());
+        $objPHPExcel->getActiveSheet()->mergeCells('B2:P2');
+        
+        $objPHPExcel->setActiveSheetIndex(0);
+        //5.设置表格头（即excel表格的第一行）
+        $objPHPExcel->setActiveSheetIndex(0)
+                ->setCellValue('A4', '序号')
+                ->setCellValue('B4', '快递单号')
+                ->setCellValue('C4', '批次号')
+                ->setCellValue('D4', '包裹尺寸')
+                ->setCellValue('E4', '包裹重量')
+                ->setCellValue('F4', '包裹位置')
+                ->setCellValue('G4', '包裹状态')
+                ->setCellValue('H4', '扫描状态')
+                ->setCellValue('I4', '入库时间')
+                ->setCellValue('J4', '查验时间')
+                ->setCellValue('K4', '所属用户')
+                ->setCellValue('L4', '所在仓库')
+                ->setCellValue('M4', '包裹类别')
+                ->setCellValue('N4', '物品名称')
+                ->setCellValue('O4', '单价')
+                ->setCellValue('P4', '数量');
+                   
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:P')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:P4')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:P')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        
+        $objPHPExcel->getActiveSheet()->getStyle('A:P')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        //设置行高
+        $objPHPExcel->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
+        //设置颜色
+
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('A')->setWidth(8);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('B')->setWidth(20);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('C')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('D')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('E')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('F')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('G')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('H')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('I')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('J')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('K')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('L')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('M')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('N')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('O')->setWidth(8);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('P')->setWidth(8);
+        $length = 1;
+        // dump(count($data['category_attr']));die;
+        
+        // dump($length);die;
+        for($i=0;$i<count($data);$i++){
+            $objPHPExcel->getActiveSheet()->setCellValue('A'.($i+5),$i+1);//序号
+            $objPHPExcel->getActiveSheet()->setCellValue('B'.($i+5),$data[$i]['express_num']);//快递单号
+            $objPHPExcel->getActiveSheet()->setCellValue('C'.($i+5),$data[$i]['batch']['batch_name']);//平台订单号
+            $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+5),$data[$i]['length'].'/'.$data[$i]['width'].'/'.$data[$i]['height']);//目的地
+            $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+5),$data[$i]['weight']);//标准价
+            $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+5),$data[$i]['storage']['shop_name']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('G'.($i+5),$status[$data[$i]['status']]);//标准价 ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('H'.($i+5),$data[$i]['is_scan']==1?"未扫码":"已扫码");//用户id
+            $objPHPExcel->getActiveSheet()->setCellValue('I'.($i+5),$data[$i]['entering_warehouse_time']);//用户昵称
+            $objPHPExcel->getActiveSheet()->setCellValue('J'.($i+5),$data[$i]['scan_time']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('K'.($i+5),$data[$i]['member']['nickName']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('L'.($i+5),$data[$i]['storage']['shop_name']);//快递类别  ***********
+            $length = 1;
+            if(count($data[$i]['category_attr'])>0){
+                $length = count($data[$i]['category_attr']);
+            }
+            for($j=0;$j< $length;$j++){
+                $objPHPExcel->getActiveSheet()->setCellValue('M'.($i+5),isset($data[$i]['category_attr'][$j]['class_name'])?$data[$i]['category_attr'][$j]['class_name']:'');//快递类别  ***********
+                $objPHPExcel->getActiveSheet()->setCellValue('N'.($i+5),isset($data[$i]['category_attr'][$i]['goods_name'])?$data[$i]['category_attr'][$j]['goods_name']:'');//重量
+                $objPHPExcel->getActiveSheet()->setCellValue('O'.($i+5),isset($data[$i]['category_attr'][$j]['one_price'])?$data[$i]['category_attr'][$j]['one_price']:'');//重量
+                $objPHPExcel->getActiveSheet()->setCellValue('P'.($i+5),isset($data[$i]['category_attr'][$j]['product_num'])?$data[$i]['category_attr'][$j]['product_num']:'');//重量
+            }
+           
+    
+        }
+        //7.设置保存的Excel表格名称
+        //8.设置当前激活的sheet表格名称；
+        $objPHPExcel->getActiveSheet()->setTitle('业务结算清单');
+        //9.设置浏览器窗口下载表格
+        $filename = "用户包裹"  . rand(1000000, 9999999) . ".xlsx";
+        // $objWriter = new \PHPExcel_Writer_Excel5($objPHPExcel);
+
+        $ov = \PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
+        $ov->save("excel/" . $filename);
+        return $this->renderSuccess("导出成功", [
+            "file_name" => "https://".$_SERVER["HTTP_HOST"] . "/excel/" . $filename,
+        ]);
+     }    
      
      /**导出集运业务结算**/
     //导出成excel文档

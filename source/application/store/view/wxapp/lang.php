@@ -19,52 +19,17 @@
                                         简体中文
                                     </label>
                                     <label class="am-checkbox-inline">
-                                        <input type="radio" name="lang[default]" value="en"
-                                               data-am-ucheck <?= $lang['default'] == 'en' ? 'checked' : '' ?>>
-                                        英文
-                                    </label>
-                                    <label class="am-checkbox-inline">
                                         <input type="radio" name="lang[default]" value="zhHant"
                                                data-am-ucheck <?= $lang['default'] == 'zhHant' ? 'checked' : '' ?>>
                                         繁体中文
                                     </label>
+                                    <?php if (isset($list)): foreach ($list as $key =>$item): ?>
                                     <label class="am-checkbox-inline">
-                                        <input type="radio" name="lang[default]" value="thai"
-                                               data-am-ucheck <?= $lang['default'] == 'thai' ? 'checked' : '' ?>>
-                                        泰语
+                                        <input type="radio" name="lang[default]" value="<?= $item['enname'] ?>"
+                                               data-am-ucheck <?= $lang['default'] == $item['enname'] ? 'checked' : '' ?>>
+                                        <?= $item['name'] ?>
                                     </label>
-                                    <label class="am-checkbox-inline">
-                                        <input type="radio" name="lang[default]" value="vietnam"
-                                               data-am-ucheck <?= $lang['default'] == 'vietnam' ? 'checked' : '' ?>>
-                                        越南语
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require">
-                                    是否开启
-                                </label>
-                                <div class="am-u-sm-9">
-                                    <label class="am-checkbox-inline">
-                                        <input type="checkbox" name="lang[zhHant]" value="1"
-                                               data-am-ucheck <?= $lang['zhHant'] == 1 ? 'checked' : '' ?>>
-                                        繁体中文
-                                    </label>
-                                    <label class="am-checkbox-inline">
-                                        <input type="checkbox" name="lang[en]" value="1"
-                                               data-am-ucheck <?= $lang['en'] == 1 ? 'checked' : '' ?>>
-                                        英文
-                                    </label>
-                                    <label class="am-checkbox-inline">
-                                        <input type="checkbox" name="lang[thai]" value="1"
-                                               data-am-ucheck <?= $lang['thai'] == 1 ? 'checked' : '' ?>>
-                                        泰语
-                                    </label>
-                                    <label class="am-checkbox-inline">
-                                        <input type="checkbox" name="lang[vietnam]" value="1"
-                                               data-am-ucheck <?= $lang['vietnam'] == 1 ? 'checked' : '' ?>>
-                                        越南语
-                                    </label>
+                                    <?php endforeach; endif; ?>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -80,10 +45,228 @@
             </div>
         </div>
     </div>
+    
+    <div class="row">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
+            <div class="widget am-cf">
+                <div class="widget-head am-cf">
+                    <div class="widget-title am-cf">语言列表</div>
+                </div>
+                <div class="widget-body am-fr">
+                    <div class="am-u-sm-12 am-u-md-6 am-u-lg-6">
+                        <div class="am-form-group">
+                            <div class="am-btn-toolbar">
+                                <?php if (checkPrivilege('store/wxapp/addlang')): ?>
+                                    <div class="am-btn-group am-btn-group-xs">
+                                        <a class="j-lang am-btn am-btn-default am-btn-success am-radius"
+                                           href="javascript:void(0);">
+                                            <span class="am-icon-plus"></span> 新增语言
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="am-scrollable-horizontal am-u-sm-12">
+                        <table width="100%" class="am-table am-table-compact am-table-striped
+                         tpl-table-black am-text-nowrap">
+                            <thead>
+                            <tr>
+                                <th>语言名称</th>
+                                <th>英文名</th>
+                                <th>是否启用</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php if (count($list)>0): foreach ($list as $key => $item): ?>
+                                <tr>
+                                    <td class="am-text-middle"><?= $item['name'] ?></td>
+                                    <td class="am-text-middle">
+                                        <p class="item-title" style="max-width: 400px;"><?= $item['enname'] ?></p>
+                                    </td>
+                                    <td class="am-text-middle"><?= isset($item['status']) &&  $item['status']==1?"启用":"禁用" ?></td>
+                                    <td class="am-text-middle">
+                                        <div class="tpl-table-black-operation">
+                                            <?php if (checkPrivilege('store/wxapp/editlang')): ?>
+                                                <a data-name="<?= $item['enname'] ?>" class="j-langedit" href="javascript:void(0);">
+                                                    <i class="am-icon-pencil"></i> 编辑
+                                                </a>
+                                            <?php endif; ?>
+                                            <?php if (checkPrivilege('store/wxapp/deletealang')): ?>
+                                                <a href="javascript:;" class="item-delete tpl-table-black-operation-del"
+                                                   data-id="<?= $item['enname'] ?>">
+                                                    <i class="am-icon-trash"></i> 删除
+                                                </a>
+                                            <?php endif; ?>
+                                            <?php if (checkPrivilege('store/wxapp/langdetail')): ?>
+                                                <a href="<?= url('store/wxapp/langdetail',['lang' => $item['enname']]) ?>" class="tpl-table-black-operation"
+                                                   data-id="<?= $item['enname'] ?>">
+                                                    <i class="am-icon-pencil"></i> 设置翻译
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; else: ?>
+                                <tr>
+                                    <td colspan="5" class="am-text-center">暂无记录</td>
+                                </tr>
+                            <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+<!-- 新增 -->
+<script id="tpl-usermark" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form id="langform" class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label"> 语言中文名 </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <input type="text" name="lang[name]" value="" placeholder="请输入语言中文名">
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label"> 英文名 </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <input type="text" name="lang[enname]" value="" placeholder="请输入英文名">
+                    </div>
+                </div>
+                 <div class="am-form-group">
+                     <label class="am-u-sm-3 am-form-label form-require"> 是否启用 </label>
+                        <div class="am-u-sm-9 am-u-end">
+                            <label class="am-radio-inline">
+                                <input type="radio" name="lang[status]" value="1" data-am-ucheck checked>
+                                启用
+                            </label>
+                            <label class="am-radio-inline">
+                                <input type="radio" name="lang[status]" value="0" data-am-ucheck>
+                                禁用
+                            </label>
+                        </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+<!-- 编辑 -->
+<script id="tpl-edit" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form id="langform" class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label"> 语言中文名 </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <input type="text" name="lang[name]" value="{{ name }}" placeholder="请输入语言中文名">
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label"> 英文名 </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <input type="text" name="lang[enname]" value="{{ enname }}" placeholder="请输入英文名">
+                    </div>
+                </div>
+                 <div class="am-form-group">
+                     <label class="am-u-sm-3 am-form-label form-require"> 是否启用 </label>
+                        <div class="am-u-sm-9 am-u-end">
+                            <label class="am-radio-inline">
+                                <input type="radio" name="lang[status]" value="1" data-am-ucheck {{ status==1?'checked':'' }}  >
+                                启用
+                            </label>
+                            <label class="am-radio-inline">
+                                <input type="radio" name="lang[status]" value="0" data-am-ucheck {{ status==0?'checked':'' }}>
+                                禁用
+                            </label>
+                        </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
 <script>
     $(function () {
-
+        /**
+         * 增加语言
+         */
+        $('.j-langedit').on('click', function () {
+            var data = $(this).data();
+            $.ajax({
+                type:'post',
+                url:"<?= url('store/wxapp/editlang') ?>",
+                data:{name:data.name},
+                dataType:"json",
+                success:function(res){
+                      if (res.code==1){
+                          $.showModal({
+                            title: '编辑语言'
+                            , area: '460px'
+                            , content: template('tpl-edit', res.data)
+                            , uCheck: true
+                            , success: function ($content) {
+                            }
+                            , yes: function ($content) {
+                                $content.find('form').myAjaxSubmit({
+                                    url: '<?= url('store/wxapp/saveeditlang') ?>',
+                                    data: {user_id: data.id}
+                                });
+                                return true;
+                            }
+                        });
+                      } 
+                }
+            })
+        });
+        
+        /**
+         * 增加语言
+         */
+        $('.j-lang').on('click', function () {
+            var data = $(this).data();
+            $.showModal({
+                title: '新增语言'
+                , area: '460px'
+                , content: template('tpl-usermark', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('store/wxapp/addlang') ?>',
+                        data: {user_id: data.id}
+                    });
+                    return true;
+                }
+            });
+        });
+        
+        
+        
+                
+        /**
+         * 批量删除
+         */
+        $('.item-delete').on('click', function () {
+            var $tabs, data = $(this).data();
+            console.log(data,7777);
+            var hedanurl = "<?= url('store/wxapp/deletealang') ?>";
+            console.log();
+            layer.confirm('请确定是否删除选中的语言', {title: '删除语言'}
+                    , function (index) {
+                        $.post(hedanurl,{name:data.id}, function (result) {
+                            result.code === 1 ? $.show_success(result.msg, result.url)
+                                : $.show_error(result.msg);
+                        });
+                        layer.close(index);
+                    });
+        });
+        
+        $('#langform').superForm();
         /**
          * 表单验证提交
          * @type {*}

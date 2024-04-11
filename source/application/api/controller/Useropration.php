@@ -24,6 +24,7 @@ use app\api\model\InpackImage;
 use app\common\model\InpackService;
 use app\api\model\Setting as SettingModel;
 use app\common\model\store\shop\Capital;
+use app\api\model\user\UserMark;
 /**
  * 用户管理
  * Class User
@@ -84,6 +85,14 @@ class Useropration extends Controller
         $userRole['role_type'] = $userInfo['user_type'];
         $this->userRole = $userRole;
     } 
+    
+    //获取用户唛头
+    public function getusermark(){
+        $param  = $this->request->param();
+        $UserMark = new UserMark;
+        $list = $UserMark->getList($param['user_id']);
+        return $this->renderSuccess($list);
+    }
     
     // 仓库打包员 打包列表
     public function inpack(){
@@ -716,6 +725,7 @@ class Useropration extends Controller
        $imageIds = $this->postData('imageIds');
        $wxapp_id = \request()->get('wxapp_id');
        $remark = $this->postData('remark')[0];
+       $useremark = $this->postData('usermark')[0];
        $shelf_unit = $this->postData('shelf_unit')[0];
   
        //再加一层校验；
@@ -759,12 +769,13 @@ class Useropration extends Controller
             $order['updated_time'] = getTime();
             $order['created_time'] = getTime();
             $order['admin_remark'] = $remark;
+            $order['usermark'] = $useremark;
             $order['entering_warehouse_time'] = getTime();
             if($length>0 && $width>0 && $height>0){
                  $order['volume'] = $width*$length*$height/1000000;
             }
            
-        
+       
             $restwo = (new Package())->saveData($order); //获取到包裹的id
             if (!$restwo){
                  return $this->renderError('包裹入库失败');
@@ -857,6 +868,7 @@ class Useropration extends Controller
        $update['remark'] = !empty($data['remark'])?$data['remark'].';'.$remark:$remark;
        $update['storage_id'] = $clerk['shop_id'];
        $update['status'] = 2;
+       $update['usermark'] = !empty($usermark)?$usermark:$data['usermark'];
        $update['updated_time'] = getTime();
        $update['entering_warehouse_time'] = getTime();
        if($length>0 && $width>0 && $height>0){

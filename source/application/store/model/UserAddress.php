@@ -4,6 +4,7 @@ namespace app\store\model;
 use think\Model;
 use app\common\model\UserAddress as UserAddressModel;
 use app\store\model\Setting as SettingModel;
+use think\Session;
 /**
  * 用户收货地址模型
  * Class UserAddress
@@ -168,9 +169,9 @@ class UserAddress extends UserAddressModel
         if(empty($value)){
             return '';
         }
-      
+        $store = Session::get('yoshop_store');
         $setting = SettingModel::getItem('adminstyle');
-        if($setting['is_address_secret']==1){
+        if($setting['is_address_secret']==1 && $store['user']['is_super']==0){
             return hide_mobile($value);
         }else{
             return $value;

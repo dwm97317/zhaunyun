@@ -283,22 +283,28 @@ class Package extends Controller
                      $classItems[$k]['net_weight'] = isset($val['net_weight'])?$val['net_weight']:'';
                      $classItems[$k]['barcode'] = isset($val['barcode'])?$val['barcode']:'';
                      
-                     $barcodelist[$k]['barcode'] = isset($val['barcode'])?$val['barcode']:'';
-                     $barcodelist[$k]['brand'] = isset($val['brand'])?$val['brand']:'';
-                     $barcodelist[$k]['goods_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:'';
-                     $barcodelist[$k]['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:'';
-                     $barcodelist[$k]['goods_name'] = isset($val['pinming'])?$val['pinming']:'';
-                     $barcodelist[$k]['spec'] = isset($val['spec'])?$val['spec']:'';
-                     $barcodelist[$k]['price'] = isset($val['danjia'])?$val['danjia']:'';
-                     $barcodelist[$k]['gross_weight'] = isset($val['gross_weight'])?$val['gross_weight']:'';
-                     $barcodelist[$k]['net_weight'] = isset($val['net_weight'])?$val['net_weight']:'';
-                     $barcodelist[$k]['depth'] = isset($val['depth'])?$val['depth']:'';
-                     $barcodelist[$k]['width'] = isset($val['width'])?$val['width']:'';
-                     $barcodelist[$k]['height'] = isset($val['height'])?$val['height']:'';
+                     
                      if(isset($val['barcode']) && !empty($val['barcode'])){
                          $barcoderesu =  $Barcode::useGlobalScope(false)->where('barcode',$val['barcode'])->find();
+                         
+                         $barcodelist['barcode'] = isset($val['barcode'])?$val['barcode']:$barcoderesu['barcode'];
+                         $barcodelist['brand'] = isset($val['brand'])?$val['brand']:$barcoderesu['brand'];
+                         $barcodelist['goods_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:$barcoderesu['goods_name_en'];
+                         $barcodelist['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:$barcoderesu['goods_name_jp'];
+                         $barcodelist['goods_name'] = isset($val['pinming'])?$val['pinming']:$barcoderesu['goods_name'];
+                         $barcodelist['spec'] = isset($val['spec'])?$val['spec']:$barcoderesu['spec'];
+                         $barcodelist['price'] = isset($val['danjia'])?$val['danjia']:$barcoderesu['price'];
+                         $barcodelist['gross_weight'] = isset($val['gross_weight'])?$val['gross_weight']:$barcoderesu['gross_weight'];
+                         $barcodelist['net_weight'] = isset($val['net_weight'])?$val['net_weight']:$barcoderesu['net_weight'];
+                         $barcodelist['depth'] = isset($val['depth'])?$val['depth']:$barcoderesu['depth'];
+                         $barcodelist['width'] = isset($val['width'])?$val['width']:$barcoderesu['width'];
+                         $barcodelist['height'] = isset($val['height'])?$val['height']:$barcoderesu['height'];
+                         
+                         
                          if(empty($barcoderesu)){
-                             $barresult = $Barcode::useGlobalScope(false)->insertAll($barcodelist);
+                             $barresult = $Barcode::useGlobalScope(false)->insert($barcodelist);
+                         }else{
+                             $barcoderesu->save($barcodelist);
                          }
                      }
                      

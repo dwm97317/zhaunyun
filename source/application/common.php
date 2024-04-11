@@ -843,7 +843,7 @@ function getFileDataForLang($path){
         return [];
     }
     $data = file_get_contents($path);
-    $data = json_decode($data);
+    $data = json_decode($data,true);
     return $data;
 }
 
