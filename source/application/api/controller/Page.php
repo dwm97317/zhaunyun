@@ -56,6 +56,15 @@ class Page extends Controller
         return $this->renderSuccess($result);
     }
     
+    
+    //获取条码列表；
+    public function getbarcodelist(){
+        $param = $this->request->param();
+        $Barcode = new Barcode;
+        $list = $Barcode::useGlobalScope(false)->where('goods_name|goods_name_en|goods_name_jp','like','%'.$param['search'].'%')->limit(100)->select();
+        return $this->renderSuccess(compact('list'));
+    }
+    
     //获取H5跳转地址
     public function getCode(){
         $wxappId = $this->request->param('wxapp_id');
@@ -287,6 +296,7 @@ class Page extends Controller
         $store['copyright']= WxappModel::detail(input('wxapp_id'));
         $store['paytype']= SettingModel::detail('paytype')['values'];
         $store['keeper']= SettingModel::detail('keeper')['values'];
+        // dump($store);die;
         return $this->renderSuccess($store);
     }
     

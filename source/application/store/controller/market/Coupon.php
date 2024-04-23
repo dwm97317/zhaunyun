@@ -55,6 +55,24 @@ class Coupon extends Controller
         }
         return $this->renderError($this->model->getError() ?: '添加失败');
     }
+    
+        
+    /**
+     * 删除用户的优惠券
+     * @param $coupon_id
+     * @return array|mixed
+     * @throws \think\exception\DbException
+     */
+    public function deleteusercoupon($coupon_id)
+    {
+        // 优惠券详情
+        $model = UserCouponModel::detail($coupon_id);
+        // 更新记录
+        if ($model->setDelete()) {
+            return $this->renderSuccess('删除成功', url('market.coupon/receive'));
+        }
+        return $this->renderError($model->getError() ?: '删除成功');
+    }
 
     /**
      * 更新优惠券

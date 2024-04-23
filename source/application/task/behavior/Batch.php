@@ -53,11 +53,13 @@ class Batch
     {
         // 获取需要更新轨迹的
         $setting = $this->model->setting($this->wxappId);
+        //  dump($setting);die;
         if($setting['is_autolog']==0){
             return false;
         }
         
         $list = $this->model->getUnSettledList($this->wxappId);
+        //  dump($this->model->getLastsql());die;
         if ($list->isEmpty()) return false;
         $this->model->setBatchLog($list);
         // 记录日志

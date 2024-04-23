@@ -67,18 +67,18 @@ class Track extends Controller
         
         if(!empty($packData)){
             //查出的系统内部物流信息
-            $logic = $Logistics->getList($express);
-                // dump($logic);die;
+            $logzd = $Logistics->getList($express);
+                // dump($logzd);die;
             if(count($logic)>0){
                 // dump($inpackData);die;
-                $logia = $Logistics->getorderno($logic[0]['order_sn']);
+                $logia = $Logistics->getorderno($logzd[0]['order_sn']);
             }
             $express_code = $Express->getValueById($packData['express_id'],'express_code');
             
             if($setting['is_track_yubao']['is_enable']==1){//如果预报推送物流，则查询出来
                 $logib = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
             }
-            $logicv = array_merge($logia,$logib,$logic);
+            $logicv = array_merge($logia,$logib,$logzd);
             // dump($logicv);die;
             if(!empty($packData['inpack_id'])){
                 $inpackData = $Inpack->where('id',$packData['inpack_id'])->where(['is_delete' => 0])->find(); //国际单号
@@ -124,6 +124,7 @@ class Track extends Controller
                 if($ditchdatas['ditch_no']==10006){
                     $Aolian =  new Aolian(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
                     $result = $Aolian->query($express);
+                    //   dump($result);die;
                 }
                 
                 //易抵达
@@ -152,11 +153,11 @@ class Track extends Controller
                 }
                 
             }
-            $logici = array_merge_hebing($logicv,$logictik);
-            // dump($logici);die;
+            $logici = array_merge($logictik);
+             
         }
         
-        $logic = array_merge($logic,$logici);
+        $logic = array_merge($logic,$logici,$logicv);
         return $this->renderSuccess(['data' => $logic], '查询成功');
     }
 }

@@ -61,7 +61,7 @@
                                        <p class="am-link-muted">(仓库id：<?= $detail['storage']['shop_id'] ?>)</p> 
                                 </td>
                                 <td>
-                                       <p><?= $detail['country']?$detail['country']:'暂未选择' ?></p>
+                                       <p><?= $detail['address']?$detail['address']['country']:'暂未选择' ?></p>
                                 </td>
                                 <td>
                                     <p>支付状态：

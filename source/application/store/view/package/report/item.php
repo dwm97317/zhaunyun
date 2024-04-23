@@ -100,6 +100,12 @@
                     <!-- 包裹信息 -->
                     <div class="widget-head am-cf">
                         <div class="widget-title am-fl">包裹信息</div>
+                        <div class="am-fr tpl-table-black-operation">
+                            <a id="j-addpackageitem" data-id="<?= $detail['id'] ?>" data-express_num="<?= $detail['express_num'] ?>" href="javascript:void(0)">
+                                <i class="am-icon-pencil"></i> 新增包裹明细
+                            </a>
+                        </div>
+                                                                    
                     </div>
                     <div class="am-scrollable-horizontal">
                         <table width="100%" class="regional-table am-table am-table-bordered am-table-centered
@@ -119,6 +125,7 @@
                                 <th>商品单价</th>
                                 <th>商品总价</th>
                                 <th>备注</th>
+                                <th>操作</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -137,6 +144,17 @@
                                     <td class="am-text-middle"><?= $item['one_price'] ?></td>
                                     <td class="am-text-middle"><?= $item['all_price'] ?></td>
                                     <td class="am-text-middle"><?= $detail['remark'] ?></td>
+                                    <td class="am-text-middle">
+                                        <div class="tpl-table-black-operation">
+                                            <!--编辑-->
+                                            <?php if (checkPrivilege('package.index/editpackageitem')): ?>
+                                            <a href="<?= url('store/package.index/edieditpackageitemt', ['id' => $item['id']]) ?>"> <i class="am-icon-pencil"></i> 编辑</a>
+                                            <?php endif;?>
+                                            <?php if (checkPrivilege('package.index/deletepackageitem')): ?>
+                                            <a href="javascript:void(0);" class="item-delete tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a>
+                                            <?php endif;?>
+                                        </div>
+                                    </td>
                                 </tr>
                             <?php endforeach?>
                             </tbody>
@@ -174,7 +192,7 @@
                                     <td class="am-text-middle"><?= $item['status_cn'] ?></td>
                                     <td class="am-text-middle"><?= $item['logistics_describe'] ?></td>
                                     <td class="am-text-middle"><?= $item['created_time'] ?></td>
-                                    <td class="am-text-middle"><a href="javascript:void(0);" class="item-delete tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a></td>
+                                    <td class="am-text-middle"><a href="javascript:void(0);" class="packageitem-delete tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a></td>
                                 </tr>
                             <?php endforeach?>
                             </tbody>
@@ -196,8 +214,165 @@
         </div>
     </div>
 </div>
+<script id="tpl-addpackageitem" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+     
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 条码 </label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[barcode]"
+                                           value="" placeholder="请输入条码" required>
+                                </div>
+                            </div>
+                            
+                          
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">快递公司</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[express_name]" 
+                                           value="" placeholder="请输入快递公司" required>
+                                </div>
+                            </div>
+                          
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">分类名称</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[class_name]"
+                                           value="" placeholder="请输入分类名称" required>
+                                </div>
+                            </div>
+
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">货物名称</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[goods_name]"
+                                           value="" placeholder="请输入货物名称" required>
+                                </div>
+                            </div>
+                         
+                           
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">英文品名</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[class_name_en]"
+                                           value="" placeholder="请输入英文品名" required>
+                                </div>
+                            </div>
+
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">日文品名</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[goods_name_jp]"
+                                           value="" placeholder="请输入日文品名">
+                                </div>
+                            </div>
+                        
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">品牌</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[brand]"
+                                           value="" placeholder="请输入品牌">
+                                </div>
+                            </div>
+              
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">规格</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[spec]"
+                                           value="" placeholder="请输入规格">
+                                </div>
+                            </div>
+               
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">数量</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[product_num]"
+                                           value="" placeholder="请输入数量">
+                                </div>
+                            </div>
+                
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">单价</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[one_price]"
+                                           value="" placeholder="请输入单价">
+                                </div>
+                            </div>
+                 
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">总价</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[all_price]"
+                                           value="" placeholder="请输入详细地址">
+                                </div>
+                            </div>
+             
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">海关编码</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[customs_code]"
+                                           value="" placeholder="请输入海关编码">
+                                </div>
+                            </div>
+                
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">净重</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[net_weight]"
+                                           value="" placeholder="请输入净重">
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label form-require">毛重</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[unit_weight]"
+                                           value="" placeholder="请输入毛重">
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">原产地</label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="package[origin_region]"
+                                           value="" placeholder="请输入原产地">
+                                </div>
+                            </div>
+            </div>
+        </form>
+    </div>
+</script>
 <script>
+       /**
+         * 新增服务项目
+         */
+        $('#j-addpackageitem').on('click', function () {
+            var $tabs, data = $(this).data();
+            console.log(data,9909)
+            $.showModal({
+                title: '新增包裹明细'
+                , area: '460px'
+                , content: template('tpl-addpackageitem', data)
+                , uCheck: true
+                , success: function ($content) {
+                    $tabs = $content.find('.j-tabs');
+                    $tabs.tabs({noSwipe: 1});
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('store/package.index/addpackageitem') ?>',
+                        data: {data:data}
+                    });
+                    return true;
+                }
+            });
+        });
  $(function () {
+        // 删除元素
+        var urll = "<?= url('store/package.index/deletepackageitem') ?>";
+        $('.packageitem-delete').delete('id', urll);
         // 删除元素
         var url = "<?= url('store/Logistics/delete') ?>";
         $('.item-delete').delete('id', url);

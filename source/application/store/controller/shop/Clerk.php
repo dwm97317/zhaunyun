@@ -9,6 +9,7 @@ use app\store\model\store\shop\Clerk as ClerkModel;
 use app\store\model\Shelf;
 use app\store\model\ShelfUnit;
 use app\store\model\ShelfUnitItem;
+
 /**
  * 门店店员控制器
  * Class Clerk
@@ -29,23 +30,6 @@ class Clerk extends Controller
         $model = new ClerkModel;
         $shop_id = $this->store['user']['shop_id'];
         $list = $model->getList(-1, $shop_id, $search);
-        $clerk_map = [
-           1 => '发货仓入库员',
-           2 => '分拣员',
-           3 => '打包员',
-           4 => '签收员',
-           5 => '仓管员',
-           6 => '到达仓入库员',
-           7 => '客服专员'
-        ];
-        foreach($list as $k => &$v){
-            $clerk_maps = explode(',',$v['clerk_type']);
-            $clerk_type_name = '';
-            foreach ($clerk_maps as $item){
-                $clerk_type_name .= $clerk_map[$item].'-';
-            }
-            $v['clerk_name'] = $clerk_type_name;
-        }
         // 门店列表
         $shopList = ShopModel::getAllList();
         return $this->fetch('index', compact('list', 'shopList'));
@@ -98,6 +82,7 @@ class Clerk extends Controller
     public function add()
     {
         $model = new ClerkModel;
+        
         if (!$this->request->isAjax()) {
             // 门店列表
             $shopList = ShopModel::getAllList();
@@ -106,19 +91,12 @@ class Clerk extends Controller
         if (!isset($this->postData('clerk')['user_id'])){
             return $this->renderError($model->getError() ?: '请选择用户');
         }
-        $clerk_type = $this->postData('clerk')['clerk_type'];
-        
+        // $clerk_type = $this->postData('clerk')['clerk_type'];
+            // dump($this->postData('clerk'));die;
         // 新增记录
         if ($model->add($this->postData('clerk'))) {
             $UserModel = new User();
-           
-            if (count($clerk_type)==1){
-                $clerk_type = $clerk_type[0];
-            }else{
-                $clerk_type = 5; // 多角色
-            }
-            
-            $UserModel->setUserType($this->postData('clerk')['user_id'],$clerk_type);
+            $UserModel->setUserType($this->postData('clerk')['user_id'],5);
             return $this->renderSuccess('添加成功', url('shop.clerk/index'));
         }
         return $this->renderError($model->getError() ?: '添加失败');
@@ -134,51 +112,18 @@ class Clerk extends Controller
     {
         // 店员详情
         $model = ClerkModel::detail($clerk_id);
-       
         if (!$this->request->isAjax()) {
             $model = $model->toArray();
-            $clerk_type_map = [
-              1 => 's',
-              2 => 'f',
-              3 => 'd',
-              4 => 'q',
-              5 => 'c',
-              6 => 'da',
-              7 => 'kf'
-            ];
-        
-            $clerk_type = explode(',',$model['clerk_type']);
-            $model['clerk_type_arr']['s'] = 0;
-            $model['clerk_type_arr']['f'] = 0;
-            $model['clerk_type_arr']['d'] = 0;
-            $model['clerk_type_arr']['q'] = 0;
-            $model['clerk_type_arr']['c'] = 0;
-            $model['clerk_type_arr']['da'] = 0;
-            $model['clerk_type_arr']['kf'] = 0;
-            foreach ($clerk_type as $key => $v){
-                $model['clerk_type_arr'][$clerk_type_map[$v]] = $v;
-            }
+            $model['clerk_authority'] = json_decode($model['clerk_authority'],true);
+            
             // 门店列表
             $shopList = ShopModel::getAllList();
             return $this->fetch('edit', compact('model', 'shopList'));
         }
-        if(!isset($this->postData('clerk')['clerk_type'])){
-             return $this->renderError('请至少选择一个员工类型'); 
-        } 
-        $clerk_type = $this->postData('clerk')['clerk_type'];
-        
         // 新增记录
         if ($model->edit($this->postData('clerk'))) {
-            
             $UserModel = new User();
-            
-            if (count($clerk_type)==1){
-                $clerk_type = $clerk_type[0];
-            }else{
-                $clerk_type = 5; // 多角色
-            }
-            
-            $UserModel->setUserType($model['user_id'],$clerk_type);
+            $UserModel->setUserType($model['user_id'],5);
             return $this->renderSuccess('更新成功', url('shop.clerk/index'));
         }
         return $this->renderError($model->getError() ?: '更新失败');

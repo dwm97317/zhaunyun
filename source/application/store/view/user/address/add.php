@@ -114,7 +114,7 @@
                                 </div>
                             </div>
                             <?php endif ;?>
-                            <?php if ($set['is_street']==1): ?> 
+                            <?php if ($set['is_region']==1): ?> 
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">区</label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">

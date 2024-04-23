@@ -34,6 +34,22 @@ class Logistics extends BaseModel
         ]);
     }
     
+    //仓管端操作产生的日志记录函数
+    public static function addrfidLog($id,$desc,$creatime,$clerk_id){
+        $id = (new Inpack())->where('order_sn',$id)->find();
+        $model = new static;
+        return $model->insert([
+            'order_sn' => $id['order_sn'],
+            'operate_id'=> $clerk_id,
+            'status' => $id['status'],
+            'status_cn' => $model->maps[$id['status']],
+            'logistics_describe' => $desc?$desc:'包裹状态更新',
+            'logistics_sn'=> $id['t_order_sn'],
+            'created_time' => $creatime,
+            'wxapp_id'=>self::$wxapp_id?self::$wxapp_id:$id['wxapp_id'],
+        ]);
+    }
+    
     public static function add2($id,$desc,$clerk_id){
 //  dump($id);die;
         $id = (new Package())->find($id);
@@ -127,6 +143,22 @@ class Logistics extends BaseModel
             'logistics_sn'=> '',
             'created_time' => getTime(),
             'wxapp_id'=>self::$wxapp_id?self::$wxapp_id:$Inpack['wxapp_id'],
+        ]);
+    }
+    
+    public static function addbatchLogsforpackage($id,$status_cn,$desc){
+        
+        $package = (new package())->where('id',$id)->find();
+        $model = new static;
+        return $model->insert([
+            'order_sn' => $package['order_sn'],
+            'express_num' => $package['express_num'],
+            'status' => $package['status'],
+            'status_cn' => $status_cn,
+            'logistics_describe' => $desc?$desc:'包裹状态更新',
+            'logistics_sn'=> '',
+            'created_time' => getTime(),
+            'wxapp_id'=>self::$wxapp_id?self::$wxapp_id:$package['wxapp_id'],
         ]);
     }
     

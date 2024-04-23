@@ -81,6 +81,32 @@ use app\common\enum\PrinterType as PrinterTypeEnum;
                                     </div>
                                 </div>
                             </div>
+                            
+                             <!-- 打印机配置：芯烨云打印 -->
+                            <div id="<?= PrinterTypeEnum::XPRINTER ?>" class="form-tab-group">
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 开发者ID </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input"
+                                               name="printer[<?= PrinterTypeEnum::XPRINTER ?>][USER]">
+                                    </div>
+                                </div>
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 开发者密钥 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input"
+                                               name="printer[<?= PrinterTypeEnum::XPRINTER ?>][UserKEY]">
+                                    </div>
+                                </div>
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 打印机编号 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input"
+                                               name="printer[<?= PrinterTypeEnum::XPRINTER ?>][SN]">
+                                        <small>打印机编号为9位数字，查看飞鹅打印机底部贴纸上面的编号</small>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 打印联数 </label>

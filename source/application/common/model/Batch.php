@@ -5,6 +5,7 @@ use app\common\model\BatchTemplateItem;
 use think\Hook;
 use app\common\model\Logistics;
 use app\store\model\Inpack;
+use app\store\model\Package;
 /**
  * 批次模型
  * Class Shop
@@ -28,9 +29,10 @@ class Batch extends BaseModel
     public function setBatchLog($list){
         // dump($list->toArray());die;
         $Inpack = new Inpack;
+        $Package = new Package;
         foreach ($list as $key=>$val){
             if($val['last_time']<=time()){
-        //   dump($val->toArray());
+          
                 $templatelist = (new BatchTemplateItem())->where('template_id',$val['template']['template_id'])->order('step_num asc')->select();
                 
                 $logtemplate = $templatelist[$val['step_num']];
@@ -43,11 +45,19 @@ class Batch extends BaseModel
                 }else{
                     continue;
                 }
-                $inpacklist = $Inpack->where('batch_id',$val['batch_id'])->where('is_delete',0)->select();
                
+                $inpacklist = $Inpack->where('batch_id',$val['batch_id'])->where('is_delete',0)->select();
+                $packlist = $Package->where('batch_id',$val['batch_id'])->where('is_delete',0)->select();
+              
+                foreach ($packlist as $v){
+                    Logistics::addbatchLogsforpackage($v['id'],$logtemplate['title'],$logtemplate['content']);
+                    // dump((new Logistics())->getlastsql());
+                }
                 foreach ($inpacklist as $v){
                     Logistics::addbatchLogs($v['order_sn'],$logtemplate['title'],$logtemplate['content']);
                 }
+                
+                   
                 $val->save(['step_num'=>$val['step_num']+1,'last_time'=> time() + $next_logtemplate['wait_time']*3600]);
             }
         }

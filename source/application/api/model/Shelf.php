@@ -15,4 +15,12 @@ class Shelf extends ShelfModel
     protected $createTime = null;
     protected $updateTime = null;
     
+    
+    public function getList($shop_id){
+      return $this
+        ->where('ware_no',$shop_id)
+        ->where('status',1)
+        ->select();
+    }
+    
 }

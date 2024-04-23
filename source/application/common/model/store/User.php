@@ -68,12 +68,15 @@ class User extends BaseModel
     {
         /** @var \app\common\model\Wxapp $wxapp */
         $wxapp = $user['wxapp'];
+        // dump($user);die;
         // 保存登录状态
         Session::set('yoshop_store', [
             'user' => [
                 'store_user_id' => $user['store_user_id'],
                 'user_name' => $user['user_name'],
                 'shop_id' => $user['shop_id'],
+                'line_id' => $user['line_id'],
+                'country_id' => $user['country_id'],
                 'is_super' => $user['is_super'],
             ],
             'wxapp' => $wxapp->toArray(),

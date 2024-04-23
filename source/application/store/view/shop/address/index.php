@@ -40,7 +40,7 @@
                                 <tr>
                                     <td class="am-text-middle"><?= $item['address_id'] ?></td>
                                     <td class="am-text-middle"><?= $item['name'] ?></td>
-                                    <td class="am-text-middle"><?= $item['country'] ?></td>
+                                    <td class="am-text-middle"><?= $item['countrydata']['title'] ?></td>
                                     <td class="am-text-middle">
                                         <span><?= $item['province'] ?>/<?= $item['city'] ?>/<?= $item['region'] ?></span>
                                     </td>

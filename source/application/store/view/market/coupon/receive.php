@@ -90,6 +90,17 @@
                                     <td class="am-text-middle  <?= $item['is_use'] == 1 ? 'x-color-green' : 'x-color-red' ?>">
                                         <?= $item['is_use']==0?'未使用':'已使用' ?>
                                     </td>
+                                    <td class="am-text-middle">
+                                        <div class="tpl-table-black-operation">
+                                       <?php if (checkPrivilege('market.coupon/delete')): ?>
+                                            <a href="javascript:void(0);"
+                                               class="item-delete tpl-table-black-operation-del"
+                                               data-id="<?= $item['user_coupon_id'] ?>">
+                                                <i class="am-icon-trash"></i> 删除
+                                            </a>
+                                        <?php endif; ?>
+                                        </div>
+                                    </td>
                                 </tr>
                             <?php endforeach; else: ?>
                                 <tr>
@@ -112,7 +123,8 @@
 </div>
 <script>
     $(function () {
-
+        // 删除元素
+        var url = "<?= url('market.coupon/deleteusercoupon') ?>";
+        $('.item-delete').delete('coupon_id', url);
     });
 </script>
-

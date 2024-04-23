@@ -97,6 +97,48 @@ class Index extends Controller
         return $this->renderSuccess("获取成功","",$category);
     }
     
+    //新增包裹子包裹
+    public function  addpackageitem(){
+        $param = $this->request->param();
+        // dump($param);die;
+        $PackageItem = new PackageItem;
+        if(!empty($param['package']['one_price']) && !empty($param['package']['product_num'])){
+            $param['package']['all_price'] = $param['package']['one_price'] * $param['package']['product_num'];
+        }
+        $param['package']['wxapp_id'] = $this->getWxappId();
+        $param['package']['express_num'] = $param['data']['express_num'];
+        $param['package']['order_id'] = $param['data']['id'];
+        if($PackageItem->save($param['package'])){
+             return $this->renderSuccess("添加成功");
+        }
+        return $this->renderError("添加失败");
+    }    
+    
+    
+    //编辑包裹的子包裹
+    public function  edieditpackageitemt(){
+        $param = $this->request->param();
+        $PackageItem = new PackageItem;
+        $model = $PackageItem->details($param['id']);
+        if (!$this->request->isAjax()){
+            return $this->fetch('editpackageitem', compact('model'));
+        }
+        if($model->save($param['package'])){
+            return $this->renderSuccess("更新成功");
+        }
+    }
+    
+     //删除包裹的子包裹
+    public function  deletepackageitem(){
+        $param = $this->request->param();
+        $PackageItem = new PackageItem;
+        $model = $PackageItem->details($param['id']);
+        if(!empty($model) && $model->delete()){
+            return $this->renderSuccess("删除成功");
+        }
+        return $this->renderError("删除失败");
+    }
+    
     //包裹回收站    
     public function deletepack(){
         $packageModel = new Package();
@@ -291,7 +333,7 @@ class Index extends Controller
         $shopList = ShopModel::getAllList();
         $line = (new Line())->getListAll([]);
         $packageService = (new PackageService())->getListAll();
-       
+        $batchlist = (new Batch())->getAllwaitList([]);
         $set = Setting::detail('store')['values'];
         $type = 'uninpack';
         $topcategory = $Category->getListTop($name=null)->toArray()['data'];
@@ -318,7 +360,7 @@ class Index extends Controller
             }
             $packlists = implode(',',$packlist);
         }
-        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','type','storeAddress','topcategory','category','set','datatotal','countweight'));
+        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','type','storeAddress','topcategory','category','set','datatotal','countweight','batchlist'));
     }
     
     public function setErrors(){
@@ -705,7 +747,7 @@ class Index extends Controller
           'pack_free' => 0,
           'other_free' =>0,
           'member_id' => $pack_member[0],
-          'country' => $address['country'],
+          'country_id' => $address['country_id'],
           'created_time' => getTime(),
           'updated_time' => getTime(),
           'status' => 1,

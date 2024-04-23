@@ -36,7 +36,7 @@ class UserAddress extends UserAddressModel
      */
     public function getDsList()
     {
-        return $this
+        return $this->with(['countrydata'])
             ->where('address_type',2)//获取代收点的地址
             ->paginate(15, false, [
                 'query' => request()->request()

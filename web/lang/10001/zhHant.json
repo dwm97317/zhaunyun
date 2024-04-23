@@ -16,6 +16,11 @@
 		"apply_for_packaging": "申請打包",
 		"submit_package_request": "提交打包申請"
 	},
+	"page_goodslist":{
+	  "goodstitle":"物品列表",
+	  "nogoodlist":"暫無物品清單",
+	  "please_enter_goodsname":"請輸入物品名稱"
+    },
 	"page_index": {
 		"bestRoute": "最佳路線",
 		"allRoute":"所有路綫",
@@ -1222,6 +1227,8 @@
 		"placeholder5": "請填寫州/省",
 		"city": "城市",
 		"placeholder6": "請輸入城市",
+		"region": "区",
+		"placeholder12": "请输入区",
 		"street": "街道",
 		"placeholder7": "請輸入街道",
 		"House_number": "門牌號",

@@ -158,8 +158,21 @@ class Setting extends SettingModel
     
     
     private function setVlaue($values){
+        // dump($values);die;
+        if(isset($values['yubao']['orderno']['default'])){
+             $values['yubao']['orderno']['default'] = explode(',',$values['yubao']['orderno']['default']);
+            if(count($values['yubao']['orderno']['default'])<2){
+                $this->error = '生成规则至少选择两个';
+                return false; 
+            }
+        }
+       
+        
         if(!isset($values['yubao']['is_country_force'])){
             $values['yubao']['is_country_force'] = '0';
+        }
+        if(!isset($values['yubao']['is_expressnum_force'])){
+            $values['yubao']['is_expressnum_force'] = '0';
         }
         if(!isset($values['yubao']['is_shop_force'])){
             $values['yubao']['is_shop_force'] = '0';

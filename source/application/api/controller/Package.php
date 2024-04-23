@@ -151,14 +151,40 @@ class Package extends Controller
          if(isset($query['rfid_id'])){
              unset($query['rfid_id']);
          }
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        if (!$clerk){
+            return $this->renderError('角色权限非法');
+        }
          $list = (new Inpack())->getAllList($query);
          foreach ($list as &$value) {
              $value['is_scan'] = false;
             if(isset($param['rfid_id']) && (in_array($value['rfid_id'],$param['rfid_id']))){
-                $value['is_scan'] = true;;
+                $value['is_scan'] = true;
             }
          }
          return $this->renderSuccess($list);
+     }
+     
+     //盘库完成
+     public function inventorywarehouse(){
+        $param = $this->request->param();
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        if (!$clerk){
+            return $this->renderError('角色权限非法');
+        }
+        $desc = [
+            10=>"监管仓入库",
+            20=>"监管仓出库",
+            30=>"海外仓入库",
+            40=>"海外仓出库",
+            50=>"配送员入库",
+            60=>"配送员出库",
+        ];
+        // dump($clerk);die;
+        foreach ($param['id'] as &$value) {
+            Logistics::addrfidLog($value['order_sn'],$desc[$param['type']],getTime(),$clerk['clerk_id']);
+        }
+        return $this->renderSuccess('盘库成功');
      }
     
     // 包裹批量出库
@@ -252,7 +278,7 @@ class Package extends Controller
          if (!$express){
              return $this->renderError('快递信息错误');
          }
-         $class_ids = $post['class_ids'];
+         
          $goodslist = isset($post['goodslist'])?$post['goodslist']:[];
          if (isset($post['share_id']) && $post['share_id']){
              $ShareSettingService = (new ShareOrderService());
@@ -262,6 +288,7 @@ class Package extends Controller
          } 
          $classItems = [];
          $barcodelist = [];
+         $class_ids = $post['class_ids'];
          if ($class_ids || $goodslist){
              $classItem = $this->parseClass($class_ids);
                 foreach ($goodslist as $k => $val){
@@ -728,10 +755,11 @@ class Package extends Controller
        
         $where[] = ['is_delete','=',0];
         $where[] = ['is_take','=',2];
+        // $where[] = ['inpack_id','=',null];
         $where[] = ['member_id','=',$this->user['user_id']];
         $where[] = ['status','in',[2,3,4,7]];
         $data = (new PackageModel())->Dbquery300($where,$field);
-        $data = $this->getPackItemList($data);
+        // $data = $this->getPackItemList($data);
         // foreach($data as $k => $val){
         //     $data[$k]['is_show'] = false;
         // }
@@ -751,7 +779,7 @@ class Package extends Controller
                  return $this->renderError('国家信息错误');
              }
          }
-         
+      
          if (!$post['storage_id']){
               return $this->renderError('请选择仓库');
          }
@@ -762,9 +790,11 @@ class Package extends Controller
          if (!$post['express_id']){
              return $this->renderError('请选择快递');
          }
+         
          if (!$post['express_sn']){
              return $this->renderError('快递单号错误');
          }
+         
          if (preg_match('/[\x7f-\xff]/', $post['express_sn'])){
              return $this->renderError('快递单号不能使用汉字或字符');
          }
@@ -779,7 +809,7 @@ class Package extends Controller
              return $this->renderError('快递信息错误');
          }
          $class_ids = $post['class_ids'];
-         
+         $Barcode = new Barcode;
          $packModel = new PackageModel();
          $packItemModel = new PackageItemModel();
          
@@ -791,28 +821,35 @@ class Package extends Controller
          $express_nums = [];
          $expno = explode(',',$post['express_sn']);
          $classItem = [];
-              
+         $classItems = [];
+         $barcodelist = [];
+         $goodslist = isset($post['goodslist'])?$post['goodslist']:[];
+         $class_ids = $post['class_ids'];     
          // 开启事务
          Db::startTrans();
          $post['express_name'] = $express;
          $post['member_id'] = $this->user['user_id'];
          $post['member_name'] = $user['nickName'];
-        //  dump($expno);
+      
+       
          //循环对每个包裹进行预判是否已经入库
          foreach ($expno as $key => $v){
-        //   dump($v);
+        
             if(empty($v)  || $v==" " || $v==""){
                return $this->renderError('请不要加多余的逗号'); 
             }
             
             $post['express_num'] =  $v;
             $packres = $packModel->where('express_num',$v)->where('is_delete',0)->find();
+            
             //当快递单号为一个数字加空格形式时候，则会提示报错
-            if($packres && ($packres['is_take']==2)){
-                return $this->renderError('快递单号'.$v.'已被预报');
-            }
-              
-            if($packres && ($packres['is_take']==1)){
+            // if($packres && ($packres['is_take']==2)){
+                 
+            //     return $this->renderError('快递单号'.$v.'已被预报');
+            // }
+            //   dump($express_nums);die;
+            if($packres){
+                $express_nums[] = $packres['id'];
                 $resup = $packModel->where('id',$packres['id'])->update(
                    ['price'=>$post['price'],
                    'remark'=>$post['remark'],
@@ -826,29 +863,62 @@ class Package extends Controller
                    ]);
     
                 if (!$resup){return $this->renderError('申请预报失败');}
-                //存包裹信息
-        
-                if ($class_ids){
+               
+                if ($class_ids || $goodslist){
                     $classItem = $this->parseClass($class_ids);
-                 
-                     foreach ($classItem as $k => $val){
-                           $classItem[$k]['class_id'] = $val['category_id'];
-                           $classItem[$k]['express_name'] = $express;
-                           $classItem[$k]['class_name'] = $val['name'];
-                           $classItem[$k]['express_num'] = $v;
-                           unset($classItem[$k]['category_id']); 
-                           unset($classItem[$k]['name']);     
-                     }
-                     
-                     if ($classItem){
-                         $packItemRes = $packItemModel->saveAllData($classItem,$packres['id']);
-                         if (!$packItemRes){
-                            Db::rollback();
-                            return $this->renderError('申请预报失败');
-                         }
+                        foreach ($goodslist as $k => $val){
+                             $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['pinming'];
+                             $classItems[$k]['one_price'] = isset($val['danjia'])?$val['danjia']:'';
+                             $classItems[$k]['all_price'] = (!empty($val['danjia'])?$val['danjia']:0) * (!empty($val['shuliang'])?$val['shuliang']:0);
+                             $classItems[$k]['product_num'] = isset($val['shuliang'])?$val['shuliang']:'';
+                             $classItems[$k]['express_num'] = $post['express_num'];
+                             $classItems[$k]['goods_name'] = isset($val['pinming'])?$val['pinming']:'';
+                             $classItems[$k]['express_name'] = $express;
+                             $classItems[$k]['class_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:''; // 英文品名
+                             $classItems[$k]['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:'';
+                             $classItems[$k]['length'] = isset($val['depth'])?$val['depth']:'';
+                             $classItems[$k]['width'] = isset($val['width'])?$val['width']:'';
+                             $classItems[$k]['height'] = isset($val['height'])?$val['height']:'';
+                             $classItems[$k]['unit_weight'] = isset($val['gross_weight'])?$val['gross_weight']:'';
+                             $classItems[$k]['brand'] = isset($val['brand'])?$val['brand']:'';
+                             $classItems[$k]['spec'] = isset($val['spec'])?$val['spec']:'';
+                             $classItems[$k]['net_weight'] = isset($val['net_weight'])?$val['net_weight']:'';
+                             $classItems[$k]['barcode'] = isset($val['barcode'])?$val['barcode']:'';
+                             
+                             
+                             if(isset($val['barcode']) && !empty($val['barcode'])){
+                                 $barcoderesu =  $Barcode::useGlobalScope(false)->where('barcode',$val['barcode'])->find();
+                                 
+                                 $barcodelist['barcode'] = isset($val['barcode'])?$val['barcode']:$barcoderesu['barcode'];
+                                 $barcodelist['brand'] = isset($val['brand'])?$val['brand']:$barcoderesu['brand'];
+                                 $barcodelist['goods_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:$barcoderesu['goods_name_en'];
+                                 $barcodelist['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:$barcoderesu['goods_name_jp'];
+                                 $barcodelist['goods_name'] = isset($val['pinming'])?$val['pinming']:$barcoderesu['goods_name'];
+                                 $barcodelist['spec'] = isset($val['spec'])?$val['spec']:$barcoderesu['spec'];
+                                 $barcodelist['price'] = isset($val['danjia'])?$val['danjia']:$barcoderesu['price'];
+                                 $barcodelist['gross_weight'] = isset($val['gross_weight'])?$val['gross_weight']:$barcoderesu['gross_weight'];
+                                 $barcodelist['net_weight'] = isset($val['net_weight'])?$val['net_weight']:$barcoderesu['net_weight'];
+                                 $barcodelist['depth'] = isset($val['depth'])?$val['depth']:$barcoderesu['depth'];
+                                 $barcodelist['width'] = isset($val['width'])?$val['width']:$barcoderesu['width'];
+                                 $barcodelist['height'] = isset($val['height'])?$val['height']:$barcoderesu['height'];
+                                 
+                                 
+                                 if(empty($barcoderesu)){
+                                     $barresult = $Barcode::useGlobalScope(false)->insert($barcodelist);
+                                 }else{
+                                     $barcoderesu->save($barcodelist);
+                                 }
+                             }
+                        }
+                }
+                if ($classItems){
+                     $packItemRes = $packItemModel->saveAllData($classItems,$packres['id']);
+                     if (!$packItemRes){
+                        Db::rollback();
+                        return $this->renderError('申请预报失败');
                      }
                  }
-              
+                
                  Logistics::add($packres['id'],'包裹预报成功');
                 //  Db::commit();
              }
@@ -856,37 +926,76 @@ class Package extends Controller
              if(!$packres){
                  $post['order_sn'] = CreateSn();
                  $post['is_take'] = 2;
+                 $userclientsetting = SettingModel::getItem('userclient',\request()->get('wxapp_id'));
+                 if($userclientsetting['yubao']['is_expressnum_enter']==1){
+                    $post['entering_warehouse_time'] = getTime();
+                    $post['status'] = 2;
+                 }
                  $res = $packModel->saveData($post);
                  $express_nums[] = $res;
                  if (!$res){
                      return $this->renderError('申请预报失败');
                  }
   
-                 if ($class_ids){
-                        $classItem = $this->parseClass($class_ids);
-                     
-                         foreach ($classItem as $k => $val){
-                        
-                               $classItem[$k]['class_id'] = $val['category_id'];
-                               $classItem[$k]['express_name'] = $express;
-                               $classItem[$k]['class_name'] = $val['name'];
-                               $classItem[$k]['express_num'] = $v;
-                               unset($classItem[$k]['category_id']); 
-                               unset($classItem[$k]['name']);     
-                         }
-                        
-                         if ($classItem){
-                             $packItemRes = $packItemModel->saveAllData($classItem,$res);
-                             if (!$packItemRes){
-                                Db::rollback();
-                                return $this->renderError('申请预报失败');
+             if ($class_ids || $goodslist){
+                    $classItem = $this->parseClass($class_ids);
+                        foreach ($goodslist as $k => $val){
+                             $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['pinming'];
+                             $classItems[$k]['one_price'] = isset($val['danjia'])?$val['danjia']:'';
+                             $classItems[$k]['all_price'] = (!empty($val['danjia'])?$val['danjia']:0) * (!empty($val['shuliang'])?$val['shuliang']:0);
+                             $classItems[$k]['product_num'] = isset($val['shuliang'])?$val['shuliang']:'';
+                             $classItems[$k]['express_num'] = $v;
+                             $classItems[$k]['goods_name'] = isset($val['pinming'])?$val['pinming']:'';
+                             $classItems[$k]['express_name'] = $express;
+                             $classItems[$k]['class_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:''; // 英文品名
+                             $classItems[$k]['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:'';
+                             $classItems[$k]['length'] = isset($val['depth'])?$val['depth']:'';
+                             $classItems[$k]['width'] = isset($val['width'])?$val['width']:'';
+                             $classItems[$k]['height'] = isset($val['height'])?$val['height']:'';
+                             $classItems[$k]['unit_weight'] = isset($val['gross_weight'])?$val['gross_weight']:'';
+                             $classItems[$k]['brand'] = isset($val['brand'])?$val['brand']:'';
+                             $classItems[$k]['spec'] = isset($val['spec'])?$val['spec']:'';
+                             $classItems[$k]['net_weight'] = isset($val['net_weight'])?$val['net_weight']:'';
+                             $classItems[$k]['barcode'] = isset($val['barcode'])?$val['barcode']:'';
+                             
+                             
+                             if(isset($val['barcode']) && !empty($val['barcode'])){
+                                 $barcoderesu =  $Barcode::useGlobalScope(false)->where('barcode',$val['barcode'])->find();
+                                 
+                                 $barcodelist['barcode'] = isset($val['barcode'])?$val['barcode']:$barcoderesu['barcode'];
+                                 $barcodelist['brand'] = isset($val['brand'])?$val['brand']:$barcoderesu['brand'];
+                                 $barcodelist['goods_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:$barcoderesu['goods_name_en'];
+                                 $barcodelist['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:$barcoderesu['goods_name_jp'];
+                                 $barcodelist['goods_name'] = isset($val['pinming'])?$val['pinming']:$barcoderesu['goods_name'];
+                                 $barcodelist['spec'] = isset($val['spec'])?$val['spec']:$barcoderesu['spec'];
+                                 $barcodelist['price'] = isset($val['danjia'])?$val['danjia']:$barcoderesu['price'];
+                                 $barcodelist['gross_weight'] = isset($val['gross_weight'])?$val['gross_weight']:$barcoderesu['gross_weight'];
+                                 $barcodelist['net_weight'] = isset($val['net_weight'])?$val['net_weight']:$barcoderesu['net_weight'];
+                                 $barcodelist['depth'] = isset($val['depth'])?$val['depth']:$barcoderesu['depth'];
+                                 $barcodelist['width'] = isset($val['width'])?$val['width']:$barcoderesu['width'];
+                                 $barcodelist['height'] = isset($val['height'])?$val['height']:$barcoderesu['height'];
+                                 
+                                 
+                                 if(empty($barcoderesu)){
+                                     $barresult = $Barcode::useGlobalScope(false)->insert($barcodelist);
+                                 }else{
+                                     $barcoderesu->save($barcodelist);
+                                 }
                              }
-                         }
-                    }        
-                    Logistics::add($res,'包裹预报成功');
+                        }
+                }
+                if ($classItems){
+                     $packItemRes = $packItemModel->saveAllData($classItems,$res);
+                     if (!$packItemRes){
+                        Db::rollback();
+                        return $this->renderError('申请预报失败');
+                     }
+                }
+                Logistics::add($res,'包裹预报成功');
              }
          }
          Db::commit();
+       
          return $express_nums;
      }
      
@@ -911,7 +1020,7 @@ class Package extends Controller
           'volume' => 0,
           'pack_free' => 0,
           'member_id' => $this->user['user_id'],
-          'country' => $address['country'],
+          'country_id' => $address['country_id'],
           'unpack_time' => getTime(),  //提交打包时间
           'created_time' => getTime(),  
           'updated_time' => getTime(),
@@ -938,7 +1047,14 @@ class Package extends Controller
         if (!$inpack){
            return $this->renderError('打包包裹提交失败');
         }
-        
+        if(empty($param['express']['express_sn'])){
+              $userclientsetting = SettingModel::getItem('userclient',\request()->get('wxapp_id'));
+            //   dump($userclientsetting);die;
+              $bianhao =  ($packModel->where(['member_id'=>$this->user['user_id'],'is_delete'=>0])->count()) + 1;
+              $expressfistword = $userclientsetting['yubao']['orderno']['first_title'];
+              $param['express']['express_sn'] = createNewOrderSn($userclientsetting['yubao']['orderno']['default'],$bianhao,$expressfistword,$user_id,$shopname['shop_alias_name'],$address['country_id']);
+        }
+            //   dump($param);die;
         $ids = $this->reportBatchForquick($param['express']);
         $packModel->whereIn('id',$ids)->update(['inpack_id'=>$inpack]);
         
@@ -1000,7 +1116,7 @@ class Package extends Controller
           'volume' => $volumn,
           'pack_free' => 0,
           'member_id' => $this->user['user_id'],
-          'country' => $address['country'],
+          'country_id' => $address['country_id'],
           'unpack_time' => getTime(),  //提交打包时间
           'created_time' => getTime(),  
           'updated_time' => getTime(),
@@ -1177,7 +1293,7 @@ class Package extends Controller
           'volume' => $volumn,
           'pack_free' => 0,
           'member_id' => $address['user_id'],
-          'country' => $address['country'],
+          'country_id' => $address['country_id'],
           'unpack_time' => getTime(),  //提交打包时间
           'created_time' => getTime(),  
           'updated_time' => getTime(),
@@ -1334,6 +1450,8 @@ class Package extends Controller
              foreach($padata as $key=>$val){
                  (new PackageModel())->where('id',$val)->update(['status'=>2,'inpack_id'=>null]);
              }
+         }else{
+             (new PackageModel())->where('inpack_id',$info['id'])->update(['status'=>2,'inpack_id'=>null]);
          }
         
          $res = (new Inpack())->where(['id'=>$info['id']])->update(['status'=>'-1']);
@@ -1897,6 +2015,21 @@ class Package extends Controller
                     return $this->renderSuccess(compact('payment', 'message'), $message);
                      break;
                      
+                case 50:
+                    // 构建服务商支付
+                     
+                    $payment = PaymentService::wechatdivide(
+                        $user,
+                        $pack['id'],
+                        $payorderSn,
+                        $amount,
+                        OrderTypeEnum::TRAN
+                    );
+                    // 支付状态提醒
+                    $message = ['success' => '支付成功', 'error' => '订单未支付'];
+                    return $this->renderSuccess(compact('payment', 'message'), $message);
+                    break;
+                     
                  default:
                      // code...
                      break;
@@ -1965,7 +2098,7 @@ class Package extends Controller
      public function details_pack(){
         $field_group = [
            'edit' => [
-              'id,order_sn,pack_ids,storage_id,free,pack_free,other_free,address_id,weight,cale_weight,volume,length,width,height,status,line_id,remark,country,t_order_sn,user_coupon_id,user_coupon_money,pay_type,is_pay,is_pay_type'
+              'id,order_sn,pack_ids,storage_id,free,pack_free,other_free,address_id,weight,cale_weight,volume,length,width,height,status,line_id,remark,country_id,t_order_sn,user_coupon_id,user_coupon_money,pay_type,is_pay,is_pay_type'
            ],
         ];
         $id = \request()->post('id');
@@ -1973,7 +2106,7 @@ class Package extends Controller
         
         $method = $this->postData('method');
         $data = (new Inpack())->getDetails($id,$field_group[$method[0]]);
-        $package = (new PackageModel())->where('id','in',explode(',',$data['pack_ids']))->field('id,express_num,price,express_name,entering_warehouse_time,remark,weight,height,length,width')->with(['packageimage.file'])->select();
+        $package = (new PackageModel())->where('inpack_id',$data['id'])->field('id,express_num,price,express_name,entering_warehouse_time,remark,weight,height,length,width')->with(['packageimage.file'])->select();
         $packItem = (new PackageItemModel())->where('order_id','in',explode(',',$data['pack_ids']))->field('class_name,id,class_id,order_id')->select();
         $packItemGroup = [];
         foreach ($packItem as $val){

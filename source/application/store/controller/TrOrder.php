@@ -436,7 +436,7 @@ class TrOrder extends Controller
        $user =  new UserModel;
        $inpackdata = $model::details($data['id']);
        $userdata = User::detail($data['user_id']);
-       $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free'];
+       $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free'] + $inpackdata['insure_free'];
        return  $this->renderSuccess('操作成功','',$result=['price' =>  $payprice ,'balance' =>$userdata['balance']]);
     }
     
@@ -448,7 +448,7 @@ class TrOrder extends Controller
         $inpackdata = $model::details($data['id']);
         $userdata = User::detail($data['user_id']);
         
-        $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free'];
+        $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free']  + $inpackdata['insure_free'];
         if($payprice==0){
             return $this->renderError('订单金额为0，请先设置订单金额');
         }
@@ -770,6 +770,8 @@ class TrOrder extends Controller
           foreach ($pack as $key => $val){
             (new Package())->where('id',$val)->update(['status' => 2,'inpack_id'=>null]);
           }  
+        }else{
+            (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>null]);
         }
         if ($model->removedelete($id)) {
             return $this->renderSuccess('删除成功');
@@ -818,8 +820,12 @@ class TrOrder extends Controller
             $value['num'] =  (new Package())->where(['inpack_id'=>$value['id'],'is_delete'=>0])->count();
             $value['down_shelf'] = 0;
             $value['inpack'] = 0;
+           $count = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
+           if($count ==0){
+                $count = (new Package())->where('inpack_id',$value['id'])->count();
+           }
            if ($dataType=='payed'){
-                $value['down_shelf'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
+                $value['down_shelf'] = $count;
                 $value['inpack'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',8)->count();
            }
         }
@@ -977,6 +983,7 @@ class TrOrder extends Controller
         $long = max($data['length'],$data['width'],$data['height']);
         $otherfree = getServiceFree($line['services_require'],$oWeigth,$long);
         // dump($otherfree);die;
+        $insure_free = $pakdata['insure_free'];
         $reprice=0;  
         $lines['predict'] = [
               'weight' => $oWeigth,
@@ -1100,7 +1107,7 @@ class TrOrder extends Controller
         //
         
          
-        return $this->renderSuccess(['oWeigth'=>$oWeigth,'price'=>str_replace(',','',$lines['predict']['price']),'weightV'=>$weigthV,'packfree'=>$pricethree]);
+        return $this->renderSuccess(['oWeigth'=>$oWeigth,'price'=>str_replace(',','',$lines['predict']['price']),'weightV'=>$weigthV,'packfree'=>$pricethree,'insure_free'=>$insure_free]);
     }
     
     /**
@@ -2394,7 +2401,8 @@ class TrOrder extends Controller
             return $this->renderError('修改失败');
             
         }
-        $result = $inpack->where('id',$selectIds['id'])->update(['address_id'=>$selectIds['address_id']]);
+        $address =(new UserAddress())->where('address_id',$selectIds['address_id'])->find();
+        $result = $inpack->where('id',$selectIds['id'])->update(['address_id'=>$selectIds['address_id'],'country_id'=>$address['country_id']]);
         return $this->renderSuccess('修改成功');
     }
 
@@ -2574,7 +2582,7 @@ class TrOrder extends Controller
             $objPHPExcel->getActiveSheet()->setCellValue('A'.($i+5),$i+1);//序号
             $objPHPExcel->getActiveSheet()->setCellValue('B'.($i+5),$data[$i]['t_name']);//集运路线
             $objPHPExcel->getActiveSheet()->setCellValue('C'.($i+5),$data[$i]['order_sn'].' ');//平台订单号
-            $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+5),$data[$i]['country']);//目的地
+            $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+5),$data[$i]['address']['country']);//目的地
             $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+5),$data[$i]['weight']);//重量
             $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+5),$data[$i]['free']);//标准价
             $objPHPExcel->getActiveSheet()->setCellValue('G'.($i+5),$data[$i]['packClass']);//快递类别  ***********
@@ -2747,7 +2755,7 @@ class TrOrder extends Controller
         $status = [1=>'待查验',2=>'待支付',3=>'已支付','4'=>'已拣货','5'=>'已打包','6'=>'已发货','7'=>'已收货','8'=>'已完成','-1'=>'已取消'];
        
         if($ids){
-           $data = (new Inpack())->with(['storage','shop'])->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
+           $data = (new Inpack())->with(['storage','shop','country'])->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
                     $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
                     $item['t_name'] = (new Line())->where('id',$item['line_id'])->value('name');
                     $item['shopCapital'] = (new Capital())->where(['inpack_id'=> $item['order_sn'],'shop_id' => $item['shop_id']])->value('money');
@@ -2900,7 +2908,7 @@ class TrOrder extends Controller
             $objPHPExcel->getActiveSheet()->setCellValue('A'.($i+5),$i+1);//序号
             $objPHPExcel->getActiveSheet()->setCellValue('B'.($i+5),$data[$i]['t_name']);//集运路线
             $objPHPExcel->getActiveSheet()->setCellValue('C'.($i+5),$data[$i]['order_sn']);//平台订单号
-            $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+5),$data[$i]['country']);//目的地
+            $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+5),$data[$i]['country']['title']);//目的地
             $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+5),$data[$i]['weight']);//重量
             $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+5),$data[$i]['real_payment']);//标准价
             $objPHPExcel->getActiveSheet()->setCellValue('G'.($i+5),$data[$i]['storage']['shop_name']);//快递类别  ***********

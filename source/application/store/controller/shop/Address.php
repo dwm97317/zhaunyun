@@ -4,7 +4,7 @@ namespace app\store\controller\shop;
 
 use app\store\controller\Controller;
 use app\store\model\UserAddress;
-
+use app\store\model\Countries;
 /**
  * 代收点
  * Class Order
@@ -23,6 +23,7 @@ class Address extends Controller
     {
         $model = new UserAddress;
         $list = $model->getDsList();
+        // dump($list->toArray());die;
         return $this->fetch('index', compact('list'));
     }
     
@@ -37,8 +38,10 @@ class Address extends Controller
     public function add()
     {
         $model = new UserAddress;
+        $Countries = new Countries();
+        $countryList = $Countries->getListAll();
         if (!$this->request->isAjax()) {
-            return $this->fetch('add');
+            return $this->fetch('add',compact('countryList'));
         }
         // 新增记录
         $data = $this->postData('address');
@@ -59,9 +62,10 @@ class Address extends Controller
     {
         // 会员地址详情
         $model = UserAddress::detail($address_id);
-        // dump($model);die;
+        $Countries = new Countries();
+        $countryList = $Countries->getListAll();
         if (!$this->request->isAjax()) {
-            return $this->fetch('edit', compact('model'));
+            return $this->fetch('edit', compact('model','countryList'));
         }
         // 新增记录
         if ($model->edit($this->postData('address'))) {

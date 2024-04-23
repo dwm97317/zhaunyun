@@ -67,7 +67,6 @@
                                 <th>员工姓名</th>
                                 <th>员工手机号</th>
                                 <th>状态</th>
-                                <th>员工类型</th>
                                 <th>添加时间</th>
                                 <th>操作</th>
                             </tr>
@@ -88,11 +87,6 @@
                                     <td class="am-text-middle">
                                         <span class="am-badge am-badge-<?= $item['status'] ? 'success' : 'warning' ?>">
                                            <?= $item['status'] ? '启用' : '禁用' ?>
-                                       </span>
-                                    </td>
-                                    <td class="am-text-middle">
-                                        <span class="am-badge am-badge">
-                                           <?= $item['clerk_name']?>
                                        </span>
                                     </td>
                                     <td class="am-text-middle"><?= $item['create_time'] ?></td>

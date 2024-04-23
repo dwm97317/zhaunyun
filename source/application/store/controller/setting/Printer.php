@@ -56,9 +56,11 @@ class Printer extends Controller
         if (!$this->request->isAjax()) {
             // 打印机类型列表
             $printerType = $model::getPrinterTypeList();
+        //  dump($printerType);die;
             return $this->fetch('edit', compact('model', 'printerType'));
         }
         // 更新记录
+           
         if ($model->edit($this->postData('printer'))) {
             return $this->renderSuccess('更新成功', url('setting.printer/index'));
         }

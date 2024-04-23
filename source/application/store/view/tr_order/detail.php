@@ -77,6 +77,13 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">保险服务费用</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" id="insure_free" onchange="MathFree()" name="data[insure_free]"
+                                           value="<?= $detail['insure_free']??'' ;?>" placeholder="请输入价格">
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">附加费用（如关税或其他额外费用）</label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" onchange="MathFree()" id="other_free"  name="data[other_free]"
@@ -92,7 +99,7 @@
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">总费用（不可修改）</label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input disabled="" type="text" class="tpl-form-input" id="all"
-                                           value="<?= $detail['total']??'' ;?>" placeholder="">
+                                           value="<?= $detail['total'] + $detail['insure_free'] ;?>" placeholder="">
                                            <small style="color:#ff6666;">总费用 = 集运路线费用 + 打包服务费用+ 附加费用（如需要减少总费用，请修改以上三个费用）</small>
                                 </div>
                                 
@@ -207,9 +214,9 @@
         var price = parseFloat($('#price')[0].value.replace(/\,/g, ''), 10);
         var other_free = $('#other_free')[0].value;
         var pack_free = $('#pack_free')[0].value;
-        
+        var insure_free = $('#insure_free')[0].value;
         console.log(price,456);
-        var total = Math.floor(price *100 )+ Math.floor(pack_free *100)+ Math.floor(other_free *100);  
+        var total = Math.floor(price *100 )+ Math.floor(pack_free *100)+ Math.floor(other_free *100) + Math.floor(insure_free *100);  
         $("#all").val(total/100)
     }
     
@@ -236,10 +243,12 @@
                  $('#oWei').val(res.msg.oWeigth);
                  $('#weigthV').val(res.msg.weightV);
                  $('#pack_free').val(res.msg.packfree);
+                 $('#insure_free').val(res.msg.insure_free);
                  var other_free = $('#other_free').val();
                  var pack_free = $('#pack_free').val();
+                 var insure_free = $('#insure_free').val();
                  var num = parseFloat(res.msg.price);
-                 var total = Number(num) + Number(pack_free) + Number(other_free);
+                 var total = Number(num) + Number(pack_free) + Number(other_free) + Number(insure_free);
                  $("#all").val(total)
              } 
           }

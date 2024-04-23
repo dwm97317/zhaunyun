@@ -341,13 +341,15 @@
                                     <td class="am-text-middle">
                                         基础线路费用:<span style="color:#ff6666;cursor:pointer" text="<?= $item['free'] ?>" onclick="copyUrl2(this)"><?= $item['free'] ?></span></br>
                                         
+                                        保险费:<span style="color:#ff6666;cursor:pointer" text="<?= $item['insure_free'] ?>" onclick="copyUrl2(this)"><?= $item['insure_free'] ?></span></br>
+                                        
                                         包装费:<span style="color:#ff6666;cursor:pointer" text="<?= $item['pack_free'] ?>" onclick="copyUrl2(this)"><?= $item['pack_free'] ?></span></br>
 
                                         其他费用:<span style="color:#ff6666;cursor:pointer" text="<?= $item['other_free'] ?>" onclick="copyUrl2(this)"><?= $item['other_free'] ?></span></br>
                                         
                                         优惠金额：<span style="color:#ff6666;cursor:pointer" text="<?= $item['user_coupon_money'] ?>" onclick="copyUrl2(this)"><?= $item['user_coupon_money']; ?></span></br>
                                         
-                                        费用合计:<span style="color:#ff6666;cursor:pointer" text="<?= $item['free'] + $item['pack_free'] + $item['other_free'] ?>" onclick="copyUrl2(this)"><?= $item['free'] + $item['pack_free'] + $item['other_free'] ?></span></br>
+                                        费用合计:<span style="color:#ff6666;cursor:pointer" text="<?= $item['free'] + $item['pack_free'] + $item['other_free'] + $item['insure_free']  ?>" onclick="copyUrl2(this)"><?= $item['free'] + $item['pack_free'] + $item['other_free'] + $item['insure_free'] ?></span></br>
                                         
                                         <?php if ($item['is_pay']==1): ?>
                                         实际支付：<span style="color:#ff6666;cursor:pointer" text="<?= $item['real_payment'] ?>" onclick="copyUrl2(this)"><?= $item['real_payment']; ?></span></br></br>

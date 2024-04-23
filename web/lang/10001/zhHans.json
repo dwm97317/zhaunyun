@@ -16,6 +16,11 @@
 		"apply_for_packaging": "申请打包",
 		"submit_package_request": "提交打包申请"
 	},
+	"page_goodslist":{
+	  "goodstitle":"物品列表",
+	  "nogoodlist":"暂无物品清单",
+	  "please_enter_goodsname":"请输入物品名称"
+    },
 	"page_index": {
 		"bestRoute": "最佳路线",
 		"allRoute":"所有路线",
@@ -1240,6 +1245,8 @@
 		"State_province": "州/省",
 		"placeholder5": "请填写州/省",
 		"city": "城市",
+		"region": "区",
+		"placeholder12": "请输入区",
 		"placeholder6": "请输入城市",
 		"street": "街道",
 		"placeholder7": "请输入街道",

@@ -7,6 +7,8 @@ use app\store\model\store\Role as RoleModel;
 use app\store\model\store\User as StoreUserModel;
 use app\store\model\store\UserRole;
 use app\store\model\store\Shop as ShopModel;
+use app\store\model\Countries;
+use app\store\model\Line;
 use think\Session;
 /**
  * 商家用户控制器
@@ -72,7 +74,8 @@ class User extends Controller
                 // 角色列表
                 'roleList' => (new RoleModel)->getList(),
                 'shopList' => ShopModel::getAllList(),
-                
+                'countrylist'=>(new Countries)->getListAll(),
+                'linelist'=>(new Line)->getListAll(),
                 // 所有角色id
                 'roleIds' => UserRole::getRoleIds($model['store_user_id']),
             ]);

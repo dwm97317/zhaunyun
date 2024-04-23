@@ -58,6 +58,7 @@ class Controller extends \think\Controller
     {
         // 商家登录信息
         $this->store = Session::get('yoshop_store');
+        // dump($this->store);die;
         // 当前路由信息
         $this->getRouteinfo();
         // 验证登录状态

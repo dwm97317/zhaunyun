@@ -92,8 +92,14 @@
                                        
                                         <td class="am-text-middle">
                                             <?php foreach ($item['pakitem'] as $items): ?>
-                                            <?= $items['goods_name'].'*'.$items['product_num'].' 价值:'.$items['all_price'] ?><br>
+                                            <div class="tpl-table-black-operation"  >
+                                            <?php if (checkPrivilege('package.index/editpackageitem')): ?>
+                                            <?= $items['goods_name'].'*'.$items['product_num'].' 价值:'.$items['all_price'] ?>
+                                                    <a href="<?= url('store/package.index/edieditpackageitemt', ['id' => $items['id']]) ?>"> <i class="am-icon-pencil"></i> 编辑</a>
+                                                  <?php endif;?>
+                                             </div>
                                             <?php endforeach; ?>
+                                           
                                         </td>
                                          <td class="am-text-middle"><?= $item['weight'].$storesetting['weight_mode']['unit'];?></td>
                                          <td class="am-text-middle"><?= $item['remark'];?></td>
@@ -109,10 +115,11 @@
                                         </td>
                                         <td class="am-text-middle">
                                             <div class="tpl-table-black-operation"  >
-                                              <a href="javascript:void(0);" 
-                                               class="j-yichue item-delete tpl-table-black-operation-del"
-                                               data-id="<?= $item['id'];?>" data-value="<?= $id;?>" > <i class="am-icon-delete"></i> 移出
-                                            </a>
+                                                  <a href="javascript:void(0);" 
+                                                   class="j-yichue item-delete tpl-table-black-operation-del"
+                                                   data-id="<?= $item['id'];?>" data-value="<?= $id;?>" > <i class="am-icon-delete"></i> 移出
+                                                  </a>
+                                                  
                                             </div>
                                         </td>
                                     </tr>

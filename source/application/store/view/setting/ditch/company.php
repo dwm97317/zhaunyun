@@ -63,7 +63,7 @@
                                 <td>澳联国际</td>
                                 <td>澳联国际</td>
                                 <td>澳联国际</td>
-                                <td>http://www.sz56t.com/</td>
+                                <td>http://aus42.t6soft.com/api/doc</td>
                             </tr>
                             <tr>
                                 <td>10007</td>

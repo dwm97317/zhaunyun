@@ -16,6 +16,8 @@ class BaseModel extends Model
     public static $wxapp_id;
     public static $base_url;
     public static $shop_id;
+    public static $line_id;
+    public static $country_id;
 
     protected $alias = '';
 
@@ -67,6 +69,8 @@ class BaseModel extends Model
         $session = Session::get('yoshop_store');
         self::$wxapp_id = $session['wxapp']['wxapp_id'];
         self::$shop_id =  $session['user']['shop_id'];
+        self::$line_id =  isset($session['user']['line_id'])?$session['user']['line_id']:'';
+        self::$country_id =  isset($session['user']['country_id'])?$session['user']['country_id']:'';
     }
 
     /**
@@ -107,6 +111,16 @@ class BaseModel extends Model
                 $query->whereIn($query->getTable() . '.storage_id', explode(',',self::$shop_id));
             }
         }
+        // if (isset(self::$line_id) && self::$line_id !== '0') {
+        //     if($query->getTable() == 'yoshop_inpack' || $query->getTable() == 'yoshop_package'){
+        //         $query->whereIn($query->getTable() . '.line_id', explode(',',self::$line_id));
+        //     }
+        // }
+        // if (isset(self::$country_id) && self::$country_id !== '0') {
+        //     if($query->getTable() == 'yoshop_inpack' || $query->getTable() == 'yoshop_package'){
+        //         $query->whereIn($query->getTable() . '.country_id', explode(',',self::$country_id));
+        //     }
+        // }
     }
 
     /**

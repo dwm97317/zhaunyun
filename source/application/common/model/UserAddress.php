@@ -16,4 +16,7 @@ class UserAddress extends BaseModel
      */
     protected $append = ['region'];
     
+    public function countrydata(){
+        return $this->belongsTo('app\common\model\Country','country_id','id');
+    }
 }

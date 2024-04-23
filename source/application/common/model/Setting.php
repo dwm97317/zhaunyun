@@ -326,6 +326,8 @@ class Setting extends BaseModel
                         'is_user_force'=>0,
                         'is_shelf' => 1,
                         'is_shelf_force'=>0,
+                        'is_shelfchoose' => 1,
+                        'is_shelfchoose_force'=>0,
                         'is_category' => 1,
                         'is_category_force'=>0,
                         'is_hot' => 1,
@@ -418,6 +420,9 @@ class Setting extends BaseModel
                         'is_single'=>1,
                         'is_more'=>1,
                         'is_country' => 1,
+                        'is_expressnum'=>1,
+                        'is_expressnum_force'=>1,
+                        'is_expressnum_enter'=>1, //快速预报的是否直接入库
                         'is_country_force' => 1,
                         'is_shop' => 1,
                         'is_shop_force' => 1,
@@ -435,6 +440,24 @@ class Setting extends BaseModel
                         'is_xieyi_force' => 1,
                         'is_goodslist'=>1,
                         'is_goodslist_force'=>1,
+                        'orderno'=>[
+                            'default'=>[90,20,110],
+                        'first_title'=>'XS',
+                        'model'=>[
+                            10 =>"时间戳1688197248(动态)",
+                            20 =>"年月日20230101(固定)",
+                            30 =>"(缩)年月日230101(固定)",
+                            40 =>"年月日时分秒20230101213030(动态)",
+                            50 =>"用户ID(固定)",
+                            60 =>"目的地ID(固定)",
+                            70 =>"仓库简称(CTO)(固定)",
+                            // 80 =>"城市编号(15)",
+                            90 =>"自定义字母(XS)(固定)",
+                            100 =>"自定序号(001-100)(固定)",
+                            110 =>"随机5位数(10000-99999)(动态)",
+                            
+                        ]// 10 时间
+                    ],
                     ],
                     'userinfo'=>[
                         'is_identification_card'=>1,
@@ -611,6 +634,21 @@ class Setting extends BaseModel
                             'WEB'=>0
                         ] //小程序，公众号，H5，APP,PC
                     ],
+                    'wechatdivide'=>[
+                        'name'=> '微信支付服务商',  //微信支付
+                        'is_open' => '0',
+                        'value'=>50,
+                        'mch_id' =>'', //商户号
+                        'sub_mch_id' =>'', //商户号
+                        'icon'=> base_url()."assets/api/images//dzx_img128.png",
+                        'platfrom'=>[
+                            'MP-WEIXIN'=>1,
+                            'H5-WEIXIN'=>1,
+                            'H5'=>1,
+                            'APP'=>0,
+                            'WEB'=>0
+                        ] //小程序，公众号，H5，APP,PC
+                    ]
                 ]
             ],
             // 上传设置
@@ -789,43 +827,47 @@ class Setting extends BaseModel
                 'values' => [
                     //入库通知
                     'enter'=>[
-                        'is_enable' => 0,
-                        'describe' => "包裹已入库，可提交打包",
+                        'is_enable' => 1,
+                        'describe' => "PACKAGE INBOUND 包裹已入库，可提交打包",
+                    ],
+                    'outshop'=>[
+                        'is_enable' => 1,
+                        'describe' => "OUT OF WAREHOUSE 包裹已出库",
                     ],
                     //提交打包
                     'packageit'=>[
-                        'is_enable' => 0,
-                        'describe' => "包裹已申请打包，请等待查验",
+                        'is_enable' => 1,
+                        'describe' => "UNDER INSPECTION 包裹已申请打包，请等待查验",
                     ],
                     //查验完成
                     'check'=>[
-                        'is_enable' => 0,
-                        'describe' => "包裹查验完成，等待支付",
+                        'is_enable' => 1,
+                        'describe' => "WAITING FOR PAYMENT 包裹查验完成，等待支付",
                     ],
                     //支付完成
                     'ispay'=>[
-                        'is_enable' => 0,
-                        'describe' => "包裹已支付，即将安排发货",
+                        'is_enable' => 1,
+                        'describe' => "Paid 包裹已支付，即将安排发货",
                     ],
                     //发货操作
                     'dosend'=>[
-                        'is_enable' => 0,
-                        'describe' => "包裹已发货，国际单号：{code}",
+                        'is_enable' => 1,
+                        'describe' => "Shipped 包裹已发货，国际单号：{code}",
                     ],
                     //已到货
                     'reach'=>[
-                        'is_enable' => 0,
-                        'describe' => "包裹已到货，请注意查收",
+                        'is_enable' => 1,
+                        'describe' => "Arrived 包裹已到货，请注意查收",
                     ],
                     //已收货
                     'take'=>[
-                        'is_enable' => 0,
-                        'describe' => "包裹已收货，感谢你的支持",
+                        'is_enable' => 1,
+                        'describe' => "Receiving goods 包裹已收货，感谢你的支持",
                     ],
                     //问题件
                     'problem'=>[
-                        'is_enable' => 0,
-                        'describe' => "包裹有误，请联系客服处理",
+                        'is_enable' => 1,
+                        'describe' => "PROBLEM PACKAGE 包裹有误，请联系客服处理",
                     ],
                     //是否查询包裹信息；
                     'is_package'=>[

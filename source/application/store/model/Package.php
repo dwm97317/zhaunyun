@@ -775,7 +775,8 @@ class Package extends PackageModel
             $this->where($where);
         }
         !empty($param['likesearch']) && $this->where('a.express_num','like','%'.$param['likesearch'].'%');
-        !empty($param['search']) && $this->where('a.member_id|u.nickName|u.user_code|a.usermark','like','%'.$param['search'].'%');
+        !empty($param['search']) && $this->where('a.member_id|u.nickName|u.user_code|a.usermark','=',$param['search']);
+        // dump($this);die;
         return $this;
     }
     
@@ -932,7 +933,7 @@ class Package extends PackageModel
             $this->where($where);
         }
         !empty($param['likesearch']) && $this->where('a.express_num','like','%'.$param['likesearch'].'%');
-        !empty($param['search']) && $this->where('a.member_id|u.nickName|u.user_code','like','%'.$param['search'].'%');
+        !empty($param['search']) && $this->where('a.member_id|u.nickName|u.user_code','=',$param['search']);
         return $this;
     }
 

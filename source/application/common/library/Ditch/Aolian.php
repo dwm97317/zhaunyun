@@ -26,6 +26,7 @@ class Aolian{
     public function query($express_no)
     {
         // 缓存索引
+        // $express_no = 'AUS5030601242';
         $baseurl = $this->config['apiurl'];
         $Verify =[
           'code' => $this->config['key'],
@@ -40,13 +41,13 @@ class Aolian{
         // 参数设置
         $result = $this->http_post($baseurl,json_encode($data));
         $express = json_decode($result,true);
-        // dump($express);die;
-        if ($express['code']==0) {
+        //  dump($express);die;
+        if ($express['code']==0 && isset($express['data'][0]['errormsg'])) {
             $this->error = isset($express['data'][0]['errormsg']) ? $express['data'][0]['errormsg'] : '查询失败';
             return [];
         }  
         $loglist = [];
-   
+  
         if(count($express['data'][0]['trackItems'])>0){
             foreach ($express['data'][0]['trackItems'] as $v){
                 $loglist[] = [
@@ -56,7 +57,7 @@ class Aolian{
                 ];
           }
         }
-        
+        //   dump($loglist);die;
         // 记录错误信息
         return $loglist;
     }

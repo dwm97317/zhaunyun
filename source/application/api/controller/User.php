@@ -346,8 +346,11 @@ class User extends Controller
         if ($userInfo['user_type'] == 0){
             return $this->renderError('您还没有成为员工');
         }
+        
         $clerk_arr_map = [1 => 's',2 => 'f',3 => 'd',4 => 'q',5 => 'c',6=>'da',7=>'kf'];
         $info = (new Clerk())->where(['user_id'=>$userInfo['user_id'],'is_delete'=>0])->with(['storage','user'])->find()->toArray();
+        $info['clerk_authority'] = json_decode($info['clerk_authority'],true);
+        
         $info['clerk_type_arr'] = [];
         $info['clerk_type_arr']['s'] = 0;
         $info['clerk_type_arr']['f'] = 0;
@@ -356,7 +359,7 @@ class User extends Controller
         $info['clerk_type_arr']['c'] = 0;
         $info['clerk_type_arr']['da'] = 0;
         $info['clerk_type_arr']['kf'] = 0;
-        // dump($info['clerk_type']);die;
+        // dump($info['clerk_authority']);die;
         if ($info['clerk_type']){
             $clerk_arr = explode(',',$info['clerk_type']);
             foreach ($clerk_arr as $v){

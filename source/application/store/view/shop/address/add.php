@@ -30,11 +30,18 @@
                                            value="" placeholder="请输入手机号" required>
                                 </div>
                             </div>
+                   
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">国家</label>
-                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="address[country]"
-                                           value="" placeholder="请输入国家" required>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">国家 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="address[country_id]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" >
+                                        <option value=""></option>
+                                        <?php if (isset($countryList) && !$countryList->isEmpty()):
+                                            foreach ($countryList as $item): ?>
+                                                   <option value="<?= $item['id'] ?>" ><?= $item['title'] ?></option>
+                                            <?php endforeach; endif; ?>
+                                    </select>
                                 </div>
                             </div>
                             <div class="am-form-group">

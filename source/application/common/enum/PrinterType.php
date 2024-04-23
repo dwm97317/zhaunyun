@@ -14,6 +14,9 @@ class PrinterType extends EnumBasics
 
     /* @const PRINT_CENTER 365云打印 */
     const PRINT_CENTER = 'PRINT_CENTER';
+    
+    /* @const PRINT_CENTER xprinter */
+    const XPRINTER = 'XPRINTER';
 
     /**
      * 获取打印机类型名称
@@ -24,6 +27,7 @@ class PrinterType extends EnumBasics
         return [
             self::FEI_E_YUN => '飞鹅打印机',
             self::PRINT_CENTER => '365云打印',
+            self::XPRINTER => '芯烨云打印',
         ];
     }
 

@@ -31,10 +31,23 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">国家</label>
-                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="address[country]"
-                                           value="<?= $model['country'] ?>" placeholder="请输入国家" required>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">国家 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="address[country_id]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" >
+                                        <option value=""></option>
+                                        <?php if (isset($countryList) && !$countryList->isEmpty()):
+                                            foreach ($countryList as $item): ?>
+                                                <?php if(isset($model['country'])): ?>
+                                                   <option value="<?= $item['id'] ?>" <?= $model['country_id'] == $item['id'] ? 'selected' : '' ?> ><?= $item['title'] ?></option>
+                                                <?php else: ?>  
+                                                   <option value="<?= $item['id'] ?>" ><?= $item['title'] ?></option>
+                                                <?php endif; ?>
+                                            <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>请选择包裹将要寄往的国家</small>
+                                    </div>
                                 </div>
                             </div>
                             <div class="am-form-group">

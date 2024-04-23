@@ -20,6 +20,13 @@ class ShelfUnit extends ShelfUnitModel
       return $this->belongsTo('app\api\model\Shelf','shelf_id')->field('id,shelf_no,shelf_name'); 
     }
     
+    public function getList($shelf_id){
+      return $this
+        ->where('shelf_id',$shelf_id)
+        ->select();
+    }
+    
+    
     public function getShelfUnit($id){
         $shelf = (new ShelfUnit())->with('shelf')->where(['shelf_unit_id'=>$id])->find();
         if (!$shelf){

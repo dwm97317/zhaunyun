@@ -44,6 +44,73 @@
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
+                                    快速预报是否填写快递单号
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[yubao][is_expressnum]" value="1"
+                                               data-am-ucheck  <?= $values['yubao']['is_expressnum'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[yubao][is_expressnum]" value="0"
+                                               data-am-ucheck <?= $values['yubao']['is_expressnum'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[yubao][is_expressnum_force]" value="1" data-am-ucheck
+                                            <?= $values['yubao']['is_expressnum_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    快速预报的单号生成规则
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <select id="selectize-tags-1" onclick="changeorder()" onchange="changeorder()" name="userclient[yubao][orderno][default]" multiple="" class="tag-gradient-success">
+                                        <?php if (isset($values['yubao']['orderno']['model']) && isset($values['yubao']['orderno']['default'])): foreach ($values['yubao']['orderno']['default'] as $key =>$item): ?>
+                                            <option value="<?= $item ?>" selected ><?= $values['yubao']['orderno']['model'][$item] ?></option>
+                                        <?php endforeach; endif; ?>
+                                        
+                                        <?php if (isset($values['yubao']['orderno']['model']) && isset($values['yubao']['orderno']['default'])): foreach ($values['yubao']['orderno']['model'] as $key =>$items): ?>
+                                            <option value="<?= $key ?>" <?= in_array($key,$values['yubao']['orderno']['default'])?"selected":'' ?>><?= $items ?></option>
+                                        <?php endforeach; endif; ?>
+                                    </select>
+                                    <input id="orderno" autocomplete="off" type="hidden" name="userclient[yubao][orderno][default]"  value="<?= implode(',',$values['yubao']['orderno']['default']) ?>">
+                                    <small>注：当快速预报的单号不必填时，则自动按此规则生成；</small>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 自定义发货单号首字母 </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="userclient[yubao][orderno][first_title]"
+                                           value="<?= $values['yubao']['orderno']['first_title']??'' ?>" required>
+                                            <div class="help-block">
+                                        <small>注：当上面发货订单号生成规则选择了首字母才会使用该首字母；</small>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    快速预报包裹是否直接设置为已入库
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[yubao][is_expressnum_enter]" value="1"
+                                               data-am-ucheck  <?= $values['yubao']['is_expressnum_enter'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[yubao][is_expressnum_enter]" value="0"
+                                               data-am-ucheck <?= $values['yubao']['is_expressnum_enter'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
                                     是否需要预报国家
                                 </label>
                                   <div class="am-u-sm-9">
@@ -1043,14 +1110,31 @@
         </div>
     </div>
 </div>
+
+<link href="/web/static/css/selectize.default.css" rel="stylesheet">
 <script src="/web/static/js/selectize.min.js"></script>
+<script src="/web/static/js/summernote-bs4.min.js"></script>
 <!-- 图片文件列表模板 -->
 {{include file="layouts/_template/tpl_file_item" /}}
 
 <!-- 文件库弹窗 -->
 {{include file="layouts/_template/file_library" /}}
 <script>
+    function changeorder(){
+        console.log($('#selectize-tags-1')[0]);
+        $('#orderno').val($('#selectize-tags-1')[0].selectize.items);
+    }
     $(function () {
+        $('#selectize-tags-1').selectize({
+    	    delimiter: ',',
+    	    persist: false,
+    	    create: function(input) {
+    	        return {
+    	            value: input,
+    	            text: input
+    	        }
+    	    }
+	    });
         /**
          * 表单验证提交
          * @type {*}

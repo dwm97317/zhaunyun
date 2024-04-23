@@ -1556,8 +1556,6 @@ class Useropration extends Controller
           ['name' =>'在途中','value'=>$zaituzhong,'labelShow'=>false],
       ];
       return $this->renderSuccess([ 'series' => [0 => ['data'=>$datas]],'tongji' => ['total' => $total, 'daichayan'=> $daichayan,'daifahuo'=>$daifahuo,'zaituzhong'=>$zaituzhong] ]); 
-            
-      
     }
     
     //用户增长数据

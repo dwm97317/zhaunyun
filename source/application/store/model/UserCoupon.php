@@ -128,5 +128,14 @@ class UserCoupon extends UserCouponModel
             return $status;
         });
     }
+    
+    /**
+     * 删除记录 (软删除)
+     * @return bool|int
+     */
+    public function setDelete()
+    {
+        return $this->save(['is_delete' => 1]) !== false;
+    }
 
 }

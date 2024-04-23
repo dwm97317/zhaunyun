@@ -33,7 +33,7 @@ use app\common\enum\PrinterType as PrinterTypeEnum;
                                         <?php endforeach; endif; ?>
                                     </select>
                                     <div class="help-block">
-                                        <small>目前支持 飞鹅打印机、365云打印</small>
+                                        <small>目前支持 飞鹅打印机、365云打印,芯烨云打印</small>
                                     </div>
                                 </div>
                             </div>
@@ -87,6 +87,36 @@ use app\common\enum\PrinterType as PrinterTypeEnum;
                                         <input type="text" class="tpl-form-input"
                                                name="printer[<?= PrinterTypeEnum::PRINT_CENTER ?>][key]"
                                                value="<?= isset($model['printer_config']['key']) ? $model['printer_config']['key'] : '' ?>">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                             <!-- 打印机配置：芯烨云打印 -->
+                            <div id="<?= PrinterTypeEnum::XPRINTER ?>"
+                                 class="form-tab-group <?= PrinterTypeEnum::XPRINTER == $model['printer_type']['value'] ? 'active' : '' ?>">
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 开发者ID </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input"
+                                               name="printer[<?= PrinterTypeEnum::XPRINTER ?>][USER]"
+                                               value="<?= isset($model['printer_config']['USER']) ? $model['printer_config']['USER'] : '' ?>">
+                                    </div>
+                                </div>
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 开发者密钥 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input"
+                                               name="printer[<?= PrinterTypeEnum::XPRINTER ?>][UserKEY]"
+                                               value="<?= isset($model['printer_config']['UserKEY']) ? $model['printer_config']['UserKEY'] : '' ?>">
+                                    </div>
+                                </div>
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 打印机编号 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input"
+                                               name="printer[<?= PrinterTypeEnum::XPRINTER ?>][SN]"
+                                               value="<?= isset($model['printer_config']['SN']) ? $model['printer_config']['SN'] : '' ?>">
+                                        <small>打印机编号为9位数字，查看飞鹅打印机底部贴纸上面的编号</small>
                                     </div>
                                 </div>
                             </div>

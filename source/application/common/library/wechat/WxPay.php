@@ -140,6 +140,107 @@ class WxPay extends WxBase
         $this->returnCode(true, 'OK');
     }
 
+/**
+     * 服务商统一下单API
+     * @param $order_no
+     * @param $openid
+     * @param $totalFee
+     * @param int $orderType 订单类型
+     * @return array
+     * @throws BaseException
+     */
+    public function wechatdivideunifiedorder($order_no, $openid, $totalFee, $orderType = OrderTypeEnum::MASTER,$paytype)
+    {
+        // 当前时间
+        $time = time();
+        // 生成随机字符串
+        $nonceStr = md5($time . $openid);
+        // API参数
+        $params = [
+            'appid' => $this->appId,
+            'mch_id' => $paytype['wechatdivide']['mch_id'],
+            'sub_mch_id' => $paytype['wechatdivide']['sub_mch_id'],
+            'attach' => json_encode(['order_type' => $orderType]),
+            'body' => $order_no,
+            'nonce_str' => $nonceStr,
+            'notify_url' => base_url() . 'notice.php',  // 异步通知地址
+            'openid' => $openid,
+            'out_trade_no' => $order_no,
+            'spbill_create_ip' => \request()->ip(),
+            'total_fee' => $totalFee * 100, // 价格:单位分
+            'trade_type' => 'JSAPI',
+            'profit_sharing'=>'Y'
+        ];
+      
+        // 生成签名
+        $params['sign'] = $this->makeSign($params);
+        // 请求API
+        $url = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
+        $result = $this->post($url, $this->toXml($params));
+        $prepay = $this->fromXml($result);
+        // dump($result);die;
+        // 请求失败
+        if ($prepay['return_code'] === 'FAIL') {
+            throw new BaseException(['msg' => "微信支付api：{$prepay['return_msg']}", 'code' => -10]);
+        }
+        if ($prepay['result_code'] === 'FAIL') {
+            throw new BaseException(['msg' => "微信支付api：{$prepay['err_code_des']}", 'code' => -10]);
+        }
+        // 生成 nonce_str 供前端使用
+        $paySign = $this->makePaySign($params['nonce_str'], $prepay['prepay_id'], $time);
+        return [
+            'prepay_id' => $prepay['prepay_id'],
+            'nonceStr' => $nonceStr,
+            'timeStamp' => (string)$time,
+            'paySign' => $paySign
+        ];
+    }
+    
+    /**
+     * 分账
+     * @param $inpack_id
+     * @param $price
+     * @return array
+     * @throws BaseException
+     */    
+    public function profitsharing($inpack_id,$price){
+        $time = time();
+        // 生成随机字符串
+        $nonceStr = md5($time . $openid);
+        // API参数
+        $body = [
+            "type"=> "MERCHANT_ID",
+            "account"=>$this->config['mchid'],
+            "amount"=>$price * 100,
+            "description"=> "集运订单".$inpack_id." 保险费用分账"
+        ];
+        $params = [
+            'appid' => $this->appId,
+            'mch_id' => $this->config['mchid'],
+            'sub_mch_id' => $this->config['sub_mch_id'],
+            'receivers' => $body,
+            'nonce_str' => $nonceStr,
+            'out_trade_no' => $order_no,
+            'transaction_id'=>'Y'
+        ];
+        // 生成签名
+        $params['sign'] = $this->makeSign($params);
+        // 请求API
+        $url = 'https://api.mch.weixin.qq.com/secapi/pay/profitsharing';
+        
+        $result = $this->post($url, $this->toXml($params));
+        $prepay = $this->fromXml($result);
+        if ($prepay['return_code'] === 'FAIL') {
+            throw new BaseException(['msg' => "微信分账支付api：{$prepay['return_msg']}", 'code' => -10]);
+        }
+        if ($prepay['result_code'] === 'FAIL') {
+            throw new BaseException(['msg' => "微信分账支付api：{$prepay['err_code_des']}", 'code' => -10]);
+        }
+        return true;
+    }
+
+
+
     /**
      * 申请退款API
      * @param $transaction_id

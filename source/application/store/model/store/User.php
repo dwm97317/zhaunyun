@@ -100,6 +100,24 @@ class User extends StoreUserModel
             $this->error = '请选择所属角色';
             return false;
         }
+        if(!empty($data['shop_id'])){
+            $data['shop_id'] = implode(',',$data['shop_id']);
+        }
+        if(!isset($data['shop_id'])){
+            $data['shop_id'] = '0';
+        }
+        if(!empty($data['line_id'])){
+            $data['line_id'] = implode(',',$data['line_id']);
+        }
+        if(!isset($data['line_id'])){
+            $data['line_id'] = '0';
+        }
+        if(!empty($data['country_id'])){
+            $data['country_id'] = implode(',',$data['country_id']);
+        }
+        if(!isset($data['country_id'])){
+            $data['country_id'] = '0';
+        }
         $this->startTrans();
         try {
             // 新增管理员记录
@@ -143,6 +161,24 @@ class User extends StoreUserModel
             $data['password'] = yoshop_hash($data['password']);
         } else {
             unset($data['password']);
+        }
+        if(!empty($data['shop_id'])){
+            $data['shop_id'] = implode(',',$data['shop_id']);
+        }
+        if(!isset($data['shop_id'])){
+            $data['shop_id'] = '0';
+        }
+        if(!empty($data['line_id'])){
+            $data['line_id'] = implode(',',$data['line_id']);
+        }
+        if(!isset($data['line_id'])){
+            $data['line_id'] = '0';
+        }
+        if(!empty($data['country_id'])){
+            $data['country_id'] = implode(',',$data['country_id']);
+        }
+        if(!isset($data['country_id'])){
+            $data['country_id'] = '0';
         }
         $this->startTrans();
         try {

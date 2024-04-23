@@ -49,7 +49,7 @@
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
-                                    是否显示所属货架
+                                    是否显示扫码货架
                                 </label>
                                   <div class="am-u-sm-9">
                                     <label class="am-radio-inline">
@@ -65,6 +65,28 @@
                                     <label class="am-checkbox-inline">
                                         <input type="checkbox" name="keeper[fahuocang][is_shelf_force]" value="1" data-am-ucheck
                                             <?= $values['fahuocang']['is_shelf_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否显示选择货架
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[fahuocang][is_shelfchoose]" value="1"
+                                               data-am-ucheck  <?= $values['fahuocang']['is_shelfchoose'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[fahuocang][is_shelfchoose]" value="0"
+                                               data-am-ucheck <?= $values['fahuocang']['is_shelfchoose'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="keeper[fahuocang][is_shelfchoose_force]" value="1" data-am-ucheck
+                                            <?= $values['fahuocang']['is_shelfchoose_force']==1?'checked' : '' ?>>
                                         是否必填
                                     </label>
                                 </div>

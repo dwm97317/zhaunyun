@@ -48,6 +48,40 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 管理的路线 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="user[line_id][]" multiple
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'所有路线', maxHeight: 400}">
+                                            <option value="0"></option>
+                                        <?php if (isset($linelist)): foreach ($linelist as $item): ?>
+                                            <option value="<?= $item['id'] ?>"
+                                                <?= in_array($item['id'], explode(',',$model['line_id'])) ? 'selected' : '' ?>>
+                                                <?= $item['name'] ?></option>
+                                        <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>默认情况下管理员能看到所有的路线，如果需要限制某个管理员只查看几条路线的订单，则可以设置此参数。</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 管理的国家 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="user[country_id][]" multiple
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'所有国家', maxHeight: 400}">
+                                            <option value="0"></option>
+                                        <?php if (isset($countrylist)): foreach ($countrylist as $item): ?>
+                                            <option value="<?= $item['id'] ?>"
+                                                <?= in_array($item['id'], explode(',',$model['country_id'])) ? 'selected' : '' ?>>
+                                                <?= $item['title'] ?></option>
+                                        <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>默认情况下管理员能看到所有的国家的包裹或订单，如果需要限制某个管理员只查看几个国家的包裹和订单，则可以设置此参数。</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">登录密码 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="password" class="tpl-form-input" name="user[password]"

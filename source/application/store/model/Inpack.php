@@ -16,6 +16,7 @@ use app\common\model\User as UserModel;
 use app\common\model\Setting as SettingModel;
 use app\store\model\InpackImage;
 use app\store\model\UserAddress;
+use app\store\model\Countries;
 use app\store\model\Ditch as DitchModel;
 use app\store\model\Express;
 use app\common\service\Message;
@@ -503,7 +504,7 @@ class Inpack extends InpackModel
     
     //获取集运单的相关信息->with(['line','storage','inpackimage.file'])
     public static function details($id){
-        return self::get($id, ['inpackimage.file','line']);
+        return self::get($id, ['inpackimage.file','line','address']);
     }
 
     public function setWhere($query){
@@ -521,7 +522,7 @@ class Inpack extends InpackModel
             !empty($query['start_time']) && $this->where($query['time_type'], '>=', $query['start_time']);
             !empty($query['end_time']) && $this->where($query['time_type'], '<=', $query['end_time']." 23:59:59");
         }
-        !empty($query['search']) && $this->where('pa.member_id|u.nickName|u.user_code','like','%'.$query['search'].'%');
+        !empty($query['search']) && $this->where('pa.member_id|u.nickName|u.user_code','=',$query['search']);
         if(!empty($query['tr_number'])){
             $express_num = str_replace("\r\n","\n",trim($query['tr_number']));
             $express_num = explode("\n",$express_num);
@@ -585,6 +586,10 @@ class Inpack extends InpackModel
     
     public function batch(){
         return $this->belongsTo('app\store\model\Batch');
+    }
+    
+    public function country(){
+        return $this->belongsTo('app\store\model\Countries','country_id','id');
     }
     /**
      * 获取订单总量

@@ -237,6 +237,65 @@
                                 </label>
                             </div>
                             
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    微信支付（服务商版）
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="paytype[wechatdivide][is_open]" value="1"
+                                               data-am-ucheck  <?= $values['omipay']['is_open'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="paytype[wechatdivide][is_open]" value="0"
+                                               data-am-ucheck <?= $values['wechatdivide']['is_open'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="paytype[wechatdivide][platfrom][MP-WEIXIN]" value="1" data-am-ucheck
+                                            <?= $values['wechatdivide']['platfrom']['MP-WEIXIN']==1?'checked' : '' ?>>
+                                        小程序
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="paytype[wechatdivide][platfrom][H5-WEIXIN]" value="1" data-am-ucheck
+                                            <?= $values['wechatdivide']['platfrom']['H5-WEIXIN']==1?'checked' : '' ?>>
+                                        公众号
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="paytype[wechatdivide][platfrom][H5]" value="1" data-am-ucheck
+                                            <?= $values['wechatdivide']['platfrom']['H5']==1?'checked' : '' ?>>
+                                        H5
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="paytype[wechatdivide][platfrom][APP]" value="1" data-am-ucheck
+                                            <?= $values['wechatdivide']['platfrom']['APP']==1?'checked' : '' ?>>
+                                        APP
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="paytype[wechatdivide][platfrom][WEB]" value="1" data-am-ucheck
+                                            <?= $values['wechatdivide']['platfrom']['WEB']==1?'checked' : '' ?>>
+                                        WEB
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 服务商商户号 </label>
+                                <div class="am-u-sm-9">
+                                    <input autocomplete="off" type="text" class="tpl-form-input" name="paytype[wechatdivide][mch_id]"
+                                           value="<?= $values['wechatdivide']['mch_id'] ?>" >
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 子商户号 </label>
+                                <div class="am-u-sm-9">
+                                    <input autocomplete="off" type="text" class="tpl-form-input" name="paytype[wechatdivide][sub_mch_id]"
+                                           value="<?= $values['wechatdivide']['sub_mch_id'] ?>" >
+                                </div>
+                            </div>
+                     
+                            
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
