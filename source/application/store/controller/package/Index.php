@@ -46,7 +46,8 @@ class Index extends Controller
         $Category = new Category();
         $map = \request()->param();
         $list = $packageModel->getList($map);
-        // dump($list->toArray());die;
+        $shelf =   (new Shelf())->getList(['ware_no' => $this->store['user']['shop_id']]);
+        // dump($shelf);die;
         $countweight = '+∞';
         if(isset($map['search']) || isset($map['likesearch']) || isset($map['express_num'])){
             $countweight = $packageModel->getListSum($map);
@@ -86,7 +87,7 @@ class Index extends Controller
             }
             $packlists = implode(',',$packlist);
         }
-        return $this->fetch('index', compact('i','packlists','list','shopList','line','packageService','type','storeAddress','category','topcategory','set','datatotal','countweight','batchlist','adminstyle'));
+        return $this->fetch('index', compact('i','packlists','list','shopList','line','packageService','type','storeAddress','category','topcategory','set','datatotal','countweight','batchlist','adminstyle','shelf'));
     }
     
     //动态改变类目

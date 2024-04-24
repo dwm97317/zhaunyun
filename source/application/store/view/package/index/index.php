@@ -128,6 +128,20 @@
                                         </select>
                                     </div>
                                     <div class="am-form-group am-fl">
+                                        <?php $extractshelfId = $request->get('shelf_id'); ?>
+                                        <select name="shelf_id"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '所在货架'}">
+                                            <option value=" "
+                                                <?= $extractshelfId === ' ' ? 'selected' : '' ?>>所在货架
+                                            </option>
+                                            <?php if (isset($shelf)): foreach ($shelf as $items): ?>
+                                                <option value="<?= $items['id'] ?>"
+                                                    <?= $items['id'] == $extractshelfId ? 'selected' : '' ?>><?= $items['shelf_name'] ?>
+                                                </option>
+                                            <?php endforeach; endif; ?>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
                                         <?php $extracttimetype = $request->get('time_type'); ?>
                                         <select name="time_type"
                                                 data-am-selected="{btnSize: 'sm', placeholder: '时间类型'}">
@@ -156,19 +170,19 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="am-form-group am-fl">
+                                    <div class="am-form-group am-fl" style="padding: 1px;">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input type="text" style="width:60px;" class="am-form-field" name="max-weight"
                                                    placeholder="重量" value="<?= $request->get('max-weight') ?>">
                                         </div>
                                     </div>
-                                    <div class="am-form-group am-fl">
+                                    <div class="am-form-group am-fl" style="padding: 1px;">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <textarea cols="200" rows="2"  class="am-form-field" name="express_num"
                                                    placeholder="可输入多个快递单号,按换车换行" value="<?= $request->get('express_num') ?>"></textarea>
                                         </div>
                                     </div>
-                                    <div class="am-form-group am-fl">
+                                    <div class="am-form-group am-fl" style="padding: 1px;">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input type="text" style="width:200px;" class="am-form-field" name="likesearch"
                                                    placeholder="请输入包裹单号（模糊搜索）" value="<?= $request->get('likesearch') ?>">

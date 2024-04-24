@@ -111,7 +111,7 @@ class Package extends PackageModel
              return false;
         }
         $session = Session::get('yoshop_store');
-        // dump($session);die;
+        // dump($data);die;
         // self::$wxapp_id == 10013 && file_put_contents("包裹入库.txt", "时间：".getTime().", 数据:".json_encode($data)."\r\n", FILE_APPEND);
         $tyoi = stripos($data['express_num'], "JD");
          
@@ -184,6 +184,7 @@ class Package extends PackageModel
             'weight' => isset($data['weigth'])?$data['weigth']:$result['weight'],
             'remark' => (isset($data['remark']) && !empty($data['remark']))?$data['remark']:$result['remark'],
             'express_id' => isset($data['express_id'])?$data['express_id']:$result['express_id'],
+            'shelf_id' => isset($data['shelf_id'])?$data['shelf_id']:$result['shelf_id'],
             'image' => json_encode($image),
             'price' => isset($data['price'])?$data['price']:$result['price'],
             'num'=>isset($data['num'])?$data['num']:$result['num'],
@@ -537,7 +538,12 @@ class Package extends PackageModel
 
          $packItemModel = new PackageItem();
          $packItemModel->where('order_id',$id)->delete();
-         
+         if(!isset($param['weight']) || empty($param['weight'])){
+             $param['weight'] =0;
+         }
+         if(!isset($param['product_num']) || empty($param['product_num'])){
+             $param['product_num'] =0;
+         }
         //  $classItem['class_id'] = $param['class_ids'];
          $classItem['width'] = isset($param['width'])?$param['width']:0;
          $classItem['height'] = isset($param['height'])?$param['height']:0;
@@ -666,6 +672,7 @@ class Package extends PackageModel
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
             ->join('package_item pi','pi.order_id = a.id','LEFT')
+            // ->join('shelf_unit_item sui','sui.pack_id = a.id','LEFT')
             ->order($order)
             ->group('a.id')
             ->paginate(isset($query['limitnum'])?$query['limitnum']:15,false,[
@@ -695,6 +702,7 @@ class Package extends PackageModel
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
             ->join('package_item pi','pi.order_id = a.id','LEFT')
+            // ->join('shelf_unit_item sui','sui.pack_id = a.id','LEFT')
             ->order($order)
             // ->group('a.id')
             ->limit(isset($query['limitnum'])?$query['limitnum']:15)
@@ -749,6 +757,7 @@ class Package extends PackageModel
             !empty($param['status'])&& $this->where('a.status','in',$param['status']);
         }
         empty($param['is_delete']) && $this->where('a.is_delete','=',0);
+        !empty($param['shelf_id'])&& $this->where('a.shelf_id','=',$param['shelf_id']);
         !empty($param['class_id'])&& $this->where('class_id','in',$param['class_id']);
         !empty($param['is_take'])&& $this->where('is_take','in',$param['is_take']);
         !empty($param['source'])&& $this->where('source','=',$param['source']);

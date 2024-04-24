@@ -15,6 +15,7 @@ class Shelf extends ShelfModel
         return $this->setListQueryWhere($query)
         ->alias('a')
         ->with('storage')
+        ->where('a.status',1)
         ->paginate(10,false,[
             'query'=>\request()->request()
         ]);
@@ -24,6 +25,7 @@ class Shelf extends ShelfModel
         return $this->setListQueryWhere($query)
         ->alias('a')
         ->with('storage')
+        ->where('a.status',1)
         ->select();
     }
 

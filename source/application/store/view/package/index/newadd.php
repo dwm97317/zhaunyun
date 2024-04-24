@@ -360,7 +360,7 @@
                                     <div class="am-form-group">
                                         <label class="am-u-sm-5 am-u-lg-3 am-form-label">包裹存放位置</label>
                                         <div class="am-u-sm-7 am-u-end" style="position: relative">
-                                             <select id="select-shelf"  data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'选择货架', maxHeight: 400}" onchange="getSelectData(this)" data-select_type = 'shelf_unit'>
+                                             <select id="select-shelf" name="data[shelf_id]" data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'选择货架', maxHeight: 400}" onchange="getSelectData(this)" data-select_type = 'shelf_unit'>
                                                     <option value=""></option>
                                                     <?php if (isset($shelf)): foreach ($shelf as $itemr): ?>
                                                            <option value="<?= $itemr['id'] ?>"><?= $itemr['shelf_name']; ?></option>

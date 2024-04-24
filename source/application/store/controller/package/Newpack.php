@@ -147,6 +147,7 @@ class Newpack extends Controller
                      $data['storage_id'] = !empty($param['storage_id'])?$param['storage_id']:$detail['storage_id'];
                      $data['country_id'] =  !empty($param['country_id'])?$param['country_id']:$detail['country_id'];
                      $data['express_id'] = !empty($param['express_id'])?$param['express_id']:$detail['express_id'];
+                     $data['shelf_id'] = !empty($param['shelf_id'])?$param['shelf_id']:$detail['shelf_id'];
                      $data['usermark'] = !empty($param['mark'])?$param['mark']:$detail['usermark'];
                      $data['status'] = 2;  //已入库
                      $data['is_take'] = (!empty($param['member_id']) || !empty($detail['member_id']))?2:1;
@@ -186,7 +187,7 @@ class Newpack extends Controller
                         'one_price'=> $param['one_price'][$key],   
                         'goods_name'=> $param['goods_name'][$key],   
                         'volumeweight'=> $param['volume'][$key],
-                        'volume'=>$data['width']*$data['height']*$data['length']/1000000,
+                        'volume'=>(!empty($data['width'])?$data['width']:0)*(!empty($data['height'])?$data['height']:0)*(!empty($data['length'])?$data['length']:0)/1000000,
                     ];
                     $Package->doClassIdstwo($class,$data['express_num'],$package_id,$waappId);
                     
@@ -248,6 +249,7 @@ class Newpack extends Controller
                      $data['storage_id'] = isset($param['storage_id'])?$param['storage_id']:'';
                      $data['country_id'] = isset($param['country_id'])?$param['country_id']:'';
                      $data['express_id'] = isset($param['express_id'])?$param['express_id']:'';
+                     $data['shelf_id'] = isset($param['shelf_id'])?$param['shelf_id']:0;
                      $data['usermark'] = isset($param['mark'])?$param['mark']:'';
                      $data['status'] = 2;  //已入库
                      $data['is_take'] = $param['member_id']?2:1;  //已入库
@@ -354,7 +356,7 @@ class Newpack extends Controller
               'pack_free' =>  0,
               'other_free' => 0,
               'member_id' => $param['member_id'],
-              'country' => isset($address['country'])?$address['country']:'',
+              'country_id' => isset($address['country_id'])?$address['country_id']:'',
               'pay_type'=> $userda['paytype'],
               'created_time' => getTime(),
               'updated_time' => getTime(),

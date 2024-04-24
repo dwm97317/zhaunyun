@@ -710,7 +710,7 @@ class Useropration extends Controller
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->with('shop')->find();
         if (!$clerk){return $this->renderError('角色权限非法');}
-        //   dump(23);die;
+      
        $packItemModel = new PackageItemModel();
        $id = $this->postData('id')[0];
        $user_id = $this->postData('user_id')[0];
@@ -727,7 +727,7 @@ class Useropration extends Controller
        $remark = $this->postData('remark')[0];
        $useremark = $this->postData('usermark')[0];
        $shelf_unit = $this->postData('shelf_unit')[0];
-  
+       $shelf_id = $this->postData('shelf_id')[0];
        //再加一层校验；
         $map[] = ['is_delete','=',0];
         $map[] = ['express_num','=',$express_num];
@@ -736,7 +736,7 @@ class Useropration extends Controller
         //     $a = explode('-',$express_num);
         //     count($a)>1 && $express_num = $a[0];
         // }
-        
+            //  dump($shelf_id);die;
        //$is_pre==0 为没有查询到包裹数据的情况，需要插入新数据
        if ($is_pre==0){
             if ($user_id){
@@ -770,12 +770,13 @@ class Useropration extends Controller
             $order['created_time'] = getTime();
             $order['admin_remark'] = $remark;
             $order['usermark'] = $useremark;
+            $order['shelf_id'] = $shelf_id;
             $order['entering_warehouse_time'] = getTime();
             if($length>0 && $width>0 && $height>0){
                  $order['volume'] = $width*$length*$height/1000000;
             }
            
-       
+        //   dump($order);die;
             $restwo = (new Package())->saveData($order); //获取到包裹的id
             if (!$restwo){
                  return $this->renderError('包裹入库失败');
@@ -869,6 +870,7 @@ class Useropration extends Controller
        $update['storage_id'] = $clerk['shop_id'];
        $update['status'] = 2;
        $update['usermark'] = !empty($usermark)?$usermark:$data['usermark'];
+       $update['shelf_id'] = $shelf_id;
        $update['updated_time'] = getTime();
        $update['entering_warehouse_time'] = getTime();
        if($length>0 && $width>0 && $height>0){
