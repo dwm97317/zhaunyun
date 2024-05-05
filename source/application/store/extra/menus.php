@@ -754,8 +754,7 @@ return [
                 'index' => 'setting/store',
             ],
             [
-                'name' => '自定义中心',
-                'active' => true,
+                'name' => '自定义区',
                 'index' => 'setting/stylecenter',
                 'submenu' => [
                     [
@@ -773,106 +772,124 @@ return [
                     [
                         'name' => '电脑端设置',
                         'index' => 'setting/adminstyle'
-                    ]
+                    ],
+                    [
+                        'name' => '小程序导航',
+                        'index' => 'setting.nav/index',
+                    ],
                 ]
             ],
             [
-                'name' => '支付设置',
-                'index' => 'setting/paytype',
-            ],
-            [
-                'name' => '小程序导航',
-                'index' => 'setting.nav/index',
-            ],
-            
-            [
-              'name' => '集运线路',
-              'index' => 'setting.line/index',
-              'uris' => [
-                  'setting.line/index',
-                  'setting.line/add',
-                  'setting.line/edit',
-              ],
-            ],
-            [
-              'name' => '增值服务',
-              'index' => 'setting.addservice/index',
-              'uris' => [
-                  'setting.addservice/index',
-                  'setting.addservice/add',
-                  'setting.addservice/edit',
-              ],
-            ],
-            [
-                'name' => '渠道中心',
-                'index' => 'setting.ditch/index',
-                'uris' => [
-                    'setting.ditch/index',
-                    'setting.ditch/add',
-                    'setting.ditch/edit',
-                ],
-            ],
-            [
-                'name' => '物流公司',
-                'index' => 'setting.express/index',
-                'uris' => [
-                    'setting.express/index',
-                    'setting.express/add',
-                    'setting.express/edit',
-                ],
-            ],
-            [
-                'name' => '商品条码库',
-                'index' => 'setting.barcode/index',
-                'uris' => [
-                    'setting.barcode/index',
-                    'setting.barcode/add',
-                    'setting.barcode/edit',
-                ],
-            ],
-            [
-                'name' => '物流模板',
-                'index' => 'setting/notice'
-            ],
-            [
-              'name' => '打包服务',
-              'index' => 'setting.package/index',
-              'uris' => [
-                  'setting.package/index',
-                  'setting.package/add',
-                  'setting.package/edit',
-              ],
-            ],
-            [
-              'name' => '国家支持',
-              'index' => 'setting.country/index',
-              'uris' => [
-                  'setting.country/index',
-                  'setting.country/add',
-                  'setting.country/edit',
-              ],
-            ],
-            [
-              'name' => '类目管理',
-              'index' => 'setting.category/index',
-              'uris' => [
-                  'goods.category/index',
-                  'goods.category/add',
-                  'goods.category/edit',
-              ],
-           ],
-           [
-            'name' => '轮播管理',
-            'index' => 'setting.banner/index',
-            'uris' => [
-                'setting.banner/index',
-                'setting.banner/add',
-                'setting.banner/edit',
-                ],
-            ],
-            [
-                'name' => '汇款管理',
+                'name' => '基础功能',
                 'submenu' => [
+                        [
+                          'name' => '集运线路',
+                          'index' => 'setting.line/index',
+                          'uris' => [
+                              'setting.line/index',
+                              'setting.line/add',
+                              'setting.line/edit',
+                          ],
+                        ],
+                       [
+                          'name' => '国家支持',
+                          'index' => 'setting.country/index',
+                          'uris' => [
+                              'setting.country/index',
+                              'setting.country/add',
+                              'setting.country/edit',
+                          ],
+                        ],
+                        [
+                          'name' => '类目管理',
+                          'index' => 'setting.category/index',
+                          'uris' => [
+                              'goods.category/index',
+                              'goods.category/add',
+                              'goods.category/edit',
+                          ],
+                       ],
+                       [
+                            'name' => '渠道中心',
+                            'index' => 'setting.ditch/index',
+                            'uris' => [
+                                'setting.ditch/index',
+                                'setting.ditch/add',
+                                'setting.ditch/edit',
+                            ],
+                        ],
+                        [
+                            'name' => '物流公司',
+                            'index' => 'setting.express/index',
+                            'uris' => [
+                                'setting.express/index',
+                                'setting.express/add',
+                                'setting.express/edit',
+                            ],
+                        ],
+                        [
+                        'name' => '轮播管理',
+                        'index' => 'setting.banner/index',
+                        'uris' => [
+                            'setting.banner/index',
+                            'setting.banner/add',
+                            'setting.banner/edit',
+                            ],
+                        ], 
+                ]
+            ],
+            [
+                'name' => '辅助功能',
+                'submenu' => [
+                    [
+                      'name' => '增值服务',
+                      'index' => 'setting.addservice/index',
+                      'uris' => [
+                          'setting.addservice/index',
+                          'setting.addservice/add',
+                          'setting.addservice/edit',
+                      ],
+                    ],
+                    
+                    [
+                        'name' => '商品条码库',
+                        'index' => 'setting.barcode/index',
+                        'uris' => [
+                            'setting.barcode/index',
+                            'setting.barcode/add',
+                            'setting.barcode/edit',
+                        ],
+                    ],
+                    
+                    [
+                      'name' => '打包服务',
+                      'index' => 'setting.package/index',
+                      'uris' => [
+                          'setting.package/index',
+                          'setting.package/add',
+                          'setting.package/edit',
+                      ],
+                    ],
+                    
+                    [
+                        'name' => '智能AI识别',
+                        'index' => 'setting/aiidentify'
+                    ],
+                    
+                    [
+                        'name' => '上传设置',
+                        'index' => 'setting/storage',
+                    ],
+                    
+                ]
+            ],
+            [
+                'name' => '财务功能',
+                'submenu' => [
+                    [
+                        'name' => '支付设置',
+                        'index' => 'setting/paytype',
+                    ],
                     [
                         'name' => '汇款凭证',
                         'index' => 'setting.certificate/index',
@@ -884,9 +901,25 @@ return [
                 ]
             ],
             [
-                'name' => '短信通知',
-                'index' => 'setting/sms',
+                'name' => '通知功能',
                 'submenu' => [
+                    [
+                        'name' => '模板消息',
+                        'index' => 'setting/tplmsg',
+                        'uris' => [
+                            'setting/tplmsg',
+                            'setting.help/tplmsg'
+                
+                        ],
+                    ],
+                    [
+                        'name' => '物流模板',
+                        'index' => 'setting/notice'
+                    ],
+                    [
+                        'name' => '邮件通知',
+                        'index' => 'setting/email'
+                    ],
                     [
                         'name' => '短信设置',
                         'index' => 'setting/sms'
@@ -900,30 +933,16 @@ return [
                             'setting.sms/edit'
                         ]
                     ],
-                    
-                ]
-            ],
-            [
-                'name' => '智能AI识别',
-                'index' => 'setting/aiidentify'
-            ],
-            [
-                'name' => '邮件通知',
-                'index' => 'setting/email'
-            ],
-           
-                [
-                    'name' => '模板消息',
-                    'index' => 'setting/tplmsg',
-                    'uris' => [
-                        'setting/tplmsg',
-                        'setting.help/tplmsg'
-            
+                    [
+                        'name' => '常用轨迹',
+                        'index' => 'setting.track/index',
+                        'uris' => [
+                            'setting.track/index',
+                            'setting.track/add',
+                            'setting.track/edit'
+                        ]
                     ],
-                ],
-            [
-                'name' => '上传设置',
-                'index' => 'setting/storage',
+                ]
             ],
             [
                 'name' => '小票打印机',

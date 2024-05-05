@@ -245,7 +245,7 @@
                                   <div class="am-u-sm-9">
                                     <label class="am-radio-inline">
                                         <input type="radio" name="paytype[wechatdivide][is_open]" value="1"
-                                               data-am-ucheck  <?= $values['omipay']['is_open'] == 1 ? 'checked' : '' ?>>
+                                               data-am-ucheck  <?= $values['wechatdivide']['is_open'] == 1 ? 'checked' : '' ?>>
                                         开启
                                     </label>
                                     <label class="am-radio-inline">

@@ -117,7 +117,80 @@
                                 </div>
                             </div>
                   
-                            
+                            <div class="am-form-group">
+                                        <label class="am-u-sm-3 am-u-lg-2 am-form-label">长宽高体积重</label>
+                                        <div class="am-u-sm-9 am-u-end" style="position: relative">
+                                             <div class="step_mode">
+                                                 <div>
+                                                     <div class="am-form-group" style="width: 245px;">
+                                                            <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                                                <input  style="width:200px;" type="text" class="am-form-field goods_name" name="data[goods_name][]"
+                                                                       placeholder="产品中文名" value="">
+                                                                <div class="am-input-group-btn">
+                                                                    <button  class="goods_namekk am-btn am-btn-default am-icon-search"
+                                                                            type="button"></button>
+                                                                </div>
+                                                            </div>
+                                                    </div>
+                                               
+                                                     <div class="span">
+                                                        <input type="text" class="tpl-form-input length vlength" onblur="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" name="data[length][]" value="" placeholder="长<?= $set['size_mode']['unit'] ?>">
+                                                     </div>
+                                                     <div class="span">
+                                                        <input type="text" class="tpl-form-input width vwidth" onblur="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" name="data[width][]" value="" placeholder="宽<?= $set['size_mode']['unit'] ?>">
+                                                     </div>
+                                                     <div class="span">
+                                                         <input type="text"  class="tpl-form-input height vheight" onblur="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" name="data[height][]" value="" placeholder="高<?= $set['size_mode']['unit'] ?>">
+                                                     </div>
+                                                     <div class="span">
+                                                         <select class="wvop" onchange="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" >
+                                                            <option value="5000">5000</option>
+                                                            <option value="6000">6000</option>
+                                                            <option value="7000">7000</option>
+                                                            <option value="8000">8000</option>
+                                                            <option value="9000">9000</option>
+                                                            <option value="10000">10000</option>
+                                                            <option value="139">139</option>
+                                                            <option value="166">166</option>
+                                                         </select>
+                                                     </div>
+                                                     <div class="span">
+                                                         <input id="volume0" class="volume" type="text" class="tpl-form-input volumeweight" style="width:80px;border: 1px solid #c2cad8;" name="data[volumeweight][]" value="" placeholder="体积重<?= $set['size_mode']['unit'] ?>">
+                                                     </div>
+                                                     <div class="span">
+                                                         <input type="text" id="weight" class="tpl-form-input gross_weight" style="width:60px;border: 1px solid #c2cad8;" name="data[weight][]" value="" placeholder="毛重<?= $set['weight_mode']['unit'] ?>">
+                                                     </div>
+                                                     <div class="span">
+                                                         <input type="text" class="tpl-form-input net_weight" style="width:80px;border: 1px solid #c2cad8;" name="data[net_weight][]" value="" placeholder="净重">
+                                                    </div>
+                                                    <br>
+                                                    
+                                                    <div class="span">
+                                                         <input type="text" class="tpl-form-input goods_name_en" style="width:80px;border: 1px solid #c2cad8;" name="data[class_name_en][]" value="" placeholder="产品英文名">
+                                                    </div>
+                                                    <div class="span">
+                                                         <input type="text" class="tpl-form-input goods_name_jp" style="width:80px;border: 1px solid #c2cad8;" name="data[goods_name_jp][]" value="" placeholder="日文品名">
+                                                    </div>
+                                                    <div class="span">
+                                                         <input type="text" class="tpl-form-input brand"  style="width:80px;border: 1px solid #c2cad8;" name="data[brand][]" value="" placeholder="品牌">
+                                                    </div>
+                                                    <div class="span">
+                                                         <input type="text" class="tpl-form-input spec" style="width:80px;border: 1px solid #c2cad8;" name="data[spec][]" value="" placeholder="规格">
+                                                    </div>
+
+                                                    <div class="span">
+                                                        <input type="number"  min=1  class="tpl-form-input product_num" style="width:60px;border: 1px solid #c2cad8;" name="data[product_num][]" value="1" placeholder="数量">
+                                                    </div>
+                                                    <div class="span">
+                                                         <input type="text" class="tpl-form-input one_price" style="width:60px;border: 1px solid #c2cad8;" name="data[one_price][]" value="" placeholder="单价">
+                                                    </div>
+                                                    <!--<div class="span jiahao">-->
+                                                    <!--     <span class="cursor" onclick="addfreeRule(this)">+</span>-->
+                                                    <!--</div>-->
+                                                 </div>
+                                             </div>
+                                        </div>
+                                    </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">备注</label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -208,7 +281,33 @@
                        }
                 })
         }
-		// preload shutter audio clip
+        
+        
+        $('.goods_namekk').click(function () {
+            var $userList = $('.user-list');
+            $.selectData({
+                title: '选择商品',
+                uri: 'goods/barcodelists',
+                dataIndex: 'sku_id',
+                done: function (data) {
+                    var user = data[0];
+                    console.log(user,87654);
+                   $('.goods_name').val(user.goods_name);
+                   $('.goods_name_en').val(user.goods_name_en);
+                   $('.net_weight').val(user.net_weight);
+                   $('.gross_weight').val(user.gross_weight);
+                   $('.goods_name_jp').val(user.goods_name_jp);
+                   $('.brand').val(user.brand);
+                   $('.spec').val(user.spec);
+                   $('.one_price').val(user.price);
+                   $('.width').val(user.width);
+                   $('.height').val(user.height);
+                   $('.length').val(user.depth);
+                }
+            });
+        });
+        
+
 		
 		function findusercode(){
             var usercode = $("#user_code")[0].value;
@@ -254,6 +353,35 @@
                })
             console.log(member_id)
         }
+        
+            function getweightvol(num){
+        console.log(num,6767);
+        var num=parseInt(num);
+        var length = 0;
+        var width = 0;
+        var height = 0;
+        var wvop = 0;
+        if($(".vlength")[num]){
+             length = $(".vlength")[num].value;
+        }
+        if($(".vwidth")[num]){
+             width = $(".vwidth")[num].value;
+        }
+        if($(".vheight")[num]){
+            height = $(".vheight")[num].value;
+        }
+        if($(".wvop")[num]){
+            wvop = $(".wvop")[num].value;
+        }
+        console.log(length,7878);
+        console.log(width,7878);
+        console.log(height,7878);
+        if(length !='' && width !='' && height !=''){
+            $("#volume"+num).val(length * width * height / wvop);
+        }
+        // console.log($("#volume"+num).val(34),7878);
+        
+    }
         
         function finduserWith(e){
             var member_id = e[0].user_id;
@@ -350,8 +478,21 @@
         });
     });
     
-    function getSelectData(_this){
-        
+    function addfreeRule(){
+        var amformItem = document.getElementsByClassName('step_mode')[0];
+        var Item = document.createElement('div');
+        var num = $(".vlength").length;
+        console.log(num,'num');
+        var _html = '<div class="span"><input class="vlength tpl-form-input" onblur="getweightvol('+ num +')" type="text" style="width:60px;border: 1px solid #c2cad8;margin-right: 5px;" name="data[length][]" value="" placeholder="长<?= $set['size_mode']['unit'] ?>"></div><div class="span"><input type="text" class="vwidth tpl-form-input" style="width:60px;border: 1px solid #c2cad8;margin-right: 5px;" name="data[width][]"value="" onblur="getweightvol('+ num +')"  placeholder="宽<?= $set['size_mode']['unit'] ?>"></div><div class="span"><input type="text" class="tpl-form-input vheight" style="margin-right: 5px;width:60px;border: 1px solid #c2cad8;" name="data[height][]"value="" onblur="getweightvol('+ num +')"  placeholder="高<?= $set['size_mode']['unit'] ?>"></div><div class="span"><select  class="wvop" onchange="getweightvol('+ num +')" style="margin-right: 5px;width:60px;border: 1px solid #c2cad8;" ><option value="5000">5000</option><option value="6000">6000</option><option value="7000">7000</option><option value="8000">8000</option><option value="9000">9000</option><option value="10000">10000</option><option value="139">139</option><option value="166">166</option></select></div><div class="span"><input type="text" id="volume'+ num +'" class="volume tpl-form-input" style="margin-right: 5px;width:80px;border: 1px solid #c2cad8;" name="data[volume][]"value=""  placeholder="体积重<?= $set['size_mode']['unit'] ?>"></div><div class="span"><input type="text" id="weight" class="tpl-form-input" style="margin-right: 5px;width:60px;border: 1px solid #c2cad8;" name="data[weight][]"value="<?= $data['weight']??'' ;?>" placeholder="重量<?= $set['weight_mode']['unit'] ?>"></div><div class="span"><input type="number" min=1 class="tpl-form-input" style="width:50px;border: 1px solid #c2cad8;margin-right: 5px;" name="data[num][]" value="1" placeholder="数量"></div><div class="span"><input type="text" class="tpl-form-input" style="width:80px;border: 1px solid #c2cad8;margin-right: 5px;" name="data[goods_name][]" value="" placeholder="货物名称"></div><div class="span" style="width:60px;border: 1px solid #c2cad8;margin-right: 5px;"><input type="number" min=1 class="tpl-form-input" style="width:60px;border: 1px solid #c2cad8;" name="data[product_num][]" value="1" placeholder="数量"></div><div class="span"><input type="text" class="tpl-form-input" style="width:60px;border: 1px solid #c2cad8;margin-right: 5px;" name="data[one_price][]" value="" placeholder="单价"></div><div class="span jiafa"><span class="cursor" onclick="addfreeRule(this)" style="display: inline-block; padding:0 5px; font-size:14px; background:#3bb4f2; margin-right:5px; color:#fff;">+</span></div><div class="span jiafa"><span class="cursor" onclick="freeRuleDel(this)" style="display: inline-block; padding:0 5px; font-size:14px; background:#3bb4f2; margin-right:5px; color:#fff;">-</span></div>';
+        Item.innerHTML = _html;
+        amformItem.appendChild(Item);
+    }
+    
+     // 删除
+    function freeRuleDel(_this){
+       var amformItem = document.getElementsByClassName('step_mode')[0];
+       var parent = _this.parentNode.parentNode;
+       amformItem.removeChild(parent);
     }
     
 
@@ -577,7 +718,7 @@
     
     .category span { display: inline-block; padding:0 5px; font-size:14px; background:#3bb4f2; margin-right:5px; color:#fff; }
     .cursor { cursor:pointer;}
-    
+    .jiahao span { display: inline-block; padding:0 5px; font-size:14px; background:#3bb4f2; margin-right:5px; color:#fff; }
     .category-layer { width:100%; height:100%; position:fixed; display:none; background:rgba(0,0,0,.5); top:0; left:0;z-index:9999}
     .category-dialog {background: #fff;
     width: 600px;

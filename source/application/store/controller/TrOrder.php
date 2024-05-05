@@ -33,6 +33,7 @@ use app\api\model\dealer\Referee as RefereeModel;
 use app\common\model\dealer\Order as DealerOrder;
 use app\common\service\qrcode;
 use app\store\model\UploadFile;
+use app\store\model\Track;
 
 /**
  * 订单管理
@@ -609,15 +610,24 @@ class TrOrder extends Controller
      * */
     public function logistics($id){
         $sendOrder = (new Inpack())->details($id);
+        $Track = new Track;
         if (!$this->request->isAjax()){
-            return $this->fetch('send_order_logistics', compact('sendOrder'));
+            $tracklist = $Track->getAllList();
+            return $this->fetch('send_order_logistics', compact('sendOrder','tracklist'));
         }
-        $order_logic = json_decode($sendOrder['logistics'],true);
-        $order_logic[] = $this->postData('sendOrder')['logistics'];
+        // dump($this->postData('sendOrder'));die;
+            $order_logic = $this->postData('sendOrder')['logistics'];
+            if(empty($order_logic)){
+                $trackData = $Track::detail($this->postData('sendOrder')['track_id']);
+                $order_logic = $trackData['track_content'];
+            }
+            if(empty($order_logic) && empty($this->postData('sendOrder')['track_id'])){
+                 return $this->renderError('请输入物流轨迹');
+            }
         //发送用户以及用户信息
             $userId = $sendOrder['member_id'];
             $data['code'] = $id;
-            $data['logistics_describe']= $this->postData('sendOrder')['logistics'];
+            $data['logistics_describe']= $order_logic;
             $user = User::detail($userId);
             if($user['email']){
                 $this->sendemail($user,$data,$type=1);
@@ -630,7 +640,7 @@ class TrOrder extends Controller
             $data['order_type'] = 10;
             $data['order']['remark'] =$data['logistics_describe'] ;
             Message::send('order.payment',$data);
-             $res = Logistics::addLog($sendOrder['order_sn'],$this->postData('sendOrder')['logistics'],$this->postData('sendOrder')['created_time']);
+             $res = Logistics::addLog($sendOrder['order_sn'],$order_logic,$this->postData('sendOrder')['created_time']);
              if (!$res){
                 return $this->renderError('物流更新失败');
             }
@@ -645,7 +655,11 @@ class TrOrder extends Controller
      * */
     public function alllogistics(){
         $data = input();
-        if(!$data['logistics_describe']){
+        if(empty($data['logistics_describe'])){
+            $trackData = Track::detail($data['track_id']);
+            $data['logistics_describe'] = $trackData['track_content'];
+        }
+        if(empty($data['logistics_describe']) && empty($data['track_id'])){
              return $this->renderError('请输入订单物流信息');
         }
         
@@ -807,10 +821,11 @@ class TrOrder extends Controller
         $model = new Inpack;
         $Line = new Line;
         $Clerk = new Clerk;
+        $Track = new Track;
         $set = Setting::detail('store')['values'];
         $userclient =  Setting::detail('userclient')['values'];
         $list = $model->getList($dataType, $this->request->param());
-        // dump($list->toArray());die;
+        $tracklist = $Track->getAllList();
         $servicelist = $Clerk->where('FIND_IN_SET(:ids,clerk_type)', ['ids' => 7])->select();
         $pintuanlist = (new SharingOrder())->getList([]);
         $batchlist = (new Batch())->getAllwaitList([]);
@@ -830,7 +845,7 @@ class TrOrder extends Controller
            }
         }
 
-        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist'));
+        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
     }
     
     
@@ -967,7 +982,7 @@ class TrOrder extends Controller
             $value['discount'] =1;
         }
           
-            
+        !isset($data['weight']) && $data['weight']=0;   
         // 计算体检重
         $weigthV = round(($data['length']*$data['width']*$data['height'])/$line['volumeweight'],2);
         if(!empty($data['length']) && !empty($data['width']) && !empty($data['height']) && $line['volumeweight_type']==20){

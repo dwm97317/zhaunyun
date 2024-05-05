@@ -127,7 +127,22 @@ use app\common\enum\BatchType as BatchTypeEnum;
         <form class="am-form tpl-form-line-form" method="post" action="">
             <div class="am-tab-panel am-padding-0 am-active">
                 <div class="am-form-group">
-                    <label class="am-u-sm-3 am-form-label form-require">
+                    <label class="am-u-sm-3  am-form-label">轨迹模板 </label>
+                    <div class="am-u-sm-9 am-u-end">
+                         <select name="track_id" id="" data-am-selected="{searchBox: 1,maxHeight:300}">
+                             <option value="">选择模板</option>
+                         <?php if (isset($tracklist)):
+                                foreach ($tracklist as $item): ?>
+                                    <option value="<?= $item['track_id'] ?>"><?= $item['track_name'] ?></option>
+                                <?php endforeach; endif; ?>
+                         </select>
+                         <div class="help-block">
+                            <small>注：你可以在下方自定义轨迹，或者选择预设好的轨迹</small>
+                    </div>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label">
                         输入物流状态
                     </label>
                     <div class="am-u-sm-8 am-u-end">
@@ -135,7 +150,7 @@ use app\common\enum\BatchType as BatchTypeEnum;
                     </div>
                 </div>
                 <div class="am-form-group">
-                    <label class="am-u-sm-3 am-form-label form-require">
+                    <label class="am-u-sm-3 am-form-label">
                         选择物流时间
                     </label>
                     <div class="am-u-sm-8 am-u-end">

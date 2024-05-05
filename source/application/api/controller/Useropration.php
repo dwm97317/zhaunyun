@@ -25,6 +25,7 @@ use app\common\model\InpackService;
 use app\api\model\Setting as SettingModel;
 use app\common\model\store\shop\Capital;
 use app\api\model\user\UserMark;
+use app\common\service\package\Printer;
 /**
  * 用户管理
  * Class User
@@ -156,6 +157,7 @@ class Useropration extends Controller
         }
         return $this->renderError('更新失败');
     }
+    
     // 海外入库员 - 入库校验
     public function checkzPack(){
         if (!$this->checkRole(6)){
@@ -775,8 +777,7 @@ class Useropration extends Controller
             if($length>0 && $width>0 && $height>0){
                  $order['volume'] = $width*$length*$height/1000000;
             }
-           
-        //   dump($order);die;
+            
             $restwo = (new Package())->saveData($order); //获取到包裹的id
             if (!$restwo){
                  return $this->renderError('包裹入库失败');
@@ -839,6 +840,9 @@ class Useropration extends Controller
                       Message::send('order.enter',$data);  
                     }
               }
+            //判断是否打印标签
+            $packagePrintData = (new Package())->where(['id'=>$restwo])->find();
+            (new Printer())->printTicket($packagePrintData,10);
             Logistics::add2($restwo,'仓管员手动入库',$clerk['clerk_id']);
             return $this->renderSuccess('包裹入库成功');
        }elseif($is_pre==10){
@@ -876,6 +880,7 @@ class Useropration extends Controller
        if($length>0 && $width>0 && $height>0){
              $update['volume'] = $width*$length*$height/1000000;
        }
+       
     //   dump($update);die;
        $res = (new Package())->where(['id'=>$id])->update($update);
        //插入图片
@@ -940,7 +945,9 @@ class Useropration extends Controller
                (new Email())->sendemail($user,$data,$type=1);
            } 
        }
-       
+        //判断是否打印标签
+        $packagePrintData = (new Package())->where(['id'=>$id])->find();
+        (new Printer())->printTicket($packagePrintData,10);
        return $this->renderSuccess('包裹入库成功'); 
            
        }elseif($is_pre==20){

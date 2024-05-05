@@ -522,7 +522,40 @@ class Inpack extends InpackModel
             !empty($query['start_time']) && $this->where($query['time_type'], '>=', $query['start_time']);
             !empty($query['end_time']) && $this->where($query['time_type'], '<=', $query['end_time']." 23:59:59");
         }
-        !empty($query['search']) && $this->where('pa.member_id|u.nickName|u.user_code','=',$query['search']);
+        
+        if(!empty($query['search_type'])){
+           
+            switch ($query['search_type']) {
+                case 'all':
+                   !empty($query['search']) && $this->where('pa.member_id|u.nickName|u.user_code|pa.usermark|u.mobile','like','%'.$query['search'].'%');
+                    break;
+                
+                case 'user_code':
+                   !empty($query['search']) && $this->where('u.user_code','=',$query['search']);
+                    break;
+                
+                case 'member_id':
+                   !empty($query['search']) && $this->where('pa.member_id','=',$query['search']);
+                    break;
+                
+                case 'user_mark':
+                   !empty($query['search']) && $this->where('pa.usermark','=',$query['search']);
+                    break;
+                    
+                case 'mobile':
+                   !empty($query['search']) && $this->where('u.mobile','=',$query['search']);
+                    break;
+                    
+                case 'nickName':
+                   !empty($query['search']) && $this->where('u.nickName','=',$query['search']);
+                    break;
+                    
+                default:
+                   !empty($query['search']) && $this->where('pa.member_id|u.nickName|u.user_code|pa.usermark|u.mobile','like','%'.$query['search'].'%');
+                    break;
+            }
+        }
+        
         if(!empty($query['tr_number'])){
             $express_num = str_replace("\r\n","\n",trim($query['tr_number']));
             $express_num = explode("\n",$express_num);

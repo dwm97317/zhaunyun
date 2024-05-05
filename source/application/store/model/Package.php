@@ -24,6 +24,8 @@ use app\common\library\Ditch\Hualei;
 use app\common\library\Ditch\Xzhcms5;
 use app\common\library\Ditch\Aolian;
 use app\common\library\Ditch\Yidida;
+use app\common\service\package\Printer;
+
 /**
  * 订单管理
  * Class Order
@@ -111,26 +113,19 @@ class Package extends PackageModel
              return false;
         }
         $session = Session::get('yoshop_store');
-        // dump($data);die;
         // self::$wxapp_id == 10013 && file_put_contents("包裹入库.txt", "时间：".getTime().", 数据:".json_encode($data)."\r\n", FILE_APPEND);
         $tyoi = stripos($data['express_num'], "JD");
-         
         if($tyoi==0 && $tyoi!=false){
             $ex = explode('-',$data['express_num']);
             $data['express_num'] = $ex[0];
         }
-        //   dump($data);die;
         $result = $this->where('express_num',$data['express_num'])->where('is_delete',0)->find();
-   
         if($result){
             $data['id'] = $result['id'];
         }
-
-         
         $noticesetting = SettingModel::getItem('notice');
-        
+        // dump($noticesetting);die;
         $resull = strstr($data['express_num'],'JD');
-      
         if(!$resull){
             $res=preg_match('^\w+$^',$data['express_num']);
             $res1=preg_match('/^[^\s]*$/',$data['express_num']);
@@ -140,21 +135,14 @@ class Package extends PackageModel
                 return false;
             }
         }
-
-        
         if(!empty($data['user_code'])){
             $userData = (new User())->where('user_code',$data['user_code'])->find();
             isset($userData) && $data['user_id'] = $userData['user_id'];
         }
-        
         if($result['member_id']){
             $data['user_id'] = $result['member_id'];
         }
-        
-        // dump($data['class_ids']);die;
-         
-         if(isset($data['class_ids'])){
-            //  $class_ids = isset($data['class_ids'])?$data['class_ids']:[];
+        if(isset($data['class_ids'])){
             $classItem = $this->parseClass($data['class_ids']);
              foreach ($classItem as $k => $val){
                    $classItem[$k]['class_id'] = $val['category_id'];
@@ -165,12 +153,10 @@ class Package extends PackageModel
                    unset($classItem[$k]['category_id']); 
                    unset($classItem[$k]['name']);        
              }
-         }
-           
-         $status = (isset($data['shelf_unit_id']) && !empty($data['shelf_unit_id']))?3:2;
-// dump($status);die;
-         //将图片存进去
-        //  $package_image_id = isset($data['package_image_id'])?$data['package_image_id']:'';
+        }
+        $status = (isset($data['shelf_unit_id']) && !empty($data['shelf_unit_id']))?3:2;
+        //将图片存进去
+        //$package_image_id = isset($data['package_image_id'])?$data['package_image_id']:'';
          $image = isset($data['enter_image_id'])?$data['enter_image_id']:'';
          $post = [
             'status' => $status,
@@ -268,6 +254,10 @@ class Package extends PackageModel
                      (new Email())->sendemail($EmailUser,$EmailData,$type=1);
                   }
               }
+              
+              //判断是否打印标签
+              (new Printer())->printTicket($post,10);
+              
               return true;
          }else{ //新订单
               $post['order_sn'] = createSn();
@@ -286,6 +276,8 @@ class Package extends PackageModel
               if($noticesetting['enter']['is_enable']==1){
                    Logistics::add($res,$noticesetting['enter']['describe']);
               }
+              //判断是否打印标签
+              (new Printer())->printTicket($post,10);
          }
       
          
@@ -554,6 +546,10 @@ class Package extends PackageModel
          $classItem['one_price'] = isset($param['one_price'])?$param['one_price']:0;
          $classItem['all_price'] = (isset($param['one_price']) && !empty($param['one_price']) && isset($param['product_num']))?($param['one_price']*$param['product_num']):0;
          $classItem['goods_name'] =isset($param['goods_name'])?$param['goods_name']:0;
+         $classItem['goods_name_jp'] =isset($param['goods_name_jp'])?$param['goods_name_jp']:'';
+         $classItem['class_name_en'] =isset($param['class_name_en'])?$param['class_name_en']:0;
+         $classItem['brand'] =isset($param['brand'])?$param['brand']:0;
+         $classItem['spec'] =isset($param['spec'])?$param['spec']:0;
          $classItem['volume'] = isset($param['volume'])?$param['volume']:0;
          $classItem['volumeweight'] =isset($param['volumeweight'])?$param['volumeweight']:0;
          $classItem['class_name'] = !empty($classItems)?$classItems:'';
@@ -784,8 +780,37 @@ class Package extends PackageModel
             $this->where($where);
         }
         !empty($param['likesearch']) && $this->where('a.express_num','like','%'.$param['likesearch'].'%');
-        !empty($param['search']) && $this->where('a.member_id|u.nickName|u.user_code|a.usermark','=',$param['search']);
-        // dump($this);die;
+        if(!empty($param['search_type'])){
+            switch ($param['search_type']) {
+                case 'all':
+                   !empty($param['search']) && $this->where('a.member_id|u.nickName|u.user_code|a.usermark','like','%'.$param['search'].'%');
+                    break;
+                
+                case 'user_code':
+                   !empty($param['search']) && $this->where('u.user_code','=',$param['search']);
+                    break;
+                
+                case 'member_id':
+                   !empty($param['search']) && $this->where('a.member_id','=',$param['search']);
+                    break;
+                
+                case 'user_mark':
+                   !empty($param['search']) && $this->where('u.usermark','=',$param['search']);
+                    break;
+                    
+                case 'mobile':
+                   !empty($param['search']) && $this->where('u.mobile','=',$param['search']);
+                    break;
+                    
+                case 'nickName':
+                   !empty($param['search']) && $this->where('u.nickName','=',$param['search']);
+                    break;
+                    
+                default:
+                   !empty($param['search']) && $this->where('a.member_id|u.nickName|u.user_code|a.usermark','like','%'.$param['search'].'%');
+                    break;
+            }
+        }
         return $this;
     }
     

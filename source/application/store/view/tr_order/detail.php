@@ -26,7 +26,7 @@
                                            value="<?= $detail['height']??'' ;?>" placeholder="请输入高">
                                      </div>
                                      <div class="span">
-                                         称重(<?= $set['weight_mode']['unit'] ?>) <input type="text" class="tpl-form-input" style="width:80px"  onblur="caleAmount()" oninput="caleAmount()" name="data[weight]"
+                                         称重(<?= $set['weight_mode']['unit'] ?>) <input type="text"  <?= $detail['is_pay']==1?'disabled=true':'' ;?>  class="tpl-form-input" style="width:80px"  onblur="caleAmount()" oninput="caleAmount()" name="data[weight]"
                                            value="<?= $detail['weight']??'' ;?>" placeholder="请输入重量">
                                      </div>
                                 </div>
@@ -65,28 +65,28 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">集运路线费用</label>
                                 <div class="am-u-sm-9 am-u-end wd">
-                                    <input type="text" class="tpl-form-input" onchange="MathFree()" id="price" name="data[free]"
+                                    <input type="text" class="tpl-form-input" <?= $detail['is_pay']==1?'disabled=true':'' ;?> onchange="MathFree()" id="price" name="data[free]"
                                            value="<?= $detail['free']??'' ;?>" placeholder="请输入价格">
                                 </div>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">打包服务费用</label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <input type="text" class="tpl-form-input" id="pack_free" onchange="MathFree()" name="data[pack_free]"
+                                    <input type="text" class="tpl-form-input" <?= $detail['is_pay']==1?'disabled=true':'' ;?> id="pack_free" onchange="MathFree()" name="data[pack_free]"
                                            value="<?= $detail['pack_free']??'' ;?>" placeholder="请输入价格">
                                 </div>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">保险服务费用</label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <input type="text" class="tpl-form-input" id="insure_free" onchange="MathFree()" name="data[insure_free]"
+                                    <input type="text" class="tpl-form-input" <?= $detail['is_pay']==1?'disabled=true':'' ;?> id="insure_free" onchange="MathFree()" name="data[insure_free]"
                                            value="<?= $detail['insure_free']??'' ;?>" placeholder="请输入价格">
                                 </div>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">附加费用（如关税或其他额外费用）</label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <input type="text" class="tpl-form-input" onchange="MathFree()" id="other_free"  name="data[other_free]"
+                                    <input type="text" class="tpl-form-input" <?= $detail['is_pay']==1?'disabled=true':'' ;?> onchange="MathFree()" id="other_free"  name="data[other_free]"
                                            value="<?= $detail['other_free']??'' ;?>" placeholder="请输入价格">
                                     <div class="help-block">
                                         <small style="color:#ff6666;">包含其他增值费,清关费,等其他费用</small>
@@ -222,6 +222,10 @@
     
     // 实时计算
     function caleAmount(){
+        var is_pay = <?= $detail['is_pay'] ;?>     
+        if(is_pay==1){
+         return false;
+        }    
        var form = $("#my-form").serializeArray();
        var newdata = [];
        var is_auto_free = <?=$is_auto_free?>;

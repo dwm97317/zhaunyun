@@ -2,7 +2,7 @@
 namespace app\api\model;
 
 use app\common\model\Inpack as InpackModel;
-
+use app\api\model\Country;
 /**
  * 线路模型
  * Class Express
@@ -56,7 +56,7 @@ class Inpack extends InpackModel
         !empty($query) && $this->setWhere($query);
         // 获取数据列表 
              return $this
-            ->with(['line','address','storage'])
+            ->with(['line','address','storage','country'])
             ->order(['created_time' => 'desc'])
             ->where('is_delete',0)
             ->paginate(10, false, [
@@ -218,6 +218,10 @@ class Inpack extends InpackModel
         return $this->with(['line','storage','inpackimage.file','inpackservice.service'])->field($field)->find($id);
     }
     
+    public function getDetailsplus($id,$field){
+        return $this->with(['line.image','storage','inpackimage.file','inpackservice.service','package.packitem','address'])->field($field)->find($id);
+    }
+    
     public function line(){
         return $this->belongsTo('line','line_id');
     }
@@ -232,6 +236,14 @@ class Inpack extends InpackModel
     
     public function storage(){
         return $this->belongsTo('app\store\model\store\Shop','storage_id');
+    }
+    
+    public function country(){
+        return $this->belongsTo('app\api\model\Country','country_id','id');
+    }
+    
+    public function package(){
+        return $this->hasMany('app\api\model\Package','inpack_id','id');
     }
      
 }

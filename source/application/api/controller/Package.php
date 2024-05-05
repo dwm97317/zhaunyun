@@ -1389,7 +1389,7 @@ class Package extends Controller
          $list = (new Inpack())->getList($query);
          foreach ($list as &$value) {
             $value['num'] = count(explode(',',$value['pack_ids']));
-            $value['total_free'] = round($value['free'] + $value['pack_free'] + $value['other_free'],2);
+            $value['total_free'] = round($value['free'] + $value['pack_free'] + $value['other_free'] + $value['insure_free'],2);
          }
          return $this->renderSuccess($list);
      }
@@ -1904,7 +1904,7 @@ class Package extends Controller
          $couponId = $this->postData('coupon_id')[0]; //优惠券id
          $paytype = $this->postData('paytype')[0];  //支付类型
          $client = $this->postData('client')[0];  //支付所在客户端 client:"MP-WEIXIN"
-         $pack = (new Inpack())->field('id,status,pack_ids,free,order_sn,pack_free,other_free,remark,storage_id,is_pay,pay_order')->find($id);
+         $pack = (new Inpack())->field('id,insure_free,status,pack_ids,free,order_sn,pack_free,other_free,remark,storage_id,is_pay,pay_order')->find($id);
          //生成支付订单号
          $payorderSn = createOrderSn();
          (new Inpack())->where('id',$pack['id'])->update(['pay_order'=>$payorderSn]);
@@ -1912,7 +1912,7 @@ class Package extends Controller
             return $this->renderError('包裹状态不正确');
          }
          $user = $this->user;
-         $amount = $pack['free'] + $pack['pack_free'] + $pack['other_free'];
+         $amount = $pack['free'] + $pack['pack_free'] + $pack['other_free'] + $pack['insure_free'];
          if($couponId){
              $amount = $this->UseConponPrice($couponId,$amount);
          }
@@ -1927,7 +1927,7 @@ class Package extends Controller
          $update['is_pay'] = 1;
          $update['pay_time'] = getTime();
          $coupon['user_coupon_id'] = $couponId;
-         $coupon['user_coupon_money'] = $pack['free'] + $pack['pack_free'] + $pack['other_free'] - $amount; //计算优惠了多少费用；
+         $coupon['user_coupon_money'] = $pack['free'] + $pack['pack_free'] + $pack['other_free']  + $pack['insure_free'] - $amount; //计算优惠了多少费用；
          try {
              (new Inpack())->where('id',$pack['id'])->update($update);
              (new Inpack())->where('id',$pack['id'])->update($coupon);
@@ -2094,7 +2094,7 @@ class Package extends Controller
      }
      
      
-     //集运订单信息详情
+     //集运订单信息详情-V2.2.46之前版本使用此接口
      public function details_pack(){
         $field_group = [
            'edit' => [
@@ -2107,7 +2107,7 @@ class Package extends Controller
         $method = $this->postData('method');
         $data = (new Inpack())->getDetails($id,$field_group[$method[0]]);
         $package = (new PackageModel())->where('inpack_id',$data['id'])->field('id,express_num,price,express_name,entering_warehouse_time,remark,weight,height,length,width')->with(['packageimage.file'])->select();
-        $packItem = (new PackageItemModel())->where('order_id','in',explode(',',$data['pack_ids']))->field('class_name,id,class_id,order_id')->select();
+        $packItem = (new PackageItemModel())->where('order_id','in',explode(',',$data['pack_ids']))->select();
         $packItemGroup = [];
         foreach ($packItem as $val){
              $packItemGroup[$val['order_id']][] = $val['class_name'];
@@ -2135,6 +2135,23 @@ class Package extends Controller
         if (isset($data['line']['image'])){
             $data['image'] = $data['line']['image'];
         }
+        return $this->renderSuccess($data);
+     }
+     
+     //集运订单信息详情 V2.2.47及以上使用此版本；
+     public function packdetails(){
+        $field_group = [
+           'edit' => [
+              'id,order_sn,pack_ids,storage_id,free,insure_free,pack_free,other_free,address_id,weight,cale_weight,volume,length,width,height,status,line_id,remark,country_id,t_order_sn,user_coupon_id,user_coupon_money,pay_type,is_pay,is_pay_type'
+           ],
+        ];
+        $id = \request()->post('id');
+        $couponId = \request()->post('coupon_id');//优惠券id
+        
+        $method = $this->postData('method');
+        $data = (new Inpack())->getDetailsplus($id,$field_group[$method[0]]);
+        $data['free_total'] = round($data['free'] + $data['pack_free'] + $data['other_free'] + $data['insure_free'],2);
+        $data['fyouhui_total'] = $this->UseConponPrice($couponId,$data['free_total']);
         return $this->renderSuccess($data);
      }
      

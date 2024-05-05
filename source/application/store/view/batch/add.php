@@ -63,7 +63,6 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                         <small>注：选择物流模板后，系统后根据物流模板的设置，在批次发货后，开始按顺序自动更新物流轨迹</small>
                                 </div>
                                 </div>
-                                
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 运输方式 </label>

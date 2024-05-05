@@ -19,6 +19,7 @@ class Driver
     private static $engineList = [
         PrinterTypeEnum::FEI_E_YUN => 'Feie',
         PrinterTypeEnum::PRINT_CENTER => 'PrintCenter',
+        PrinterTypeEnum::XPRINTER => 'Xprinter',
     ];
 
     /**

@@ -35,6 +35,7 @@ class Setting extends Controller
         return $this->updateEvent('batch');
     }
     
+    
      /**
      * 用户端样式设置
      * @return mixed
@@ -234,8 +235,9 @@ class Setting extends Controller
      */
     public function printer()
     {
-        // 获取打印机列表
-        return $this->updateEvent('printer');
+      // 获取打印机列表
+        $printerList = PrinterModel::getAll();
+        return $this->updateEvent('printer', compact('printerList'));
     }
 
     /**

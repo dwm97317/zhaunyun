@@ -20,6 +20,7 @@ use app\store\model\Comment;
 use app\api\model\Logistics;
 use app\store\model\PackageImage;
 use think\Db;
+use app\store\model\Barcode;
 use app\common\service\Message;
 use app\common\model\setting;
 use app\store\model\InpackService as InpackServiceModel;
@@ -46,8 +47,9 @@ class Index extends Controller
         $Category = new Category();
         $map = \request()->param();
         $list = $packageModel->getList($map);
+        // dump($packageModel->getLastsql());die;
         $shelf =   (new Shelf())->getList(['ware_no' => $this->store['user']['shop_id']]);
-        // dump($shelf);die;
+        
         $countweight = '+∞';
         if(isset($map['search']) || isset($map['likesearch']) || isset($map['express_num'])){
             $countweight = $packageModel->getListSum($map);
@@ -101,7 +103,6 @@ class Index extends Controller
     //新增包裹子包裹
     public function  addpackageitem(){
         $param = $this->request->param();
-        // dump($param);die;
         $PackageItem = new PackageItem;
         if(!empty($param['package']['one_price']) && !empty($param['package']['product_num'])){
             $param['package']['all_price'] = $param['package']['one_price'] * $param['package']['product_num'];
@@ -113,7 +114,7 @@ class Index extends Controller
              return $this->renderSuccess("添加成功");
         }
         return $this->renderError("添加失败");
-    }    
+    }
     
     
     //编辑包裹的子包裹
@@ -237,7 +238,7 @@ class Index extends Controller
             if(!empty($result)){
                 
                 !empty($member) && $result->save([
-                    'member_id'=>$member['user_id'],
+                    'member_id'=>!empty($result['member_id'])?$result['member_id']:$member['user_id'],
                     'is_take'=>2,
                     'usermark'=>isset($param['data']['mark'])?$param['data']['mark']:'',
                     'country_id'=>$param['data']['country_id'],
@@ -247,25 +248,50 @@ class Index extends Controller
                     ]);
                 continue;
             }
-            $data[$key]['express_num'] = trim($value);
-            $data[$key]['order_sn'] = createSn();
-            $data[$key]['is_take'] = !empty($member)?2:1;
-            $data[$key]['member_id'] = !empty($member)?$member['user_id']:'';
-            $data[$key]['country_id'] = $param['data']['country_id'];
-            $data[$key]['storage_id'] = $param['data']['shop_id'];
-            $data[$key]['usermark'] = isset($param['data']['mark'])?$param['data']['mark']:'';
-            $data[$key]['remark'] = $param['data']['remark'];
-            $data[$key]['created_time'] = getTime();
-            $data[$key]['updated_time'] = getTime();
-            $data[$key]['wxapp_id'] = $this->getWxappId();
+            $data['express_num'] = trim($value);
+            $data['order_sn'] = createSn();
+            $data['is_take'] = !empty($member)?2:1;
+            $data['member_id'] = !empty($member)?$member['user_id']:'';
+            $data['country_id'] = $param['data']['country_id'];
+            $data['storage_id'] = $param['data']['shop_id'];
+            $data['usermark'] = isset($param['data']['mark'])?$param['data']['mark']:'';
+            $data['remark'] = $param['data']['remark'];
+            $data['created_time'] = getTime();
+            $data['updated_time'] = getTime();
+            $data['wxapp_id'] = $this->getWxappId();
+            
+            $package_id = $packageModel->insertGetId($data);
+            if(!empty($param['data']['goods_name'])){
+                foreach ($param['data']['goods_name'] as $k=> $v){
+                        $class = [
+                        'width'=> $param['data']['width'][$k], 
+                        'height'=> $param['data']['height'][$k],   
+                        'length'=> $param['data']['length'][$k],   
+                        'weight'=> $param['data']['weight'][$k],
+                        // 'all_weight'=> (!empty($param['data']['unit_weight'][$k])?$param['data']['unit_weight'][$k]:0)*$param['data']['product_num'][$k],
+                        'net_weight'=> !empty($param['data']['net_weight'][$k])?$param['data']['net_weight'][$k]:0,
+                        'product_num'=> $param['data']['product_num'][$k],   
+                        'one_price'=> !empty($param['data']['one_price'][$k])?$param['data']['one_price'][$k]:0,   
+                        'goods_name'=> !empty($param['data']['goods_name'][$k])?$param['data']['goods_name'][$k]:'',
+                        'class_name_en'=> !empty($param['data']['class_name_en'][$k])?$param['data']['class_name_en'][$k]:'',   
+                        'goods_name_jp'=> !empty($param['data']['goods_name_jp'][$k])?$param['data']['goods_name_jp'][$k]:'',   
+                        'spec'=> !empty($param['data']['spec'][$k])?$param['data']['spec'][$k]:'',
+                        'brand'=> !empty($param['data']['brand'][$k])?$param['data']['brand'][$k]:'',   
+                        'volumeweight'=> !empty($param['data']['volumeweight'][$k])?$param['data']['volumeweight'][$k]:0,
+                        'volume'=>(!empty($param['data']['width'][$k])?$param['data']['width'][$k]:0)*(!empty($param['data']['height'][$k])?$param['data']['height'][$k]:0)*(!empty($param['data']['length'][$k])?$param['data']['length'][$k]:0)/1000000,
+                    ];
+                    
+                    $packageModel->doClassIdstwo($class,$data['express_num'],$package_id,$this->getWxappId());
+                }
+            }
         }
-        if(count($data)>0 && $packageModel->insertAll($data)){
-            return $this->renderSuccess('预报成功');
-        }
-        if(count($data)==0 && count($express_num)>0){
-            return $this->renderSuccess('认领成功');
-        }
-        return $this->renderError('预报失败');
+        // // if(count($data)>0 && $packageModel->insertAll($data)){
+        // //     return $this->renderSuccess('预报成功');
+        // // }
+        // if(count($data)==0 && count($express_num)>0){
+        //     return $this->renderSuccess('认领成功');
+        // }
+        return $this->renderSuccess('预报成功');
     }
     
     

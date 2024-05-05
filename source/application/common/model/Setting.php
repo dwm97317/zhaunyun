@@ -44,7 +44,6 @@ class Setting extends BaseModel
     public static function getItem($key, $wxapp_id = null)
     {
         $data = self::getAll($wxapp_id);
-        // dump($data);die;
         return isset($data[$key]) ? $data[$key]['values'] : [];
     }
 
@@ -111,7 +110,7 @@ class Setting extends BaseModel
                 'values' => [
                     // 系统名称
                     'name' => $storeName ?: '小思集运',
-                    'title' =>"小思集运",
+                    'title' =>$storeName?:"小思集运",
                     'desc' => "让每个包裹都能安全到达",
                     'is_getphone' => 0, //强制授权手机号
                     'checkphone'=> 10, //10是验证邮箱，20是验证手机号
@@ -693,7 +692,7 @@ class Setting extends BaseModel
                         'aliyun' => [
                             'AccessKeyId' => '',
                             'AccessKeySecret' => '',
-                            'sign' => '小思集运',
+                            'sign' => $storeName?:"小思集运",
                             'order_pay' => [
                                 'is_enable' => '0',
                                 'template_code' => '',
@@ -712,7 +711,7 @@ class Setting extends BaseModel
                     'setting' => [
                             'Username' => '1835504221@qq.com',
                             'Password' => 'faumrfbbbymscihb',
-                            'replyName' => '小思集运',
+                            'replyName' => $storeName?:"小思集运",
                             'replyEmail' => '1835504221@qq.com',
                             
                     ],

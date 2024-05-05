@@ -27,7 +27,8 @@ class Email extends Basics
                return false;
             }
             //获取设置信息
-            $setting = SettingModel::getItem('email');
+            $setting = SettingModel::getItem('email',$user['wxapp_id']);
+            // dump($user);die;
             if($setting['is_enable']==0){
                 $this->error('邮箱功能已关闭'); 
                 return false;

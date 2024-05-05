@@ -170,6 +170,18 @@
                                         </div>
                                     </div>
                                     <div class="am-form-group am-fl">
+                                        <?php $extracttimetype = $request->get('search_type'); ?>
+                                        <select name="search_type"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '请选择查询类型'}">
+                                            <option value="all" <?= $extracttimetype == 'all' ? 'selected' : '' ?>>模糊查询</option>
+                                            <option value="member_id" <?= $extracttimetype == 'member_id' ? 'selected' : '' ?>>用户ID</option>
+                                            <option value="user_code" <?= $extracttimetype == 'user_code' ? 'selected' : '' ?>>用户CODE</option>
+                                            <option value="user_mark" <?= $extracttimetype == 'user_mark' ? 'selected' : '' ?>>用户唛头</option>
+                                            <option value="nickName" <?= $extracttimetype == 'nickName' ? 'selected' : '' ?>>用户昵称</option>
+                                            <option value="mobile" <?= $extracttimetype == 'mobile' ? 'selected' : '' ?>>手机号</option>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input autocomplete="off" type="text" class="am-form-field" name="search"
                                                    placeholder="请输入用户昵称或ID或用户编号" value="<?= $request->get('search') ?>">
@@ -649,6 +661,21 @@
                     </label>
                     <div class="am-u-sm-8 am-u-end">
                        <p class='am-form-static'> 共选中 {{ selectCount }} 包裹</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3  form-require am-form-label">轨迹模板 </label>
+                    <div class="am-u-sm-9 am-u-end">
+                         <select name="track_id" id="" data-am-selected="{searchBox: 1,maxHeight:300}">
+                             <option value="">选择模板</option>
+                         <?php if (isset($tracklist)):
+                                foreach ($tracklist as $item): ?>
+                                    <option value="<?= $item['track_id'] ?>"><?= $item['track_name'] ?></option>
+                                <?php endforeach; endif; ?>
+                         </select>
+                         <div class="help-block">
+                            <small>注：你可以在下方自定义轨迹，或者选择预设好的轨迹</small>
+                    </div>
                     </div>
                 </div>
                 <div class="am-form-group">

@@ -21,6 +21,7 @@ class Printer extends Controller
     {
         $model = new PrinterModel;
         $list = $model->getList();
+        // dump($list);die;
         return $this->fetch('index', compact('list'));
     }
 

@@ -5,6 +5,8 @@ namespace app\store\controller\data;
 use app\store\controller\Controller;
 use app\store\model\Goods as GoodsModel;
 use app\store\model\Category as CategoryModel;
+use app\store\model\Barcode;
+
 
 /**
  * 商品数据控制器
@@ -42,6 +44,20 @@ class Goods extends Controller
         // 商品列表
         $list = $this->model->getList($this->request->param());
         return $this->fetch('list', compact('list', 'catgory'));
+    }
+    
+    /**
+     * 条形码列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function barcodelists()
+    {
+        // 商品分类
+        $barcode = new Barcode;
+        // 商品列表
+        $list = $barcode->getsearchList($this->request->param());
+        return $this->fetch('barcodelist', compact('list'));
     }
 
 }

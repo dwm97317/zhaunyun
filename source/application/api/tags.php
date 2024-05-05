@@ -16,5 +16,4 @@ return [
     'order_pay_success' => [
         'app\\api\\behavior\\order\\PaySuccess'
     ],
-
 ];

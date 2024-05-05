@@ -80,7 +80,7 @@
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">选择唛头 </label>
                                 <div class="am-u-sm-2 am-u-end">
                                     <?php if (isset($printsetting) && $printsetting['is_open']==1): ?>
-                                    <select  onchange="printlabel()" id="usermark" name="data[mark]"
+                                    <select  onchange="printlabel1()" id="usermark" name="data[mark]"
                                             data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请先选择用户', maxHeight: 400}" >
                                         <option value="1">请选择</option>
                                     </select>
@@ -94,7 +94,7 @@
                                 </div>
                                 <label class="am-u-sm-2 am-u-lg-1 am-form-label">输入唛头</label>
                                 <div class="am-u-sm-5 am-u-end">
-                                    <input type="text" id="inputmark" class="tpl-form-input" name="data[mark]" onchange ="printlabel()"
+                                    <input type="text" id="inputmark" class="tpl-form-input" name="data[mark]" onchange ="printlabel2()"
                                            value="" placeholder="请输入唛头">
                                 </div>
                                 
@@ -483,28 +483,22 @@
              
 	</script>
 <script>
-    function printlabel(){
+    function printlabel1(){
         var expremm = $("#express_num")[0].value;
-        var usermark1 = $("#usermark")[0].value;
-        var usermark2 = $("#inputmark")[0].value;
-        var usermark = '';
-        console.log(usermark1,86);
-          console.log(usermark2,86);
-        if(usermark1=='不选择唛头'){
-            if(usermark2==''){
-                return;
-            }else{
-                usermark = usermark2;
-            }
-        }else{
-            if(usermark2==''){
-                usermark = usermark1;
-            }else{
-                usermark = usermark2;
-            }
-        }
+        var usermark = $("#usermark")[0].value;
+        $("#inputmark").val(usermark);
         var today = getNowFormatDate();
-        // return;
+        
+        if(expremm){
+            drawTextTest(expremm,usermark,today);
+        }
+    }
+
+    function printlabel2(){
+        var expremm = $("#express_num")[0].value;
+        var usermark = $("#inputmark")[0].value;
+        var today = getNowFormatDate();
+        
         if(expremm){
             drawTextTest(expremm,usermark,today);
         }

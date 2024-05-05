@@ -11,6 +11,7 @@ use app\store\model\Express as ExpressModel;
 use app\store\model\Ditch as DitchModel;
 use app\store\model\Inpack;
 use app\store\model\Package;
+use app\store\model\Track;
 use app\common\model\Logistics;
 /**
  * 批次管理
@@ -31,11 +32,12 @@ class Batch extends Controller
         $model = new BatchModel;
         $BatchTemplateModel = new BatchTemplateModel;
         $templatelist = $BatchTemplateModel->getAllList();
+        $tracklist = (new Track())->getAllList();
         $param = $this->request->param();
         $param['status'] = 0;
         $list = $model->getList($param);
         $type = 0;
-        return $this->fetch('index', compact('list','type','templatelist'));
+        return $this->fetch('index', compact('list','type','templatelist','tracklist'));
     }
     
     /**
@@ -76,7 +78,9 @@ class Batch extends Controller
     public function batchvsinpack($id){
          $Inpack = new Inpack;
          $set = Setting::detail('store')['values']['address_setting'];
-         $map = ['batch_id'=>$id,'limitnum'=>100];
+         $map = $this->request->param();
+         $map['batch_id'] = $id;
+         $map['limitnum'] = 100;
          $list = $Inpack->getList('all',$map);
          return $this->fetch('orderlist', compact('list','set'));
     }
@@ -179,16 +183,18 @@ class Batch extends Controller
      */
     public function logistics(){
         $param = $this->request->param();
+        $Track = new Track;
+        // dump($param);die;
         $Inpack = new Inpack;
         $Package = new Package;
         $list = $Inpack->getList('all',['batch_id'=>$param['batch_id'],'limitnum'=>300]);
-        $packlist = $Package->getList('all',['batch_id'=>$param['batch_id'],'limitnum'=>300]);
-        if(count($list)==0){
-            return $this->renderError('该批次下暂无订单');
-        }
+        $packlist = $Package->getList(['batch_id'=>$param['batch_id'],'limitnum'=>300]);
+        // dump($packlist->toArray());die;
         if(empty($param['logistics_describe'])){
-            return $this->renderError('请输入物流轨迹内容');
+           $trackData = $Track::detail($param['track_id']);
+           $param['logistics_describe'] = $trackData['track_content'];
         }
+        // dump($param);die;
         if(!empty($list)){
             foreach($list as $key =>$val){
                 Logistics::addInpackLogsPlus($val['order_sn'],$param['logistics_describe'],$param['created_time']);

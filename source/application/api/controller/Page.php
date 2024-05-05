@@ -996,6 +996,175 @@ class Page extends Controller
       $sortedAccounts = $this->list_sort_by($line, $mapmode[$setting['sort_mode']], $mapsort[$setting['is_sort']]);
       return $this->renderSuccess($sortedAccounts);
     }
+    
+    
+    /**
+    * 根据重量和线路id运费查询
+    * 最全运费查询
+    */
+    public function getLineWegihtfree(){
+       $data = $this->request->param();
+       $PackageService = new PackageService(); 
+       $oWeigth = $data['weight'];
+       $wxappId = isset($data['wxapp_id'])?$data['wxapp_id']:'';
+       $line_id = $data['line_id'];
+       $weigthV = 0; //初始化为0
+       $weigthV_fi =0;
+       $setting = SettingModel::getItem('store',$wxappId);
+       $service = $data['pack_ids'];
+       //这里用于计算路线国家的匹配度
+        $line = (new Line())->where(['id' => $line_id])->select();
+       //还需要计算重量范围是否符合，物品属性是否匹配
+        $lines =[];
+        $k = 0;
+        foreach ($line as $key => $value) {
+
+           if(isset($value['max_weight']) && isset($value['weight_min'])){
+             if($oWeigth > $value['max_weight']){
+                 continue;
+             }
+             if($oWeigth < $value['weight_min']){
+                 $oWeigth = $value['weight_min'];
+             }
+           }
+           
+           if($setting['is_discount']==1){
+            $this->user = $this->getUser();
+            $UserLine =  (new UserLine());
+            $linedata= $UserLine->where('user_id',$this->user['user_id'])->where('line_id',$value['id'])->find();
+                if($linedata){
+                   $value['discount']  = $linedata['discount'];
+                }else{
+                   $value['discount'] =1;
+                }
+            }else{
+                $value['discount'] =1;
+            }
+           $lines[$k] =$value;
+           $k = $k+1;
+        }
+        
+  
+        //对剩余符合条件的路线进行计算费用；
+       foreach ($lines as $key => $value) {
+           $lines[$key]['sortprice'] = 0;
+           $lines[$key]['service'] = 0;
+           $lines[$key]['predict'] = [
+              'weight' => $oWeigth,
+              'price' => '包裹重量超限',
+           ]; 
+         
+            //关税和增值服务费用
+           $otherfree = 0;
+           $reprice=0;
+        
+           switch ($value['free_mode']) {
+             case '1':
+               $free_rule = json_decode($value['free_rule'],true);
+               $size = sizeof($free_rule);    
+               if(($oWeigth>= $free_rule[0]['weight'][0]) && ($oWeigth<= $free_rule[$size-1]['weight'][1])){
+   
+                  foreach ($free_rule as $k => $v) {
+                      if ($oWeigth>$v['weight'][1]){
+                            $reprice += ($v['weight'][1] - $v['weight'][0])*$v['weight_price'];
+                            continue;
+                      }else{
+                           $reprice += ($oWeigth - $v['weight'][0])*$v['weight_price'];
+                           break;
+                      }
+                  }
+                  $lines[$key]['sortprice'] =($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0]+$otherfree)*$value['discount'];
+                  $lines[$key]['predict'] = [
+                    'weight' => $oWeigth,
+                    'price' => ($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0]+$otherfree)*$value['discount'],
+                    'rule' => $free_rule
+                  ];         
+               }else{
+                    break;
+               }
+
+               break;
+             case '2':
+                 //首重价格+续重价格*（总重-首重）
+               $free_rule = json_decode($value['free_rule'],true);
+               foreach ($free_rule as $k => $v) {
+                          $lines[$key]['sortprice'] =($v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree)*$value['discount'];
+                          $lines[$key]['predict'] = [
+                              'weight' => $oWeigth,
+                              'price' => ($v['first_price']+ ceil((($oWeigth-$v['first_weight'])/$v['next_weight']))*$v['next_price'] + $otherfree)*$value['discount'],
+                              'rule' => $v
+                          ];   
+               }
+               break;
+              case '3':
+                $free_rule = json_decode($value['free_rule'],true);
+               foreach ($free_rule as $k => $v) {
+                   if ($oWeigth >= $v['weight'][0]){
+                      if (isset($v['weight'][1]) && $oWeigth<$v['weight'][1]){
+                          $lines[$key]['sortprice'] =($oWeigth*$v['weight_price'] + $otherfree)*$value['discount'] ;
+                          $lines[$key]['predict'] = [
+                              'weight' => $oWeigth,
+                              'price' => ($oWeigth*$v['weight_price'] + $otherfree)*$value['discount'],
+                              'rule' => $v
+                          ];   
+                      }
+                   }
+               }
+               break;
+               
+               case '4':
+                $free_rule = json_decode($value['free_rule'],true);
+            
+               foreach ($free_rule as $k => $v) {
+                   //判断时候需要取整
+                    if($value['is_integer']==1){
+                        $ww = ceil(floatval($oWeigth)/floatval($v['weight_unit']));
+                    }else{
+                        $ww = floatval($oWeigth)/floatval($v['weight_unit']);
+                    }
+                   if ($oWeigth >= $v['weight'][0]){
+                      if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
+                          !isset($v['weight_unit']) && $v['weight_unit']=1;
+                          $lines[$key]['sortprice'] =(floatval($v['weight_price']) *$ww  + floatval($otherfree))*$value['discount'] ;
+                          $lines[$key]['predict'] = [
+                              'weight' => $oWeigth,
+                              'price' => number_format((floatval($v['weight_price']) * $ww + floatval($otherfree))*$value['discount'],2),
+                              'rule' => $v,
+                              'service' =>0,
+                          ]; 
+                      }
+                   }
+               }
+               
+               break;
+             default:
+               # code...
+               break;
+           }
+           
+           $pricetwo = $pricethree = $lines[$key]['sortprice'];
+            if($service){
+              $servicelist = explode(',',$service);
+              $servicelist = array_unique($servicelist);
+            //   dump($servicelist);die;
+              foreach ($servicelist as $val){
+                  $servicedetail = $PackageService::detail($val);
+                  if($servicedetail['type']==0){
+                      $lines[$key]['service'] = $lines[$key]['service'] + $servicedetail['price'];
+                      $pricethree = floatval($pricethree) + floatval($servicedetail['price']);
+                  }
+                  if($servicedetail['type']==1){
+                      $lines[$key]['service'] = floatval($pricetwo)*floatval($servicedetail['percentage'])/100 + floatval($lines[$key]['service']);
+                      $pricethree = floatval($pricetwo)* floatval($servicedetail['percentage'])/100 + floatval($pricethree);
+                  }
+              }
+            }
+            $lines[$key]['sortprice'] = number_format(floatval($pricethree),2);
+           
+       }
+            // dump($lines);
+       return $this->renderSuccess($lines[0]['sortprice']);
+    }
 
      /**
 	 * 对查询结果集进行排序

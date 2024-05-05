@@ -16,10 +16,25 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">物流动态 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">轨迹模板 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                     <select name="sendOrder[track_id]" id="" data-am-selected="{searchBox: 1,maxHeight:300}">
+                                         <option value="">选择模板</option>
+                                     <?php if (isset($tracklist)):
+                                            foreach ($tracklist as $item): ?>
+                                                <option value="<?= $item['track_id'] ?>"><?= $item['track_name'] ?></option>
+                                            <?php endforeach; endif; ?>
+                                     </select>
+                                     <div class="help-block">
+                                        <small>注：你可以在下方自定义轨迹，或者选择预设好的轨迹</small>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">物流动态 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="sendOrder[logistics]"
-                                           value="" required placeholder="包裹已到达……">
+                                           value="" placeholder="包裹已到达……">
                                 </div>
                             </div>
                             <div class="am-form-group">

@@ -21,20 +21,20 @@
                                     </label>
                                 </div>
                             </div>
-                            <!--<div class="am-form-group">-->
-                            <!--    <label class="am-u-sm-3 am-form-label form-require"> 选择订单打印机 </label>-->
-                            <!--    <div class="am-u-sm-9 am-u-end am-padding-xs">-->
-                            <!--        <select name="printer[printer_id]"-->
-                            <!--                data-am-selected="{btnSize: 'sm', placeholder:'请选择打印机', maxHeight: 400}">-->
-                            <!--            <option value=""></option>-->
-                            <!--            <?php if (isset($printerList)): foreach ($printerList as $printer): ?>-->
-                            <!--                <option value="<?= $printer['printer_id'] ?>"-->
-                            <!--                    <?= $values['printer_id'] == $printer['printer_id'] ? 'selected' : '' ?>>-->
-                            <!--                    <?= $printer['printer_name'] ?></option>-->
-                            <!--            <?php endforeach; endif; ?>-->
-                            <!--        </select>-->
-                            <!--    </div>-->
-                            <!--</div>-->
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 选择标签打印机 </label>
+                                <div class="am-u-sm-9 am-u-end am-padding-xs">
+                                    <select name="printer[printer_id]"
+                                            data-am-selected="{btnSize: 'sm', placeholder:'请选择标签打印机', maxHeight: 400}">
+                                        <option value=""></option>
+                                        <?php if (isset($printerList)): foreach ($printerList as $printer): ?>
+                                            <option value="<?= $printer['printer_id'] ?>"
+                                                <?= $values['printer_id'] == $printer['printer_id'] ? 'selected' : '' ?>>
+                                                <?= $printer['printer_name'] ?></option>
+                                        <?php endforeach; endif; ?>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require"> 标签打印位置 </label>
                                 <div class="am-u-sm-9 am-u-end">

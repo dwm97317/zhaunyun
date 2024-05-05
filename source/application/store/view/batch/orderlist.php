@@ -14,8 +14,17 @@
                             <input type="hidden" name="s" value="/<?= $request->pathinfo() ?>">
                             <div class="am-u-sm-12 am-u-md-12">
                                 <div class="am fl">
-                                    
-                 
+                                    <div class="am-form-group am-fl">
+                                        <select name="limitnum"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '显示条数'}">
+                                            <option value="15">显示15条</option>
+                                            <option value="30">显示30条</option>
+                                            <option value="50">显示50条</option>
+                                            <option value="100">显示100条</option>
+                                            <option value="200">显示200条</option>
+                                            <option value="500">显示500条</option>
+                                        </select>
+                                    </div>
                                     <div class="am-form-group am-fl">
                                         <?php $extractStatus = $request->get('status'); ?>
                                         <select name="status"
@@ -54,7 +63,7 @@
                                             </option>
                                         </select>
                                     </div>
-              
+                                    <?php if ($store['user']['is_super']==1): ?>
                                     <div class="am-form-group am-fl">
                                         <?php $extractShopId = $request->get('extract_shop_id'); ?>
                                         <select name="extract_shop_id"
@@ -68,6 +77,49 @@
                                                     <?= $item['shop_id'] == $extractShopId ? 'selected' : '' ?>><?= $item['shop_name'] ?>
                                                 </option>
                                             <?php endforeach; endif; ?>
+                                        </select>
+                                    </div>
+                                    <?php endif;?>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractlineid = $request->get('line_id'); ?>
+                                        <select name="line_id"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '路线名称'}">
+                                            <option value=""></option>
+                                            <option value="-1"
+                                                <?= $extractlineid === '-1' ? 'selected' : '' ?>>全部
+                                            </option>
+                                            <?php if (isset($lineList)): foreach ($lineList as $item): ?>
+                                                <option value="<?= $item['id'] ?>"
+                                                    <?= $item['id'] == $extractlineid ? 'selected' : '' ?>><?= $item['name'] ?>
+                                                </option>
+                                            <?php endforeach; endif; ?>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractserviceid = $request->get('service_id'); ?>
+                                        <select name="service_id"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '专属客服'}">
+                                            <option value=""></option>
+                                            <option value="-1"
+                                                <?= $extractserviceid === '-1' ? 'selected' : '' ?>>全部
+                                            </option>
+                                            <?php if (isset($servicelist)): foreach ($servicelist as $item): ?>
+                                                <option value="<?= $item['clerk_id'] ?>"
+                                                    <?= $item['clerk_id'] == $extractserviceid ? 'selected' : '' ?>><?= $item['real_name'] ?>
+                                                </option>
+                                            <?php endforeach; endif; ?>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extracttimetype = $request->get('time_type'); ?>
+                                        <select name="time_type"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '时间类型'}">
+                                            <option value="created_time" <?= $extracttimetype == 'created_time' ? 'selected' : '' ?>>提交打包时间</option>
+                                            <option value="pay_time" <?= $extracttimetype == 'pay_time' ? 'selected' : '' ?>>支付完成时间</option>
+                                            <option value="pick_time" <?= $extracttimetype == 'pick_time' ? 'selected' : '' ?>>打包完成时间</option>
+                                            <option value="settle_time" <?= $extracttimetype == 'settle_time' ? 'selected' : '' ?>>佣金结算时间</option>
+                                            <option value="sendout_time" <?= $extracttimetype == 'sendout_time' ? 'selected' : '' ?>>订单发货时间</option>
+                                            <option value="receipt_time" <?= $extracttimetype == 'receipt_time' ? 'selected' : '' ?>>用户签收时间</option>
                                         </select>
                                     </div>
                                     <div class="am-form-group tpl-form-border-form am-fl">
@@ -84,26 +136,39 @@
                                     </div>
                                     <div class="am-form-group am-fl" style="padding-bottom:1px;">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
-                                            <input type="text" class="am-form-field" name="order_sn"
-                                                   placeholder="请输入平台订单号" value="<?= $request->get('order_sn') ?>">
+                                            <textarea cols="200" rows="2"  class="am-form-field" name="tr_number"
+                                                   placeholder="可输入多个发货单号,按换车换行" value="<?= $request->get('tr_number') ?>"></textarea>
                                         </div>
                                     </div>
-                                    <div class="am-form-group am-fl" style="padding-bottom:1px;">
+                                    
+                                    <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
-                                            <input type="text" class="am-form-field" name="t_order_sn"
-                                                   placeholder="请输入转运单号" value="<?= $request->get('t_order_sn') ?>">
-                                        </div>
-                                    </div>
-                                    <div class="am-form-group am-fl" style="padding-bottom:1px;">
-                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
-                                            <input type="text" class="am-form-field" name="user_code"
-                                                   placeholder="请输入用户编号" value="<?= $request->get('user_code') ?>">
+                                            <input style="width:250px;" type="text" class="am-form-field" name="order_sn"
+                                                   placeholder="请输入平台订单号或转运单号" value="<?= $request->get('order_sn') ?>">
                                         </div>
                                     </div>
                                     <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input style="width:250px;" type="text" class="am-form-field" name="batch_no"
+                                                   placeholder="请输入批次号或提单号" value="<?= $request->get('batch_no') ?>">
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extracttimetype = $request->get('search_type'); ?>
+                                        <select name="search_type"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '请选择查询类型'}">
+                                            <option value="all" <?= $extracttimetype == 'all' ? 'selected' : '' ?>>模糊查询</option>
+                                            <option value="member_id" <?= $extracttimetype == 'member_id' ? 'selected' : '' ?>>用户ID</option>
+                                            <option value="user_code" <?= $extracttimetype == 'user_code' ? 'selected' : '' ?>>用户CODE</option>
+                                            <option value="user_mark" <?= $extracttimetype == 'user_mark' ? 'selected' : '' ?>>用户唛头</option>
+                                            <option value="nickName" <?= $extracttimetype == 'nickName' ? 'selected' : '' ?>>用户昵称</option>
+                                            <option value="mobile" <?= $extracttimetype == 'mobile' ? 'selected' : '' ?>>手机号</option>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input autocomplete="off" type="text" class="am-form-field" name="search"
-                                                   placeholder="请输入用户昵称或ID" value="<?= $request->get('search') ?>">
+                                                   placeholder="请输入用户昵称或ID或用户编号" value="<?= $request->get('search') ?>">
                                             <div class="am-input-group-btn">
                                                 <button class="am-btn am-btn-default am-icon-search"
                                                         type="submit"></button>
