@@ -2630,7 +2630,7 @@ class TrOrder extends Controller
         ]);
      }
      
-     /**导出集运订单中的包裹明细**/
+    /**导出集运订单中的包裹明细**/
     //导出成excel文档
      public function exportInpackpackage(){
          //引入excel插件
@@ -2941,6 +2941,147 @@ class TrOrder extends Controller
         $objPHPExcel->getActiveSheet()->setTitle('业务结算清单');
         //9.设置浏览器窗口下载表格
         $filename = "用户包裹"  . rand(1000000, 9999999) . ".xlsx";
+        // $objWriter = new \PHPExcel_Writer_Excel5($objPHPExcel);
+
+        $ov = \PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
+        $ov->save("excel/" . $filename);
+        return $this->renderSuccess("导出成功", [
+            "file_name" => "https://".$_SERVER["HTTP_HOST"] . "/excel/" . $filename,
+        ]);
+     }
+
+    /**导出集运清关文件**/
+    //导出成excel文档
+     public function clearance(){
+         //引入excel插件
+        vendor('PHPExcel.PHPExcel');
+        $objPHPExcel = new \PHPExcel();
+        //获取需要导出的数据列表
+        $ids= input("post.selectId/a");
+        //1 待入库 2 已入库 3 已分拣上架  4 待打包  5 待支付  6 已支付 7 已分拣下架  8 已打包  9 已发货 10 已收货 11 已完成
+        $map =[-1=>'问题件',1=>'待入库',2=>'已入库',3=>'已分拣上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
+        $status = [1=>'待查验',2=>'待支付',3=>'已支付','4'=>'已拣货','5'=>'已打包','6'=>'已发货','7'=>'已收货','8'=>'已完成','-1'=>'已取消'];
+       
+        if($ids){
+           $data = (new Inpack())->with(['storage','shop','country','user','line','address'])->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
+                    // $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
+                    // $item['t_name'] = (new Line())->where('id',$item['line_id'])->value('name');
+                    $item['shopCapital'] = (new Capital())->where(['inpack_id'=> $item['order_sn'],'shop_id' => $item['shop_id']])->value('money');
+                    $item['straogeCapital'] = (new Capital())->where(['inpack_id'=> $item['order_sn'],'shop_id' => $item['storage_id']])->value('money');
+                    
+                    
+                    //集运单包裹中的物品分类和价格
+                    $packdata =(new Package())->where('inpack_id',$item['id'])->select();
+                    $packClass = [];
+                    $packprice = 0;
+             
+                    foreach($packdata as $key => $vale){
+                        $expressnum = (new Package())->where('express_num',$vale['express_num'])->find();
+                        $packitem = (new PackageItem())->where('express_num',$expressnum['express_num'])->select();
+                        $packClass[$key]="";
+                        $packprice=0;
+                        if(count($packitem)>0){
+                            $packClass[$key] = $packitem[0]['class_name'];
+                            $packprice += $packitem[0]['all_price'];
+                        } 
+                    }
+                    
+                    // $item['packClass'] = implode($packClass);
+                    // $item['packprice'] = $packprice;
+                    //折扣信息
+                    $discountData = (new UserLine())->where(['user_id'=>$item["user"]['user_id'],'line_id'=>$item['line']['id']])->find();
+                    if($discountData){
+                        $item['discount'] = $discountData['discount'];
+                    }else{
+                        $item['discount'] = 1;
+                    }
+                    $item['discount_price'] = $item['discount'] * $item['free'];
+                    $item['status_text'] = $map[$item['status']];
+                    // $item['address'] = (new UserAddress())->where('address_id',$item['address_id'])->find();
+                    $item['weightkg'] = 'kg';
+                    return $item;
+                }); 
+        }
+        dump($data->toArray());die;
+        
+          $style_Array=array(
+            'font'    => array (
+               'bold'      => true
+              ),
+             'alignment' => array (
+                      'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+               ),
+              'borders' => array (
+                   'top'     => array (
+                           'style' => \PHPExcel_Style_Border::BORDER_THIN
+                       )
+                ),
+          );
+         
+        $setting = SettingModel::getItem('store',$data[0]['wxapp_id']);
+        $objPHPExcel->setActiveSheetIndex(0);
+        //5.设置表格头（即excel表格的第一行）
+        $titlemap = [
+            0=>['text'=>'运单号','value'=>'t_order_sn','width'=>10],
+            1=>['text'=>'发件人名称','value'=>'t_order_sn','width'=>10],
+            2=>['text'=>'英文名称','value'=>'t_order_sn','width'=>10],
+            3=>['text'=>'城市','value'=>'t_order_sn','width'=>10],
+            4=>['text'=>'城市英文','value'=>'t_order_sn','width'=>10],
+            5=>['text'=>'电话','value'=>'t_order_sn','width'=>10],
+            6=>['text'=>'发件人地址','value'=>'t_order_sn','width'=>10],
+            7=>['text'=>'地址英文','value'=>'t_order_sn','width'=>10],
+            8=>['text'=>'收件人名称','value'=>'t_order_sn','width'=>10],
+            9=>['text'=>'英文名称','value'=>'t_order_sn','width'=>10],
+            10=>['text'=>'城市','value'=>'t_order_sn','width'=>10],
+            11=>['text'=>'电话','value'=>'t_order_sn','width'=>10],
+            12=>['text'=>'地址','value'=>'t_order_sn','width'=>10],
+            13=>['text'=>'地址英文','value'=>'t_order_sn','width'=>10],
+            14=>['text'=>'品名','value'=>'t_order_sn','width'=>10],
+            15=>['text'=>'英文品名','value'=>'t_order_sn','width'=>10],
+            16=>['text'=>'编码','value'=>'t_order_sn','width'=>10],
+            17=>['text'=>'生产厂商','value'=>'t_order_sn','width'=>10],
+            18=>['text'=>'规格','value'=>'t_order_sn','width'=>10],
+            19=>['text'=>'价值','value'=>'t_order_sn','width'=>10],
+            20=>['text'=>'件数','value'=>'t_order_sn','width'=>10],
+            21=>['text'=>'毛重','value'=>'t_order_sn','width'=>10],
+            22=>['text'=>'净重','value'=>'t_order_sn','width'=>10],
+            23=>['text'=>'数量','value'=>'t_order_sn','width'=>10],
+            24=>['text'=>'单位','value'=>'weightkg','width'=>10]
+        ];
+        
+        $wordMap = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        
+        //设置excel标题
+        for ($i = 0; $i < count($titlemap); $i++) {
+           $objPHPExcel->setActiveSheetIndex(0)->setCellValue($wordMap[$i].'1', $titlemap[$i]['text']);
+        }
+       
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:Y')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:Y1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:Y4')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:Y')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        
+        $objPHPExcel->getActiveSheet()->getStyle('A:Y')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        //设置行高
+        $objPHPExcel->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
+        
+        
+        //设置excel标题宽度
+        for ($i = 0; $i < count($titlemap); $i++) {
+           $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension($wordMap[$i])->setWidth($titlemap[$i]['width']);
+        }
+         //设置excel内容
+        for ($j = 0; $j < count($titlemap); $j++) { 
+            for($i=0;$i<count($data);$i++){
+                $objPHPExcel->getActiveSheet()->setCellValue($wordMap[$j].($i+2),$data[$i][$titlemap[$i]['value']]);
+            }
+        }
+        //7.设置保存的Excel表格名称
+        //8.设置当前激活的sheet表格名称；
+        $objPHPExcel->getActiveSheet()->setTitle('清关模板');
+        //9.设置浏览器窗口下载表格
+        $filename = "清关包裹"  . rand(1000000, 9999999) . ".xlsx";
         // $objWriter = new \PHPExcel_Writer_Excel5($objPHPExcel);
 
         $ov = \PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");

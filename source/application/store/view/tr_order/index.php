@@ -241,6 +241,13 @@
                         <button type="button" id="j-exportInpack" class="am-btn am-btn-success am-radius"><i class="iconfont icon-daochujiesuan"></i>导出分成清单</button>
                         <?php endif;?>
                         <?php endif;?>
+                        
+                        <!--导出清关模板-->
+                        <?php if (checkPrivilege('tr_order/clearance')): ?>
+                        <?php if($dataType=='sending'): ?>
+                        <button type="button" id="j-clearance" class="am-btn am-btn-success am-radius"><i class="iconfont icon-daochujiesuan"></i>导出清关模板</button>
+                        <?php endif;?>
+                        <?php endif;?>
                     </div>
                     <div class="am-scrollable-horizontal am-u-sm-12">
                         <table width="100%" class="am-table am-table-compact am-table-striped
@@ -1248,6 +1255,46 @@
 					$.ajax({
 						type: 'post',
 						url: "<?= url('store/trOrder/exportInpack') ?>",
+						data: {
+							selectId: selectIds,
+							seach: serializeObj
+						},
+						dataType: "json",
+						success: function(res) {
+							if (res.code == 1) {
+								console.log(res.url.file_name);
+								var a = document.createElement('a');
+								document.body.appendChild(a);
+								a.href = res.url.file_name;
+								a.click();
+							}
+						}
+					})
+				});
+				
+				
+				/**
+				 * 导出集运清关文件
+				 */
+				$('#j-clearance').on('click', function() {
+					var $tabs, data = $(this).data();
+					var selectIds = checker.getCheckSelect();
+					var serializeObj = {};
+					var fordata = $(".toolbar-form").serializeArray().forEach(function(item) {
+						if (item.name != 's') {
+							serializeObj[item.name] = item.value;
+						}
+
+					});
+					if (isEmpty(serializeObj['search']) && selectIds.length == 0) {
+						layer.alert('请先选择订单或者搜索后再点导出', {
+							icon: 5
+						});
+						return;
+					}
+					$.ajax({
+						type: 'post',
+						url: "<?= url('store/trOrder/clearance') ?>",
 						data: {
 							selectId: selectIds,
 							seach: serializeObj
