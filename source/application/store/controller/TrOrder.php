@@ -34,6 +34,8 @@ use app\common\model\dealer\Order as DealerOrder;
 use app\common\service\qrcode;
 use app\store\model\UploadFile;
 use app\store\model\Track;
+use app\common\library\Pinyin;
+use app\common\library\AITool\BaiduTextTran;
 
 /**
  * 订单管理
@@ -2961,49 +2963,114 @@ class TrOrder extends Controller
         //1 待入库 2 已入库 3 已分拣上架  4 待打包  5 待支付  6 已支付 7 已分拣下架  8 已打包  9 已发货 10 已收货 11 已完成
         $map =[-1=>'问题件',1=>'待入库',2=>'已入库',3=>'已分拣上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
         $status = [1=>'待查验',2=>'待支付',3=>'已支付','4'=>'已拣货','5'=>'已打包','6'=>'已发货','7'=>'已收货','8'=>'已完成','-1'=>'已取消'];
-       
+        $datas = [];
+        $setting = SettingModel::getItem('aiidentify',$this->getWxappId());
+        if($setting['is_baiduaddress']==0){
+            return $this->renderError("尚未开启智能AI识别功能，请更改API");
+        }
+        $BaiduTextTran = new BaiduTextTran($setting);
         if($ids){
-           $data = (new Inpack())->with(['storage','shop','country','user','line','address'])->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
+           $data = (new Inpack())->with(['storage','shop','country','user','line','address'])->whereIn('id',$ids)->select()->each(function ($item, $key) use($map,$BaiduTextTran){
                     // $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
                     // $item['t_name'] = (new Line())->where('id',$item['line_id'])->value('name');
-                    $item['shopCapital'] = (new Capital())->where(['inpack_id'=> $item['order_sn'],'shop_id' => $item['shop_id']])->value('money');
-                    $item['straogeCapital'] = (new Capital())->where(['inpack_id'=> $item['order_sn'],'shop_id' => $item['storage_id']])->value('money');
-                    
-                    
+
                     //集运单包裹中的物品分类和价格
-                    $packdata =(new Package())->where('inpack_id',$item['id'])->select();
-                    $packClass = [];
-                    $packprice = 0;
-             
-                    foreach($packdata as $key => $vale){
-                        $expressnum = (new Package())->where('express_num',$vale['express_num'])->find();
-                        $packitem = (new PackageItem())->where('express_num',$expressnum['express_num'])->select();
-                        $packClass[$key]="";
-                        $packprice=0;
-                        if(count($packitem)>0){
-                            $packClass[$key] = $packitem[0]['class_name'];
-                            $packprice += $packitem[0]['all_price'];
-                        } 
-                    }
+                    $packdata =(new Package())->with(['categoryAttr'])->where('inpack_id',$item['id'])->select();
+                    $item['packdata'] = $packdata;
+                    // dump($packdata->toArray());die;
                     
-                    // $item['packClass'] = implode($packClass);
-                    // $item['packprice'] = $packprice;
-                    //折扣信息
-                    $discountData = (new UserLine())->where(['user_id'=>$item["user"]['user_id'],'line_id'=>$item['line']['id']])->find();
-                    if($discountData){
-                        $item['discount'] = $discountData['discount'];
-                    }else{
-                        $item['discount'] = 1;
+                    
+                    // $item['discount_price'] = $item['discount'] * $item['free'];
+                    // $item['status_text'] = $map[$item['status']];
+                    $item['weightkg'] = '011';
+                    $item['categoryname'] = 'B';
+                    $item['trademode'] = '0110';
+                    $item['taxexemptionnature'] = '0110';
+                    $item['currency'] = '142';
+                    $item['BusinessUnitCode'] = '';
+                    $item['cardnumber'] = '51000000000000 ';
+                    
+                    $item['linkman'] = $item['storage']['linkman'];
+                    $item['enlinkman'] = pinyin::getPinyin($item['storage']['linkman']);
+                    $item['fhcity'] = $item['storage']['region']['city'];
+                    $item['enfhcity'] = pinyin::getPinyin($item['storage']['region']['city']);
+                    $enfhcity = $BaiduTextTran->gettexttrans($item['storage']['region']['city'])['result']['trans_result'][0]['dst'];
+                    if(!empty($enfhcity)){
+                        $item['enfhcity'] = $enfhcity;  //英文
                     }
-                    $item['discount_price'] = $item['discount'] * $item['free'];
-                    $item['status_text'] = $map[$item['status']];
-                    // $item['address'] = (new UserAddress())->where('address_id',$item['address_id'])->find();
-                    $item['weightkg'] = 'kg';
+                    $item['fhphone'] = $item['storage']['phone'].' ';
+                    $item['fhaddress'] = $item['storage']['address'];  
+                    $item['fhenaddress'] = pinyin::getPinyin($item['storage']['address']);  //英文
+                    $enaddress= $BaiduTextTran->gettexttrans($item['storage']['address'])['result']['trans_result'][0]['dst'];
+                    if(!empty($enaddress)){
+                        $item['fhenaddress'] = $enaddress;  //英文
+                    }
+                   
+                    
+                    
+                    $item['sjname'] = $item['address']['name'];
+                    $item['sjenname'] = pinyin::getPinyin($item['address']['name']);
+                    $item['sjcity'] = $item['address']['city'];
+                    $item['sjphone'] = $item['address']['phone'];
+                    $item['sjaddress'] = $item['address']['detail'];
+                    $item['sjenaddress'] = pinyin::getPinyin($item['address']['detail']);  //英文
+                    $sjaddress= $BaiduTextTran->gettexttrans($item['address']['detail'])['result']['trans_result'][0]['dst'];
+                    if(!empty($sjaddress)){
+                        $item['sjenaddress'] = $sjaddress;  //英文
+                    }
+                    //  dump($item['sjenaddress']);die;
                     return $item;
                 }); 
         }
-        dump($data->toArray());die;
-        
+          $op = 0;
+          foreach ($data as $value){
+              if(count($value['packdata'])>0){
+                        foreach ($value['packdata'] as $key=> $val){
+                            if(count($val['category_attr'])>0){
+                                foreach ($val['category_attr'] as $k=> $v){
+                                    //  dump($value);
+                                    // dump($value['goods_name']);
+                                    // $datas[$op] = $value;
+                                    $datas[$op]['weightkg'] = $value['weightkg'];
+                                    $datas[$op]['categoryname'] = $value['categoryname'];
+                                    $datas[$op]['trademode'] = $value['trademode'];
+                                    $datas[$op]['taxexemptionnature'] = $value['taxexemptionnature'];
+                                    $datas[$op]['currency'] = $value['currency'];
+                                    $datas[$op]['BusinessUnitCode'] = $value['BusinessUnitCode'];
+                                    $datas[$op]['cardnumber'] = $value['cardnumber'];
+                                    $datas[$op]['linkman'] = $value['linkman'];
+                                    $datas[$op]['enlinkman'] = $value['enlinkman'];
+                                    $datas[$op]['fhcity'] = $value['fhcity'];
+                                    $datas[$op]['enfhcity'] = $value['enfhcity'];
+                                    $datas[$op]['fhphone'] = $value['fhphone'];
+                                    $datas[$op]['fhaddress'] = $value['fhaddress'];
+                                    $datas[$op]['fhenaddress'] = $value['fhenaddress'];
+                                    $datas[$op]['sjname'] = $value['sjname'];
+                                    $datas[$op]['sjenname'] = $value['sjenname'];
+                                    $datas[$op]['sjcity'] = $value['sjcity'];
+                                    $datas[$op]['sjphone'] = $value['sjphone'];
+                                    $datas[$op]['sjaddress'] = $value['sjaddress'];
+                                    $datas[$op]['sjenaddress'] = $value['sjenaddress'];
+                                    $datas[$op]['t_order_sn'] = $value['t_order_sn'];
+                                    
+                                    $datas[$op]['goods_name'] = $v['goods_name'];
+                                    $datas[$op]['class_name_en'] = $v['class_name_en'];
+                                    $datas[$op]['barcode'] = $v['barcode'].' ';
+                                    $datas[$op]['origin_region'] = $v['origin_region'];
+                                    $datas[$op]['spec'] = $v['spec'];
+                                    $datas[$op]['one_price'] = $v['one_price'];
+                                    $datas[$op]['product_num'] = $v['product_num'];
+                                    $datas[$op]['unit_weight'] = $v['unit_weight'];
+                                    $datas[$op]['net_weight'] = $v['net_weight'];
+                                    // dump($datas[$op]);
+                                    $op=$op+1;
+                                }
+                            }
+                        }
+                    }
+                       
+          }
+        //   dump($datas[0]['class_name_en']);dump($datas[1]['class_name_en']);die;
           $style_Array=array(
             'font'    => array (
                'bold'      => true
@@ -3022,46 +3089,55 @@ class TrOrder extends Controller
         $objPHPExcel->setActiveSheetIndex(0);
         //5.设置表格头（即excel表格的第一行）
         $titlemap = [
-            0=>['text'=>'运单号','value'=>'t_order_sn','width'=>10],
-            1=>['text'=>'发件人名称','value'=>'t_order_sn','width'=>10],
-            2=>['text'=>'英文名称','value'=>'t_order_sn','width'=>10],
-            3=>['text'=>'城市','value'=>'t_order_sn','width'=>10],
-            4=>['text'=>'城市英文','value'=>'t_order_sn','width'=>10],
-            5=>['text'=>'电话','value'=>'t_order_sn','width'=>10],
-            6=>['text'=>'发件人地址','value'=>'t_order_sn','width'=>10],
-            7=>['text'=>'地址英文','value'=>'t_order_sn','width'=>10],
-            8=>['text'=>'收件人名称','value'=>'t_order_sn','width'=>10],
-            9=>['text'=>'英文名称','value'=>'t_order_sn','width'=>10],
-            10=>['text'=>'城市','value'=>'t_order_sn','width'=>10],
-            11=>['text'=>'电话','value'=>'t_order_sn','width'=>10],
-            12=>['text'=>'地址','value'=>'t_order_sn','width'=>10],
-            13=>['text'=>'地址英文','value'=>'t_order_sn','width'=>10],
-            14=>['text'=>'品名','value'=>'t_order_sn','width'=>10],
-            15=>['text'=>'英文品名','value'=>'t_order_sn','width'=>10],
-            16=>['text'=>'编码','value'=>'t_order_sn','width'=>10],
-            17=>['text'=>'生产厂商','value'=>'t_order_sn','width'=>10],
-            18=>['text'=>'规格','value'=>'t_order_sn','width'=>10],
-            19=>['text'=>'价值','value'=>'t_order_sn','width'=>10],
-            20=>['text'=>'件数','value'=>'t_order_sn','width'=>10],
-            21=>['text'=>'毛重','value'=>'t_order_sn','width'=>10],
-            22=>['text'=>'净重','value'=>'t_order_sn','width'=>10],
-            23=>['text'=>'数量','value'=>'t_order_sn','width'=>10],
-            24=>['text'=>'单位','value'=>'weightkg','width'=>10]
+            ['text'=>'运单号','value'=>"t_order_sn",'width'=>20],
+            ['text'=>'分类','value'=>'categoryname','width'=>10],
+            ['text'=>'贸易方式','value'=>'trademode','width'=>10],
+            ['text'=>'征免性质','value'=>'taxexemptionnature','width'=>10],
+            ['text'=>'币制','value'=>'currency','width'=>10],
+            ['text'=>'经营单位代码','value'=>'BusinessUnitCode','width'=>30],
+            ['text'=>'B类身份证号码','value'=>'cardnumber','width'=>20],
+            ['text'=>'发件人名称','value'=>"linkman",'width'=>10],
+            ['text'=>'英文名称','value'=>'enlinkman','width'=>10],
+            ['text'=>'城市','value'=>'fhcity','width'=>10],
+            ['text'=>'城市英文','value'=>'enfhcity','width'=>10],
+            ['text'=>'电话','value'=>'fhphone','width'=>15],
+            ['text'=>'发件人地址','value'=>'fhaddress','width'=>30],
+            ['text'=>'地址英文','value'=>'fhenaddress','width'=>30],
+            
+            ['text'=>'收件人名称','value'=>'sjname','width'=>10],
+            ['text'=>'英文名称','value'=>'sjenname','width'=>10],
+            ['text'=>'城市','value'=>'sjcity','width'=>10],
+            ['text'=>'电话','value'=>'sjphone','width'=>15],
+            ['text'=>'地址','value'=>'sjaddress','width'=>30],
+            ['text'=>'地址英文','value'=>'sjenaddress','width'=>30],
+            
+            ['text'=>'品名','value'=>'goods_name','width'=>10],
+            ['text'=>'英文品名','value'=>'class_name_en','width'=>10],
+            ['text'=>'编码','value'=>'barcode','width'=>10],
+            ['text'=>'生产厂商','value'=>'origin_region','width'=>10],
+            ['text'=>'规格','value'=>'spec','width'=>10],
+            ['text'=>'价值','value'=>'one_price','width'=>10],
+            ['text'=>'件数','value'=>'product_num','width'=>10],
+            ['text'=>'毛重','value'=>'unit_weight','width'=>10],
+            ['text'=>'净重','value'=>'net_weight','width'=>10],
+            ['text'=>'数量','value'=>'product_num','width'=>10],
+            ['text'=>'单位','value'=>'weightkg','width'=>10]
         ];
+      
         
-        $wordMap = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        $wordMap = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF'];
         
         //设置excel标题
         for ($i = 0; $i < count($titlemap); $i++) {
            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($wordMap[$i].'1', $titlemap[$i]['text']);
         }
        
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:Y')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:Y1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:Y4')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:Y')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:AF')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:AF1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:AF4')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:AF')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         
-        $objPHPExcel->getActiveSheet()->getStyle('A:Y')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        $objPHPExcel->getActiveSheet()->getStyle('A:AF')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
         //设置行高
         $objPHPExcel->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
@@ -3072,14 +3148,217 @@ class TrOrder extends Controller
            $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension($wordMap[$i])->setWidth($titlemap[$i]['width']);
         }
          //设置excel内容
-        for ($j = 0; $j < count($titlemap); $j++) { 
-            for($i=0;$i<count($data);$i++){
-                $objPHPExcel->getActiveSheet()->setCellValue($wordMap[$j].($i+2),$data[$i][$titlemap[$i]['value']]);
+    //   dump($datas[2]['class_name_en']);die;
+        for($i=0;$i<count($datas);$i++){
+            for ($j = 0; $j < count($titlemap); $j++) {
+                $objPHPExcel->getActiveSheet()->setCellValue($wordMap[$j].($i+2),($datas[$i][$titlemap[$j]['value']]));
             }
         }
+            // dump($titlemap);die;
         //7.设置保存的Excel表格名称
         //8.设置当前激活的sheet表格名称；
         $objPHPExcel->getActiveSheet()->setTitle('清关模板');
+        //9.设置浏览器窗口下载表格
+        $filename = "清关包裹"  . rand(1000000, 9999999) . ".xlsx";
+        // $objWriter = new \PHPExcel_Writer_Excel5($objPHPExcel);
+
+        $ov = \PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
+        $ov->save("excel/" . $filename);
+        return $this->renderSuccess("导出成功", [
+            "file_name" => "https://".$_SERVER["HTTP_HOST"] . "/excel/" . $filename,
+        ]);
+     }
+     
+         /**导出invoice模板**/
+    //导出成excel文档
+     public function invoice(){
+         //引入excel插件
+        vendor('PHPExcel.PHPExcel');
+        $objPHPExcel = new \PHPExcel();
+        //获取需要导出的数据列表
+        $param= $this->request->param();
+        //1 待入库 2 已入库 3 已分拣上架  4 待打包  5 待支付  6 已支付 7 已分拣下架  8 已打包  9 已发货 10 已收货 11 已完成
+        $map =[-1=>'问题件',1=>'待入库',2=>'已入库',3=>'已分拣上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
+        $status = [1=>'待查验',2=>'待支付',3=>'已支付','4'=>'已拣货','5'=>'已打包','6'=>'已发货','7'=>'已收货','8'=>'已完成','-1'=>'已取消'];
+        $datas = [];
+        $setting = SettingModel::getItem('aiidentify',$this->getWxappId());
+        if($setting['is_baiduaddress']==0){
+            return $this->renderError("尚未开启智能AI识别功能，请更改API");
+        }
+        // $BaiduTextTran = new BaiduTextTran($setting);
+        // if($ids){
+        //   $data = (new Inpack())->with(['storage','shop','country','user','line','address'])->whereIn('id',$ids)->select()->each(function ($item, $key) use($map,$BaiduTextTran){
+        //             //集运单包裹中的物品分类和价格
+        //             $packdata =(new Package())->with(['categoryAttr'])->where('inpack_id',$item['id'])->select();
+        //             $item['packdata'] = $packdata;
+        //             $item['weightkg'] = '011';
+        //             $item['categoryname'] = 'B';
+        //             $item['trademode'] = '0110';
+        //             $item['taxexemptionnature'] = '0110';
+        //             $item['currency'] = '142';
+        //             $item['BusinessUnitCode'] = '';
+        //             $item['cardnumber'] = '51000000000000 ';
+                    
+        //             $item['linkman'] = $item['storage']['linkman'];
+        //             $item['enlinkman'] = pinyin::getPinyin($item['storage']['linkman']);
+        //             $item['fhcity'] = $item['storage']['region']['city'];
+        //             $item['enfhcity'] = pinyin::getPinyin($item['storage']['region']['city']);
+        //             $enfhcity = $BaiduTextTran->gettexttrans($item['storage']['region']['city'])['result']['trans_result'][0]['dst'];
+        //             if(!empty($enfhcity)){
+        //                 $item['enfhcity'] = $enfhcity;  //英文
+        //             }
+        //             $item['fhphone'] = $item['storage']['phone'].' ';
+        //             $item['fhaddress'] = $item['storage']['address'];  
+        //             $item['fhenaddress'] = pinyin::getPinyin($item['storage']['address']);  //英文
+        //             $enaddress= $BaiduTextTran->gettexttrans($item['storage']['address'])['result']['trans_result'][0]['dst'];
+        //             if(!empty($enaddress)){
+        //                 $item['fhenaddress'] = $enaddress;  //英文
+        //             }
+                   
+                    
+                    
+        //             $item['sjname'] = $item['address']['name'];
+        //             $item['sjenname'] = pinyin::getPinyin($item['address']['name']);
+        //             $item['sjcity'] = $item['address']['city'];
+        //             $item['sjphone'] = $item['address']['phone'];
+        //             $item['sjaddress'] = $item['address']['detail'];
+        //             $item['sjenaddress'] = pinyin::getPinyin($item['address']['detail']);  //英文
+        //             $sjaddress= $BaiduTextTran->gettexttrans($item['address']['detail'])['result']['trans_result'][0]['dst'];
+        //             if(!empty($sjaddress)){
+        //                 $item['sjenaddress'] = $sjaddress;  //英文
+        //             }
+        //             return $item;
+        //         }); 
+        // }
+        //   $op = 0;
+        //   foreach ($data as $value){
+        //       if(count($value['packdata'])>0){
+        //                 foreach ($value['packdata'] as $key=> $val){
+        //                     if(count($val['category_attr'])>0){
+        //                         foreach ($val['category_attr'] as $k=> $v){
+        //                             $datas[$op]['weightkg'] = $value['weightkg'];
+        //                             $datas[$op]['categoryname'] = $value['categoryname'];
+        //                             $datas[$op]['trademode'] = $value['trademode'];
+        //                             $datas[$op]['taxexemptionnature'] = $value['taxexemptionnature'];
+        //                             $datas[$op]['currency'] = $value['currency'];
+        //                             $datas[$op]['BusinessUnitCode'] = $value['BusinessUnitCode'];
+        //                             $datas[$op]['cardnumber'] = $value['cardnumber'];
+        //                             $datas[$op]['linkman'] = $value['linkman'];
+        //                             $datas[$op]['enlinkman'] = $value['enlinkman'];
+        //                             $datas[$op]['fhcity'] = $value['fhcity'];
+        //                             $datas[$op]['enfhcity'] = $value['enfhcity'];
+        //                             $datas[$op]['fhphone'] = $value['fhphone'];
+        //                             $datas[$op]['fhaddress'] = $value['fhaddress'];
+        //                             $datas[$op]['fhenaddress'] = $value['fhenaddress'];
+        //                             $datas[$op]['sjname'] = $value['sjname'];
+        //                             $datas[$op]['sjenname'] = $value['sjenname'];
+        //                             $datas[$op]['sjcity'] = $value['sjcity'];
+        //                             $datas[$op]['sjphone'] = $value['sjphone'];
+        //                             $datas[$op]['sjaddress'] = $value['sjaddress'];
+        //                             $datas[$op]['sjenaddress'] = $value['sjenaddress'];
+        //                             $datas[$op]['t_order_sn'] = $value['t_order_sn'];
+                                    
+        //                             $datas[$op]['goods_name'] = $v['goods_name'];
+        //                             $datas[$op]['class_name_en'] = $v['class_name_en'];
+        //                             $datas[$op]['barcode'] = $v['barcode'].' ';
+        //                             $datas[$op]['origin_region'] = $v['origin_region'];
+        //                             $datas[$op]['spec'] = $v['spec'];
+        //                             $datas[$op]['one_price'] = $v['one_price'];
+        //                             $datas[$op]['product_num'] = $v['product_num'];
+        //                             $datas[$op]['unit_weight'] = $v['unit_weight'];
+        //                             $datas[$op]['net_weight'] = $v['net_weight'];
+        //                             $op=$op+1;
+        //                         }
+        //                     }
+        //                 }
+        //             }
+                       
+        //   }
+        //   dump($datas[0]['class_name_en']);dump($datas[1]['class_name_en']);die;
+          $style_Array=array(
+            'font'    => array (
+               'bold'      => true
+              ),
+             'alignment' => array (
+                      'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+               ),
+              'borders' => array (
+                   'top'     => array (
+                           'style' => \PHPExcel_Style_Border::BORDER_THIN
+                       )
+                ),
+          );
+
+        $objPHPExcel->setActiveSheetIndex(0);
+        $objPHPExcel->getActiveSheet()->getStyle( 'A4:H4')->applyFromArray($style_Array);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:H')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        //第一行的样式
+        $objPHPExcel->getActiveSheet()->setCellValue('A1','***　INVOICE　***');
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(24);
+        $objPHPExcel->getActiveSheet()->mergeCells('A1:H1');
+        $objPHPExcel->getActiveSheet()->getRowDimension('1')->setRowHeight(36);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('A')->setWidth(20);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('B')->setWidth(20);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('C')->setWidth(40);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('H')->setWidth(10);
+        
+        //第二行的样式
+        $objPHPExcel->getActiveSheet()->mergeCells('A2:C2');
+        $objPHPExcel->getActiveSheet()->mergeCells('D2:G2');
+        $objPHPExcel->getActiveSheet()->getRowDimension('2')->setRowHeight(136);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('B2:G2')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+        $objPHPExcel->getActiveSheet()->setCellValue('A2','Shipper         
+                Company name: CO., LTD.                                                                                                       Address:  
+                Contact name: 
+                Phone:                                                                                                                       法人番号: ');
+                
+        //第三行的样式
+        $objPHPExcel->getActiveSheet()->mergeCells('A3:C3');
+        $objPHPExcel->getActiveSheet()->mergeCells('D3:G3');
+        $objPHPExcel->getActiveSheet()->getRowDimension('3')->setRowHeight(136);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('B3:G3')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+        $objPHPExcel->getActiveSheet()->setCellValue('A3','CONSIGNEE: ATTN:');        
+        
+        //第四行的样式
+        $objPHPExcel->getActiveSheet()->setCellValue('A4','Port of Loading');
+        $objPHPExcel->getActiveSheet()->setCellValue('B4','KIX');
+        $objPHPExcel->getActiveSheet()->mergeCells('E4:F4');
+        $objPHPExcel->getActiveSheet()->mergeCells('G4:H4');
+        $objPHPExcel->getActiveSheet()->setCellValue('E4','G.Total');
+        $objPHPExcel->getActiveSheet()->setCellValue('G4','￥683,684');
+        
+        //第五行的样式
+        $objPHPExcel->getActiveSheet()->setCellValue('A5','Port of Discharge');
+        $objPHPExcel->getActiveSheet()->setCellValue('B5','WEH');
+        $objPHPExcel->getActiveSheet()->mergeCells('E5:F5');
+        $objPHPExcel->getActiveSheet()->mergeCells('G5:H5');
+        $objPHPExcel->getActiveSheet()->setCellValue('E5','Mode of TPT');
+        $objPHPExcel->getActiveSheet()->setCellValue('G5','AVIATION');
+        
+        //第六行的样式
+        $objPHPExcel->getActiveSheet()->setCellValue('A6','Vessel / Voy .');
+        $objPHPExcel->getActiveSheet()->mergeCells('A6:B6');
+        $objPHPExcel->getActiveSheet()->mergeCells('E5:F5');
+        $objPHPExcel->getActiveSheet()->mergeCells('G5:H5');
+        $objPHPExcel->getActiveSheet()->setCellValue('E5','Term');
+        $objPHPExcel->getActiveSheet()->setCellValue('G5','CIF');
+        
+        $objPHPExcel->setActiveSheetIndex(0)
+                ->setCellValue('A7', 'JAN CODE')
+                ->setCellValue('B7', 'Classify')
+                ->setCellValue('C7', 'Description')
+                ->setCellValue('D7', 'CO')
+                ->setCellValue('E7', 'QTY')
+                ->setCellValue('F7', 'UNIT')
+                ->setCellValue('G7', 'UNIT PRICE')
+                ->setCellValue('H7', 'S.TOTAL');
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A7::H7')
+            ->setARGB('FFFF0000');
+
+        //7.设置保存的Excel表格名称
+        //8.设置当前激活的sheet表格名称；
+        $objPHPExcel->getActiveSheet()->setTitle('INVOICE');
+        
         //9.设置浏览器窗口下载表格
         $filename = "清关包裹"  . rand(1000000, 9999999) . ".xlsx";
         // $objWriter = new \PHPExcel_Writer_Excel5($objPHPExcel);

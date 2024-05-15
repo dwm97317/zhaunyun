@@ -10,25 +10,30 @@ use app\common\exception\BaseException;
  * Class wechat
  * @package app\library
  */
-class BaiduAddress extends BaiduBase
+class BaiduTextTran extends BaiduBase
 {
     /**
      * 百度文字识别-标准文字识别
      * Class wechat
      * @package app\library
      */
-    public function getaddress($text){
+    public function gettexttrans($text){
         $token = $this->getAccessToken();
+        $formData = json_encode([
+            'from' => 'zh',
+            'to' => 'en',
+            'q' => $text,
+        ]);
         $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://aip.baidubce.com/rpc/2.0/nlp/v1/address?access_token={$token}",
+            CURLOPT_URL => "https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1?access_token={$token}",
             CURLOPT_TIMEOUT => 30,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER  => false,
             CURLOPT_SSL_VERIFYHOST  => false,
             CURLOPT_CUSTOMREQUEST => 'POST',
             
-            CURLOPT_POSTFIELDS => '{"text":"'.$text.'"}',
+            CURLOPT_POSTFIELDS =>$formData,
     
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json',

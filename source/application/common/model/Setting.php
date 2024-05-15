@@ -762,7 +762,7 @@ class Setting extends BaseModel
                         'outwarehouse' => [
                             'is_enable' => '0',
                             'template_id' => '',
-                            'keywords' => ['first', 'keyword1', 'keyword2', 'keyword3','keyword4','keyword5','remark'],
+                            'keywords' => ['character_string1', 'character_string2', 'thing3', 'time4','phrase5'],
                         ],
                         //订单支付成功提醒
                         'paysuccess' => [

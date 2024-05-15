@@ -539,6 +539,11 @@
                                             </a>
                                             <?php endif ;?>
                                         </div>
+                                        <div class="tpl-table-black-operation" style="margin-top:10px">
+                                            <a class='tpl-table-black-operation-green j-invoice' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
+                                                <i class="iconfont icon-daochu"></i> 导出INVOICE
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1230,6 +1235,31 @@
 					})
 				});
 				
+				
+				/**
+				 * 导出包裹
+				 */
+				$('.j-invoice').on('click', function() {
+					var $tabs, data = $(this).data();
+				console.log(data,999)
+					$.ajax({
+						type: 'post',
+						url: "<?= url('store/trOrder/invoice') ?>",
+						data: {
+							id: data.id,
+						},
+						dataType: "json",
+						success: function(res) {
+							if (res.code == 1) {
+								console.log(res.url.file_name);
+								var a = document.createElement('a');
+								document.body.appendChild(a);
+								a.href = res.url.file_name;
+								a.click();
+							}
+						}
+					})
+				});
 				
         
         
