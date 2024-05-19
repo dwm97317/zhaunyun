@@ -88,6 +88,10 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                                 <i class="iconfont icon-755danzi "></i> 物流更新
                                             </a>
                                             <?php endif; ?>
+                                            
+                                            <a class='tpl-table-black-operation-green j-invoice' href="javascript:void(0);" data-id="<?= $item['batch_id'] ?>">
+                                                <i class="iconfont icon-daochu"></i> 导出INVOICE
+                                            </a>
                                         </div>
                                         <div style="margin-top:10px;" class="tpl-table-black-operation">
                                             <?php if (checkPrivilege('batch/batchvsinpack')): ?>
@@ -100,6 +104,10 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                             查看批次包裹
                                             </a>
                                             <?php endif; ?>
+                                            
+                                            <a class='tpl-table-black-operation-green j-clearance' href="javascript:void(0);" data-id="<?= $item['batch_id'] ?>">
+                                                <i class="iconfont icon-daochu"></i> 导出清关模板
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -168,6 +176,56 @@ use app\common\enum\BatchType as BatchTypeEnum;
         $('.item-delete').delete('batch_id', url, '删除后不可恢复，确定要删除吗？');
         
     });
+    
+	
+	/**
+	 * 导出包裹
+	 */
+	$('.j-invoice').on('click', function() {
+		var $tabs, data = $(this).data();
+		$.ajax({
+			type: 'post',
+			url: "<?= url('store/trOrder/batchinvoice') ?>",
+			data: {
+				id: data.id,
+			},
+			dataType: "json",
+			success: function(res) {
+				if (res.code == 1) {
+					console.log(res.url.file_name);
+					var a = document.createElement('a');
+					document.body.appendChild(a);
+					a.href = res.url.file_name;
+					a.click();
+				}
+			}
+		})
+	});
+	
+	
+	/**
+	 * 导出集运清关文件
+	 */
+	$('.j-clearance').on('click', function() {
+		var $tabs, data = $(this).data();
+		$.ajax({
+			type: 'post',
+			url: "<?= url('store/trOrder/batchclearance') ?>",
+			data: {
+			    id: data.id,
+			},
+			dataType: "json",
+			success: function(res) {
+				if (res.code == 1) {
+					console.log(res.url.file_name);
+					var a = document.createElement('a');
+					document.body.appendChild(a);
+					a.href = res.url.file_name;
+					a.click();
+				}
+			}
+		})
+	});
     
     /**
      * 批量手动更新物流信息

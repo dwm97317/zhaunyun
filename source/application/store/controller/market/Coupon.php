@@ -122,7 +122,6 @@ class Coupon extends Controller
         $model = new UserCouponModel;
         $set = Setting::detail('store')['values'];
         $list = $model->getList($query);
-        // dump($list->toArray());die;
         return $this->fetch('receive', compact('list','set'));
     }
 

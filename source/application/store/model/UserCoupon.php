@@ -24,6 +24,7 @@ class UserCoupon extends UserCouponModel
         return $this->alias('coupon')
             ->with(['user','coupon'])
             ->field('coupon.*')
+            ->where('coupon.is_delete',0)
             ->join('user','user.user_id = coupon.user_id','left')
             ->order(['coupon.create_time' => 'desc'])
             ->paginate(15, false, [

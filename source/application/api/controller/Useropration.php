@@ -97,9 +97,6 @@ class Useropration extends Controller
     
     // 仓库打包员 打包列表
     public function inpack(){
-        if (!$this->checkRole(3)){
-          return $this->renderError('角色权限非法');
-        }
          // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         $status_map = [
@@ -160,10 +157,6 @@ class Useropration extends Controller
     
     // 海外入库员 - 入库校验
     public function checkzPack(){
-        if (!$this->checkRole(6)){
-            return $this->renderError('角色权限非法');
-        }
-        
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->with('storage')->find();
         if (!$clerk){
@@ -228,11 +221,6 @@ class Useropration extends Controller
      * @throws \think\exception\DbException
      */
     public function inzyStoragePlus() {
-        
-        //检验入库人员权限 1 入库员 2分拣 3打包 4 签收 5仓管
-        if (!$this->checkRole(6)){
-            return $this->renderError('角色权限非法');
-        }
         // 员工信息
        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->with('shop')->find();
        if (!$clerk){return $this->renderError('角色权限非法');}
@@ -392,9 +380,6 @@ class Useropration extends Controller
 
     // 仓库打包员 打包列表
     public function inpackTotal(){
-      if (!$this->checkRole(3)){
-        return $this->renderError('角色权限非法');
-      }
        // 员工信息
       $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
       if (!$clerk){
@@ -499,9 +484,6 @@ class Useropration extends Controller
 
     // 仓库分拣员 - 扫货架码
     public function getShelf(){
-        if (!$this->checkRole(2)){
-            return $this->renderError('角色权限非法');
-        }
         $code = $this->postData('code')[0];
         
         $shelfUnit = (new ShelfUnit())->where(['shelf_unit_code'=>$code])->find();
@@ -521,9 +503,6 @@ class Useropration extends Controller
      * @throws \think\exception\DbException
      */
     public function searchPack(){
-        if (!$this->checkRole(4)){
-            return $this->renderError('角色权限非法');
-        }
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         
         $code = $this->postData()['search'];
@@ -577,9 +556,6 @@ class Useropration extends Controller
      * @throws \think\exception\DbException
      */
     public function changeStatusByAdmin(){
-        if (!$this->checkRole(4)){
-            return $this->renderError('角色权限非法');
-        }
         $id = $this->postData()['id'];
         if(!$id){
              return $this->renderError('参数错误');
@@ -608,30 +584,9 @@ class Useropration extends Controller
         (new ShelfUnitItem())->where(['pack_id'=>$packData['order_sn']])->delete();
         return $this->renderSuccess('',"操作成功");
     }
-
-    /**
-     * 检查权限是否非法
-     * @param int $payType
-     * @return bool
-     * @throws \think\exception\DbException
-     */
-    public function checkRole($role){
-        $currentUserRole = $this->userRole;
-        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
-        $clerk_type = explode(',',$clerk['clerk_type']);
-        if (in_array($role,$clerk_type)){
-            return true; 
-        }else{
-            return false;
-        }
-    }
      
     // 仓管员 - 入库校验
     public function checkPack(){
-        if (!$this->checkRole(1)){
-            return $this->renderError('角色权限非法');
-        }
-        
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->with('storage')->find();
         if (!$clerk){
@@ -704,11 +659,6 @@ class Useropration extends Controller
      * @throws \think\exception\DbException
      */
     public function inStoragePlus() {
-        
-        //检验入库人员权限 1 入库员 2分拣 3打包 4 签收 5仓管
-        if (!$this->checkRole(1)){
-            return $this->renderError('角色权限非法');
-        }
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->with('shop')->find();
         if (!$clerk){return $this->renderError('角色权限非法');}
@@ -1010,9 +960,6 @@ class Useropration extends Controller
     // 仓管端提交入库
     public function instorage() {
         $packItemModel = new PackageItemModel();
-        if (!$this->checkRole(1)){
-            return $this->renderError('角色权限非法');
-        }
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
       
@@ -1302,9 +1249,6 @@ class Useropration extends Controller
      * @throws \think\exception\DbException
      */
     public function packlist(){
-        if (!$this->checkRole(1)){
-           return $this->renderError('角色权限非法');
-        }
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         if (!$clerk){
@@ -1331,9 +1275,6 @@ class Useropration extends Controller
 
     // 包裹详情
     public function packdetails(){
-          if (!$this->checkRole(1)){
-            return $this->renderError('角色权限非法');
-          }
           // 员工信息
           $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
           if (!$clerk){
@@ -1354,9 +1295,6 @@ class Useropration extends Controller
     
     // 获取包裹详情
     public function getdetails(){
-          if (!$this->checkRole(1)){
-            return $this->renderError('角色权限非法');
-          }
           // 员工信息
           $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
           if (!$clerk){
@@ -1419,9 +1357,6 @@ class Useropration extends Controller
         if (!$clerk){
             return $this->renderError('角色权限非法');
         }
-        if (!$this->checkRole(4)){
-            return $this->renderError('角色权限非法');
-        }
         $status = $this->postData('status')[0]?$this->postData('status')[0]:1;
         $keyword = $this->postData('keyword')[0];
         $map = ['is_take'=>2,'source'=>7,'status'=>$status,'keyword'=>$keyword,'storage_id'=>$clerk['shop_id']];
@@ -1439,9 +1374,6 @@ class Useropration extends Controller
      * @throws \think\exception\DbException
      */
      public function waitPickPackTotal(){
-        if (!$this->checkRole(4)){
-            return $this->renderError('角色权限非法');
-        }
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         if (!$clerk){
@@ -1464,9 +1396,6 @@ class Useropration extends Controller
      * @throws \think\exception\DbException
      */
     public function waitPickPack(){
-        if (!$this->checkRole(4)){
-            return $this->renderError('角色权限非法');
-        }
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         if (!$clerk){
             return $this->renderError('角色权限非法');
@@ -1495,9 +1424,6 @@ class Useropration extends Controller
      * @throws \think\exception\DbException
      */
      public function appointmentTotal(){
-        if (!$this->checkRole(4)){
-            return $this->renderError('角色权限非法');
-        }
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         if (!$clerk){
@@ -1694,9 +1620,6 @@ class Useropration extends Controller
      * @throws \think\exception\DbException
      */
      public function appointmentToShop(){
-        if (!$this->checkRole(4)){
-            return $this->renderError('角色权限非法');
-        }
         $packModel = (new Package());
         $data = $this->postData();
         $res = $packModel->where('id',$data['id'])->update(['status'=>2]);
@@ -1743,9 +1666,6 @@ class Useropration extends Controller
     }
 
     public function loadingpackTotal(){
-        if (!$this->checkRole(2)){
-            return $this->renderError('角色权限非法');
-        }
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         if (!$clerk){
@@ -1767,9 +1687,6 @@ class Useropration extends Controller
     public function packageMove(){
         $id = $this->postData('id')[0];
         $shelf_unit_id = $this->postData('shelf_unit_id')[0];
-        if (!$this->checkRole(2)){
-            return $this->renderError('角色权限非法');
-        }
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         if (!$clerk){
@@ -1819,9 +1736,6 @@ class Useropration extends Controller
     
       // 分拣员 - 分拣下架
     public function checkDownShelf(){
-      if (!$this->checkRole(2)){
-          return $this->renderError('角色权限非法');
-      }
       // 员工信息
       $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
       if (!$clerk){
@@ -1867,9 +1781,6 @@ class Useropration extends Controller
     
     // 拣货详情
     public function loadingpackdetails(){
-        if (!$this->checkRole(2)){
-          return $this->renderError('角色权限非法');
-        }
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         if (!$clerk){
@@ -2020,9 +1931,6 @@ class Useropration extends Controller
      * param：$status
      */
     public function changeOrderStatus($id,$status){
-        if (!$this->checkRole(3)){
-          return $this->renderError('角色权限非法');
-        }
         $inpack= new Inpack();
         $res = $inpack->where('id',$id)->update(['status' => $status,'pick_time' => getTime()]);
         if($res){
@@ -2034,19 +1942,6 @@ class Useropration extends Controller
         
          $packData = $inpack::detail($id);
          $clerk = (new Clerk())->where('shop_id',$packData['storage_id'])->where(['send_status'=>0,'is_delete' => 0])->select();
-            //  if(!empty($clerk)){
-            //     $data['order_sn'] = $packData['order_sn'];
-            //     $data['order'] = $packData;
-            //     $data['order']['total_free'] = $packData['free'];
-            //     $data['order']['userName'] = $this->user['nickName'];
-            //     $data['order_type'] = 10;
-            //     $data['order']['remark'] = "包裹已封箱完成，请尽快安排发货";
-            //       foreach ($clerk as $key => $val){
-            //           $data['clerkid'] = $val['user_id'];
-            //           Message::send('order.payment',$data);   
-            //       }
-            // }
-            
             //通知用户付款
             $noticesetting = SettingModel::getItem('notice');
             // dump($noticesetting);die;
@@ -2058,6 +1953,7 @@ class Useropration extends Controller
             $packData['remark']= $noticesetting['check']['describe'];
             $packData['total_free'] = $packData['free']+$packData['other_free']+$packData['pack_free'];
             Message::send('order.payment',$packData);
+            Logistics::addrfidLog($packData['order_sn'],$noticesetting['check']['describe'],getTime(),$clerkdd['clerk_id']);
             //发送邮件通知
             if(isset($packData['member_id']) || !empty($packData['member_id'])){
                 $EmailUser = UserModel::detail($packData['member_id']);
@@ -2083,9 +1979,6 @@ class Useropration extends Controller
 
     // 分拣员 - 分拣上架
     public function checkUpShelf(){
-        if (!$this->checkRole(2)){
-          return $this->renderError('角色权限非法');
-        }
         $id = $this->postData('id')[0];
         $shelf_id = $this->postData('shelf_id')[0];
         $length = $this->postData('length')[0];
@@ -2127,9 +2020,6 @@ class Useropration extends Controller
     
     // 分拣员 - 查询用户的包裹所在的货架id
     public function searchuserShelf(){
-        if (!$this->checkRole(2)){
-          return $this->renderError('角色权限非法');
-        }
         $settingdata  = SettingModel::getItem('store');
         $user_id = $this->postData('user_id')[0];
         if($settingdata['usercode_mode']['is_show']==1){
@@ -2155,9 +2045,6 @@ class Useropration extends Controller
     }
 
     public function createdOrderByScan(){
-      if (!$this->checkRole(3)){
-          return $this->renderError('角色权限非法');
-      }
        // 员工信息
       $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
       if (!$clerk){
@@ -2192,9 +2079,6 @@ class Useropration extends Controller
 
     // 仓库打包员 封箱
     public function createdOrder(){
-        if (!$this->checkRole(3)){
-          return $this->renderError('角色权限非法');
-        }
          // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         if (!$clerk){

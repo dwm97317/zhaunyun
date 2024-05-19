@@ -135,7 +135,7 @@ class User extends Controller
             $userInfo['is_sharp'] = 4;
         }
         $userInfo['sms'] = (new SiteSmsModel())->where('user_id',$userInfo['user_id'])->where('is_read',0)->count();
-        $userInfo['coupon'] = (new UserCoupon())->where('user_id',$userInfo['user_id'])->where('is_use',0)->where('is_expire',0)->count();
+        $userInfo['coupon'] = (new UserCoupon())->where('user_id',$userInfo['user_id'])->where('is_use',0)->where('is_expire',0)->where('is_delete',0)->count();
         return $this->renderSuccess(compact('userInfo'));
     }
     

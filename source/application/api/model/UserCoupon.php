@@ -26,6 +26,7 @@ class UserCoupon extends UserCouponModel
     {
         return $this->where('user_id', '=', $user_id)
             ->where('is_use', '=', $is_use ? 1 : 0)
+            ->where('is_delete',0)
             ->where('is_expire', '=', $is_expire ? 1 : 0)
             ->select();
     }
