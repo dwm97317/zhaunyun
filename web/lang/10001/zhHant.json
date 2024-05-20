@@ -39,7 +39,8 @@
 		"capyWechat": "復製微信",
 		"mailboxNumber": "郵箱號",
 		"copyMailbox": "復製郵箱",
-		"ISee": "我知道了"
+		"ISee": "我知道了",
+		"sitemessage":"站内消息通知"
 	},
 	"page_chaxun": {
 		"inquire": "查詢",

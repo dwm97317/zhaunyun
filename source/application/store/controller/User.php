@@ -100,8 +100,8 @@ class User extends Controller
         $detail = $model::detail($user_id);
         // dump($detail);die;
         $set = Setting::detail('store')['values']['usercode_mode'];
-        $service = $Clerk->where('FIND_IN_SET(:ids,clerk_type)', ['ids' => 7])->select();
-        // dump($service);die;
+        $service = $Clerk->where('clerk_authority','like','%is_myuser%')->where('clerk_authority','like','%is_myuserpackage%')->where('is_delete',0)->select();
+        // dump($service->toArray());die;
         if (!$this->request->isAjax()) {
             return $this->fetch('user/user/edit',compact('detail','set','service'));
         }

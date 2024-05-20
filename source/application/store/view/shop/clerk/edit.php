@@ -191,6 +191,24 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 客服人员 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="clerk[clerk_authority][is_myuser]" value="1" data-am-ucheck
+                                        <?= isset($model['clerk_authority']['is_myuser']) && $model['clerk_authority']['is_myuser'] == 1 ? 'checked' : '' ?>>
+                                        我的客户
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="clerk[clerk_authority][is_myuserpackage]" value="1" data-am-ucheck
+                                        <?= isset($model['clerk_authority']['is_myuserpackage']) && $model['clerk_authority']['is_myuserpackage'] == 1 ? 'checked' : '' ?>>
+                                        客户包裹
+                                    </label>
+                                    <div class="help-block">
+                                        <small>客服人员可以查看自己发展的客户的包裹情况和查看客户基本信息;</small>
+                                    </div>
+                                </div>
+                            </div>
                             <!--<div class="am-form-group">-->
                             <!--    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 监管仓 </label>-->
                             <!--    <div class="am-u-sm-9 am-u-end">-->

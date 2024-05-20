@@ -2098,7 +2098,7 @@ class Package extends Controller
      public function details_pack(){
         $field_group = [
            'edit' => [
-              'id,order_sn,pack_ids,storage_id,free,pack_free,other_free,address_id,weight,cale_weight,volume,length,width,height,status,line_id,remark,country_id,t_order_sn,user_coupon_id,user_coupon_money,pay_type,is_pay,is_pay_type'
+              'id,insure_free,order_sn,pack_ids,storage_id,free,pack_free,other_free,address_id,weight,cale_weight,volume,length,width,height,status,line_id,remark,country_id,t_order_sn,user_coupon_id,user_coupon_money,pay_type,is_pay,is_pay_type'
            ],
         ];
         $id = \request()->post('id');
@@ -2129,7 +2129,7 @@ class Package extends Controller
             $data['line'] = (new Line())->field('id,name,limitationofdelivery,image_id')->find($data['line_id']);
             $data['line'] = $this->withImageById($data['line'],'image_id');
         }
-        $data['free_total'] = round($data['free'] + $data['pack_free'] + $data['other_free'],2);
+        $data['free_total'] = round($data['free'] + $data['pack_free'] + $data['other_free'] + $data['insure_free'],2);
         $data['fyouhui_total'] = $this->UseConponPrice($couponId,$data['free_total']);
         $data['item'] = $package;
         if (isset($data['line']['image'])){

@@ -39,7 +39,8 @@
 		"capyWechat": "复制微信",
 		"mailboxNumber": "邮箱号",
 		"copyMailbox": "复制邮箱",
-		"ISee": "我知道了"
+		"ISee": "我知道了",
+		"sitemessage":"站内消息通知"
 	},
 	"page_chaxun": {
 		"inquire": "查询",

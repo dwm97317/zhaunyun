@@ -521,14 +521,6 @@ return [
                 'name' => '消息推送',
                 'submenu' => [
                     [
-                        'name' => '发送消息',
-                        'index' => 'market.push/send',
-                    ],
-                    [
-                        'name' => '活跃用户',
-                        'index' => 'market.push/user',
-                    ],
-                    [
                         'name' => '站内信',
                         'index' => 'market.push/sendsms'
                     ],

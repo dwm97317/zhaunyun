@@ -168,6 +168,14 @@ class User extends Controller
         return $this->renderSuccess(compact('data'));
     }
     
+    //首页弹出站内消息
+    public function getsmslist(){
+        $userInfo = $this->getUser();
+        $model = new SiteSmsModel;
+        $data = $model->getOne(['member_id'=>$userInfo['user_id']]);
+        return $this->renderSuccess(compact('data'));
+    }
+    
     //更新用户昵称
     public function changeName(){
         $user = $this->getUser();
