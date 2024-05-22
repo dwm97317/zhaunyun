@@ -293,6 +293,9 @@ class Page extends Controller
         if(!empty($store['userclient']['guide']['third_image'])){
              $store['userclient']['guide']['third_image'] = UploadFile::detail($store['userclient']['guide']['third_image'])['file_path'];
         }
+        if(!empty($store['userclient']['officialaccount']['official_image'])){
+             $store['userclient']['officialaccount']['official_image'] = UploadFile::detail($store['userclient']['officialaccount']['official_image'])['file_path'];
+        }
         $store['copyright']= WxappModel::detail(input('wxapp_id'));
         $store['paytype']= SettingModel::detail('paytype')['values'];
         $store['keeper']= SettingModel::detail('keeper')['values'];

@@ -2440,6 +2440,7 @@ class TrOrder extends Controller
            $data = (new Inpack())->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
                     $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
                     $item['t_name'] = (new Line())->where('id',$item['line_id'])->value('name');
+                    $item['total_free'] = $item['free']+ $item['pack_free'] +$item['other_free'] +$item['insure_free'];
                     
                     //集运单包裹中的物品分类和价格
                     $packdata = explode(",",$item['pack_ids']);
@@ -2492,7 +2493,7 @@ class TrOrder extends Controller
                  $where['express_num'] = $seach['express_num'];  //快递单号
             }
             $data =(new Inpack())->where($where)->select()->each(function ($item, $key) use($map){
-                    
+                    $item['total_free'] = $item['free']+ $item['pack_free'] +$item['other_free'] +$item['insure_free'];
                     $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
                     //判断是否有优惠折扣
                     $discountData = (new UserLine())->where(['user_id'=>$item["user"]['user_id'],'line_id'=>$item['line_id']])->find();
@@ -2600,8 +2601,8 @@ class TrOrder extends Controller
             $objPHPExcel->getActiveSheet()->setCellValue('B'.($i+5),$data[$i]['t_name']);//集运路线
             $objPHPExcel->getActiveSheet()->setCellValue('C'.($i+5),$data[$i]['order_sn'].' ');//平台订单号
             $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+5),$data[$i]['address']['country']);//目的地
-            $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+5),$data[$i]['weight']);//重量
-            $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+5),$data[$i]['free']);//标准价
+            $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+5),$data[$i]['cale_weight']?$data[$i]['cale_weight']:$data[$i]['weight']);//重量
+            $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+5),$data[$i]['total_free']);//标准价
             $objPHPExcel->getActiveSheet()->setCellValue('G'.($i+5),$data[$i]['packClass']);//快递类别  ***********
             $objPHPExcel->getActiveSheet()->setCellValue('H'.($i+5),$data[$i]['packprice']);//标准价 ***********
             $objPHPExcel->getActiveSheet()->setCellValue('I'.($i+5),$data[$i]['user']['user_id']);//用户id

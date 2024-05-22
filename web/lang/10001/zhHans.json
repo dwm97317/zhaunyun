@@ -22,6 +22,7 @@
 	  "please_enter_goodsname":"请输入物品名称"
     },
 	"page_index": {
+	    "guanzhu":"关注",
 		"bestRoute": "最佳路线",
 		"allRoute":"所有路线",
 		"aging": "时效",

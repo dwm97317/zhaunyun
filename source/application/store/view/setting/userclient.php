@@ -1097,6 +1097,93 @@
                                     <small>注意：小程序内部链接使用链接库中的<a target="_blank" href="index.php?s=/store/wxapp.page/links">点击打开链接库</a></small>
                                 </div>
                             </div>
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">引导用户关注公众号</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否在首页开启
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[officialaccount][is_index_open]" value="1"
+                                               data-am-ucheck  <?= $values['officialaccount']['is_index_open'] == 1 ? 'checked' : '' ?>>
+                                        默认
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[officialaccount][is_index_open]" value="0"
+                                               data-am-ucheck <?= $values['officialaccount']['is_index_open'] == 0 ? 'checked' : '' ?>>
+                                        自定义
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否在个人中心开启
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[officialaccount][is_my_open]" value="1"
+                                               data-am-ucheck  <?= $values['officialaccount']['is_my_open'] == 1 ? 'checked' : '' ?>>
+                                        默认
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[officialaccount][is_my_open]" value="0"
+                                               data-am-ucheck <?= $values['officialaccount']['is_my_open'] == 0 ? 'checked' : '' ?>>
+                                        自定义
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 公众号名称 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[officialaccount][name]"
+                                           value="<?= $values['officialaccount']['name'] ?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 公众号描述 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[officialaccount][description]"
+                                           value="<?= $values['officialaccount']['description'] ?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 引导关注链接 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[officialaccount][link]"
+                                           value="<?= $values['officialaccount']['link'] ?>" required>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>请使用公众号文章的短链接：如：https://mp.weixin.qq.com/s/NsFDr3-2ixx6P5i_Eeumbg</small>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label">公众号缩略图 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <button type="button"
+                                                class="upload-file4 am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择图片
+                                        </button>
+                                        <div class="uploader-list am-cf">
+                                                <div class="file-item">
+                                                    <a href="<?= isset($values['officialaccount']['official_image'])?$values['officialaccount']['official_image_path']:'' ?>"
+                                                       title="点击查看大图" target="_blank">
+                                                        <img src="<?= isset($values['officialaccount']['official_image_path'])?$values['officialaccount']['official_image_path']:'' ?>">
+                                                    </a>
+                                                    <input type="hidden" name="userclient[officialaccount][official_image]" value="<?=$values['officialaccount']['official_image'] ?>">
+                                                    <i class="iconfont icon-shanchu file-item-delete"></i>
+                                                </div>
+                                        </div>
+                                        <div class="help-block am-u-sm-12">
+                                        <small>图片比例宽高比3:5,像素160*250</small>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
@@ -1149,6 +1236,10 @@
         });
         $('.upload-file3').selectImages({
             name: 'userclient[guide][third_image]'
+        });
+        
+        $('.upload-file4').selectImages({
+            name: 'userclient[officialaccount][official_image]'
         });
     });
 </script>
