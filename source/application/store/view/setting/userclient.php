@@ -1109,12 +1109,12 @@
                                     <label class="am-radio-inline">
                                         <input type="radio" name="userclient[officialaccount][is_index_open]" value="1"
                                                data-am-ucheck  <?= $values['officialaccount']['is_index_open'] == 1 ? 'checked' : '' ?>>
-                                        默认
+                                        开启
                                     </label>
                                     <label class="am-radio-inline">
                                         <input type="radio" name="userclient[officialaccount][is_index_open]" value="0"
                                                data-am-ucheck <?= $values['officialaccount']['is_index_open'] == 0 ? 'checked' : '' ?>>
-                                        自定义
+                                        关闭
                                     </label>
                                 </div>
                             </div>
@@ -1126,12 +1126,12 @@
                                     <label class="am-radio-inline">
                                         <input type="radio" name="userclient[officialaccount][is_my_open]" value="1"
                                                data-am-ucheck  <?= $values['officialaccount']['is_my_open'] == 1 ? 'checked' : '' ?>>
-                                        默认
+                                        开启
                                     </label>
                                     <label class="am-radio-inline">
                                         <input type="radio" name="userclient[officialaccount][is_my_open]" value="0"
                                                data-am-ucheck <?= $values['officialaccount']['is_my_open'] == 0 ? 'checked' : '' ?>>
-                                        自定义
+                                        关闭
                                     </label>
                                 </div>
                             </div>
