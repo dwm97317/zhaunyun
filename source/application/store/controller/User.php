@@ -36,7 +36,7 @@ class User extends Controller
         $gradeList = GradeModel::getUsableList();
         //获取设置
         $set = Setting::detail('store')['values']['usercode_mode'];
-        $servicelist = $Clerk->where('FIND_IN_SET(:ids,clerk_type)', ['ids' => 7])->select();
+        $servicelist = $Clerk->where('clerk_authority','like','%is_myuser%')->where('clerk_authority','like','%is_myuserpackage%')->where('is_delete',0)->select();
         // 可以分发的优惠券
         $coupon = (new Coupon())->getAllList();
         $line = (new Line())->getListAll();
