@@ -28,6 +28,8 @@ use think\Request;
 use app\common\library\AITool\BaiduOcr;
 use app\api\model\User as UserModel;
 use app\common\model\AiLog;
+use app\common\service\Message;
+
 /**
  * 页面控制器
  * Class Index
@@ -118,6 +120,14 @@ class ApiPost extends Controller
                     'create_time'=>time()
                 ];
                 (new PackageImage())->save($imgdata);
+            }
+            $tplmsgsetting = SettingModel::getItem('tplMsg');
+            if($tplmsgsetting['is_oldtps']==1){
+              //发送旧版本订阅消息以及模板消息
+              $sub = $this->sendEnterMessage([$result]);
+            }else{
+              //发送新版本订阅消息以及模板消息
+              Message::send('package.inwarehouse',$result);
             }
             return $this->renderSuccess("更新成功");
         }
@@ -211,6 +221,14 @@ class ApiPost extends Controller
                 ];
                 (new PackageImage())->save($imgdata);
             }
+            $tplmsgsetting = SettingModel::getItem('tplMsg');
+            if($tplmsgsetting['is_oldtps']==1){
+              //发送旧版本订阅消息以及模板消息
+              $sub = $this->sendEnterMessage([$result]);
+            }else{
+              //发送新版本订阅消息以及模板消息
+              Message::send('package.inwarehouse',$result);
+            }
             return $this->renderSuccess("更新成功");
         }
         $data = [
@@ -264,6 +282,14 @@ class ApiPost extends Controller
                 'volume'=>$param['volume'],
                 'entering_warehouse_time'=>getTime()
             ]);
+            $tplmsgsetting = SettingModel::getItem('tplMsg');
+            if($tplmsgsetting['is_oldtps']==1){
+              //发送旧版本订阅消息以及模板消息
+              $sub = $this->sendEnterMessage([$result]);
+            }else{
+              //发送新版本订阅消息以及模板消息
+              Message::send('package.inwarehouse',$result);
+            }
             return ['result'=>"true",'message'=>"入库成功"];
         }
         $data = [
@@ -483,6 +509,14 @@ class ApiPost extends Controller
                     'create_time'=>time()
                 ];
                 (new PackageImage())->save($imgdata);
+            }
+            $tplmsgsetting = SettingModel::getItem('tplMsg');
+            if($tplmsgsetting['is_oldtps']==1){
+              //发送旧版本订阅消息以及模板消息
+              $sub = $this->sendEnterMessage([$result]);
+            }else{
+              //发送新版本订阅消息以及模板消息
+              Message::send('package.inwarehouse',$result);
             }
             return $this->renderSuccess("更新成功");
         }

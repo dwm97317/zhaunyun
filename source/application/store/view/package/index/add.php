@@ -526,7 +526,7 @@ function getNowFormatDate() {
    function findusercode(){
             var usercode = $("#user_code")[0].value;
             console.log(34)
-            var op = '<option>不选择唛头</option>';
+            var op = '<option></option>';
              $.ajax({
                    type:'post',
                    url:"<?= url('store/user/findusercode') ?>",
@@ -556,7 +556,7 @@ function getNowFormatDate() {
 		
 		function finduser(){
             var member_id = $("#member_id")[0].value;
-            var op = '<option>不选择唛头</option>';
+            var op = '<option></option>';
              $.ajax({
                    type:'post',
                    url:"<?= url('store/user/findUserMark') ?>",
@@ -586,7 +586,7 @@ function getNowFormatDate() {
         
         function finduserWith(e){
             var member_id = e[0].user_id;
-            var op = '<option>不选择唛头</option>';
+            var op = '<option></option>';
              $.ajax({
                    type:'post',
                    url:"<?= url('store/user/findUserMark') ?>",

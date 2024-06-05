@@ -91,7 +91,7 @@ class Inwarehouse extends Basics
             'template_id' => $template['template_id'],
             'data' => [
                 $template['keywords'][0] => ['value' => '恭喜您'.$orderInfo['member_name']],
-                $template['keywords'][1] => ['value' => $orderInfo['shop_name']],
+                $template['keywords'][1] => ['value' => $this->getShopByShopId($orderInfo['storage_id'])],
                 $template['keywords'][2] => ['value' => $orderInfo['express_num']],
                 $template['keywords'][3] => ['value' => $orderInfo['entering_warehouse_time']],
                 $template['keywords'][4] => ['value' => $noticesetting['enter']['describe']],
@@ -107,7 +107,7 @@ class Inwarehouse extends Basics
                 'pagepath'=> "{$this->pageUrl[$orderType]}?id={$orderInfo['id']}&rtype=10"
             ],
             'data' => [
-                $template['keywords'][0] => ['value' => $orderInfo['shop_name']],
+                $template['keywords'][0] => ['value' => $this->getShopByShopId($orderInfo['storage_id'])],
                 $template['keywords'][1] => ['value' => $orderInfo['express_num']],
                 $template['keywords'][2] => ['value' => $orderInfo['entering_warehouse_time']],
                 $template['keywords'][3] => ['value' => ($orderInfo['weight']?$orderInfo['weight']:0).'kg'],
