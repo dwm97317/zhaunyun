@@ -691,7 +691,7 @@ class Useropration extends Controller
             //  dump($shelf_id);die;
        //$is_pre==0 为没有查询到包裹数据的情况，需要插入新数据
        if ($is_pre==0){
-            if ($user_id){
+           if ($user_id){
                 $user = (new UserModel())->find($user_id);
                 if (!$user)
                     return $this->renderError('用户不存在');
@@ -703,6 +703,31 @@ class Useropration extends Controller
                     return $this->renderError('用户不存在');}
                 $user_id = $users['user_id'];
             }
+           $packdatas = (new Package())->where('express_num',$express_num)->where('is_delete',0)->find();
+           if(!empty($packdatas)){
+              if($length>0 && $width>0 && $height>0){
+                 $volume = $width*$length*$height/1000000;
+              }
+              $packdatas->save([
+                'status'=>2,
+                'member_id'=> !empty($user_id)?$user_id:$packdatas['member_id'],
+                'source'=>8,
+                'storage_id'=>$clerk['shop_id'],
+                'is_take'=>!empty($user_id)?2:$packdatas['is_take'],
+                'entering_warehouse_time'=>getTime(),
+                'updated_time'=>getTime(),
+                'length'=>$length,
+                'width'=>$width,
+                'height'=>$height,
+                'admin_remark'=>$remark,
+                'usermark'=>$useremark,
+                'shelf_id'=>$shelf_id,
+                'weight'=>$weight,
+                'volume'=>isset($volume)?$volume:$packdatas['volume']
+              ]);
+              $restwo = $packdatas['id'];
+           }else{
+            
 
             $order['status'] = 2;
             $order['is_take'] = 1;
@@ -732,6 +757,7 @@ class Useropration extends Controller
             if (!$restwo){
                  return $this->renderError('包裹入库失败');
             }
+           }
             //存储包裹的分类信息；
             $classItem = [];
              if ($class_ids){
@@ -795,6 +821,7 @@ class Useropration extends Controller
             (new Printer())->printTicket($packagePrintData,10);
             Logistics::add2($restwo,'仓管员手动入库',$clerk['clerk_id']);
             return $this->renderSuccess('包裹入库成功');
+          
        }elseif($is_pre==10){
        //有对应数据情况下
        $data = (new Package())->find($id);
