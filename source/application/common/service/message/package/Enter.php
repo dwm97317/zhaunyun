@@ -86,8 +86,8 @@ class Enter extends Basics
             'touser' => $this->getGzhOpenidByUserId($this->param['order']['member_id']),
             'template_id' => $template['template_id'],
             'data' => [
-                $template['keywords'][0] => ['value' => '恭喜您'.$orderInfo['member_name']],
-                $template['keywords'][1] => ['value' => $orderInfo['shop_name']],
+                $template['keywords'][0] => ['value' => '恭喜您'.($this->getNickNameByUserId($this->param['order']['member_id']))],
+                $template['keywords'][1] => ['value' => $this->getShopByShopId($orderInfo['storage_id'])],
                 $template['keywords'][2] => ['value' => $orderInfo['express_num']],
                 $template['keywords'][3] => ['value' => $orderInfo['entering_warehouse_time']],
                 $template['keywords'][4] => ['value' => $noticesetting['enter']['describe']],
@@ -103,8 +103,8 @@ class Enter extends Basics
                 'pagepath'=> "{$this->pageUrl[$orderType]}?id={$orderInfo['id']}&rtype=10"
             ],
             'data' => [
-                $template['keywords'][0] => ['value' => '恭喜您'.$orderInfo['member_name']],
-                $template['keywords'][1] => ['value' => $orderInfo['shop_name']],
+                $template['keywords'][0] => ['value' => '恭喜您'.($this->getNickNameByUserId($this->param['order']['member_id']))],
+                $template['keywords'][1] => ['value' => $this->getShopByShopId($orderInfo['storage_id'])],
                 $template['keywords'][2] => ['value' => $orderInfo['express_num']],
                 $template['keywords'][3] => ['value' => $orderInfo['entering_warehouse_time']],
                 $template['keywords'][4] => ['value' => $noticesetting['enter']['describe']],
@@ -155,6 +155,10 @@ class Enter extends Basics
     
     public function getOpenidByUserId($user_id){
         return User::where(['user_id'=>$user_id])->value('open_id');
+    }
+    
+    public function getNickNameByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('nickName');
     }
     
     public function getUnionidByUserId($user_id){

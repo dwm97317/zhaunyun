@@ -24,6 +24,8 @@ use think\Db;
 use app\common\service\Email;
 use app\common\model\setting;
 use app\store\model\InpackService as InpackServiceModel;
+use app\common\service\package\Printer;
+
 /**
  * 包裹控制器
  * Class Package
@@ -209,6 +211,7 @@ class Newpack extends Controller
                     //          (new Email())->sendemail($EmailUser,$EmailData,$type=1);
                     //       }
                     //   }
+                    (new Printer())->printTicket($data,10);
                  }
                 
              }
@@ -307,6 +310,7 @@ class Newpack extends Controller
                     if($noticesetting['enter']['is_enable']==1){
                         Logistics::add($package_id,$noticesetting['enter']['describe']);
                     }
+                    (new Printer())->printTicket($data,10);
                  }
             }
         }
@@ -364,7 +368,7 @@ class Newpack extends Controller
               'source' => 4, // 直邮订单
               'wxapp_id' => (new Package())->getWxappId(),
             ];
-                // dump($zinpackOrder);die;
+            
             $inpackres = $Inpack->where(['order_sn'=>$param['express_num'],'is_delete'=>0])->find();
          
             if(!empty($inpackres)){

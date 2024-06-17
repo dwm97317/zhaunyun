@@ -303,7 +303,7 @@ class Inpack extends BaseModel
      */
     public function getPayTypeAttr($value)
     {
-        $type = [0=>'立即发货',1=>'货到付款',2=>'2月结'];
+        $type = [0=>'寄付',1=>'到付',2=>'2月结'];
         return [
             'text'=> $type[$value],
             'value'=>$value

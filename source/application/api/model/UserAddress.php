@@ -3,7 +3,7 @@
 namespace app\api\model;
 
 use app\common\model\UserAddress as UserAddressModel;
-
+use app\api\model\Setting as SettingModel;
 /**
  * 用户收货地址模型
  * Class UserAddress
@@ -178,4 +178,28 @@ class UserAddress extends UserAddressModel
         return self::get(compact('user_id', 'address_id'));
     }
 
+    /**
+     * 地区名称
+     * @param $value
+     * @param $data
+     * @return array
+     */
+    public function getChineseRegionAttr($value, $data)
+    {
+        $setting = SettingModel::getItem('store',self::$wxapp_id);
+        $detail = $data['country'];
+        if($setting['address_setting']['is_province']==1){
+            $detail = $detail.$data['province'];
+        }
+        if($setting['address_setting']['is_city']==1){
+            $detail = $detail.$data['city'];
+        }
+        if($setting['address_setting']['is_region']==1){
+            $detail = $detail.$data['region'];
+        }
+        if($setting['address_setting']['is_detail']==1){
+            $detail = $detail.$data['detail'];
+        }
+        return $detail;
+    }
 }

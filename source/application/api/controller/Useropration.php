@@ -708,10 +708,11 @@ class Useropration extends Controller
               if($length>0 && $width>0 && $height>0){
                  $volume = $width*$length*$height/1000000;
               }
-              $packdatas->save([
+              $order = [
                 'status'=>2,
                 'member_id'=> !empty($user_id)?$user_id:$packdatas['member_id'],
                 'source'=>8,
+                'express_num'=>$express_num,
                 'storage_id'=>$clerk['shop_id'],
                 'is_take'=>!empty($user_id)?2:$packdatas['is_take'],
                 'entering_warehouse_time'=>getTime(),
@@ -724,10 +725,11 @@ class Useropration extends Controller
                 'shelf_id'=>$shelf_id,
                 'weight'=>$weight,
                 'volume'=>isset($volume)?$volume:$packdatas['volume']
-              ]);
+              ];
+              $packdatas->save($order);
               $restwo = $packdatas['id'];
            }else{
-            
+                     
 
             $order['status'] = 2;
             $order['is_take'] = 1;
@@ -797,6 +799,7 @@ class Useropration extends Controller
             //判断是否有用户id，发送邮件
               if(isset($user_id) || !empty($user_id)){
                   $EmailUser = UserCommonModel::detail($user_id);
+// dump($order);die;
                   if($EmailUser['email']){
                       $EmailData['code'] = $order['express_num'];
                       $EmailData['logistics_describe']='包裹已入库，可提交打包';
@@ -813,7 +816,15 @@ class Useropration extends Controller
                     $data['order_type'] = 10;
                     $data['order']['remark'] ="包裹已入库，可提交打包" ;
                     if($user_id!=0){
-                      Message::send('order.enter',$data);  
+                    //   Message::send('order.enter',$data);  
+                        $tplmsgsetting = SettingModel::getItem('tplMsg');
+                        if($tplmsgsetting['is_oldtps']==1){
+                          //发送旧版本订阅消息以及模板消息
+                          $sub = (new Package())->sendEnterMessage([$order]);
+                        }else{
+                          //发送新版本订阅消息以及模板消息
+                          Message::send('package.inwarehouse',$order);
+                        }
                     }
               }
             //判断是否打印标签
@@ -911,7 +922,16 @@ class Useropration extends Controller
        //包裹入库通知
        $data = array_merge($data->toArray(),$update);
        $data['shop_name']= $shopData['shop_name'];
-       (new Package())->sendEnterMessage([$data]);
+       
+       $tplmsgsetting = SettingModel::getItem('tplMsg');
+       if($tplmsgsetting['is_oldtps']==1){
+          //发送旧版本订阅消息以及模板消息
+          $sub = (new Package())->sendEnterMessage([$data]);
+       }else{
+          //发送新版本订阅消息以及模板消息
+          Message::send('package.inwarehouse',$data);
+       }
+       
        
        if($data['member_id']){
           //邮件通知
@@ -1178,7 +1198,14 @@ class Useropration extends Controller
        //包裹入库通知
        $data = array_merge($data->toArray(),$update);
        $data['shop_name']= $shopData['shop_name'];
-       (new Package())->sendEnterMessage([$data]);
+       $tplmsgsetting = SettingModel::getItem('tplMsg');
+       if($tplmsgsetting['is_oldtps']==1){
+          //发送旧版本订阅消息以及模板消息
+          $sub = (new Package())->sendEnterMessage([$data]);
+       }else{
+          //发送新版本订阅消息以及模板消息
+          Message::send('package.inwarehouse',$data);
+       }
        
        if($data['member_id']){
           //邮件通知

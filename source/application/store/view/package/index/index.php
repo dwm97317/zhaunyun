@@ -436,6 +436,7 @@
                     </div>
                 </div>
             </div>
+            <?php if (count($packageService)>0): ?>
             <div class="am-tab-panel am-padding-0 am-active">
                 <div class="am-form-group">
                     <label class="am-u-sm-3 am-form-label form-require">
@@ -450,6 +451,7 @@
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
             <div class="am-tab-panel am-padding-0 am-active">
                 <div class="am-form-group">
                     <label class="am-u-sm-3 am-form-label form-require">

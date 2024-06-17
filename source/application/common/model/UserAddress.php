@@ -14,9 +14,11 @@ class UserAddress extends BaseModel
      * 追加字段
      * @var array
      */
-    protected $append = ['region'];
+    protected $append = ['chineseregion'];
     
     public function countrydata(){
         return $this->belongsTo('app\common\model\Country','country_id','id');
     }
+    
+
 }

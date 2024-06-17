@@ -77,6 +77,8 @@ class PaySuccess extends Basics
                         'is_pay' => 1,
                         'pay_time' => getTime(),
                         'status' =>3,
+                        'transaction_id'=>$payData['transaction_id'],
+                        'real_payment'=>$payData['total_fee']/100,
                         'is_pay_type' => 1,
                     ]);
                 }

@@ -715,8 +715,9 @@ class Index extends Controller
         $ids = $this->postData('selectIds')[0];
         $line_id = $this->postData('inpack')['line_id'];
         $address_id = $this->postData('inpack')['address_id'];
-        $pack_ids = $this->postData('inpack')['id'];
+        $pack_ids = isset($this->postData('inpack')['id'])?$this->postData('inpack')['id']:'';
         $remark = $this->postData('remark')[0];
+
         //物流模板设置
         $noticesetting = setting::getItem('notice');
         $storesetting = setting::getItem('store');
@@ -727,7 +728,7 @@ class Index extends Controller
         $idsArr = explode(',',$ids);
         $pack = (new Package())->whereIn('id',$idsArr)->select();
         $weight = (new Package())->whereIn('id',$idsArr)->sum('weight');
-        // dump($weight);die;
+       
         if (!$pack || count($pack) !== count($idsArr)){
             return $this->renderError('打包包裹数据错误');
         }
@@ -754,6 +755,7 @@ class Index extends Controller
         }
         
         $userinfo = (new User())->where('user_id',$pack_member[0])->find();
+       
         $line = (new Line())->find($line_id);
         if (!$line){
             return $this->renderError('线路不存在,请重新选择');
@@ -763,7 +765,7 @@ class Index extends Controller
           'order_sn' => $storesetting['createSn']==10?createSn():createSnByUserIdCid($pack_member[0],$address['country_id']),
           'remark' =>$remark,
           'pack_ids' => $ids,
-          'pack_services_id' => $pack_ids,
+          'pack_services_id' => !empty($pack_ids)?$pack_ids:'',
           'storage_id' => $pack[0]['storage_id'],
           'address_id' => $address_id,
           'free' => 0,
@@ -782,7 +784,7 @@ class Index extends Controller
           'wxapp_id' => (new Package())->getWxappId(),
           'line_id' => $line_id,
         ];
-        
+        //  dump($inpackOrder);die;
         $user_id = $pack_member[0];
         if($storesetting['usercode_mode']['is_show']==1){
            $member =  (new User())->where('user_id',$pack_member[0])->find();
@@ -799,7 +801,10 @@ class Index extends Controller
         $inpack = (new Inpack())->insertGetId($inpackOrder); 
         $inpackdate = (new Inpack())->where('id',$inpack)->find();
         //处理包装服务
-        (new InpackServiceModel())->doservice($inpack,$pack_ids);
+        if(!empty($pack_ids)){
+            (new InpackServiceModel())->doservice($inpack,$pack_ids);
+        }
+        
         $res = (new Package())->whereIn('id',$idsArr)->update(['inpack_id'=>$inpack,'status'=>5,'line_id'=>$line_id,'pack_service'=>$pack_ids,'address_id'=>$address_id,'updated_time'=>getTime()]);
         //更新包裹的物流信息
         foreach ($idsArr as $key => $val){

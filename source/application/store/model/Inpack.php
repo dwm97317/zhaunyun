@@ -52,10 +52,14 @@ class Inpack extends InpackModel
         !empty($query) && $this->setWhere($query);
         !isset($query['limitnum']) && $query['limitnum'] = 10;
         
+        
         $setting = SettingModel::detail("adminstyle")['values'];
         $order = ['updated_time'=>'desc'];
         if(isset($setting['inpackorderby'])){
             $order = [$setting['inpackorderby']['order_mode']=>$setting['inpackorderby']['order_type']];
+        }
+        if(isset($query['orderparam']) && !empty($query['orderparam']) && isset($query['descparam'])){
+            $order = [$query['orderparam']=>$query['descparam']];
         }
         
         // 获取数据列表
@@ -71,7 +75,6 @@ class Inpack extends InpackModel
             ->paginate($query['limitnum'], false, [
                 'query' => \request()->request()
             ]);
-            // dump($res->toArray());die;
          return $res;
     }
     

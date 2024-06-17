@@ -3,9 +3,6 @@
         background: #fff !important;
         color:#ff6666;
     }
-    /*.am-table-striped>tbody>tr:nth-child(odd)>td, .am-table-striped>tbody>tr:nth-child(odd)>th{*/
-    /*    background: #f9f9f9 !important;*/
-    /*}*/
 </style>
 <div class="row-content am-cf">
     <div class="row">
@@ -127,6 +124,28 @@
                                         </select>
                                     </div>
                                     <div class="am-form-group am-fl">
+                                        <?php $orderparam = $request->get('orderparam'); ?>
+                                        <select name="orderparam"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '排序参数'}">
+                                            <option value=""></option>
+                                            <option value="created_time" <?= $orderparam == 'created_time' ? 'selected' : '' ?>>提交打包时间排序</option>
+                                            <option value="pay_time" <?= $orderparam == 'pay_time' ? 'selected' : '' ?>>支付完成时间排序</option>
+                                            <option value="pick_time" <?= $orderparam == 'pick_time' ? 'selected' : '' ?>>打包完成时间排序</option>
+                                            <option value="settle_time" <?= $orderparam == 'settle_time' ? 'selected' : '' ?>>佣金结算时间排序</option>
+                                            <option value="sendout_time" <?= $orderparam == 'sendout_time' ? 'selected' : '' ?>>订单发货时间排序</option>
+                                            <option value="receipt_time" <?= $orderparam == 'receipt_time' ? 'selected' : '' ?>>用户签收时间排序</option>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $descparam = $request->get('descparam'); ?>
+                                        <select name="descparam"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '排序方式'}">
+                                            <option value=""></option>
+                                            <option value="desc" <?= $descparam == 'desc' ? 'selected' : '' ?>>降序排序(大到小，新到旧)</option>
+                                            <option value="asc" <?= $descparam == 'asc' ? 'selected' : '' ?>>升序排序(小到大，旧到新)</option>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
                                         <?php $extracttimetype = $request->get('time_type'); ?>
                                         <select name="time_type"
                                                 data-am-selected="{btnSize: 'sm', placeholder: '时间类型'}">
@@ -157,19 +176,19 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="am-form-group am-fl">
+                                    <div class="am-form-group am-fl" style="padding-bottom:1px;">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input style="width:250px;" type="text" class="am-form-field" name="order_sn"
                                                    placeholder="请输入平台订单号或转运单号" value="<?= $request->get('order_sn') ?>">
                                         </div>
                                     </div>
-                                    <div class="am-form-group am-fl">
+                                    <div class="am-form-group am-fl" style="padding-bottom:1px;">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input style="width:250px;" type="text" class="am-form-field" name="batch_no"
                                                    placeholder="请输入批次号或提单号" value="<?= $request->get('batch_no') ?>">
                                         </div>
                                     </div>
-                                    <div class="am-form-group am-fl">
+                                    <div class="am-form-group am-fl" style="padding-bottom:2px;">
                                         <?php $extracttimetype = $request->get('search_type'); ?>
                                         <select name="search_type"
                                                 data-am-selected="{btnSize: 'sm', placeholder: '请选择查询类型'}">
@@ -251,13 +270,13 @@
                     </div>
                     <div class="am-scrollable-horizontal am-u-sm-12">
                         <table width="100%" class="am-table am-table-compact am-table-striped
-                         tpl-table-black am-text-nowrap">
+                         tpl-table-black ">
                             <thead>
                             <tr>
                                 <th><input id="checkAll" type="checkbox"></th>
                                 <th>单号信息</th>
-                                <th>转运信息</th>
-                                <th>收货信息</th>
+                                <th width='200px'>转运信息</th>
+                                <th width='350px'>收货信息</th>
                                 <?php if (checkPrivilege('tr_order/freelist')): ?>
                                 <th>费用信息</th>
                                 <?php endif;?>
@@ -311,7 +330,7 @@
                                         取件仓库:
                                         <span style="cursor:pointer" text="<?= $item['shop']['shop_name'] ?>" onclick="copyUrl2(this)"><?= $item['shop']['shop_name'] ?></span></br>
                                     </td>
-                                    <td class="am-text-middle">
+                                    <td class="am-text-middle" >
                                         用户昵称:<span style="color:#56a6ed;cursor:pointer"><?= $item['nickName']; ?></span>
                                         <span style="color:#ff6666;cursor:pointer" text="<?= $item['nickName']; ?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         <?php if($set['usercode_mode']['is_show']!=1) :?>
@@ -341,14 +360,16 @@
                                         <?php endif ;?>
                                         <!--区：<?= $item['address']['region']=='0'?'未填':$item['address']['region']?></br>-->
                                         <?php if ($set['address_setting']['is_street']==1): ?>
-                                        街道：<?= $item['address']['street']=='0'?'未填':$item['address']['street']?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['street'];?>" onclick="copyUrl2(this)">[复制]</span>
+                                        街道：<?= $item['address']['street']=='0'?'未填':$item['address']['street']?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['street'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         <?php endif ;?>
                                         <?php if ($set['address_setting']['is_door']==1): ?> 
                                         门牌：<?= $item['address']['door'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['door'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                          <?php endif ;?>
                                         <?php if ($set['address_setting']['is_detail']==1): ?> 
                                         详细地址：<?= $item['address']['detail'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['detail'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        拼接详细地址：<span style="word-break:break-all;"><?= $item['address']['chineseregion'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['chineseregion'];?>" onclick="copyUrl2(this)">[复制]</span></span></br>
                                         <?php endif ;?>
+                                        
                                         <?php if ($set['address_setting']['is_code']==1): ?> 
                                         邮编：<?= $item['address']['code']==''?'未填': $item['address']['code']?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['code'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         <?php endif ;?>
@@ -429,8 +450,8 @@
                                         </span><br>
                                         <?php endif; ?>
                                         
-                                        <span class="am-badge <?= $item['pay_type']==1?'am-badge-warning':'am-badge-primary'?>">
-                                            <?= $item['pay_type']==1?'货到付款':'付款发货';?>
+                                        <span class="am-badge <?= $item['pay_type']['value']==1?'am-badge-warning':'am-badge-primary'?>">
+                                            <?= $item['pay_type']['text'];?>
                                         </span>
                                     </td>
                                     <td class="am-text-middle"><?= $status[$item['status']] ?></td>

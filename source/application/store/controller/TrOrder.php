@@ -827,24 +827,15 @@ class TrOrder extends Controller
         $set = Setting::detail('store')['values'];
         $userclient =  Setting::detail('userclient')['values'];
         $list = $model->getList($dataType, $this->request->param());
+        // dump($list->toArray());die;
         $tracklist = $Track->getAllList();
-        $servicelist = $Clerk->where('FIND_IN_SET(:ids,clerk_type)', ['ids' => 7])->select();
+        $servicelist = $Clerk->where('clerk_authority','like','%is_myuser%')->where('clerk_authority','like','%is_myuserpackage%')->where('is_delete',0)->select();
         $pintuanlist = (new SharingOrder())->getList([]);
         $batchlist = (new Batch())->getAllwaitList([]);
         $shopList = ShopModel::getAllList();
         $lineList = $Line->getListAll();
         foreach ($list as &$value) {
             $value['num'] =  (new Package())->where(['inpack_id'=>$value['id'],'is_delete'=>0])->count();
-            $value['down_shelf'] = 0;
-            $value['inpack'] = 0;
-           $count = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
-           if($count ==0){
-                $count = (new Package())->where('inpack_id',$value['id'])->count();
-           }
-           if ($dataType=='payed'){
-                $value['down_shelf'] = $count;
-                $value['inpack'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',8)->count();
-           }
         }
 
         return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
@@ -1316,7 +1307,25 @@ class TrOrder extends Controller
        }
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
        $data['barcode'] = $generatorSVG->getBarcode($data['t_order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor = 1.5, $totalHeight = 40);
-    // dump($data->toArray());die;
+
+       $data['shoujianren'] = $data['address']['name'];
+       isset($data['setting']['address_setting']['is_tel_code'])  && $data['setting']['address_setting']['is_tel_code']==1 && $data['shoujianren']=$data['shoujianren'].$data['address']['tel_code'];
+       $data['shoujianren']= $data['shoujianren'].'  '.$data['address']['phone'];
+
+       $data['address']['xiangxi'] = $data['address']['country'];
+       isset($data['setting']['address_setting']['is_province'])  && $data['setting']['address_setting']['is_province']==1 && $data['address']['xiangxi'] = $data['address']['xiangxi'].$data['address']['province'];
+       
+       isset($data['setting']['address_setting']['is_city'])  && $data['setting']['address_setting']['is_city']==1 && $data['address']['xiangxi'] = $data['address']['xiangxi'].$data['address']['city'];
+       
+       isset($data['setting']['address_setting']['is_region'])  && $data['setting']['address_setting']['is_region']==1 && $data['address']['xiangxi'] = $data['address']['xiangxi'].$data['address']['region'];
+       
+       isset($data['setting']['address_setting']['is_street'])  && $data['setting']['address_setting']['is_street']==1 && $data['address']['xiangxi'] = $data['address']['xiangxi'].$data['address']['street'];
+       
+       isset($data['setting']['address_setting']['is_door'])  && $data['setting']['address_setting']['is_door']==1 && $data['address']['xiangxi'] = $data['address']['xiangxi'].$data['address']['door'];
+       
+       $data['address']['xiangxi'] = $data['address']['xiangxi'] . $data['address']['detail'];
+       
+
        switch ($adminstyle['delivertempalte']['orderface']) {
            case '10':
                echo $this->template10($data);
@@ -1339,6 +1348,7 @@ class TrOrder extends Controller
            return $this->renderError('转运单号为空');
        }
        $adminstyle = Setting::getItem('adminstyle',$data['wxapp_id']);
+    //   dump($adminstyle);die;
        $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
        if(!empty($data['member_id'])){
            $member  = UserModel::detail($data['member_id']);
@@ -1355,7 +1365,7 @@ class TrOrder extends Controller
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
        $data['barcode'] = $generatorSVG->getBarcode($data['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
        $data['cover_id'] = UploadFile::detail($data['setting']['cover_id']);
-
+// dump($data->toArray());die;
        switch ($adminstyle['delivertempalte']['orderface']) {
            case '10':
                echo $this->label10($data);
@@ -1630,6 +1640,9 @@ class TrOrder extends Controller
 		font-size: 32px;
 		font-weight: bold
 	}
+	.padding-top-20{
+	    padding-top:20px;
+	}
 	.country{
     	font-size: 37px;
         padding: 0px;
@@ -1641,8 +1654,7 @@ class TrOrder extends Controller
 	.font_12{font-size: 12px;font-weight: bold;}
 </style>
 <table class="container">
-	<tr>
-		<td width="152" height="76" class="pl center font_xxl">
+    <tr><td width="152" height="76" class="pl center font_xxl">
 		    <table class="nob">
 		        <tr>
 		            <td class="font_xxl ">'.$data['setting']['name'].'</td>
@@ -1652,7 +1664,9 @@ class TrOrder extends Controller
 		        </tr>
 		    </table>
 		</td>
-		<td width="240" class="center">
+	</tr>
+	<tr>
+		<td width="240" class="center padding-top-20">
 			<table class="nob">
 				<tr>
 					<td class="barcode">'.$data['barcode'].'</td>
@@ -1668,7 +1682,7 @@ class TrOrder extends Controller
 <table class="container">
 	<tr>
 		<td class="font_xxxl pl">
-		   目的地： '.$data['country'].'
+		   目的地： '.$data['country']['title'].'
 		</td>
 	</tr>
 </table>
@@ -2005,20 +2019,12 @@ class TrOrder extends Controller
 			<table class="nob">
 				<tr>
 					<td class="pl" height="28">收件：</td>
-					<td><strong>'.$data['address']['name'].  '+'.$data['address']['tel_code'].'  '.$data['address']['phone'].'</strong></td>
+					<td><strong>'.$data['shoujianren'].'</strong></td>
 				</tr>
 				<tr>
 					<td height="38" class="country">CN</td>
 					<td valign="top"><strong>
-					'.$data['address']['country'].'
-					'.$data['address']['province'].'
-					'.$data['address']['city'].'
-					'.$data['address']['region'].'
-					'.$data['address']['district'].'
-					'.$data['address']['street'].'
-					'.$data['address']['door'].'
-					'.$data['address']['detail'].'</strong>
-					'.$data['address']['code'].'
+					'.$data['address']['xiangxi'].'</strong>
 					</td>
 				</tr>
 			</table>

@@ -47,15 +47,15 @@
                         <table width="100%" class="am-table am-table-compact am-table-striped tpl-table-black ">
                             <thead>
                             <tr>
-                                <th>线路ID</th>
+                                <th width='80px'>线路ID</th>
                                 <th>路线名称</th>
                                 <th>限重</th>
-                                <th>时效</th>
+                                <th width='50px'>时效</th>
                                 <th>关税</th>
-                                <th width='700px'>限制条件</th>      
-                                <th>计费方式</th>
+                                <th width='600px'>限制条件</th>      
+                                <th width='100px'>计费方式</th>
                                 <th width='40px'>排序</th>
-                                <th>添加时间</th>
+                                <th width='90px'>添加时间</th>
                                 <th>操作</th>
                             </tr>
                             </thead>

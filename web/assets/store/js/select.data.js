@@ -1,4 +1,4 @@
-;(function ($, window, document, undefined) {
+(function ($, window, document, undefined) {
 
     /**
      * 数据选择器模块

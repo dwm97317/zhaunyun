@@ -162,12 +162,16 @@
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 支付方式 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="data[pay_type]" value="0" data-am-ucheck <?= $detail['pay_type'] == 0 ? 'checked' : '' ?>>
-                                        立即支付
+                                        <input type="radio" name="data[pay_type]" value="0" data-am-ucheck <?= $detail['pay_type']['value'] == 0 ? 'checked' : '' ?>>
+                                        寄付
                                     </label>
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="data[pay_type]" value="1" data-am-ucheck <?= $detail['pay_type'] == 1 ? 'checked' : '' ?>>
-                                        货到付款
+                                        <input type="radio" name="data[pay_type]" value="1" data-am-ucheck <?= $detail['pay_type']['value'] == 1 ? 'checked' : '' ?>>
+                                        到付
+                                    </label>
+                                     <label class="am-radio-inline">
+                                        <input type="radio" name="data[pay_type]" value="2" data-am-ucheck <?= $detail['pay_type']['value'] == 2 ? 'checked' : '' ?>>
+                                        月结
                                     </label>
                                   
                                 </div>

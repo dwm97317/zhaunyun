@@ -835,46 +835,46 @@ class Setting extends BaseModel
                     //入库通知
                     'enter'=>[
                         'is_enable' => 1,
-                        'describe' => "PACKAGE INBOUND 包裹已入库，可提交打包",
+                        'describe' => "包裹已入库，可提交打包",
                     ],
                     'outshop'=>[
                         'is_enable' => 1,
-                        'describe' => "OUT OF WAREHOUSE 包裹已出库",
+                        'describe' => "包裹已出库",
                     ],
                     //提交打包
                     'packageit'=>[
                         'is_enable' => 1,
-                        'describe' => "UNDER INSPECTION 包裹已申请打包，请等待查验",
+                        'describe' => "包裹已申请打包，请等待查验",
                     ],
                     //查验完成
                     'check'=>[
                         'is_enable' => 1,
-                        'describe' => "WAITING FOR PAYMENT 包裹查验完成，等待支付",
+                        'describe' => "包裹查验完成，等待支付",
                     ],
                     //支付完成
                     'ispay'=>[
                         'is_enable' => 1,
-                        'describe' => "Paid 包裹已支付，即将安排发货",
+                        'describe' => "包裹已支付，即将安排发货",
                     ],
                     //发货操作
                     'dosend'=>[
                         'is_enable' => 1,
-                        'describe' => "Shipped 包裹已发货，国际单号：{code}",
+                        'describe' => "包裹已发货，国际单号：{code}",
                     ],
                     //已到货
                     'reach'=>[
                         'is_enable' => 1,
-                        'describe' => "Arrived 包裹已到货，请注意查收",
+                        'describe' => "包裹已到货，请注意查收",
                     ],
                     //已收货
                     'take'=>[
                         'is_enable' => 1,
-                        'describe' => "Receiving goods 包裹已收货，感谢你的支持",
+                        'describe' => "包裹已收货，感谢你的支持",
                     ],
                     //问题件
                     'problem'=>[
                         'is_enable' => 1,
-                        'describe' => "PROBLEM PACKAGE 包裹有误，请联系客服处理",
+                        'describe' => "包裹有误，请联系客服处理",
                     ],
                     //是否查询包裹信息；
                     'is_package'=>[
