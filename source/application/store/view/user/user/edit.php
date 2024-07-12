@@ -14,6 +14,7 @@
                                     <span class="am-form-static"><?= $detail['user_id'] ?></span>
                                 </div>
                             </div>
+                            <?php if($set['is_show']==0) :?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">用户昵称 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -21,7 +22,8 @@
                                            value="<?= $detail['nickName'] ?>">
                                 </div>
                             </div>
-                            <?php if($set['is_show']!=0) :?>
+                            <?php endif ;?>
+                            <?php if($set['is_show']==1) :?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">用户编号 </label>
                                 <div class="am-u-sm-9 am-u-end">
