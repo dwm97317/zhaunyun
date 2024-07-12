@@ -29,6 +29,8 @@ use app\common\library\AITool\BaiduOcr;
 use app\api\model\User as UserModel;
 use app\common\model\AiLog;
 use app\common\service\Message;
+use app\common\model\LogisticsTrack;
+use app\common\model\Logistics;
 
 /**
  * 页面控制器
@@ -51,6 +53,18 @@ class ApiPost extends Controller
         parent::_initialize();
         // 存储配置信息
         $this->config = SettingModel::getItem('storage',$this->wxapp_id);
+    }
+    
+    /**
+     * 17track的Hook
+     * Class Passport
+     * @package app\api\controller
+     */
+    public function Webhook17Track(){
+        $param = $this->request->param();
+        log_write($param);
+        LogisticsTrack::addhookLog($param);
+        return true;
     }
     
     /**

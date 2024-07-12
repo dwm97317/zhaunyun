@@ -535,12 +535,6 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                             <?= $values['usercode_mode']['is_show'] == '0' ? 'checked' : '' ?>>
                                         只显示ID
                                     </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[usercode_mode][is_show]" value="2" onclick="switchLineMode(this)"
-                                               data-am-ucheck
-                                            <?= $values['usercode_mode']['is_show'] == '2' ? 'checked' : '' ?>>
-                                        都显示
-                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group usercoded" style="<?= $values['usercode_mode']['is_show'] == 0 ? 'display:none;' : 'display:block' ?>"> 
@@ -763,6 +757,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                             <option value="30" <?= $values['link_mode'] == 30 ? 'selected' : '' ?>>用户昵称+UID</option>
                                             <option value="40" <?= $values['link_mode'] == 40 ? 'selected' : '' ?>>仓库简称+UID</option>
                                             <option value="50" <?= $values['link_mode'] == 50 ? 'selected' : '' ?>>用户昵称</option>
+                                            <option value="60" <?= $values['link_mode'] == 60 ? 'selected' : '' ?>>仓库名</option>
                                     </select>
                                     <div class="help-block">
                                         <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
@@ -1849,7 +1844,35 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     <input type="text" class="tpl-form-input" name="store[track17][key]"
                                            value="<?= $values['track17']['key']??'' ?>">
                                     <small>用于查询国际物流信息，<a href="https://user.17track.net/zh-cn/register?gb=api.17track.net#maybe=16"
-                                                       target="_blank">17TRACK密钥申请</a></small>       
+                                                       target="_blank">17TRACK密钥申请</a>
+                                    </small>       
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label"> 17tack WebHookL </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input"
+                                           value="http://zhuanyun.sllowly.cn/index.php?s=/api/api_Post/Webhook17Track&wxapp_id=<?= $store['wxapp']['wxapp_id'] ?>">
+                                    <small>用于快递单号回调</small>       
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label form-require"> 17TRACK轨迹默认语言 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="store[track17][lang]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="en" <?= $values['track17']['lang']== 'en' ? 'selected' : '' ?>>英文</option>
+                                            <option value="ja" <?= $values['track17']['lang'] == 'ja' ? 'selected' : '' ?>>日文</option>
+                                            <option value="fr" <?= $values['track17']['lang'] == 'fr' ? 'selected' : '' ?>>法文</option>
+                                            <option value="da" <?= $values['track17']['lang'] == 'da' ? 'selected' : '' ?>>丹麦文</option>
+                                            <option value="th" <?= $values['track17']['lang'] == 'th' ? 'selected' : '' ?>>泰文</option>
+                                            <option value="de" <?= $values['track17']['lang'] == 'de' ? 'selected' : '' ?>>德文</option>
+                                            <option value="es" <?= $values['track17']['lang'] == 'es' ? 'selected' : '' ?>>西班牙文</option>
+                                            <option value="zh-hans" <?= $values['track17']['lang'] == 'zh-hans' ? 'selected' : '' ?>>简体中文</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
+                                    </div>
                                 </div>
                             </div>
                             <div class="am-form-group">

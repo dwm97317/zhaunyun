@@ -816,7 +816,6 @@ class Useropration extends Controller
                     $data['order_type'] = 10;
                     $data['order']['remark'] ="包裹已入库，可提交打包" ;
                     if($user_id!=0){
-                    //   Message::send('order.enter',$data);  
                         $tplmsgsetting = SettingModel::getItem('tplMsg');
                         if($tplmsgsetting['is_oldtps']==1){
                           //发送旧版本订阅消息以及模板消息
@@ -1963,8 +1962,9 @@ class Useropration extends Controller
             $role_name = '普通用户';
             $role_type = 0;
         }else{
-            $clerkType = explode(',',$userInfo['clerk_type']);
-            if(in_array('5',$clerkType)){
+            // dump($userInfo['clerk_type']);die;
+            // $clerkType = explode(',',$userInfo['clerk_type']);
+            if($userInfo['clerk_type'] ==10 ){
                 $role_name = '仓库长';
                 $role_type = 10;
             }else{

@@ -137,6 +137,21 @@
                                     <small>限制领取的优惠券数量，-1为不限制</small>
                                 </div>
                             </div>
+                            <div class="am-form-group" data-x-switch>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">领取限制 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="coupon[is_limit]" value="1" checked
+                                               data-am-ucheck>
+                                        只能领取一次
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="coupon[is_limit]" value="0"
+                                               data-am-ucheck>
+                                        不限制领取次数（使用完后即可再次领取）
+                                    </label>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">排序 </label>
                                 <div class="am-u-sm-9 am-u-end">

@@ -2250,7 +2250,7 @@ class Package extends Controller
         $setting = SettingModel::detail("notice")['values'];
         //查询出来这个单号是包裹单号、国际单号、转单号
         $packData = $PackageModel->where(['express_num'=>$express,'is_delete' => 0])->find();
-        
+
         $inpackData = $Inpack->where('t_order_sn',$express)->where(['is_delete' => 0])->find(); //国际单号
         //  dump($inpackData);die;
         $inpackData2 = $Inpack->where(['t2_order_sn'=>$express,'is_delete' => 0])->find();  //转单号
@@ -2267,8 +2267,9 @@ class Package extends Controller
                 $logia = $Logistics->getorderno($logic[0]['order_sn']);
             }
             $express_code = $Expresss->getValueById($packData['express_id'],'express_code');
-            // dump($express_code);die; 
+          
             if($setting['is_track_yubao']['is_enable']==1){//如果预报推送物流，则查询出来
+             
                 $logib = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
                 
             }
@@ -2431,12 +2432,12 @@ class Package extends Controller
                 $logia = $Logistics->getorderno($logic[0]['order_sn']);
             }
             $express_code = $Express->getValueById($packData['express_id'],'express_code');
-            
+                
             if($setting['is_track_yubao']['is_enable']==1){//如果预报推送物流，则查询出来
                 $logib = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
             }
             $logicv = array_merge($logia,$logib,$logic);
-            // dump($logicv);die;
+          
             if(!empty($packData['inpack_id'])){
                 $inpackData = $Inpack->where('id',$packData['inpack_id'])->where(['is_delete' => 0])->find(); //国际单号
             }
@@ -2511,8 +2512,8 @@ class Package extends Controller
             $logici = array_merge_hebing($logicv,$logictik);
             // dump($logici);die;
         }
-        
-        $logic = array_merge($logic,$logici);
+        //   dump($logicv);die;
+        $logic = array_merge($logic,$logici,$logicv);
         return $this->renderSuccess(compact('logic'));
      }
      

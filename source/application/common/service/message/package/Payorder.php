@@ -60,9 +60,12 @@ class Payorder extends Basics
     {
         $orderInfo = $this->param;
         $orderType = OrderTypeEnum::MASTER;
-        
+        //当入库不存在用户id，则不发送提醒；
+        if(!isset($this->param['member_id'])){
+             return false;
+        }
         // 获取订阅消息配置
-        $template = SettingModel::getItem('tplMsg', $orderInfo['wxapp_id'])['payorder'];
+        $template = SettingModel::getItem('tplMsg',$this->getMinidByUserId($this->param['member_id']))['payorder'];
       
         $noticesetting = SettingModel::getItem('notice');
         $storesetting = SettingModel::getItem('store');
@@ -73,15 +76,10 @@ class Payorder extends Basics
         if (empty($template['template_id'])) {
             return false;
         }
-       
-        //当入库不存在用户id，则不发送提醒；
-        if(!isset($this->param['member_id'])){
-             return false;
-        }
         //判断是否采用H5方式；H5+小程序；
         // dump($this->param);die;
         if ($storesetting['client']['mode']==10) {
-            return  $this->sendWxTplMsgForH5($orderInfo['wxapp_id'], [
+            return  $this->sendWxTplMsgForH5($this->getMinidByUserId($this->param['member_id']), [
             'touser' => $this->getGzhOpenidByUserId($this->param['member_id']),
             'template_id' => $template['template_id'],
             'data' => [
@@ -92,7 +90,7 @@ class Payorder extends Basics
             ]
         ]);
         }else{
-            return  $this->sendWxTplMsg($orderInfo['wxapp_id'], [
+            return  $this->sendWxTplMsg($this->getMinidByUserId($this->param['member_id']), [
             'touser' => $this->getGzhOpenidByUserId($this->param['member_id']),
             'template_id' => $template['template_id'],
             'url' => "{$this->pageUrl[$orderType]}?id={$orderInfo['id']}&rtype=10",

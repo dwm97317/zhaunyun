@@ -39,6 +39,7 @@ export const zhHans = {
     inquireNow: "立即查询",
     searchResult: "查询结果",
     noLogisticsInformation: "暂无物流信息",
+    
   },
   page_yunfeigusuan: {
     shipping_estimate: "运费估算",

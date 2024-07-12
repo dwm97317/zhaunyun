@@ -108,6 +108,7 @@ class Setting extends Controller
                 $vars['values']['guide']['second_file_path'] = UploadFile::detail($vars['values']['guide']['second_image'])['file_path'];
                 $vars['values']['guide']['third_file_path'] = UploadFile::detail($vars['values']['guide']['third_image'])['file_path'];
                 $vars['values']['officialaccount']['official_image_path'] = UploadFile::detail($vars['values']['officialaccount']['official_image'])['file_path'];
+                $vars['values']['officialaccount']['official_pic_path'] = UploadFile::detail($vars['values']['officialaccount']['official_pic'])['file_path'];
             }
             return $this->fetch($key, $vars);
         }

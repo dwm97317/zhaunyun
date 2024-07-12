@@ -66,7 +66,7 @@ class Order extends Controller
         );
         // 获取订单确认信息
         $orderInfo = $Checkout->onCheckout($this->user, $goodsList);
-       
+  
         if ($this->request->isGet()) {
             return $this->renderSuccess($orderInfo);
         }

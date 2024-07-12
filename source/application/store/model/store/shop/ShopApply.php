@@ -63,9 +63,10 @@ class ShopApply extends ShopApplyModel
                     'user_id' => $this['user_id'],
                     'real_name' => $this['linkman'],
                     'mobile' => $this['phone'],
+                    'password'=> '123456',
                     'status' => 1,
                     'wxapp_id' => $this['wxapp_id'],
-                    'clerk_type' => ['1,2,3'],
+                    'clerk_type' => 10,
                 ]);
                 //将申请人设置为仓管员
                 User::detail(['user_id'=> $this['user_id']])->where(['user_id'=> $this['user_id']])->update(['user_type' => 5]);

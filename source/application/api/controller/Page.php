@@ -296,6 +296,9 @@ class Page extends Controller
         if(!empty($store['userclient']['officialaccount']['official_image'])){
              $store['userclient']['officialaccount']['official_image'] = UploadFile::detail($store['userclient']['officialaccount']['official_image'])['file_path'];
         }
+        if(!empty($store['userclient']['officialaccount']['official_pic'])){
+             $store['userclient']['officialaccount']['official_pic'] = UploadFile::detail($store['userclient']['officialaccount']['official_pic'])['file_path'];
+        }
         $store['copyright']= WxappModel::detail(input('wxapp_id'));
         $store['paytype']= SettingModel::detail('paytype')['values'];
         $store['keeper']= SettingModel::detail('keeper')['values'];
@@ -354,6 +357,10 @@ class Page extends Controller
                         $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
                         $data[$k]['linkman'] = ($this->user)['nickName'];
                     }
+                    if($setting['link_mode'] == 60){
+                        $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
+                        $data[$k]['linkman'] = $data[$k]['shop_name'];
+                    }
                 }else{
                     if($setting['link_mode'] == 10){
                      $data[$k]['linkman'] =$data[$k]['shop_name'].'-CODE:'.($this->user)['user_code'];
@@ -371,6 +378,10 @@ class Page extends Controller
                     if($setting['link_mode'] == 50){
                        $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
                         $data[$k]['linkman'] = ($this->user)['nickName'];
+                    }
+                    if($setting['link_mode'] == 60){
+                        $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
+                        $data[$k]['linkman'] = $data[$k]['shop_name'];
                     }
                 }
            }    
@@ -397,6 +408,10 @@ class Page extends Controller
                         $data[$k]['address'] =  $v['address'].$this->user['user_id'];
                         $data[$k]['linkman'] = ($this->user)['nickName'];
                     }
+                    if($setting['link_mode'] == 60){
+                        $data[$k]['address'] =  $v['address'].($this->user)['user_id'];
+                        $data[$k]['linkman'] = $data[$k]['shop_name'];
+                    }
                }else{
                     $data[$k]['address'] = $v['address'].'UID:'.$this->user['user_id'];
                     if($setting['link_mode'] == 10){
@@ -414,6 +429,10 @@ class Page extends Controller
                     if($setting['link_mode'] == 50){
                         $data[$k]['address'] =  $v['address'].$this->user['user_id'];
                         $data[$k]['linkman'] = ($this->user)['nickName'];
+                    }
+                    if($setting['link_mode'] == 60){
+                        $data[$k]['address'] =  $v['address'].($this->user)['user_id'];
+                        $data[$k]['linkman'] = $data[$k]['shop_name'];
                     }
                }
                 
@@ -443,6 +462,10 @@ class Page extends Controller
                     $data[$k]['address'] =  $v['address'].$this->user['user_id'].'/'.$this->user['user_code'];
                     $data[$k]['linkman'] = ($this->user)['nickName'];
                 }
+                if($setting['link_mode'] == 60){
+                        $data[$k]['address'] =  $v['address'].$this->user['user_id'].'/'.$this->user['user_code'];
+                        $data[$k]['linkman'] = $data[$k]['shop_name'];
+                }
                }else{
                 $data[$k]['address'] = $v['address'].'UID:'.$this->user['user_id'].'-CODE:'.$this->user['user_code'];
                 if($setting['link_mode'] == 10){
@@ -460,6 +483,10 @@ class Page extends Controller
                 if($setting['link_mode'] == 50){
                     $data[$k]['address'] =  $v['address'].$this->user['user_id'].'/'.$this->user['user_code'];
                     $data[$k]['linkman'] = ($this->user)['nickName'];
+                }
+                if($setting['link_mode'] == 60){
+                        $data[$k]['address'] =  $v['address'].$this->user['user_id'].'/'.$this->user['user_code'];
+                        $data[$k]['linkman'] = $data[$k]['shop_name'];
                 }
                }
             }
@@ -511,6 +538,9 @@ class Page extends Controller
                 if($setting['link_mode'] == 50){
                      $data['linkman'] = ($this->user)['nickName'];
                 }
+                if($setting['link_mode'] == 60){
+                        $data['linkman'] = $data['shop_name'];
+                }
                // 根据地址的设置，生成不同的地址展示模式
                 switch ($setting['address_mode']) {
                     case '10':
@@ -549,6 +579,9 @@ class Page extends Controller
                 if($setting['link_mode'] == 50){
                      $data['address'] =  $data['address'].$this->user['user_code'];
                      $data['linkman'] = ($this->user)['nickName'];
+                }
+                if($setting['link_mode'] == 60){
+                    $data['linkman'] = $data['shop_name'];
                 }
                 // 根据地址的设置，生成不同的地址展示模式
                 switch ($setting['address_mode']) {
@@ -591,6 +624,9 @@ class Page extends Controller
                 if($setting['link_mode'] == 50){
                      $data['linkman'] = ($this->user)['nickName'];
                 }
+                if($setting['link_mode'] == 60){
+                     $data['linkman'] = $data['shop_name'];
+                }
                 
                 // 根据地址的设置，生成不同的地址展示模式
                 switch ($setting['address_mode']) {
@@ -627,6 +663,9 @@ class Page extends Controller
                 }
                 if($setting['link_mode'] == 50){
                      $data['linkman'] = ($this->user)['nickName'];
+                }
+                if($setting['link_mode'] == 60){
+                     $data['linkman'] = $data['shop_name'];
                 }
                 
                 // 根据地址的设置，生成不同的地址展示模式
@@ -669,6 +708,9 @@ class Page extends Controller
                 if($setting['link_mode'] == 50){
                      $data['linkman'] = ($this->user)['nickName'];
                 }
+                if($setting['link_mode'] == 60){
+                     $data['linkman'] = $data['shop_name'];
+                }
                 
                 // 根据地址的设置，生成不同的地址展示模式
                 switch ($setting['address_mode']) {
@@ -705,6 +747,9 @@ class Page extends Controller
                 }
                 if($setting['link_mode'] == 50){
                      $data['linkman'] = ($this->user)['nickName'];
+                }
+                if($setting['link_mode'] == 60){
+                     $data['linkman'] = $data['shop_name'];
                 }
                 
                 // 根据地址的设置，生成不同的地址展示模式

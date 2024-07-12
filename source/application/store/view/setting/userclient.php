@@ -1149,19 +1149,69 @@
                                            value="<?= $values['officialaccount']['description'] ?>" required>
                                 </div>
                             </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 引导关注链接 </label>
+                            
+                            <div class="am-form-group" data-x-switch>
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    跳转类型
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" 
+                                               value="10" 
+                                               name="userclient[officialaccount][type]" 
+                                               data-am-ucheck  
+                                               <?= $values['officialaccount']['type'] == 10 ? 'checked' : '' ?>
+                                               data-switch-box="switch-officialaccount_type"
+                                               data-switch-item="officialaccount_type__10"
+                                               >
+                                        弹出二维码
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[officialaccount][type]" 
+                                               value="20"
+                                               data-am-ucheck 
+                                               <?= $values['officialaccount']['type'] == 20 ? 'checked' : '' ?>
+                                               data-switch-box="switch-officialaccount_type"
+                                               data-switch-item="officialaccount_type__20"
+                                               >
+                                        跳转链接
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group switch-officialaccount_type officialaccount_type__20 <?= $values['officialaccount']['type'] == 20 ? '' : 'hide' ?>">
+                                <label class="am-u-sm-3 am-form-label"> 引导关注链接 </label>
                                 <div class="am-u-sm-9">
                                     <input type="text" class="tpl-form-input" name="userclient[officialaccount][link]"
-                                           value="<?= $values['officialaccount']['link'] ?>" required>
+                                           value="<?= $values['officialaccount']['link'] ?>">
                                     <div class="help-block am-u-sm-12">
                                         <small>请使用公众号文章的短链接：如：https://mp.weixin.qq.com/s/NsFDr3-2ixx6P5i_Eeumbg</small>
                                     </div>
                                 </div>
                                 
                             </div>
+                            <div class="am-form-group switch-officialaccount_type officialaccount_type__10 <?= $values['officialaccount']['type'] == 10 ? '' : 'hide' ?>">
+                                <label class="am-u-sm-3  am-form-label">公众号二维码 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <button type="button"
+                                                class="upload-file5 am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择图片
+                                        </button>
+                                        <div class="uploader-list am-cf">
+                                                <div class="file-item">
+                                                    <a href="<?= isset($values['officialaccount']['official_pic'])?$values['officialaccount']['official_pic_path']:'' ?>"
+                                                       title="点击查看大图" target="_blank">
+                                                        <img src="<?= isset($values['officialaccount']['official_pic_path'])?$values['officialaccount']['official_pic_path']:'' ?>">
+                                                    </a>
+                                                    <input type="hidden" name="userclient[officialaccount][official_pic]" value="<?=$values['officialaccount']['official_pic'] ?>">
+                                                    <i class="iconfont icon-shanchu file-item-delete"></i>
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3  am-form-label">公众号缩略图 </label>
+                                <label class="am-u-sm-3  am-form-label">平台LOGO缩略图 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="am-form-file">
                                         <button type="button"
@@ -1184,6 +1234,7 @@
                                     </div>
                                 </div>
                             </div>
+                            
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
@@ -1240,6 +1291,17 @@
         
         $('.upload-file4').selectImages({
             name: 'userclient[officialaccount][official_image]'
+        });
+        
+        $('.upload-file5').selectImages({
+            name: 'userclient[officialaccount][official_pic]'
+        });
+        
+                // swith切换
+        var $mySwitch = $('[data-x-switch]');
+        $mySwitch.find('[data-switch-item]').click(function () {
+            var $mySwitchBox = $('.' + $(this).data('switch-box'));
+            $mySwitchBox.hide().filter('.' + $(this).data('switch-item')).show();
         });
     });
 </script>

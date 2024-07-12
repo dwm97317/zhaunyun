@@ -52,7 +52,7 @@ class UserCoupon extends UserCouponModel
      */
     public function getUserCouponIds($user_id)
     {
-        return $this->where('user_id', '=', $user_id)->column('coupon_id');
+        return $this->where('user_id', '=', $user_id)->where('is_delete',0)->column('coupon_id');
     }
 
     /**
@@ -74,6 +74,20 @@ class UserCoupon extends UserCouponModel
         return $this->add($user, $coupon);
     }
 
+    /**
+     * 获取用户优惠券ID集
+     * @param $user_id
+     * @return array
+     */
+    public function getUserUsedSSCouponIds($user_id)
+    {
+        return $this
+        ->where(function($query){
+            $query->where(['is_use'=>1])->whereOr(['is_expire'=>1]);
+        })
+        ->where(['user_id'=> $user_id,'is_delete'=>0])->column('coupon_id');
+    }
+    
     /**
      * 添加领取记录
      * @param $user
@@ -136,7 +150,7 @@ class UserCoupon extends UserCouponModel
         }
         // 验证是否已领取
         $userCouponIds = $this->getUserCouponIds($user['user_id']);
-        if (in_array($coupon['coupon_id'], $userCouponIds)) {
+        if (in_array($coupon['coupon_id'], $userCouponIds) && $coupon['is_limit']==1) {
             $this->error = '该优惠券已领取';
             return false;
         }

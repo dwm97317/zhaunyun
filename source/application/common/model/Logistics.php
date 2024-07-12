@@ -1,6 +1,7 @@
 <?php
 namespace app\common\model;
 use app\store\model\Inpack;
+use app\common\model\LogisticsTrack;
 
 /**
  * 包裹日志模型
@@ -11,6 +12,9 @@ class Logistics extends BaseModel
 {
     protected $name = 'logistics';
     protected $updateTime = false;
+
+
+
 
     // 状态映射  状态 1 待查验 2 待支付 3 待发货 4 拣货中 5 已打包  6已发货 7 已到货 8 已完成  9已取消
     public $map = [

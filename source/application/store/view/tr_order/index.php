@@ -480,7 +480,7 @@
                                         </div>
                                         <div class="tpl-table-black-operation" style="margin-top:10px">
                                             <?php if (checkPrivilege('tr_order/deliverysave')): ?>
-                                            <?php if ((in_array($item['status'],[2,3,4,5]) && $item['is_pay']==1) || $item['pay_type']==1): ?>
+                                            <?php if ((in_array($item['status'],[2,3,4,5]) && $item['is_pay']==1) || $item['pay_type']['value']==1): ?>
                                              <a href="<?= url('store/trOrder/delivery', ['id' => $item['id']]) ?>">
                                                 <i class="iconfont icon-baoguo_fahuo_o"></i> 发货
                                             </a>

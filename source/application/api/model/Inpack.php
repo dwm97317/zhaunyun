@@ -219,7 +219,7 @@ class Inpack extends InpackModel
     }
     
     public function getDetailsplus($id,$field){
-        return $this->with(['line.image','storage','inpackimage.file','inpackservice.service','package.packitem','address'])->field($field)->find($id);
+        return $this->with(['line.image','storage','inpackimage.file','inpackservice.service','package.packitem','address','packageimages.packageimage.file'])->field($field)->find($id);
     }
     
     public function line(){
@@ -243,6 +243,10 @@ class Inpack extends InpackModel
     }
     
     public function package(){
+        return $this->hasMany('app\api\model\Package','inpack_id','id');
+    }
+    
+    public function packageimages(){
         return $this->hasMany('app\api\model\Package','inpack_id','id');
     }
      

@@ -66,7 +66,17 @@ class Coupon extends CouponModel
         // 获取用户已领取的优惠券
         if ($user !== false) {
             $UserCouponModel = new UserCoupon;
+            //获取用户已经领取的并且没使用的；
             $userCouponIds = $UserCouponModel->getUserCouponIds($user['user_id']);
+            $userCouponIdsss = $UserCouponModel->getUserUsedSSCouponIds($user['user_id']);
+            foreach ($userCouponIds as $k => $v){
+                $detail = Coupon::detail($v);
+                //如果优惠券是无限领取的，被使用后就可以领取 0=可以无限领取 1=限制领取一次 ,并且该优惠券已经有领取记录但被使用或过期了
+                if(!empty($detail) && $detail['is_limit']==0 && !in_array($v,$userCouponIdsss)){
+                    unset($userCouponIds[$k]);
+                }
+            }
+           
             foreach ($couponList as $key => $item) {
                 $couponList[$key]['is_receive'] = in_array($item['coupon_id'], $userCouponIds);
             }

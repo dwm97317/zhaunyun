@@ -40,7 +40,7 @@ class WxappPage extends WxappPageModel
     public static function getPageData($user, $page_id = null)
     {
         // 页面详情
-        $detail = $page_id > 0 ? parent::detail($page_id) : parent::getHomePage();
+        $detail = parent::getHomePage();
         // 页面diy元素
         $items = $detail['page_data']['items'];
 

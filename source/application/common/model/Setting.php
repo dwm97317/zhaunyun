@@ -213,6 +213,7 @@ class Setting extends BaseModel
                     ],
                     'track17' =>[
                         'key' => '',
+                        'lang' => '',
                     ],
                     'usercode_mode'=>[
                         'mode' => '30',
@@ -462,9 +463,11 @@ class Setting extends BaseModel
                         'is_index_open'=>1,//默认开启  0=不开启  首页
                         'is_my_open'=>1,//默认开启  0=不开启  个人中心
                         'name'=>"小思集运",
+                        'type'=> 10, // 默认跳转公众号图片  20=跳转链接
                         'link'=>'', //跳转地址
                         'description'=>"小思集运是一个国际物流软件开发服务商",
                         'official_image'=>"",
+                        'official_pic'=>"",  //公众号二维码
                     ],
                     'userinfo'=>[
                         'is_identification_card'=>1,

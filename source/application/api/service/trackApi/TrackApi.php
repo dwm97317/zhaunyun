@@ -7,6 +7,7 @@ Class TrackApi {
 
       public $api = 'https://api.17track.net/track/v2'; // API 请求地址
       public $secret = '5A0B5AEF8526C22944C92ADCC50C13CA'; // 秘钥
+      public $lang = 'en';
       public $wxappid = '';
       
       
@@ -20,6 +21,9 @@ Class TrackApi {
   
           if ($setting['track17']['key']){
                 $this->secret = $setting['track17']['key'];
+          }
+          if ($setting['track17']['lang']){
+                $this->lang = $setting['track17']['lang'];
           }
         
           return [
@@ -47,7 +51,11 @@ Class TrackApi {
       
       public function register($data){
           $this->wxappid = $data['wxapp_id'] ;      
-          $body = [['number' => $data['track_sn'],'carrier' => $data['t_number']]];
+          $body = [[
+              'number' => $data['track_sn'],
+              'carrier' => $data['t_number'],
+              'lang'=> $this->lang
+              ]];
           $api = '/register';
           $body[0]['auto_detection'] = false;
           $body[0]['tag'] = 'myId';

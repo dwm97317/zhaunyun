@@ -115,7 +115,12 @@
                             <thead>
                             <tr>
                                 <th><input id="checkAll" type="checkbox" ></th>
+                                <?php if($set['is_show']==0) :?>
                                 <th>用户ID</th>
+                                <?php endif;?>
+                                <?php if($set['is_show']==1) :?>
+                                <th>用户编号</th>
+                                <?php endif;?>
                                 <th>微信头像</th>
                                 <th>会员资料</th>
                                 <th>OPEN_ID</th>
@@ -134,7 +139,12 @@
                                     <td class="am-text-middle">
                                        <input name="checkIds" type="checkbox" value="<?= $item['user_id'] ?>"> 
                                     </td>
+                                    <?php if($set['is_show']==0) :?>
                                     <td class="am-text-middle"><?= $item['user_id'] ?></td>
+                                    <?php endif;?>
+                                    <?php if($set['is_show']==1) :?>
+                                    <td class="am-text-middle"><?= $item['user_code'] ?></td>
+                                    <?php endif;?>
                                     <td class="am-text-middle">
                                         <a href="<?= $item['avatarUrl'] ?>" title="点击查看大图" target="_blank">
                                             <?php if($item['avatarUrl']) :?>
@@ -147,7 +157,7 @@
                                     </td>
                                     <td class="am-text-middle">
                                         <?= $item['nickName'] ?> <br> 
-                                        <?php if($set['is_show']!=0) :?>
+                                        <?php if($set['is_show']==1) :?>
                                              CODE: <span><?= $item['user_code'] ?></span><br>
                                         <?php endif;?>
                                         性别：<?= $item['gender']['text'] ?><br>

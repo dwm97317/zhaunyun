@@ -36,6 +36,7 @@
                                 <th>最低消费金额</th>
                                 <th>优惠方式</th>
                                 <th>有效期</th>
+                                <th>领取规则</th>
                                 <th>发放总数量</th>
                                 <th>已领取数量</th>
                                 <th>排序</th>
@@ -66,7 +67,9 @@
                                                     ~ <?= $item['end_time']['text'] ?></span>
                                             <?php endif; ?>
                                         </td>
+                                        <td class="am-text-middle"><?= $item['is_limit'] == 1 ? '限制' : '不限制' ?></td>
                                         <td class="am-text-middle"><?= $item['total_num'] == -1 ? '不限制' : $item['total_num'] ?></td>
+                                        
                                         <td class="am-text-middle"><?= $item['receive_num'] ?></td>
                                         <td class="am-text-middle"><?= $item['sort'] ?></td>
 

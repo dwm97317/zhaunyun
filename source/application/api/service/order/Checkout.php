@@ -578,6 +578,7 @@ class Checkout
         helper::setDataAttribute($this->goodsList, [
             'express_price' => 0,
         ], true);
+     
         if (empty($this->param['address_id'])){
              // 当前用户收货城市id
             $cityId = $this->user['address_default'] ? $this->user['address_default']['city'] : null;
@@ -587,6 +588,7 @@ class Checkout
             if ($userAddress){
                 $this->user['address_default'] = $userAddress;
                 $cityId = $userAddress['city'];
+                $this->orderData['address'] = $userAddress;
             }
         }
        
@@ -601,6 +603,7 @@ class Checkout
         // 订单总运费金额
         // $this->orderData['intra_region'] = $isIntraRegion;
         $this->orderData['express_price'] = $ExpressService->getDeliveryFee();
+        
         return true;
     }
 
@@ -613,6 +616,7 @@ class Checkout
     public function createOrder($order)
     {
         // 表单验证
+        // dump($order['address']);die;
         if (!$this->validateOrderForm($order, $this->param['linkman'], $this->param['phone'])) {
             return false;
         }
@@ -689,6 +693,7 @@ class Checkout
      */
     private function validateOrderForm(&$order, $linkman, $phone)
     {
+        // dump($order['address']);die;
         if ($order['delivery'] == DeliveryTypeEnum::EXPRESS) {
             if (empty($order['address'])) {
                 $this->error = '您还没有选择配送地址';
