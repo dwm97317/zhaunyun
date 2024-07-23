@@ -26,6 +26,10 @@ use app\api\model\Setting as SettingModel;
 use app\common\model\store\shop\Capital;
 use app\api\model\user\UserMark;
 use app\common\service\package\Printer;
+use app\api\model\Barcode;
+
+
+
 /**
  * 用户管理
  * Class User
@@ -680,6 +684,8 @@ class Useropration extends Controller
        $useremark = $this->postData('usermark')[0];
        $shelf_unit = $this->postData('shelf_unit')[0];
        $shelf_id = $this->postData('shelf_id')[0];
+       $goodslist = $this->postData('goodslist');
+
        //再加一层校验；
         $map[] = ['is_delete','=',0];
         $map[] = ['express_num','=',$express_num];
@@ -760,22 +766,72 @@ class Useropration extends Controller
                  return $this->renderError('包裹入库失败');
             }
            }
-            //存储包裹的分类信息；
+           $Barcode = new Barcode();
+               //存储包裹的分类信息；
             $classItem = [];
-             if ($class_ids){
-                 $classItem = $this->parseClass($class_ids);
-                 foreach ($classItem as $k => $val){
-                       $classItem[$k]['class_id'] = $val['category_id'];
-                       $classItem[$k]['express_name'] = '';
-                       $classItem[$k]['class_name'] = $val['name'];
-                       $classItem[$k]['express_num'] = $express_num;
-                       $classItem[$k]['all_price'] = '';
-                       unset($classItem[$k]['category_id']); 
-                       unset($classItem[$k]['name']);        
-                 }
-             }
-             if ($classItem){
-                 $packItemRes = $packItemModel->saveAllData($classItem,$restwo);
+           if ($class_ids || $goodslist){
+             $classItem = $this->parseClass($class_ids);
+                foreach ($goodslist as $k => $val){
+                     $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['pinming'];
+                     $classItems[$k]['one_price'] = isset($val['danjia'])?$val['danjia']:'';
+                     $classItems[$k]['all_price'] = (!empty($val['danjia'])?$val['danjia']:0) * (!empty($val['shuliang'])?$val['shuliang']:0);
+                     $classItems[$k]['product_num'] = isset($val['shuliang'])?$val['shuliang']:'';
+                     $classItems[$k]['express_num'] = $express_num;
+                     $classItems[$k]['goods_name'] = isset($val['pinming'])?$val['pinming']:'';
+                     $classItems[$k]['class_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:''; // 英文品名
+                     $classItems[$k]['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:'';
+                     $classItems[$k]['length'] = isset($val['depth'])?$val['depth']:'';
+                     $classItems[$k]['width'] = isset($val['width'])?$val['width']:'';
+                     $classItems[$k]['height'] = isset($val['height'])?$val['height']:'';
+                     $classItems[$k]['unit_weight'] = isset($val['gross_weight'])?$val['gross_weight']:'';
+                     $classItems[$k]['brand'] = isset($val['brand'])?$val['brand']:'';
+                     $classItems[$k]['spec'] = isset($val['spec'])?$val['spec']:'';
+                     $classItems[$k]['net_weight'] = isset($val['net_weight'])?$val['net_weight']:'';
+                     $classItems[$k]['barcode'] = isset($val['barcode'])?$val['barcode']:'';
+                     
+                     
+                     if(isset($val['barcode']) && !empty($val['barcode'])){
+                         $barcoderesu =  $Barcode::useGlobalScope(false)->where('barcode',$val['barcode'])->find();
+                         
+                         $barcodelist['barcode'] = isset($val['barcode'])?$val['barcode']:$barcoderesu['barcode'];
+                         $barcodelist['brand'] = isset($val['brand'])?$val['brand']:$barcoderesu['brand'];
+                         $barcodelist['goods_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:$barcoderesu['goods_name_en'];
+                         $barcodelist['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:$barcoderesu['goods_name_jp'];
+                         $barcodelist['goods_name'] = isset($val['pinming'])?$val['pinming']:$barcoderesu['goods_name'];
+                         $barcodelist['spec'] = isset($val['spec'])?$val['spec']:$barcoderesu['spec'];
+                         $barcodelist['price'] = isset($val['danjia'])?$val['danjia']:$barcoderesu['price'];
+                         $barcodelist['gross_weight'] = isset($val['gross_weight'])?$val['gross_weight']:$barcoderesu['gross_weight'];
+                         $barcodelist['net_weight'] = isset($val['net_weight'])?$val['net_weight']:$barcoderesu['net_weight'];
+                         $barcodelist['depth'] = isset($val['depth'])?$val['depth']:$barcoderesu['depth'];
+                         $barcodelist['width'] = isset($val['width'])?$val['width']:$barcoderesu['width'];
+                         $barcodelist['height'] = isset($val['height'])?$val['height']:$barcoderesu['height'];
+                         
+                         
+                         if(empty($barcoderesu)){
+                             $barresult = $Barcode::useGlobalScope(false)->insert($barcodelist);
+                         }else{
+                             $barcoderesu->save($barcodelist);
+                         }
+                     }
+                     
+                }
+                
+         }
+        
+            //  if ($class_ids){
+            //      $classItem = $this->parseClass($class_ids);
+            //      foreach ($classItem as $k => $val){
+            //           $classItem[$k]['class_id'] = $val['category_id'];
+            //           $classItem[$k]['express_name'] = '';
+            //           $classItem[$k]['class_name'] = $val['name'];
+            //           $classItem[$k]['express_num'] = $express_num;
+            //           $classItem[$k]['all_price'] = '';
+            //           unset($classItem[$k]['category_id']); 
+            //           unset($classItem[$k]['name']);        
+            //      }
+            //  }
+             if ($classItems){
+                 $packItemRes = $packItemModel->saveAllData($classItems,$restwo);
                  if (!$packItemRes){
                     return $this->renderError('包裹类目更新失败');
                  }

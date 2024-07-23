@@ -52,15 +52,15 @@ class User extends BaseModel
                 // code...
                 break;
         }
-       
         // 新增余额变动记录
         BalanceLog::add(SceneEnum::CONSUME, [
               'user_id' => $member['user_id'],
               'money' => $amount,
               'remark' => $remark,
               'sence_type' => $type,
-              'wxapp_id' => (new Package())->getWxappId(),
+              'wxapp_id' =>$this->getWxappId(),
           ], [$member['nickName']]);
+         
         return $this->where(['user_id'=>$member_id])->update($update);
     }
     

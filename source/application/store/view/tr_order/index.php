@@ -435,7 +435,9 @@
                                         <?php if ($item['pick_time'] ): ?>
                                         打包完成：<?= $item['pick_time'] ?> </br>
                                         <?php endif; ?>
-                                        
+                                        <?php if ($item['cancel_time'] ): ?>
+                                        取消时间：<?= $item['cancel_time'] ?> </br>
+                                        <?php endif; ?>
                                         
                                     </td>
                                     
@@ -568,9 +570,16 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="11" class="am-text-left"><?= $item['remark']?$item['remark']:'请输入订单备注' ?> 
-                                    <a class="j-audit" data-id="<?= $item['id'] ?>" data-remark="<?= $item['remark'] ?>" href="javascript:void(0);"><i class="am-icon-pencil"></i>
-                                    </a></td>
+                                    <?php if ($item['cancel_reason']): ?>
+                                    <td colspan="3" class="am-text-left">取消原因：<?= $item['cancel_reason'] ?></td>
+                                    <?php endif ;?>
+                                    <td colspan="8" class="am-text-left">
+                                        <?= $item['remark']?$item['remark']:'请输入订单备注' ?>
+                                        <a class="j-audit" data-id="<?= $item['id'] ?>" data-remark="<?= $item['remark'] ?>" href="javascript:void(0);">
+                                            <i class="am-icon-pencil"></i>
+                                        </a>
+                                    </td>
+                                    
                                 </tr>
                             <?php endforeach; else: ?>
                                 <tr>

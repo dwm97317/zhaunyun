@@ -14,9 +14,10 @@ class LogisticsTrack extends BaseModel
     
     public static function addhookLog($param){
     $model = new static;
+    // $param = json_decode($param,true);
     $resJson = $param['data'];
-    log_write($resJson);
-     if($resJson['event']=="TRACKING_UPDATED"){
+    log_write($resJson[0]);
+     if($resJson[0]['event']=="TRACKING_UPDATED"){
             $data = [
                 'express_num' => $resJson['data']['number'],
                 'status_cn' => $resJson['data']['track_info']['latest_status']['status'],

@@ -293,6 +293,11 @@ class Setting extends BaseModel
                             'unit'=>'HK$',
                             'unit_name'=>'港币',
                         ],
+                        '70'=>[
+                            'number'=>'70',
+                            'unit'=>'MOP',
+                            'unit_name'=>'澳门币',
+                        ],
                     ],
                     'address_setting'=>[
                         'is_tel_code'=>1, 

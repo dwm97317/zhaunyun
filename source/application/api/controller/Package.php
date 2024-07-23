@@ -45,7 +45,7 @@ use app\common\library\Ditch\Aolian;
 use app\common\library\Ditch\Yidida;
 use app\api\model\ShelfUnitItem;
 use app\api\model\Barcode;
-
+use app\api\model\InpackImage;
 /**
  * 页面控制器
  * Class Index
@@ -104,6 +104,20 @@ class Package extends Controller
         // 开启事务
         Db::startTrans();
         $inpack = (new Inpack())->insertGetId($inpackOrder);
+        if(!empty($param['imageIds'])){
+            foreach ($param['imageIds'] as $key => $value){
+              $dataimg['image_id'] = $value;
+              $dataimg['inpack_id'] = $inpack;
+              $dataimg['wxapp_id'] = $param['wxapp_id'];
+              $resimg  = (new InpackImage())->save($dataimg);
+            }
+        }
+        //删除集运单图片
+        if(!empty($param['deleteIds'])){
+            foreach ($param['deleteIds'] as $key => $value){
+              $resdeleteimg  = (new InpackImage())->where('id',$value)->delete();
+            }
+        }
          //处理包装服务
         (new InpackServiceModel())->doservice($inpack,$param['pack_ids']);
         //查询仓库是否存在此包裹，如果存在，则更新入库时间和入库的状态；
@@ -1432,18 +1446,21 @@ class Package extends Controller
      
      // 包裹列表 - 取消包裹
      public function canclePack(){
-         $id = $this->postData('id');
-         $info = (new Inpack())->field('id,status,is_pay,pack_ids,real_payment,order_sn,member_id,wxapp_id')->find($id[0]);
+         $param = $this->request->param();
+      
+         $info = (new Inpack())->field('id,status,is_pay,pack_ids,real_payment,order_sn,member_id,wxapp_id')->find($param['id']);
          if (!in_array($info['status'],[1,2,3,4])){
               return $this->renderError('该包裹已发货,无法为您拦截取消');
          }
-          
+      
          // 判断该订单是否已支付 且 实际付款金额>0
          if ($info['is_pay']==1 && $info['real_payment']>0){
+            
              // 退款流程
             $remark =  '集运订单'.$info['order_sn'].'的支付退款';
             (new User())->banlanceUpdate('add',$info['member_id'],$info['real_payment'],$remark);
          }
+        
          
          $padata= explode(',',$info['pack_ids']);
          if($info['pack_ids']){
@@ -1454,7 +1471,7 @@ class Package extends Controller
              (new PackageModel())->where('inpack_id',$info['id'])->update(['status'=>2,'inpack_id'=>null]);
          }
         
-         $res = (new Inpack())->where(['id'=>$info['id']])->update(['status'=>'-1']);
+         $res = (new Inpack())->where(['id'=>$info['id']])->update(['status'=>'-1','cancel_reason'=>$param["reason"],'cancel_time'=>getTime()]);
          if (!$res){
               return $this->renderError('取消失败');
          }
@@ -1614,8 +1631,12 @@ class Package extends Controller
         $data = [
             'nocount' => $PackageModel->querycount($where,$status=1),
             'yescount' => $PackageModel->querycount($where,$status=2),
-            'yetsend' => $PackageModel->querycount($where,$status=3),
+            'yetsend' => $PackageModel->querycount($where,$status=9),
             'procount' => $PackageModel->querycount($where,$status=-1),
+            'yishouhuo' => $PackageModel->querycount($where,$status=10),
+            'daifahuo' => $PackageModel->querycount($where,$status=8),
+            'daizhifu' => $PackageModel->querycount($where,$status=5),
+            'daidabao' => $PackageModel->querycount($where,$status=4)
         ];
         return $this->renderSuccess($data);
      }

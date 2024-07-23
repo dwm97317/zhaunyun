@@ -150,10 +150,15 @@ class Package extends PackageModel
             unset($where['status']);
             $this->whereIn('status',[2,3,4]);
         }
-        // dump($where);die;
-        if(isset($where['status']) && $where['status']==3){
+        //
+        if(isset($where['status']) && $where['status']==4){
             unset($where['status']);
-            $this->whereIn('status',[5,6,9,10,11]);
+            $this->whereIn('status',[2,3,4]);
+        }
+        
+        if(isset($where['status']) && $where['status']==10){
+            unset($where['status']);
+            $this->whereIn('status',[10,11]);
         }
         return  $this->where($where)->with(['country','storage','packageimage.file','inpack'])->field($field)->Order('created_time DESC')->paginate(15);
     }
@@ -206,10 +211,17 @@ class Package extends PackageModel
             $this->whereIn('status',[2,3,4]);
             return  $this->where($where)->Order('created_time DESC')->count();
         }
-        if($status==3){
-            $this->whereIn('status',[5,6,9,10,11]);
+        if($status==4){
+            $this->whereIn('status',[2,3,4]);
+            return  $this->where($where)->where('is_take',2)->Order('created_time DESC')->count();
+        }
+        
+        if($status==10){
+            $this->whereIn('status',[10,11]);
             return  $this->where($where)->Order('created_time DESC')->count();
         }
+        
+        
         return  $this->where($where)->where('status',$status)->Order('created_time DESC')->count();
     }
 
