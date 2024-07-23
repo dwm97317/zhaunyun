@@ -24,6 +24,7 @@ class Line extends LineModel
         $rule = $this->parseRuleData($data);
  
         $data['free_rule'] = json_encode($rule);
+       
         // 保存数据
         $data['wxapp_id'] = self::$wxapp_id;
         $data['created_time'] = time();
@@ -39,7 +40,7 @@ class Line extends LineModel
     // 格式化计费规则
     public function parseRuleData($data){
                  
-    
+    // dump($data);die;
        $ruleData = [];
        if ($data['free_mode']==1){
            foreach($data['weight_start'] as $k => $v){
@@ -75,7 +76,6 @@ class Line extends LineModel
        }
        
        if ($data['free_mode']==4){
-
            foreach($data['weight_start'] as $k => $v){
                if(!empty($v)){
                    $spilt_weight[0] = $v;
@@ -86,9 +86,51 @@ class Line extends LineModel
                       'weight_unit' => $data['weight_unit'][$k],
                    ];
                }
-               
-               
            }
+       }
+       
+        if ($data['free_mode']==5){
+            $ruleData = [];
+            if(isset($data[5])){
+                
+                        $ruleData[] = [
+                          'type' =>$data[5]['type'],
+                          'first_weight' =>$data[5]['first_weight'],
+                          'first_price' => $data[5]['first_price'],
+                          'next_weight' =>$data[5]['next_weight'],
+                          'next_price' => $data[5]['next_price'],
+                       ];
+                
+            }
+            if(isset($data[6])){
+                foreach($data[6]['weight_start'] as $k => $v){
+                    if(!empty($v)){
+                          $spilt_weight[0] = $data[6]['weight_start'][$k];
+                          $spilt_weight[1] =  $data[6]['weight_max'][$k];
+                          $ruleData[] = [
+                              'type' =>$data[6]['type'],
+                              'weight' => $spilt_weight,
+                              'weight_price' => $data[6]['weight_price'][$k],
+                              'weight_unit' => 1,
+                          ];
+                    }
+                }
+            }
+            if(isset($data[7])){
+                 foreach($data[7]['weight_start'] as $k => $v){
+                    if(!empty($v)){
+                           $spilt_weight[0] = $data[7]['weight_start'][$k];
+                           $spilt_weight[1] = $data[7]['weight_max'][$k];
+                            
+                           $ruleData[] = [
+                              'type' =>$data[7]['type'],
+                              'weight' => $spilt_weight,
+                              'weight_price' => $data[7]['weight_price'][$k],
+                              'weight_unit' => $data[7]['weight_unit'][$k],
+                           ];
+                    }
+                }
+            }
        }
        return $ruleData;
     }

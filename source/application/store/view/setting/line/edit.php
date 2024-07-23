@@ -189,6 +189,10 @@
                                         <input value="4" type="radio" name="line[free_mode]" onclick="switchMode(this)" <?= $model['free_mode'] == 4 ? 'checked' : '' ?> data-am-ucheck>
                                         重量区间计费
                                     </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[free_mode]" onclick="switchMode(this)" value="5" <?= $model['free_mode'] == 5 ? 'checked' : '' ?> data-am-ucheck>
+                                        混合计费模式
+                                    </label>
                                     <div class="help-block"><small>范围区间计费,举例说明:1-10kg,价格20元,是指不管是1kg还是10kg,总价格就是20元.重量区间计费,举例说明:1-10kg,价格20元,是指在1-10kg之间时,每kg费用20元,当重量为5kg时,总价格为5 * 20 = 100元</small></div>
                                 </div>
                             </div>
@@ -332,18 +336,72 @@
                                                        <?php if (isset($model['free_rule']) && in_array($model['free_mode'],[4])): ?> 
                                                         <?php foreach($model['free_rule'] as $item4): ?>
                                                         <tr>
-                                                        <td><input type="text" name="line[weight_start][]" class="" id="doc-ipt-start-1" placeholder="输入起始重量" value="<?= $item4['weight'][0]; ?>"></td>
-                                                        <td><input type="text" name="line[weight_max][]" class="" id="doc-ipt-end-1" placeholder="输入结束重量" value="<?= $item4['weight'][1]??''; ?>"></td>
-                                                        <td><input type="text" name="line[weight_price][]" class="" id="doc-ipt-price-1" placeholder="输入所需价格" value="<?= $item4['weight_price'] ; ?>"></td>
-                                                        <td><input type="text" name="line[weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量" value="<?= $item4['weight_unit'] ; ?>"></td>
-                                                        <td onclick="freeRuleDelareaunit(this)">删除</td>
-                                                    </tr>
+                                                            <td><input type="text" name="line[weight_start][]" class="" id="doc-ipt-start-1" placeholder="输入起始重量" value="<?= $item4['weight'][0]; ?>"></td>
+                                                            <td><input type="text" name="line[weight_max][]" class="" id="doc-ipt-end-1" placeholder="输入结束重量" value="<?= $item4['weight'][1]??''; ?>"></td>
+                                                            <td><input type="text" name="line[weight_price][]" class="" id="doc-ipt-price-1" placeholder="输入所需价格" value="<?= $item4['weight_price'] ; ?>"></td>
+                                                            <td><input type="text" name="line[weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量" value="<?= $item4['weight_unit'] ; ?>"></td>
+                                                            <td onclick="freeRuleDelareaunit(this)">删除</td>
+                                                        </tr>
                                                          <?php endforeach;?>
                                                        <?php endif; ?>
                                                     </tr>
                                                 </tbody>
                                                </table>
                                      </div>
+                                     
+                                       <div class="am-form-up" id="hunhe_mode_unit" <?= in_array($model['free_mode'],[5]) ? 'style="display: block;"' : '' ?>>
+                                          <div class="am-form-title" style="height:40px; line-height:35px;">混合计费规则 
+                                          <span style="color:#ff6600;" onclick="addqujian(this)">新增区间计费</span>
+                                          <span style="color:#ff6600;" onclick="addweightqujian(this)">新增重量区间计费</span>
+                                          </div>
+                                              <table class="am-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['price_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="hunhe_mode_unit">
+                                                    <?php if (isset($model['free_rule']) && in_array($model['free_mode'],[5])): ?> 
+                                                    <?php foreach($model['free_rule'] as $item5): ?>
+                                                    <?php if ($item5['type']==1): ?> 
+                                                    <tr>
+                                                        <input type="hidden" class="tpl-form-input" name="line[5][type]" value="1" placeholder="首续重"  required>
+                                                        <td>首重<input type="number" min="0" class="tpl-form-input" name="line[5][first_weight]" value="<?= $item5['first_weight']; ?>" placeholder="输入首重"  required></td>
+                                                        <td>首重费用<input type="number" min="0" class="tpl-form-input" name="line[5][first_price]" value="<?= $item5['first_price']; ?>" placeholder="输入首重费用"  required></td>
+                                                        <td>续重<input type="number" min="0" class="tpl-form-input" name="line[5][next_weight]" value="<?= $item5['next_weight']; ?>" placeholder="输入续重"  required></td>
+                                                        <td>续重费用<input type="number" min="0" class="tpl-form-input" name="line[5][next_price]" value="<?= $item5['next_price']; ?>" placeholder="输入续重费用"  required></td>
+                                                        <td onclick="deleteshouxufei(this)">删除</td>
+                                                    </tr>
+                                                    <?php endif; ?>
+                                                    <?php if ($item5['type']==2): ?> 
+                                                    <tr>
+                                                        <input type="hidden" class="tpl-form-input" name="line[6][type]" value="2" placeholder="首续重"  required>
+                                                        <td><input type="text" name="line[6][weight_start][]" class="" id="doc-ipt-start-1" placeholder="输入起始重量" value="<?= $item5['weight'][0]; ?>"></td>
+                                                        <td><input type="text" name="line[6][weight_max][]" class="" id="doc-ipt-end-1" placeholder="输入结束重量" value="<?= $item5['weight'][1]??''; ?>"></td>
+                                                        <td><input type="text" name="line[6][weight_price][]" class="" id="doc-ipt-price-1" placeholder="输入所需价格" value="<?= $item5['weight_price'] ; ?>"></td>
+                                                        <td><input type="hidden" name="line[6][weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量" value="1"></td>
+                                                        <td onclick="deletequjian(this)">删除</td>
+                                                    </tr>
+                                                    <?php endif; ?>
+                                                    <?php if ($item5['type']==3): ?> 
+                                                    <tr>
+                                                            <input type="hidden" class="tpl-form-input" name="line[7][type]" value="3" placeholder="首续重"  required>
+                                                            <td><input type="text" name="line[7][weight_start][]" class="" id="doc-ipt-start-1" placeholder="输入起始重量" value="<?= $item5['weight'][0]; ?>"></td>
+                                                            <td><input type="text" name="line[7][weight_max][]" class="" id="doc-ipt-end-1" placeholder="输入结束重量" value="<?= $item5['weight'][1]??''; ?>"></td>
+                                                            <td><input type="text" name="line[7][weight_price][]" class="" id="doc-ipt-price-1" placeholder="输入所需价格" value="<?= $item5['weight_price'] ; ?>"></td>
+                                                            <td><input type="text" name="line[7][weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量" value="<?= $item5['weight_unit'] ; ?>"></td>
+                                                            <td onclick="deleteweightqujian(this)">删除</td>
+                                                        </tr>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php endforeach;?>
+                                                    <?php endif; ?>
+                                                </tbody>
+                                            </table>
+                                         </div>
                                     
                                 </div>
                             </div>
@@ -658,6 +716,9 @@
         if(_mode==4){
             var freeMode = '#area_mode_unit';
         }
+        if(_mode==5){
+            var freeMode = '#hunhe_mode_unit';
+        }
         $(freeMode).css('display','block');
     }
     
@@ -711,6 +772,43 @@
         Item1.innerHTML = _html;
     
         amformItem.appendChild(Item1);
+    }
+    
+        function addqujian(){
+        var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+            console.log(amformItem)
+        var Item1 = document.createElement('tr');
+        
+        var _html = '<td><input type="hidden" class="tpl-form-input" name="line[6][type]" value="2" placeholder="范围区间"  required><input type="text"name="line[6][weight_start][]"class=""id="doc-ipt-start-1"placeholder="输入起始重量"></td><td><input type="text"name="line[6][weight_max][]"class=""id="doc-ipt-end-1"placeholder="输入结束重量"></td><td><input type="text"name="line[6][weight_price][]"class=""id="doc-ipt-price-1"placeholder="输入所需价格"></td><td><input type="hidden" name="line[6][weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量" value="1"><td class="" onclick="deletequjian(this)">删除</td>';
+        Item1.innerHTML = _html;
+    
+        amformItem.appendChild(Item1);
+    }
+    
+        // 删除
+    function deletequjian(_this){
+       var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+       var parent = _this.parentNode;
+       amformItem.removeChild(parent);
+    }
+
+
+    function addweightqujian(){
+        var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+            console.log(amformItem)
+        var Item1 = document.createElement('tr');
+        
+        var _html = '<td><input type="hidden" class="tpl-form-input" name="line[7][type]" value="3" placeholder="重量区间"  required><input type="text"name="line[7][weight_start][]"class=""id="doc-ipt-start-1"placeholder="输入起始重量"></td><td><input type="text"name="line[7][weight_max][]"class=""id="doc-ipt-end-1"placeholder="输入结束重量"></td><td><input type="text"name="line[7][weight_price][]"class=""id="doc-ipt-price-1"placeholder="输入所需价格"></td><td><input type="text" name="line[7][weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量"></td><td class="" onclick="deleteweightqujian(this)">删除</td>';
+        Item1.innerHTML = _html;
+    
+        amformItem.appendChild(Item1);
+    }
+    
+    
+    function deleteweightqujian(_this){
+       var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+       var parent = _this.parentNode;
+       amformItem.removeChild(parent);
     }
 
     // 删除

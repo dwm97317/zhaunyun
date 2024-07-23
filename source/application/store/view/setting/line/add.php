@@ -157,6 +157,10 @@
                                         <input type="radio" name="line[free_mode]" onclick="switchMode(this)" value="4" data-am-ucheck>
                                         重量区间计费
                                     </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[free_mode]" onclick="switchMode(this)" value="5" data-am-ucheck>
+                                        混合计费模式
+                                    </label>
                                     <div class="help-block"><small>范围区间计费,举例说明:1-10kg,价格20元,是指不管是1kg还是10kg,总价格就是20元.重量区间计费,举例说明:1-10kg,价格20元,是指在1-10kg之间时,每kg费用20元,当重量为5kg时,总价格为5 * 20 = 100元</small></div>
                                 </div>
                             </div>
@@ -174,13 +178,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody class="step_mode">
-                                                    <tr>
-                                                        <td><input type="text" name="line[weight_start][]" class="" id="doc-ipt-email-1" placeholder="输入起始重量"></td>
-                                                        <td><input type="text" name="line[weight_max][]" class="" id="doc-ipt-email-1" placeholder="输入结束重量"></td>
-                                                        <td><input type="text" name="line[weight_price][]" class="" id="doc-ipt-email-1" placeholder="输入所需价格"></td>
-                                                        <td><input type="hidden" name="line[weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量"></td>
-                                                        <td onclick="freeRuleDel(this)">删除</td>
-                                                    </tr>
+                                                 
                                                 </tbody>
                                             </table>
                                          </div>
@@ -214,51 +212,70 @@
                                      
                                       <!--区间计费规则--->
                                       <div class="am-form-up" id="area_mode">
-                                                  <div class="am-form-title" style="height:40px; line-height:35px;">区间计费规则 <span style="color:#ff6600;" onclick="addfreeRulearea(this)">新增计费规则</span></div>
-                                                      <table class="am-table">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>最低限重(<?= $set['weight_mode']['unit'] ?>)</th>
-                                                                <th>最大限重(<?= $set['weight_mode']['unit'] ?>)</th>
-                                                                <th>价格(<?= $set['price_mode']['unit'] ?>)</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="area_mode">
-                                                            <tr>
-                                                                <td><input type="text" name="line[weight_start][]" class="" id="doc-ipt-email-1" placeholder="输入起始重量"></td>
-                                                                <td><input type="text" name="line[weight_max][]" class="" id="doc-ipt-email-1" placeholder="输入结束重量"></td>
-                                                                <td><input type="text" name="line[weight_price][]" class="" id="doc-ipt-email-1" placeholder="输入所需价格"></td>
-                                                                <td><input type="hidden" name="line[weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量" value="1"></td>
-                                                                <td onclick="freeRuleDelarea(this)">删除</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                 </div>
-                                                 
-                      
+                                          <div class="am-form-title" style="height:40px; line-height:35px;">区间计费规则 <span style="color:#ff6600;" onclick="addfreeRulearea(this)">新增计费规则</span></div>
+                                              <table class="am-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>最低限重(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>最大限重(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>价格(<?= $set['price_mode']['unit'] ?>)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="area_mode">
+                                                    <tr>
                                              
-                                                <div class="am-form-up" id="area_mode_unit">
-                                                  <div class="am-form-title" style="height:40px; line-height:35px;">重量计费规则 <span style="color:#ff6600;" onclick="addfreeRuleareaweightunit(this)">新增计费规则</span></div>
-                                                      <table class="am-table">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>最低限重(<?= $set['weight_mode']['unit'] ?>)</th>
-                                                                <th>最大限重(<?= $set['weight_mode']['unit'] ?>)</th>
-                                                                <th>价格(<?= $set['price_mode']['unit'] ?>)</th>
-                                                                 <th>计费单位重量(<?= $set['weight_mode']['unit'] ?>)</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="area_mode_unit">
-                                                            <tr>
-                                                                <td><input type="text" name="line[weight_start][]" class="" id="doc-ipt-email-1" placeholder="输入起始重量"></td>
-                                                                <td><input type="text" name="line[weight_max][]" class="" id="doc-ipt-email-1" placeholder="输入结束重量"></td>
-                                                                <td><input type="text" name="line[weight_price][]" class="" id="doc-ipt-email-1" placeholder="输入所需价格"></td>
-                                                                <td><input type="text" name="line[weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量"></td>
-                                                                <td onclick="freeRuleDelareaweightunit(this)">删除</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                 </div>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                         </div>
+                                                 
+                                        <div class="am-form-up" id="area_mode_unit">
+                                          <div class="am-form-title" style="height:40px; line-height:35px;">重量计费规则 <span style="color:#ff6600;" onclick="addfreeRuleareaweightunit(this)">新增计费规则</span></div>
+                                              <table class="am-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>最低限重(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>最大限重(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>价格(<?= $set['price_mode']['unit'] ?>)</th>
+                                                         <th>计费单位重量(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="area_mode_unit">
+                                                    <tr>
+                                               
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                         </div>
+                                                 
+                                        <div class="am-form-up" id="hunhe_mode_unit">
+                                          <div class="am-form-title" style="height:40px; line-height:35px;">混合计费规则 
+                             
+                                          <span style="color:#ff6600;" onclick="addqujian(this)">新增区间计费</span>
+                                          <span style="color:#ff6600;" onclick="addweightqujian(this)">新增重量区间计费</span>
+                                          </div>
+                                              <table class="am-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['price_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="hunhe_mode_unit">
+                                                    <tr>
+                                                        <input type="hidden" class="tpl-form-input" name="line[5][type]" value="1" placeholder="首续重"  required>
+                                                        <td>首重<input type="number" min="0" class="tpl-form-input" name="line[5][first_weight]" value="" placeholder="输入首重"  required></td>
+                                                        <td>首重费用<input type="number" min="0" class="tpl-form-input" name="line[5][first_price]" value="" placeholder="输入首重费用"  required></td>
+                                                        <td>续重<input type="number" min="0" class="tpl-form-input" name="line[5][next_weight]" value="" placeholder="输入续重"  required></td>
+                                                        <td>续重费用<input type="number" min="0" class="tpl-form-input" name="line[5][next_price]" value="" placeholder="输入续重费用"  required></td>
+                                                        <td onclick="deleteshouxufei(this)">删除</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                         </div>
+                                           
                                              
                                          </div>
                                     </div>
@@ -508,15 +525,22 @@
          console.log(_mode)
         if(_mode==1){
             var freeMode = '#step_mode';
+            addfreeRule();
         }
         if(_mode==2){
             var freeMode = '#format_mode';
+            
         }
         if(_mode==3){
             var freeMode = '#area_mode';
+            addfreeRulearea();
         }
         if(_mode==4){
             var freeMode = '#area_mode_unit';
+            addfreeRuleareaweightunit();
+        }
+        if(_mode==5){
+            var freeMode = '#hunhe_mode_unit';
         }
         $(freeMode).css('display','block');
     }
@@ -565,6 +589,9 @@
         amformItem.appendChild(Item1);
     }
 
+
+
+
     // 删除
     function freeRuleDelarea(_this){
       var amformItem = document.getElementsByClassName('area_mode')[0];
@@ -599,6 +626,59 @@
         Item1.innerHTML = _html;
     
         amformItem.appendChild(Item1);
+    }
+    
+    function addshouxufei(){
+        var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+        var Item = document.createElement('tr');
+      
+        var _html = '<td>首重<input type="number" min="0" class="tpl-form-input" name="line[first_weight][]" value="" placeholder="输入首重"  required></td><td>首重费用<input type="number" min="0" class="tpl-form-input" name="line[first_price][]" value="" placeholder="输入首重费用"  required></td><td>续重<input type="number" min="0" class="tpl-form-input" name="line[next_weight][]" value="" placeholder="输入续重"  required></td><td>续重费用<input type="number" min="0" class="tpl-form-input" name="line[next_price][]" value="" placeholder="输入续重费用"  required></td><td onclick="deleteshouxufei(this)">删除</td>';
+        Item.innerHTML = _html;
+        amformItem.appendChild(Item);
+    }
+
+    // 删除
+    function deleteshouxufei(_this){
+       var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+       var parent = _this.parentNode;
+       amformItem.removeChild(parent);
+    }
+    
+    function addqujian(){
+        var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+            console.log(amformItem)
+        var Item1 = document.createElement('tr');
+        
+        var _html = '<td><input type="hidden" class="tpl-form-input" name="line[6][type]" value="2" placeholder="范围区间"  required><input type="text"name="line[6][weight_start][]"class=""id="doc-ipt-start-1"placeholder="输入起始重量"></td><td><input type="text"name="line[6][weight_max][]"class=""id="doc-ipt-end-1"placeholder="输入结束重量"></td><td><input type="text"name="line[6][weight_price][]"class=""id="doc-ipt-price-1"placeholder="输入所需价格"></td><td><input type="hidden" name="line[6][weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量" value="1"><td class="" onclick="deletequjian(this)">删除</td>';
+        Item1.innerHTML = _html;
+    
+        amformItem.appendChild(Item1);
+    }
+    
+        // 删除
+    function deletequjian(_this){
+       var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+       var parent = _this.parentNode;
+       amformItem.removeChild(parent);
+    }
+
+
+    function addweightqujian(){
+        var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+            console.log(amformItem)
+        var Item1 = document.createElement('tr');
+        
+        var _html = '<td><input type="hidden" class="tpl-form-input" name="line[7][type]" value="3" placeholder="重量区间"  required><input type="text"name="line[7][weight_start][]"class=""id="doc-ipt-start-1"placeholder="输入起始重量"></td><td><input type="text"name="line[7][weight_max][]"class=""id="doc-ipt-end-1"placeholder="输入结束重量"></td><td><input type="text"name="line[7][weight_price][]"class=""id="doc-ipt-price-1"placeholder="输入所需价格"></td><td><input type="text" name="line[7][weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量"></td><td class="" onclick="deleteweightqujian(this)">删除</td>';
+        Item1.innerHTML = _html;
+    
+        amformItem.appendChild(Item1);
+    }
+    
+    
+    function deleteweightqujian(_this){
+       var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+       var parent = _this.parentNode;
+       amformItem.removeChild(parent);
     }
     
     // 删除

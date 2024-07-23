@@ -36,6 +36,7 @@ class User extends BaseModel
     // 余额变更
     public function banlanceUpdate($type,$member_id,$amount,$remark){
         $member = self::find($member_id);
+        
         switch ($type) {
             case 'add':
                 $type = 1;
@@ -52,13 +53,14 @@ class User extends BaseModel
                 // code...
                 break;
         }
+
         // 新增余额变动记录
         BalanceLog::add(SceneEnum::CONSUME, [
               'user_id' => $member['user_id'],
               'money' => $amount,
               'remark' => $remark,
               'sence_type' => $type,
-              'wxapp_id' =>$this->getWxappId(),
+              'wxapp_id' =>$member['wxapp_id'],
           ], [$member['nickName']]);
          
         return $this->where(['user_id'=>$member_id])->update($update);

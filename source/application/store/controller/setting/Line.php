@@ -29,7 +29,8 @@ class Line extends Controller
           1 => '阶梯计费',
           2 => '首/续重计费',
           3 => '范围区间计费',
-          4 => '重量区间计费'
+          4 => '重量区间计费',
+          5 => '混合模式计费'
         ]);
  
         return $this->fetch('index', compact('list'));
@@ -112,6 +113,7 @@ class Line extends Controller
         $model = (new LineModel())->details($id);
         $result = [];
         $model['free_rule'] = json_decode($model['free_rule'],true);
+      
         if($model['free_mode']==4 || $model['free_mode']==3){
             foreach ($model['free_rule'] as $key=> $val){
                 !isset($val['weight_unit']) && $val['weight_unit'] = 1;
@@ -119,8 +121,17 @@ class Line extends Controller
             }
             $model['free_rule']  = $result;
         }
+        
+        if($model['free_mode']==5){
+        
+            foreach ($model['free_rule'] as $key=> $val){
+                !isset($val['weight_unit']) && $val['weight_unit'] = 1;
+                $result[] = $val;
+            }
+            $model['free_rule']  = $result;
+        }
        
-    
+        //   dump($model['free_rule']);die;
         $country = [];
         $category = [];
         $country = (new Countries())->where('status','=',1)->select();
@@ -153,7 +164,7 @@ class Line extends Controller
         $set = Setting::detail('store')['values'];
   
         if (!$this->request->isAjax()) {
-            // dump($set);die;
+                // dump($model);die;
             return $this->fetch('edit', compact('model','country','set','lineservice'));
         }
         //  dump($this->postData('line'));die;

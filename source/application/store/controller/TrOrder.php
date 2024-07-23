@@ -589,12 +589,13 @@ class TrOrder extends Controller
         if(($userdata['balance'] < $payprice) || $payprice==0){
             return $this->renderError('用户余额不足');
         }
-        //   dump($userdata['balance'] < $payprice);die;
+           
         //扣除余额，并产生一天用户的消费记录；减少用户余额；
         $res = $user->banlanceUpdate('remove',$data['user_id'],$payprice,date("Y-m-d H:i:s").',集运单'.$inpackdata['order_sn'].'消费余额'.$payprice);
         if(!$res){
             return $this->renderError($user->getError() ?: '操作失败');
         }
+      
         //累计消费金额
         $userdata->setIncPayMoney($payprice);
         //修改集运单状态何支付状态

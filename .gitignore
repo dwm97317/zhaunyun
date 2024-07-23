@@ -11,3 +11,4 @@ web/html5/
 web/lang
 web/datascreen
 database.php
+*.database.php
