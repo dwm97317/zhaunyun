@@ -12,3 +12,5 @@ web/lang
 web/datascreen
 database.php
 *.database.php
+.user.ini
+

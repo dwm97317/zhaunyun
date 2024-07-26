@@ -577,10 +577,7 @@ class Setting extends BaseModel
                 'values' => [
                     'default' => 'zhHans',
                     'zhHans' => '1', //简体中文
-                    'en' => '0', //英文
                     'zhHant' => '0', //繁体
-                    'thai'=>0, //泰语
-                    'vietnam'=>0, //越南
                     'langlist'=>[
                     
                     ]

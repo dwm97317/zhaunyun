@@ -3,19 +3,37 @@
         <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
             <div class="widget am-cf">
                 <div class="widget-head am-cf">
-                    <div class="widget-title am-cf">渠道商列表</div>
+                    <div class="widget-title am-cf">渠道商列表  <a href="<?= url('store/setting.ditch/import')?>">批量导入</a></div>
+                    
                 </div>
                 <div class="widget-body am-fr">
                     <div class="am-u-sm-12 am-u-md-6 am-u-lg-6">
                         <div class="am-form-group">
                             <div class="am-btn-toolbar">
                                 <?php if (checkPrivilege('setting.ditch/add')): ?>
-                                    <div class="am-btn-group am-btn-group-xs">
-                                        <a class="am-btn am-btn-default am-btn-success am-radius"
-                                           href="<?= url('setting.ditch/add') ?>">
-                                            <span class="am-icon-plus"></span> 新增
-                                        </a>
-                                    </div>
+                                <div class="am-form-group">
+                                    <div class="am-u-sm-2 am-u-end">
+                                        <div class="am-btn-group am-btn-group-xs">
+                                            <a class="am-btn am-btn-default am-btn-success am-radius"
+                                               href="<?= url('setting.ditch/add') ?>">
+                                                <span class="am-icon-plus"></span> 新增
+                                            </a>
+                                        </div>
+                                     </div>
+                                     <div class="widget-become-goods am-form-file am-margin-top-xs">
+                                            <button type="button"
+                                                    class="j-selectUser upload-file am-btn am-btn-secondary am-radius">
+                                                <i class="am-icon-cloud-upload"></i> 选择文件
+                                                <input type="file" class="data-file-select"/> 
+                                            </button>
+                                            <div class="user-list uploader-list am-cf">
+                                            </div>
+                                            <div class="process-bar" style="display:none;">
+                                                 <p class="am-btn-secondary" id="bar" style="width:0%"></p>
+                                                 <span id="bar_text">正在处理中 <b>0%</b></span>
+                                            </div>
+                                        </div>
+                                </div>
                                 <?php endif; ?>
                             </div>
                             
@@ -59,6 +77,13 @@
                                                         <i class="am-icon-trash"></i> 删除
                                                     </a>
                                                 <?php endif; ?>
+                                                <?php if (checkPrivilege('setting.ditch/ditchnumber')): ?>
+                                                <a class="tpl-table-black-operation-default"
+                                                   href="<?= url('setting.ditch/ditchnumber', ['ditch_id' => $item['ditch_id']]) ?>" title="查看可用单号">
+                                                    <i class="iconfont icon-zhekou"></i> 查看可用单号
+                                                </a>
+                                                <?php endif; ?>
+                                    
                                             </div>
                                         </td>
                                     </tr>
@@ -107,4 +132,3 @@
         });
     });
 </script>
-

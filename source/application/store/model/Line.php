@@ -132,6 +132,25 @@ class Line extends LineModel
                 }
             }
        }
+       
+       if ($data['free_mode']==6){
+        //   dump($data);die;
+           $ruleData = [];
+            if(isset($data[8])){
+                foreach($data[8]['weight_start'] as $k => $v){
+                   $spilt_weight[0] = $data[8]['weight_start'][$k];
+                   $spilt_weight[1] = $data[8]['weight_max'][$k];
+                   $ruleData[] = [
+                         'weight' => $spilt_weight,
+                        'first_weight' =>$data[8]['first_weight'][$k],
+                        'first_price' => $data[8]['first_price'][$k],
+                        'next_weight' => $data[8]['next_weight'][$k],
+                        'next_price' => $data[8]['next_price'][$k],
+                   ];
+               }
+            }
+           
+       }
        return $ruleData;
     }
     
@@ -174,9 +193,9 @@ class Line extends LineModel
         // 表单验证
         if (!$this->onValidate($data)) return false;
         $rule = $this->parseRuleData($data);
-        
+        //  dump($rule);die; 
         $data['free_rule'] = json_encode($rule);
-           
+         
         // 保存数据
         $data['wxapp_id'] = self::$wxapp_id;
         if($data['countrys']=='' || $data['countrys']==null){

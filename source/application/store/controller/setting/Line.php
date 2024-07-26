@@ -30,7 +30,8 @@ class Line extends Controller
           2 => '首/续重计费',
           3 => '范围区间计费',
           4 => '重量区间计费',
-          5 => '混合模式计费'
+          5 => '混合模式计费',
+          6 => '阶梯首续重计费'
         ]);
  
         return $this->fetch('index', compact('list'));
@@ -130,8 +131,8 @@ class Line extends Controller
             }
             $model['free_rule']  = $result;
         }
-       
-        //   dump($model['free_rule']);die;
+        
+  
         $country = [];
         $category = [];
         $country = (new Countries())->where('status','=',1)->select();
@@ -169,6 +170,7 @@ class Line extends Controller
         }
         //  dump($this->postData('line'));die;
         // 更新记录
+                // dump($this->postData('line'));die;
         if ($model->edit($this->postData('line'))) {
             return $this->renderSuccess('更新成功', url('setting.line/index'));
         }

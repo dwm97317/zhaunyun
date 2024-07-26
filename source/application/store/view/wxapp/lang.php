@@ -74,6 +74,7 @@
                             <tr>
                                 <th>语言名称</th>
                                 <th>英文名</th>
+                                <th>AI翻译</th>
                                 <th>是否启用</th>
                                 <th>操作</th>
                             </tr>
@@ -85,6 +86,7 @@
                                     <td class="am-text-middle">
                                         <p class="item-title" style="max-width: 400px;"><?= $item['enname'] ?></p>
                                     </td>
+                                    <td class="am-text-middle"><?= isset($item['langto'])?$item['langto']:'' ?></td>
                                     <td class="am-text-middle"><?= isset($item['status']) &&  $item['status']==1?"启用":"禁用" ?></td>
                                     <td class="am-text-middle">
                                         <div class="tpl-table-black-operation">
@@ -105,6 +107,12 @@
                                                     <i class="am-icon-pencil"></i> 设置翻译
                                                 </a>
                                             <?php endif; ?>
+                                            <!--<?php if (checkPrivilege('store/wxapp/ailang')): ?>-->
+                                            <!--    <a href="<?= url('store/wxapp/ailang',['lang' => $item['enname'],'to'=>isset($item['langto'])?$item['langto']:'']) ?>" class="tpl-table-black-operation"-->
+                                            <!--       data-id="<?= $item['enname'] ?>">-->
+                                            <!--        <i class="am-icon-pencil"></i> AI翻译-->
+                                            <!--    </a>-->
+                                            <!--<?php endif; ?>-->
                                         </div>
                                     </td>
                                 </tr>
@@ -130,6 +138,27 @@
                     <label class="am-u-sm-3 am-form-label"> 语言中文名 </label>
                     <div class="am-u-sm-8 am-u-end">
                         <input type="text" name="lang[name]" value="" placeholder="请输入语言中文名">
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择语种
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="lang[langto]"
+                                data-am-selected="{btnSize: 'sm', placeholder: '请选择翻译语音'}">
+                               <option value="en">英语</option>
+                               <option value="jp">日语</option>
+                               <option value="fra">法语</option>
+                               <option value="kor">韩语</option>
+                               <option value="ara">阿拉伯语</option>
+                               <option value="th">泰语</option>
+                               <option value="vie">越南语</option>
+                               <option value="ru">俄语</option>
+                        </select>
+                        <div class="help-block">
+                            <small>注：其他语音请联系客服，或自行翻译</small>
+                    </div>
                     </div>
                 </div>
                 <div class="am-form-group">
@@ -170,6 +199,27 @@
                     <label class="am-u-sm-3 am-form-label"> 英文名 </label>
                     <div class="am-u-sm-8 am-u-end">
                         <input type="text" name="lang[enname]" value="{{ enname }}" placeholder="请输入英文名">
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择语种
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="lang[langto]"
+                                data-am-selected="{btnSize: 'sm', placeholder: '请选择翻译语音'}">
+                               <option value="en"  data-am-ucheck {{ langto=='en'?'selected':'' }} >英语</option>
+                               <option value="jp" data-am-ucheck {{ langto=='jp'?'selected':'' }}>日语</option>
+                               <option value="fra" data-am-ucheck {{ langto=='fra'?'selected':'' }}>法语</option>
+                               <option value="kor" data-am-ucheck {{ langto=='kor'?'selected':'' }}>韩语</option>
+                               <option value="ara" data-am-ucheck {{ langto=='ara'?'selected':'' }}>阿拉伯语</option>
+                               <option value="th" data-am-ucheck {{ langto=='th'?'selected':'' }}>泰语</option>
+                               <option value="vie" data-am-ucheck {{ langto=='vie'?'selected':'' }}>越南语</option>
+                               <option value="ru" data-am-ucheck {{ langto=='ru'?'selected':'' }}>俄语</option>
+                        </select>
+                        <div class="help-block">
+                            <small>注：其他语音请联系客服，或自行翻译</small>
+                    </div>
                     </div>
                 </div>
                  <div class="am-form-group">

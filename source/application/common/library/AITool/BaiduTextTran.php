@@ -17,11 +17,11 @@ class BaiduTextTran extends BaiduBase
      * Class wechat
      * @package app\library
      */
-    public function gettexttrans($text){
+    public function gettexttrans($text,$lang){
         $token = $this->getAccessToken();
         $formData = json_encode([
             'from' => 'zh',
-            'to' => 'en',
+            'to' => $lang,
             'q' => $text,
         ]);
         $curl = curl_init();

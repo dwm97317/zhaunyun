@@ -64,6 +64,7 @@
 		"freight_ratio": "运费比例",
 		"inquireNow": "立即查询",
 		"pack": "立方",
+		"linecategory":"运输方式",
 		"please_enter_the_package": "请输入包裹"
 	},
 	"page_my": {

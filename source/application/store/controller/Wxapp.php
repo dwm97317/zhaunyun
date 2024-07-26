@@ -6,7 +6,7 @@ use app\store\model\Wxapp as WxappModel;
 use app\store\model\Setting as SettingModel;
 use app\store\model\store\User;
 use think\Cache;
-
+use app\common\library\AITool\BaiduTextTran;
 /**
  * 小程序管理
  * Class Wxapp
@@ -148,13 +148,13 @@ class Wxapp extends Controller
                 $i ++;
         }
         $languages = array_merge($zhHans,$languages);
-      
+    
         // $languages = ['zhHans' =>'简体','en' =>'英文','zhHant' =>'繁体','thai' =>'泰文','vietnam' =>'越南文'];
         $language = $languages[$param['lang']];
        
         $lang = getFileDataForLang('lang/'.$wxappId.'/'.$param['lang'].'.json');
         $zhHans = getFileDataForLang('lang/'.$wxappId.'/zhHans.json');
-        //   dump($param['lang']);die;
+         
         
         if(count($zhHans)==0){
             $zhHans = getFileDataForLang('lang/10001/zhHans.json');
@@ -162,6 +162,7 @@ class Wxapp extends Controller
         if(count($lang)==0){
             $lang = getFileDataForLang('lang/10001/zhHans.json');
         }
+       
             // dump($lang);die;
         if (!$this->request->isAjax()) {
             return $this->fetch('langdetail', compact('lang','zhHans','language'));
@@ -179,17 +180,65 @@ class Wxapp extends Controller
         return $this->renderError($SettingModel->getError() ?: '更新失败');
     }
     
+    public function ailang(){
+        $SettingModel = new SettingModel;
+        $wxappId = $this->getWxappId();
+        $param = $this->request->param();
+        $lang = $SettingModel::getItem("lang");
+        
+        $zhHans=['zhHans' =>'简体','zhHant' =>'繁体'];
+        $i = 0;
+        foreach($lang['langlist'] as $key=> $val){
+            $val= json_decode($val,true);
+                $languages[$key] = $val['name'];
+                $i ++;
+        }
+        $languages = array_merge($zhHans,$languages);
+        // $languages = ['zhHans' =>'简体','en' =>'英文','zhHant' =>'繁体','thai' =>'泰文','vietnam' =>'越南文'];
+        $language = $languages[$param['lang']];
+       
+        $lang = getFileDataForLang('lang/'.$wxappId.'/'.$param['lang'].'.json');
+        $zhHans = getFileDataForLang('lang/'.$wxappId.'/zhHans.json');
+       
+        
+        if(count($zhHans)==0){
+            $zhHans = getFileDataForLang('lang/10001/zhHans.json');
+        }
+        if(count($lang)==0){
+            $lang = getFileDataForLang('lang/10001/zhHans.json');
+        }
+        // 翻译的内容
+        $setting = SettingModel::getItem('aiidentify',$this->getWxappId());
+        if($setting['is_baiduaddress']==0){
+            return $this->renderError("尚未开启智能AI识别功能，请更改API");
+        }
+        $BaiduTextTran = new BaiduTextTran($setting);
+        $data = $lang;
+        foreach ($lang as $key => $value){
+            foreach ($lang[$key] as $k => $v){
+               $data[$key][$k] = $BaiduTextTran->gettexttrans($v,$param['to'])['result']['trans_result'][0]['dst'];
+            }
+        }
+        $dir = 'lang/'.$wxappId.'/';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true); // 创建目录，并设置权限
+        }
+        file_put_contents('lang/'.$wxappId.'/'.$param['lang'].'.json', json_encode($data));
+        return $this->renderSuccess('更新成功');
+   
+    }
+    
     
     //多语言设置
     public function lang(){
         $SettingModel = new SettingModel;
         $lang = $SettingModel::getItem("lang");
         $list = [];
-            // dump($lang);die;
+         
         foreach ($lang['langlist'] as $key=>$val){
                 $list[] = json_decode($val,true);
         }
-        // dump($lang);die;
+        // dump($list);die;
         if (!$this->request->isAjax()) {
             return $this->fetch('lang', compact('lang','list'));
         }

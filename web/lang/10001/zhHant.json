@@ -64,6 +64,7 @@
 		"freight_ratio": "運費比例",
 		"inquireNow": "立即查詢",
 		"pack": "立方",
+		"linecategory":"運輸方式",
 		"please_enter_the_package": "請輸入包裹"
 	},
 	"page_my": {
@@ -164,6 +165,11 @@
 		"yessend": "已發貨",
 		"order_sn":"所屬訂單",
 		"problem_piece": "問題件",
+		"tobodabao":"待打包",
+		"yijingshouhuo":"收貨簽收",
+		"daizhifu":"待支付",
+		"yifahuo":"已發貨",
+		"daifahuo":"待發貨",
 		"please_enter_the_parcel_number": "請輸入包裹單號",
 		"check_the_details": "查看詳情",
 		"parcel_no": "包裹單號",

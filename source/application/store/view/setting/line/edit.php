@@ -24,7 +24,30 @@
                                     <input type="text" class="tpl-form-input" name="line[name]" value="<?= $model['name'] ?>" required>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 运输形式 </label>
+                                <div class="am-u-sm-9 am-u-end">
                             
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[line_category]"  value="10" data-am-ucheck <?= $model['line_category'] == 10 ? 'checked' : '' ?>>
+                                        海运
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[line_category]"  value="20" data-am-ucheck <?= $model['line_category'] == 20 ? 'checked' : '' ?>>
+                                        空运
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[line_category]"  value="30" data-am-ucheck <?= $model['line_category'] == 30 ? 'checked' : '' ?>>
+                                        陆运
+                                    </label>
+                                 
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[line_category]"  value="40" data-am-ucheck <?= $model['line_category'] == 40 ? 'checked' : '' ?>>
+                                        铁运
+                                    </label>
+                            
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">线路图片 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -192,6 +215,10 @@
                                     <label class="am-radio-inline">
                                         <input type="radio" name="line[free_mode]" onclick="switchMode(this)" value="5" <?= $model['free_mode'] == 5 ? 'checked' : '' ?> data-am-ucheck>
                                         混合计费模式
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[free_mode]" onclick="switchMode(this)" value="6" <?= $model['free_mode'] == 6 ? 'checked' : '' ?> data-am-ucheck>
+                                        阶梯首续重规则
                                     </label>
                                     <div class="help-block"><small>范围区间计费,举例说明:1-10kg,价格20元,是指不管是1kg还是10kg,总价格就是20元.重量区间计费,举例说明:1-10kg,价格20元,是指在1-10kg之间时,每kg费用20元,当重量为5kg时,总价格为5 * 20 = 100元</small></div>
                                 </div>
@@ -402,6 +429,42 @@
                                                 </tbody>
                                             </table>
                                          </div>
+                                         
+                                         <!--阶梯首续重计费-->
+                                         <div class="am-form-up" id="jieti_mode_unit" <?= in_array($model['free_mode'],[6]) ? 'style="display: block;"' : '' ?>>
+                                          <div class="am-form-title" style="height:40px; line-height:35px;">阶梯首续重规则 
+                                          <span style="color:#ff6600;" onclick="addqujianshouxuzhong(this)">新增阶梯首续重</span>
+                                          </div>
+                                              <table class="am-table">
+                                                <thead>
+                                                    <tr><th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['price_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="jieti_mode_unit">
+                                                    <?php if (isset($model['free_rule']) && in_array($model['free_mode'],[6])): ?> 
+                                                    <?php foreach($model['free_rule'] as $item5): ?>
+                             
+                                                    <tr>
+                                                        <input type="hidden" class="tpl-form-input" name="line[8][type]" value="1" placeholder="首续重"  required>
+                                                        <td>起始重量<input type="text" name="line[8][weight_start][]" class="" id="doc-ipt-start-1" placeholder="输入起始重量" value="<?= $item5['weight'][0]; ?>"></td>
+                                                        <td>结束重量<input type="text" name="line[8][weight_max][]" class="" id="doc-ipt-end-1" placeholder="输入结束重量" value="<?= $item5['weight'][1]??''; ?>"></td>
+                                                        <td>首重<input type="number" min="0" class="tpl-form-input" name="line[8][first_weight][]" value="<?= $item5['first_weight']; ?>" placeholder="输入首重"  required></td>
+                                                        <td>首重费用<input type="number" min="0" class="tpl-form-input" name="line[8][first_price][]" value="<?= $item5['first_price']; ?>" placeholder="输入首重费用"  required></td>
+                                                        <td>续重<input type="number" min="0" class="tpl-form-input" name="line[8][next_weight][]" value="<?= $item5['next_weight']; ?>" placeholder="输入续重"  required></td>
+                                                        <td>续重费用<input type="number" min="0" class="tpl-form-input" name="line[8][next_price][]" value="<?= $item5['next_price']; ?>" placeholder="输入续重费用"  required></td>
+                                                        <td onclick="deleteshouxufei(this)">删除</td>
+                                                    </tr>
+                                                    <?php endforeach;?>
+                                                    <?php endif; ?>
+                                                </tbody>
+                                            </table>
+                                         </div>
+                                         
                                     
                                 </div>
                             </div>
@@ -719,6 +782,9 @@
         if(_mode==5){
             var freeMode = '#hunhe_mode_unit';
         }
+        if(_mode==6){
+            var freeMode = '#jieti_mode_unit';
+        }
         $(freeMode).css('display','block');
     }
     
@@ -821,6 +887,23 @@
     // 删除
     function freeRuleDelareaunit(_this){
        var amformItem = document.getElementsByClassName('area_mode_unit')[0];
+       var parent = _this.parentNode;
+       amformItem.removeChild(parent);
+    }
+    
+        function addqujianshouxuzhong(){
+        var amformItem = document.getElementsByClassName('jieti_mode_unit')[0];
+            console.log(amformItem)
+        var Item1 = document.createElement('tr');
+        
+        var _html = '<input type="hidden" class="tpl-form-input" name="line[8][type]" value="1" placeholder="首续重"  required><td>起始重量<input type="text"name="line[8][weight_start][]"class=""id="doc-ipt-email-1"placeholder="输入起始重量"></td><td>结束重量<input type="text"name="line[8][weight_max][]"class=""id="doc-ipt-email-1"placeholder="输入结束重量"></td><td>首重<input type="number" min="0" class="tpl-form-input" name="line[8][first_weight][]" value="" placeholder="输入首重"  required></td><td>首重费用<input type="number" min="0" class="tpl-form-input" name="line[8][first_price][]" value="" placeholder="输入首重费用"  required></td><td>续重<input type="number" min="0" class="tpl-form-input" name="line[8][next_weight][]" value="" placeholder="输入续重"  required></td><td>续重费用<input type="number" min="0" class="tpl-form-input" name="line[8][next_price][]" value="" placeholder="输入续重费用"  required></td><td onclick="deletequjianshouxuzhong(this)">删除</td>';
+        Item1.innerHTML = _html;
+    
+        amformItem.appendChild(Item1);
+    }
+    
+    function deletequjianshouxuzhong(_this){
+       var amformItem = document.getElementsByClassName('jieti_mode_unit')[0];
        var parent = _this.parentNode;
        amformItem.removeChild(parent);
     }

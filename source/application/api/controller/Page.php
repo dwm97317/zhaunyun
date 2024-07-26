@@ -821,6 +821,9 @@ class Page extends Controller
       if ($data['free_mode'] == 5){
           $data['free_rule'] = json_decode($data['free_rule'],true);
       }
+      if ($data['free_mode'] == 6){
+          $data['free_rule'] = json_decode($data['free_rule'],true);
+      }
     //   dump($data['free_rule']);die;
       $data['line_content'] = html_entity_decode($data['line_content']);
       $line_type_unit_map = [10 =>'g',20=>'kg',30=>'lb',40=>'CBM'];
@@ -839,9 +842,12 @@ class Page extends Controller
        $weigth = !empty($this->postData('weigth')[0])?$this->postData('weigth')[0]:0;
        $country = $this->postData('country_id')[0];
        $category = $this->postData('class_ids')[0];
+       
        $freeType = $this->postData('freeType')[0];
        $service = $this->postData('service')[0]; //增值服务
-    
+       $param = $this->request->param();
+       $linecategory = isset($param['linecategory'])?$param['linecategory']:0;
+
        $weigthV = 0; //初始化为0
        $weigthV_fi =0;
        $wxappId = $this->request->param('wxapp_id');
@@ -850,19 +856,28 @@ class Page extends Controller
    
        //这里用于计算路线国家的匹配度
         if($freeType==0){
+            $where['line_type_unit'] = $setting['weight_mode']['mode'];
+            $where['line_type'] = $freeType;
+            if($linecategory !=0){
+                    $where['line_category'] = $linecategory;
+            }
             if(!empty($category)){
-                $line = (new Line())->with('image')->where('FIND_IN_SET(:ids,categorys)', ['ids' => $category])->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->where('line_type',$freeType)->where('line_type_unit',$setting['weight_mode']['mode'])->select();
+                $line = (new Line())->with('image')->where($where)->where('FIND_IN_SET(:ids,categorys)', ['ids' => $category])->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->select();
             }else{
-                $line = (new Line())->with('image')->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->where('line_type',$freeType)->where('line_type_unit',$setting['weight_mode']['mode'])->select();
+                $line = (new Line())->with('image')->where($where)->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->select();
             }
         }else{
+            $where['line_type'] = $freeType;
+            if($linecategory !=0){
+                $where['line_category'] = $linecategory;
+            }
             if(!empty($category)){
-                $line = (new Line())->with('image')->where('FIND_IN_SET(:ids,categorys)', ['ids' => $category])->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->where('line_type',$freeType)->select();
+                $line = (new Line())->with('image')->where($where)->where('FIND_IN_SET(:ids,categorys)', ['ids' => $category])->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->select();
             }else{
-                $line = (new Line())->with('image')->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->where('line_type',$freeType)->select();
+                $line = (new Line())->with('image')->where($where)->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->select();
             }
         }
-       
+    //   dump((new Line())->getLastsql());die;
        //还需要计算重量范围是否符合，物品属性是否匹配
         $lines =[];
         $k = 0;
@@ -1037,31 +1052,34 @@ class Page extends Controller
                           $lines[$key]['predict'] = [
                               'weight' => $oWeigth,
                               'price' => number_format(($vv['first_price']+ $ww*$vv['next_price'] + $otherfree)*$value['discount'],2),
-                              'rule' => $vv
+                              'rule' => $vv,
+                              'service' =>0,
                           ]; 
                   }else{
                       $lines[$key]['sortprice'] = $vv['first_price'];
                       $lines[$key]['predict'] = [
                               'weight' => $oWeigth,
                               'price' => number_format(($vv['first_price']+ $otherfree)*$value['discount'],2),
-                              'rule' => $vv
+                              'rule' => $vv,
+                              'service' =>0,
                           ]; 
                   }
                 }
                 
                 if($vv['type']=="2"){
-                    foreach ($free_rule as $k => $v) {
-                       if ($oWeigth >= $v['weight'][0]){
-                          if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
-                              $lines[$key]['sortprice'] =(floatval($v['weight_price']) + $otherfree)*$value['discount'] ;
+           
+                       if ($oWeigth >= $vv['weight'][0]){
+                          if (isset($vv['weight'][1]) && $oWeigth<=$vv['weight'][1]){
+                              $lines[$key]['sortprice'] =(floatval($vv['weight_price']) + $otherfree)*$value['discount'] ;
                               $lines[$key]['predict'] = [
                                   'weight' => $oWeigth,
-                                  'price' => number_format((floatval($v['weight_price']) + $otherfree)*$value['discount'],2),
-                                  'rule' => $v
+                                  'price' => number_format((floatval($vv['weight_price']) + $otherfree)*$value['discount'],2),
+                                  'rule' => $vv,
+                                  'service' =>0,
                               ];   
                           }
                        }
-                   }
+                   
                 }
        
                 if($vv['type']=="3"){
@@ -1087,6 +1105,36 @@ class Page extends Controller
                }
                
                break;
+               
+               case '6':
+                $free_rule = json_decode($value['free_rule'],true);
+
+                foreach ($free_rule as $k => $v) {
+                    if($oWeigth >= $v['weight'][0] ){
+                       //判断时候需要取整
+                            if($value['is_integer']==1){
+                                $ww = ceil((($oWeigth-$v['first_weight'])/$v['next_weight']));
+                            }else{
+                                $ww = ($oWeigth-$v['first_weight'])/$v['next_weight'];
+                            }
+                       
+                           if ($oWeigth >= $v['first_weight']){
+                                  $lines[$key]['sortprice'] =($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'];
+                                  $lines[$key]['predict'] = [
+                                      'weight' => $oWeigth,
+                                      'price' => number_format(($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'],2),
+                                      'rule' => $v
+                                  ]; 
+                            }else{
+                              $lines[$key]['sortprice'] = $v['first_price'];
+                              $lines[$key]['predict'] = [
+                                      'weight' => $oWeigth,
+                                      'price' => number_format(($v['first_price']+ $otherfree)*$value['discount'],2),
+                                      'rule' => $v
+                                  ]; 
+                          }
+                        }
+               }
              default:
                break;
            }
