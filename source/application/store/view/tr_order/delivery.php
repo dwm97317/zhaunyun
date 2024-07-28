@@ -31,7 +31,7 @@
                             <div class="am-form-group c" id="c1">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 承运商 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                     <select name="delivery[tt_number]" id="" data-am-selected="{searchBox: 1,maxHeight:300}">
+                                     <select name="delivery[tt_number]"  id="" data-am-selected="{searchBox: 1,maxHeight:300}">
                                          <option value="">选择承运商</option>
                                      <?php if (isset($track)):
                                             foreach ($track as $item): ?>
@@ -47,12 +47,15 @@
                             <div class="am-form-group c" id="c2" style="display: none;">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 渠道商 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <select name="delivery[t_number]" id="" data-am-selected="{searchBox: 1,maxHeight:300}">
+                                    <select name="delivery[t_number]" id="selectditch" onchange="selectDitch(this)"  data-am-selected="{searchBox: 1,maxHeight:300}">
                                          <option value="">选择承运商</option>
                                      <?php if (isset($ditchlist)):
                                             foreach ($ditchlist as $item): ?>
                                                 <option value="<?= $item['ditch_id'] ?>"><?= $item['ditch_name'] ?>-<?= $item['ditch_no'] ?></option>
                                             <?php endforeach; endif; ?>
+                                     </select>
+                                     <select name="delivery[t_order_sn]" id="selectnumber" onchange="selectNumberS(this)"  data-am-selected="{searchBox: 1,maxHeight:300}">
+                                         <option value="">选择单号</option>
                                      </select>
                                 </div>
                             </div>
@@ -99,6 +102,35 @@
 
 <script src="assets/store/js/select.region.js?v=1.2"></script>
 <script>
+    var selectDitch = function(_this){
+        var selectditch = $('#selectditch option:selected').val();
+        var $selectNum = $('#selectnumber');
+        $.ajax({
+               type:'post',
+               url:"<?= url('store/setting.ditch/getdicthNumberList') ?>",
+               data:selectditch,
+               dataType:'json',
+               success:function (res) {
+                   if (res.code==1){
+                        for (var i=0;i<res.data.length;i++){
+                            $selectNum.append('<option value="' + res.data[i]['ditch_number'] +'">' + res.data[i]['ditch_number'] + '</option>');
+                        }
+                       
+                   }else{
+                       that.data = res.msg;
+                       that.render();
+                   }
+               }
+           })
+        console.log(selectditch);
+    }
+
+    function selectNumberS(){
+        var selectnumber = $('#selectnumber option:selected').val();
+        console.log(selectnumber);
+        $('#t_order_sn').val(selectnumber);
+    }
+    
     function toClick(){
         var hedanurl = "<?= url('store/tr_order/createbatchname') ?>";
         layer.confirm('请确定是否生成单号', {title: '生成运单号'}

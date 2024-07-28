@@ -95,6 +95,7 @@ class Useropration extends Controller
     public function getusermark(){
         $param  = $this->request->param();
         $UserMark = new UserMark;
+        $list['user'] = UserModel::detail($param['user_id'],$with=[]);
         $list = $UserMark->getList($param['user_id']);
         return $this->renderSuccess($list);
     }
@@ -169,10 +170,6 @@ class Useropration extends Controller
     
         $post = $this->postData('code')[0];
         //特殊处理京东单号
-        // if(stristr($post,'JD')){
-        //      $post = explode('-',$post)[0];
-        // }
-        
         //处理USPS单号问题
         //处理FEDEX单号问题
         $map[] = ['is_delete','=',0];
@@ -201,10 +198,10 @@ class Useropration extends Controller
                 }else{
                     
                     $clerk['is_pre'] = 0; //是包裹单号
-                    return $this->renderSuccessPlus($clerk,'单号状态不不存在或未到货');
+                    return $this->renderSuccessPlus($clerk,'单号状态不不存在或未到货1');
                 }
             }else{
-                return $this->renderSuccessPlus($clerk,'单号状态不不存在或未到货');
+                return $this->renderSuccessPlus($clerk,'单号状态不不存在或未到货2');
             }
         }
         $where = ['user_id'=>$res['member_id']];
@@ -653,6 +650,150 @@ class Useropration extends Controller
         }
         return $this->renderSuccessPlus($clerk);
     }
+    
+        /**
+     * 仓管端提交入库
+     * BY FENG 2022年12月27日 
+     * 代码比较乱，等后续有时间再优化
+     * @param Array
+     * @return bool
+     * @throws \think\exception\DbException
+     */
+    public function editPackagePlus() {
+        // 员工信息
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->with('shop')->find();
+        if (!$clerk){return $this->renderError('角色权限非法');}
+      
+       $packItemModel = new PackageItemModel();
+       $id = $this->postData('id')[0];
+       $user_id = $this->postData('user_id')[0];
+       $class_ids = $this->postData('class_ids')[0];
+       $user_code = $this->postData('user_Code')[0];
+       $is_pre = $this->postData('is_pre')[0];
+       $express_num = $this->postData('express_num')[0];
+       $weight = $this->postData('weight')[0];
+       $height = $this->postData('height')[0];
+       $length = $this->postData('length')[0];
+       $width = $this->postData('width')[0];
+       $imageIds = $this->postData('imageIds');
+       $wxapp_id = \request()->get('wxapp_id');
+       $remark = $this->postData('remark')[0];
+       $useremark = $this->postData('usermark')[0];
+       $shelf_unit = $this->postData('shelf_unit')[0];
+       $shelf_id = $this->postData('shelf_id')[0];
+       $goodslist = $this->postData('goodslist');
+       $is_verify = $this->postData('is_verify')[0];
+
+       //有对应数据情况下
+       $data = (new Package())->find($id);
+       if ($user_id){
+            $user = (new UserModel())->find($user_id);
+            if (!$user)
+            return $this->renderError('用户不存在');
+        }
+              
+        if($user_code){
+            $users = (new UserModel())->where('user_code',$user_code)->find();
+            if (!$users){
+                return $this->renderError('用户不存在');}
+            $user_id = $users['user_id'];
+        }
+       //更新包裹信息
+       $update['member_id'] = !empty($user_id)?$user_id:$data['member_id'];
+       $update['length'] = !empty($length)?$length:$data['length'];
+       $update['height'] = !empty($height)?$height:$data['height'];
+       $update['width'] = !empty($width)?$width:$data['width'];
+       $update['weight'] = !empty($weight)?$weight:$data['weight'];
+       $update['admin_remark'] = !empty($remark)?$remark:$data['admin_remark'];
+       $update['storage_id'] = $clerk['shop_id'];
+       $update['usermark'] = !empty($usermark)?$usermark:$data['usermark'];
+       $update['shelf_id'] = $shelf_id;
+       $update['is_take'] = !empty($update['member_id'])?2:1;
+       $update['is_verify'] = $is_verify;
+       $update['updated_time'] = getTime();
+       if($length>0 && $width>0 && $height>0){
+             $update['volume'] = $width*$length*$height/1000000;
+       }
+       
+        $Barcode = new Barcode();
+        //存储包裹的分类信息；
+        $classItem = [];
+       if ($class_ids || $goodslist){
+            $classItem = $this->parseClass($class_ids);
+            foreach ($goodslist as $k => $val){
+                 $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['pinming'];
+                 $classItems[$k]['one_price'] = isset($val['danjia'])?$val['danjia']:'';
+                 $classItems[$k]['all_price'] = (!empty($val['danjia'])?$val['danjia']:0) * (!empty($val['shuliang'])?$val['shuliang']:0);
+                 $classItems[$k]['product_num'] = isset($val['shuliang'])?$val['shuliang']:'';
+                 $classItems[$k]['express_num'] = $express_num;
+                 $classItems[$k]['goods_name'] = isset($val['pinming'])?$val['pinming']:'';
+                 $classItems[$k]['class_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:''; // 英文品名
+                 $classItems[$k]['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:'';
+                 $classItems[$k]['length'] = isset($val['depth'])?$val['depth']:'';
+                 $classItems[$k]['width'] = isset($val['width'])?$val['width']:'';
+                 $classItems[$k]['height'] = isset($val['height'])?$val['height']:'';
+                 $classItems[$k]['unit_weight'] = isset($val['gross_weight'])?$val['gross_weight']:'';
+                 $classItems[$k]['brand'] = isset($val['brand'])?$val['brand']:'';
+                 $classItems[$k]['spec'] = isset($val['spec'])?$val['spec']:'';
+                 $classItems[$k]['net_weight'] = isset($val['net_weight'])?$val['net_weight']:'';
+                 $classItems[$k]['barcode'] = isset($val['barcode'])?$val['barcode']:'';
+                 if(isset($val['barcode']) && !empty($val['barcode'])){
+                     $barcoderesu =  $Barcode::useGlobalScope(false)->where('barcode',$val['barcode'])->find();
+                     $barcodelist['barcode'] = isset($val['barcode'])?$val['barcode']:$barcoderesu['barcode'];
+                     $barcodelist['brand'] = isset($val['brand'])?$val['brand']:$barcoderesu['brand'];
+                     $barcodelist['goods_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:$barcoderesu['goods_name_en'];
+                     $barcodelist['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:$barcoderesu['goods_name_jp'];
+                     $barcodelist['goods_name'] = isset($val['pinming'])?$val['pinming']:$barcoderesu['goods_name'];
+                     $barcodelist['spec'] = isset($val['spec'])?$val['spec']:$barcoderesu['spec'];
+                     $barcodelist['price'] = isset($val['danjia'])?$val['danjia']:$barcoderesu['price'];
+                     $barcodelist['gross_weight'] = isset($val['gross_weight'])?$val['gross_weight']:$barcoderesu['gross_weight'];
+                     $barcodelist['net_weight'] = isset($val['net_weight'])?$val['net_weight']:$barcoderesu['net_weight'];
+                     $barcodelist['depth'] = isset($val['depth'])?$val['depth']:$barcoderesu['depth'];
+                     $barcodelist['width'] = isset($val['width'])?$val['width']:$barcoderesu['width'];
+                     $barcodelist['height'] = isset($val['height'])?$val['height']:$barcoderesu['height'];
+                     if(empty($barcoderesu)){
+                         $barresult = $Barcode::useGlobalScope(false)->insert($barcodelist);
+                     }else{
+                         $barcoderesu->save($barcodelist);
+                     }
+                 }
+                 
+            }
+                
+         }
+       if (isset($classItems)){
+             $packItemModel->where('order_id',$data['id'])->delete();
+             $packItemRes = $packItemModel->saveAllData($classItems,$data['id']);
+             if (!$packItemRes){
+                return $this->renderError('包裹类目更新失败');
+             }
+        }
+    
+       $res = (new Package())->where(['id'=>$id])->update($update);
+    //   dump($id);die;
+       if (!$res){
+        return $this->renderError('包裹更新失败');
+       }
+       //插入图片
+       $this->inImages($id,$imageIds,$wxapp_id);
+       //更新日志
+       Logistics::add2($id,'更新包裹信息',$clerk['clerk_id']);
+       
+
+       
+        //存入货架信息
+        if(!empty($shelf_unit)){
+             $shelfunit = new ShelfUnitItem();
+             $shelf = [
+                'pack_id' => $data['id'],
+                'user_id' => isset($user_id)?$user_id:$data['member_id'],
+                'express_num' => $data['express_num'],
+                'shelf_unit' => $shelf_unit,
+             ];  
+             $shelfunit->post($shelf);
+         }
+         return $this->renderSuccess('包裹入库成功'); 
+    }
  
     /**
      * 仓管端提交入库
@@ -685,6 +826,7 @@ class Useropration extends Controller
        $shelf_unit = $this->postData('shelf_unit')[0];
        $shelf_id = $this->postData('shelf_id')[0];
        $goodslist = $this->postData('goodslist');
+       $is_verify = $this->postData('is_verify')[0];
 
        //再加一层校验；
         $map[] = ['is_delete','=',0];
@@ -818,19 +960,8 @@ class Useropration extends Controller
                 
          }
         
-            //  if ($class_ids){
-            //      $classItem = $this->parseClass($class_ids);
-            //      foreach ($classItem as $k => $val){
-            //           $classItem[$k]['class_id'] = $val['category_id'];
-            //           $classItem[$k]['express_name'] = '';
-            //           $classItem[$k]['class_name'] = $val['name'];
-            //           $classItem[$k]['express_num'] = $express_num;
-            //           $classItem[$k]['all_price'] = '';
-            //           unset($classItem[$k]['category_id']); 
-            //           unset($classItem[$k]['name']);        
-            //      }
-            //  }
-             if ($classItems){
+
+             if (isset($classItems)){
                  $packItemRes = $packItemModel->saveAllData($classItems,$restwo);
                  if (!$packItemRes){
                     return $this->renderError('包裹类目更新失败');
@@ -891,7 +1022,6 @@ class Useropration extends Controller
        }elseif($is_pre==10){
        //有对应数据情况下
        $data = (new Package())->find($id);
-    //   dump($id);die;
     //   if ($data['status']==2){
     //      return $this->renderError('包裹已入库');
     //   }
@@ -913,11 +1043,12 @@ class Useropration extends Controller
        $update['height'] = !empty($height)?$height:$data['height'];
        $update['width'] = !empty($width)?$width:$data['width'];
        $update['weight'] = !empty($weight)?$weight:$data['weight'];
-       $update['remark'] = !empty($data['remark'])?$data['remark'].';'.$remark:$remark;
+       $update['admin_remark'] = !empty($remark)?$remark:$data['admin_remark'];
        $update['storage_id'] = $clerk['shop_id'];
        $update['status'] = 2;
        $update['usermark'] = !empty($usermark)?$usermark:$data['usermark'];
        $update['shelf_id'] = $shelf_id;
+       $update['is_verify'] = $is_verify;
        $update['updated_time'] = getTime();
        $update['entering_warehouse_time'] = getTime();
        if($length>0 && $width>0 && $height>0){
@@ -1357,6 +1488,191 @@ class Useropration extends Controller
      * @return bool
      * @throws \think\exception\DbException
      */
+    public function packagelist(){
+        // 员工信息
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        if (!$clerk){
+            return $this->renderError('角色权限非法');
+        }
+        $params = $this->request->param();
+        // dump($params['type']);die;
+        $today = date('Y-m-d',time());
+        $todayend = date('Y-m-d',time()+86400);
+        $yestoday = date('Y-m-d',time() - 86400);
+        $firstMouth = date('Y-m-01');
+        $status = $this->postData('status')?$this->postData('status')[0]:1;
+        $map = ['status'=>$status];
+        switch ($params['type']) {
+            case '1':
+                $map['status'] = [2];
+                $map['entering_warehouse_time'] = [$today,$todayend];
+                break;
+             case '2':
+                $map['status'] = [2];
+                $map['entering_warehouse_time'] = [$yestoday,$today];
+                break;
+             case '3':
+                $map['status'] = [2];
+                $map['entering_warehouse_time'] = [$firstMouth,$today];
+                break;
+             case '4':
+                $map['status'] = [1];
+                break;
+             case '5':
+                $map['status'] = [2];
+                break;
+             case '6':
+                $map['is_take'] = 1;
+                $map['status'] = [2,3,4,5,6,7];
+                break;
+             case '7':
+                $map['status'] = [1,2,3,4,5,6,7,8,9,10,11];
+                $map['is_take'] = 2;
+                break;
+             case '8':
+                $map['status'] = [8];
+                break;
+            case '9':
+                $map['status'] = [9];
+                break;
+            case '10':
+                $map['status'] = [11];
+                break;
+            case '11':
+                $map['status'] = [-1];
+                break;
+                
+            default:
+                $map['status'] = [2];
+                $map['entering_warehouse_time'] = [$today,$todayend];
+                break;
+        }
+
+        $keyword = $this->postData("keyword")[0];
+        $map['storage_id'] = $clerk['shop_id'];
+        $map['keyword'] = $keyword;
+        $shelfunit = new ShelfUnitItem();
+        $packModel = (new Package());
+            //   dump($map);die;
+        $data = $packModel->getGList($map,'created_time');
+        return $this->renderSuccess($data);
+    }
+
+/**
+     * 仓管端数据统计
+     * BY FENG 2022年12月27日
+     * @param 
+     * @return bool
+     * @throws \think\exception\DbException
+     */
+    public function screenData(){
+        $data = $this->request->param();
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        $data['shop_id'] = $clerk['shop_id'];
+        $packModel = (new Package());
+        $today = date('Y-m-d',time());
+        $todayend = date('Y-m-d',time()+86400);
+        $yestoday = date('Y-m-d',time() - 86400);
+        $firstMouth = date('Y-m-01');
+        $where['is_delete'] = 0;
+        $map['status']  = array('in',[2,3,4,5,6]);
+        // dump(base_url());die;
+        return $this->renderSuccess([
+            //今日入库包裹
+            [
+                'icon' => base_url().'assets/api/images//today.png' ,
+                'content'=>'今日入库',
+                'num'=> $packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=1"
+            ],
+            //昨日入库
+            [
+                'icon' => base_url().'assets/api/images/yesterday.png' ,
+                'content'=>'昨日入库',
+                'num'=> $packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$yestoday,$today])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=2"
+            ],
+            //本月累计入库
+            [
+                'icon' => base_url().'assets/api/images//mouth.png' ,
+                'content'=>'本月累计入库',
+                'num'=> $packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$firstMouth,$today])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=3"
+            ],
+            //本月入库重量
+            [
+                'icon' => base_url().'assets/api/images//today_weight.png' ,
+                'content'=>'本月入库重量',
+                'num'=> $packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$firstMouth,$today])->SUM('weight'),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=3"
+            ], 
+            //未入库包裹
+            [
+                'icon' => base_url().'assets/api/images//dzx_img212.png' ,
+                'content'=>'未入库包裹',
+                'num'=> $packModel->where($where)->where(['status' => 1,'storage_id' =>$data['shop_id']])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=4"
+            ], 
+            //已入库包裹
+            [
+                'icon' => base_url().'assets/api/images//dzx_img213.png',
+                'content'=>'已入库包裹',
+                'num'=> $packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=5"
+            ], 
+            
+            //待认领包裹
+            [
+                'icon' => base_url().'assets/api/images//dzx_img218.png',
+                'content'=>'待认领包裹',
+                'num'=> $packModel->where($where)->where(['is_take'=>1,'storage_id' =>$data['shop_id']])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=6"
+            ],
+            
+            //待打包包裹
+            [
+                'icon' => base_url().'assets/api/images//dzx_img216.png',
+                'content'=>'待打包包裹',
+                'num'=> $packModel->where($where)->where($map)->where(['storage_id' => $data['shop_id'],'is_take'=>2])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=7"
+            ],
+            //待发货包裹
+            [
+                'icon' => base_url().'assets/api/images//dzx_img217.png',
+                'content'=>'待发货包裹',
+                'num'=> $packModel->where($where)->where(['status' => 8,'storage_id' =>$data['shop_id']])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=8"
+            ],
+            //在途中包裹
+            [
+                'icon' => base_url().'assets/api/images//dzx_img214.png',
+                'content'=>'已发货包裹',
+                'num'=> $packModel->where($where)->where(['status' => 9,'storage_id' =>$data['shop_id']])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=9"
+            ],
+            //已完成包裹
+            [
+                'icon' => base_url().'assets/api/images//dzx_img215.png',
+                'content'=>'已完成包裹',
+                'num'=> $packModel->where($where)->where(['status' => 11,'storage_id' =>$data['shop_id']])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=10"
+            ],
+            //问题件包裹
+            [
+                'icon' => base_url().'assets/api/images//dzx_img219.png',
+                'content'=>'问题件包裹',
+                'num'=> $packModel->where($where)->where(['status' => -1,'storage_id' =>$data['shop_id']])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=11"
+            ] 
+        ]);
+    }
+
+    /**
+     * 仓库管理员 包裹列表
+     * @param 
+     * @return bool
+     * @throws \think\exception\DbException
+     */
     public function packlist(){
         // 员工信息
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
@@ -1399,6 +1715,20 @@ class Useropration extends Controller
           if ($packItem){
               $data['shop'] = implode(',',array_column($packItem->toArray(),'class_name'));
           }
+          return $this->renderSuccess($data);
+    }
+    
+    
+        // 包裹详情
+    public function packagedetails(){
+          // 员工信息
+          $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+          if (!$clerk){
+              return $this->renderError('角色权限非法');
+          }
+          $packModel = (new Package());
+          $id = $this->postData('id')?$this->postData('id')[0]:1;
+          $data = $packModel->getpackageDetails($id);
           return $this->renderSuccess($data);
     }
     
@@ -1547,44 +1877,7 @@ class Useropration extends Controller
     }
     
     
-    /**
-     * 仓管端数据统计
-     * BY FENG 2022年12月27日
-     * @param 
-     * @return bool
-     * @throws \think\exception\DbException
-     */
-    public function screenData(){
-        $data = $this->request->param();
-        // $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
-        $packModel = (new Package());
-        $today = date('Y-m-d',time());
-        $todayend = date('Y-m-d',time()+86400);
-        $yestoday = date('Y-m-d',time() - 86400);
-        $firstMouth = date('Y-m-01');
-        $map['status']  = array('in',[2,3,4,5,6,7]);
-        // dump(base_url());die;
-        return $this->renderSuccess([
-            ['icon' => base_url().'assets/api/images//today.png' ,'content'=>'今日入库','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->count()], //今日入库包裹
-            ['icon' => base_url().'assets/api/images//today_weight.png' ,'content'=>'今日入库重量','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->SUM('weight')], //今日入库包裹重量
-            
-            ['icon' => base_url().'assets/api/images/yesterday.png' ,'content'=>'昨日入库','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$yestoday,$today])->count()], //今日入库包裹
-            ['icon' => base_url().'assets/api/images//today_weight.png' ,'content'=>'昨日入库重量','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$yestoday,$today])->SUM('weight')], //今日入库包裹重量
-            
-            ['icon' => base_url().'assets/api/images//mouth.png' ,'content'=>'本月累计入库','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$firstMouth,$today])->count()], //今日入库包裹
-            ['icon' => base_url().'assets/api/images//today_weight.png' ,'content'=>'本月入库重量','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$firstMouth,$today])->SUM('weight')], //今日入库包裹重量
-            
-            
-            ['icon' => base_url().'assets/api/images//dzx_img212.png' ,'content'=>'未入库包裹','num'=> $packModel->where(['status' => 1,'is_delete'=>0,'storage_id' =>$data['shop_id']])->count()], //未入库包裹
-            ['icon' => base_url().'assets/api/images//dzx_img213.png','content'=>'已入库包裹','num'=> $packModel->where(['status' => 2,'is_delete'=>0,'storage_id' =>$data['shop_id']])->count()], //已入库包裹
-            ['icon' => base_url().'assets/api/images//dzx_img214.png','content'=>'在途中包裹','num'=> $packModel->where(['status' => 9,'is_delete'=>0,'storage_id' =>$data['shop_id']])->count()], //在途中包裹
-            ['icon' => base_url().'assets/api/images//dzx_img215.png','content'=>'已完成包裹','num'=> $packModel->where(['status' => 11,'is_delete'=>0,'storage_id' =>$data['shop_id']])->count()],//已完成包裹
-            ['icon' => base_url().'assets/api/images//dzx_img216.png','content'=>'待打包包裹','num'=> $packModel->where($map)->where(['is_delete'=>0,'storage_id' => $data['shop_id'],'is_take' =>2])->count()],//待打包包裹
-            ['icon' => base_url().'assets/api/images//dzx_img217.png','content'=>'待发货包裹','num'=> $packModel->where(['status' => 8,'is_delete'=>0,'storage_id' =>$data['shop_id']])->count()], //待发货包裹
-            ['icon' => base_url().'assets/api/images//dzx_img218.png','content'=>'待认领包裹','num'=> $packModel->where(['is_take' => 1,'is_delete'=>0,'storage_id' =>$data['shop_id']])->count()], //待认领包裹
-            ['icon' => base_url().'assets/api/images//dzx_img219.png','content'=>'问题件包裹','num'=> $packModel->where(['status' => -1,'is_delete'=>0,'storage_id' =>$data['shop_id']])->count()] //问题件包裹
-        ]);
-    }
+    
     
     //环形数据
     public function getConsolidationOrderData(){

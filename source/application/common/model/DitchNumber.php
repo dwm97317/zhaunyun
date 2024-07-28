@@ -17,10 +17,10 @@ class DitchNumber extends BaseModel
      * 获取全部
      * @return mixed
      */
-    public static function getAll()
+    public static function getAlllist()
     {
         $model = new static;
-        return $model->order(['sort' => 'asc'])->select();
+        return $model->where('status',0)->limit(100)->select();
     }
 
     /**
@@ -30,7 +30,7 @@ class DitchNumber extends BaseModel
      */
     public function getList()
     {
-        return $this->order(['sort' => 'asc'])
+        return $this->with("ditch")
             ->paginate(15, false, [
                 'query' => Request::instance()->request()
             ]);
@@ -45,6 +45,10 @@ class DitchNumber extends BaseModel
     public static function detail($ditch_id)
     {
         return self::get($ditch_id);
+    }
+    
+    public function ditch(){
+        return $this->belongsTo('app\common\model\Ditch','ditch_id','ditch_id');
     }
 
 }

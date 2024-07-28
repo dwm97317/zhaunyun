@@ -92,9 +92,11 @@ class Line extends LineModel
         if ($data['free_mode']==5){
             $ruleData = [];
             if(isset($data[5])){
-                
+                     $spilt_weight[0] = $data[5]['weight_start'];
+                     $spilt_weight[1] = $data[5]['weight_max'];
                         $ruleData[] = [
                           'type' =>$data[5]['type'],
+                          'weight' => $spilt_weight,
                           'first_weight' =>$data[5]['first_weight'],
                           'first_price' => $data[5]['first_price'],
                           'next_weight' =>$data[5]['next_weight'],
@@ -141,7 +143,7 @@ class Line extends LineModel
                    $spilt_weight[0] = $data[8]['weight_start'][$k];
                    $spilt_weight[1] = $data[8]['weight_max'][$k];
                    $ruleData[] = [
-                         'weight' => $spilt_weight,
+                        'weight' => $spilt_weight,
                         'first_weight' =>$data[8]['first_weight'][$k],
                         'first_price' => $data[8]['first_price'][$k],
                         'next_weight' => $data[8]['next_weight'][$k],

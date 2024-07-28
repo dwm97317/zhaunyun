@@ -660,7 +660,20 @@ class Setting extends BaseModel
                             'APP'=>0,
                             'WEB'=>0
                         ] //小程序，公众号，H5，APP,PC
-                    ]
+                    ],
+                    'bankimage' => [
+                        'name'=>'线下支付',
+                        'is_open' => '0',
+                        'value'=>60,
+                        'icon'=> base_url()."assets/api/images//dzx_img130.png",
+                        'platfrom'=>[
+                            'MP-WEIXIN'=>1,
+                            'H5-WEIXIN'=>1,
+                            'H5'=>1,
+                            'APP'=>0,
+                            'WEB'=>0
+                        ] //小程序，公众号，H5，APP,PC
+                    ],
                 ]
             ],
             // 上传设置

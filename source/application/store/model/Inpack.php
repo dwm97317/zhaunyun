@@ -20,6 +20,7 @@ use app\store\model\Countries;
 use app\store\model\Ditch as DitchModel;
 use app\store\model\Express;
 use app\common\service\Message;
+use app\common\model\DitchNumber;
 /**
  * 打包模型
  * Class Delivery
@@ -251,7 +252,7 @@ class Inpack extends InpackModel
      * @param $data []
      */
     public function modify($data){
-                
+        $DitchNumber = new DitchNumber();       
         $field = ['line_id','length','width','height','weight','verify','free','pack_free','cale_weight','volume','other_free','remark','t_number','t_name','t_order_sn'];
         $update = [];
         //物流模板设置
@@ -263,7 +264,7 @@ class Inpack extends InpackModel
         }
       
         $update['updated_time'] = getTime();
-   
+
         if (isset($data['pay_method'])){ 
             $pack = $this->where(['id'=>$data['id']])->field('id,order_sn,weight,free,other_free,pack_free,member_id,created_time,wxapp_id,pack_ids')->find();
             if ($data['pay_method']==1){
@@ -413,6 +414,17 @@ class Inpack extends InpackModel
                 $update['t_name'] = $ditchdetail['ditch_name'];
                 $update['t_number'] = $ditchdetail['ditch_id'];
                 $update['transfer'] = $data['transfer'];
+     
+                //查询是否是渠道商那边的单号
+                $resultDitchNumber = $DitchNumber->where('ditch_id',$data['t_number'])->where('ditch_number',$data['t_order_sn'])->find();
+                if(!empty($resultDitchNumber)){
+                    if($resultDitchNumber['status']==0){
+                         $resultDitchNumber->save(['status'=>1,'order_no'=>$pack['order_sn']]);
+                    }else{
+                        return $this->renderError('此渠道商单号已被使用');
+                    }
+                }
+            
             }
             
 

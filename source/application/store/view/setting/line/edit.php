@@ -260,7 +260,7 @@
                                      <div class="am-form-up" id="format_mode" <?= $model['free_mode'] == 2 ? 'style="display: block;"' : '' ?>>
                                           <div class="am-form-title" style="height:40px; line-height:35px;"> 首/续重模式</div>
                                           
-                                          <?php if (isset($model['free_rule'][0]['first_weight'])): ?> 
+                                          <?php if ($model['free_mode'] == 2 && isset($model['free_rule'][0]['first_weight'])): ?> 
                                           <?php foreach($model['free_rule'] as $item3): ?>
                                           <div class="am-form-group" >
                                                 <label class="am-u-lg-2 am-form-label"> 首重 (<?= $weiStatus[$model['line_type_unit']] ?>) </label>
@@ -386,6 +386,8 @@
                                                     <tr>
                                                         <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
                                                         <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
                                                         <th>单位(<?= $set['price_mode']['unit'] ?>)</th>
                                                         <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
                                                     </tr>
@@ -396,11 +398,13 @@
                                                     <?php if ($item5['type']==1): ?> 
                                                     <tr>
                                                         <input type="hidden" class="tpl-form-input" name="line[5][type]" value="1" placeholder="首续重"  required>
+                                                        <td>起始重量<input type="text" name="line[5][weight_start]" class="" id="doc-ipt-start-1" placeholder="输入起始重量" value="<?= $item5['weight'][0]; ?>"></td>
+                                                        <td>结束重量<input type="text" name="line[5][weight_max]" class="" id="doc-ipt-end-1" placeholder="输入结束重量" value="<?= $item5['weight'][1]??''; ?>"></td>
                                                         <td>首重<input type="number" min="0" class="tpl-form-input" name="line[5][first_weight]" value="<?= $item5['first_weight']; ?>" placeholder="输入首重"  required></td>
                                                         <td>首重费用<input type="number" min="0" class="tpl-form-input" name="line[5][first_price]" value="<?= $item5['first_price']; ?>" placeholder="输入首重费用"  required></td>
                                                         <td>续重<input type="number" min="0" class="tpl-form-input" name="line[5][next_weight]" value="<?= $item5['next_weight']; ?>" placeholder="输入续重"  required></td>
                                                         <td>续重费用<input type="number" min="0" class="tpl-form-input" name="line[5][next_price]" value="<?= $item5['next_price']; ?>" placeholder="输入续重费用"  required></td>
-                                                        <td onclick="deleteshouxufei(this)">删除</td>
+                                                        <td onclick=""></td>
                                                     </tr>
                                                     <?php endif; ?>
                                                     <?php if ($item5['type']==2): ?> 

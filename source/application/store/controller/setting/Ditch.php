@@ -56,6 +56,24 @@ class Ditch extends Controller
         }
         return $this->renderSuccess('删除成功');
     }
+    
+    /**
+     * 删除物流公司
+     * @param $express_id
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function deleteditch($id)
+    {
+        $model = DitchNumberModel::detail($id);
+        if (!$model->delete()) {
+            $error = $model->getError() ?: '删除失败';
+            return $this->renderError($error);
+        }
+        return $this->renderSuccess('删除成功');
+    }
+    
+    
 
     /**
      * 添加物流公司
@@ -109,17 +127,16 @@ class Ditch extends Controller
     public function ditchnumber($ditch_id)
     {
         // 模板详情
-        $track = getFileData('assets/track.json');
-        $model = DitchModel::detail($ditch_id);
-        // dump($model);die;
-        if (!$this->request->isAjax()) {
-            return $this->fetch('edit', compact('model','track'));
-        }
-        // 更新记录
-        if ($model->edit($this->postData('express'))) {
-            return $this->renderSuccess('更新成功', url('setting.ditch/index'));
-        }
-        return $this->renderError($model->getError() ?: '更新失败');
+        $DitchNumberModel = new DitchNumberModel();
+        $list = $DitchNumberModel->getList();
+        // dump($list);die;
+        return $this->fetch('ditchnumber',compact("list"));
+    }
+    
+    public function getdicthNumberList(){
+        $DitchNumberModel = new DitchNumberModel();
+        $list = $DitchNumberModel->getAlllist();
+        return $this->renderSuccess('更新成功','',$list);
     }
  
     public function import(){

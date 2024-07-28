@@ -116,6 +116,22 @@ class User extends Controller
         ]);
     }
     
+    //通过code查询用户信息
+    public function getUserInfoByCode(){
+        $data = $this->request->param();
+        return $this->renderSuccess([
+            'userinfo' => UserModel::detail(['user_code'=>$data['user_id']]),
+        ]);
+    }
+        
+    //通过用户id查询用户信息
+    public function getUserInfoById(){
+        $data = $this->request->param();
+        return $this->renderSuccess([
+            'userinfo' => UserModel::detail($data['user_id']),
+        ]);
+    }
+    
     /**
      * 当前用户详情
      * @return array

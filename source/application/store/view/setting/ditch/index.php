@@ -20,19 +20,6 @@
                                             </a>
                                         </div>
                                      </div>
-                                     <div class="widget-become-goods am-form-file am-margin-top-xs">
-                                            <button type="button"
-                                                    class="j-selectUser upload-file am-btn am-btn-secondary am-radius">
-                                                <i class="am-icon-cloud-upload"></i> 选择文件
-                                                <input type="file" class="data-file-select"/> 
-                                            </button>
-                                            <div class="user-list uploader-list am-cf">
-                                            </div>
-                                            <div class="process-bar" style="display:none;">
-                                                 <p class="am-btn-secondary" id="bar" style="width:0%"></p>
-                                                 <span id="bar_text">正在处理中 <b>0%</b></span>
-                                            </div>
-                                        </div>
                                 </div>
                                 <?php endif; ?>
                             </div>

@@ -79,6 +79,10 @@ class Setting extends SettingModel
                     $values['price_mode']['unit'] = 'HK$';
                     $values['price_mode']['unit_name'] = '港币';
                     break;
+                case '70':
+                    $values['price_mode']['unit'] = 'MOP';
+                    $values['price_mode']['unit_name'] = '澳门币';
+                    break;
                 default:
                     $values['price_mode']['unit'] = '¥';
                     $values['price_mode']['unit_name'] = '元';

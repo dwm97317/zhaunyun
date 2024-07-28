@@ -21,5 +21,14 @@ class PackageImage extends BaseModel
         return $this->belongsTo('UploadFile', 'image_id', 'file_id')
             ->bind(['file_path', 'file_name', 'file_url']);
     }
+    
+    /**
+     * 关联文件库
+     * @return \think\model\relation\BelongsTo
+     */
+    public function filepackage()
+    {
+        return $this->belongsTo('UploadFile', 'image_id', 'file_id');
+    }
 
 }

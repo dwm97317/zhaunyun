@@ -230,6 +230,10 @@
                         <?php if (checkPrivilege('package.index/changeuser')): ?>
                         <button type="button" id="j-upuser" class="am-btn am-btn-success am-radius"><i class="iconfont icon-yonghu "></i> 修改所属用户</button>
                         <?php endif;?>
+                        <!--修改包裹类型-->
+                        <?php if (checkPrivilege('package.index/changetype')): ?>
+                        <button type="button" id="j-changetype" class="am-btn am-btn-secondary am-radius"><i class="iconfont icon-dingwei"></i> 修改包裹类型</button>
+                        <?php endif;?>
                         <!--修改包裹位置-->
                         <?php if (checkPrivilege('package.index/changeshelf')): ?>
                         <button type="button" id="j-change" class="am-btn am-btn-warning am-radius"><i class="iconfont icon-dingwei"></i> 修改包裹位置</button>
@@ -289,10 +293,12 @@
                                     </td>
                                     <td class="am-text-middle"><?= $item['id'] ?></td>
                                     <td class="am-text-middle">
+                                        <span class="am-badge <?= $item['pack_type']==0?'am-badge-success':'am-badge-secondary' ?>">
+                                            <?= $item['pack_type']==0?"拼邮":"直邮"   ?>
+                                        </span>
                                         <a href="javascript:;" onclick="getlog(this)" value="<?= $item['express_num'] ?>" > 
                                             <?= $item['express_num'] ?> 
                                         </a>
-                                        
                                         <span style="color:#ff6666;cursor:pointer" text="<?= $item['express_num'];?>" onclick="copyUrl2(this)">[复制]</span> 
                                         <?= $item['express_name']?$item['express_name']:'' ?> </br> 
                                         <?php if($item['batch'] && $item['batch']['batch_id']) :?>
@@ -664,6 +670,50 @@
         </form>
     </div>
 </script>
+<script id="tpl-packtype" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包裹数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'> 共选中 {{ selectCount }} 包裹</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择仓库
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                      <select name="package[shop_id]"
+                                data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" onchange="getSelectData(this)" data-select_type='shelf'>
+                            <option value="">请选择</option>
+                            <?php if (isset($shopList) && !$shopList->isEmpty()):
+                                foreach ($shopList as $item): ?>
+                                    <option value="<?= $item['shop_id'] ?>"><?= $item['shop_name'] ?></option>
+                                <?php endforeach; endif; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">包裹类型</label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <label class="am-radio-inline">
+                            <input type="radio" name="package[pack_type]" value="0" data-am-ucheck checked>
+                            拼邮
+                        </label>
+                        <label class="am-radio-inline">
+                            <input type="radio" name="package[pack_type]" value="1" data-am-ucheck>
+                            直邮
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
     function getlog(_this){
@@ -945,6 +995,35 @@
                 , yes: function ($content) {
                     $content.find('form').myAjaxSubmit({
                         url: '<?= url('/store/package.index/changeShelf') ?>',
+                        data: {selectIds:data.selectId},
+                    });
+                    return true;
+                }
+            });
+        });
+        
+         /**
+         * 修改包裹位置
+         */
+        $('#j-changetype').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            $.showModal({
+                title: '修改包裹类型'
+                , area: '460px'
+                , content: template('tpl-packtype', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('/store/package.index/changetype') ?>',
                         data: {selectIds:data.selectId},
                     });
                     return true;

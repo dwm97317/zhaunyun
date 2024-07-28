@@ -287,6 +287,8 @@
                                                     <tr>
                                                         <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
                                                         <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
+                                                        <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
                                                         <th>单位(<?= $set['price_mode']['unit'] ?>)</th>
                                                         <th>单位(<?= $set['weight_mode']['unit'] ?>)</th>
                                                     </tr>
@@ -294,11 +296,13 @@
                                                 <tbody class="hunhe_mode_unit">
                                                     <tr>
                                                         <input type="hidden" class="tpl-form-input" name="line[5][type]" value="1" placeholder="首续重"  required>
+                                                        <td>起始重量<input type="text"name="line[5][weight_start]"class=""id="doc-ipt-email-1"placeholder="输入起始重量"></td>
+                                                        <td>结束重量<input type="text"name="line[5][weight_max]"class=""id="doc-ipt-email-1"placeholder="输入结束重量"></td>
                                                         <td>首重<input type="number" min="0" class="tpl-form-input" name="line[5][first_weight]" value="" placeholder="输入首重"  required></td>
                                                         <td>首重费用<input type="number" min="0" class="tpl-form-input" name="line[5][first_price]" value="" placeholder="输入首重费用"  required></td>
                                                         <td>续重<input type="number" min="0" class="tpl-form-input" name="line[5][next_weight]" value="" placeholder="输入续重"  required></td>
                                                         <td>续重费用<input type="number" min="0" class="tpl-form-input" name="line[5][next_price]" value="" placeholder="输入续重费用"  required></td>
-                                                        <td onclick="deleteshouxufei(this)">删除</td>
+                                                       
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -692,7 +696,7 @@
         var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
         var Item = document.createElement('tr');
       
-        var _html = '<td>首重<input type="number" min="0" class="tpl-form-input" name="line[first_weight][]" value="" placeholder="输入首重"  required></td><td>首重费用<input type="number" min="0" class="tpl-form-input" name="line[first_price][]" value="" placeholder="输入首重费用"  required></td><td>续重<input type="number" min="0" class="tpl-form-input" name="line[next_weight][]" value="" placeholder="输入续重"  required></td><td>续重费用<input type="number" min="0" class="tpl-form-input" name="line[next_price][]" value="" placeholder="输入续重费用"  required></td><td onclick="deleteshouxufei(this)">删除</td>';
+        var _html = '<td>首重<input type="number" min="0" class="tpl-form-input" name="line[first_weight][]" value="" placeholder="输入首重"  required></td><td>首重费用<input type="number" min="0" class="tpl-form-input" name="line[first_price][]" value="" placeholder="输入首重费用"  required></td><td>续重<input type="number" min="0" class="tpl-form-input" name="line[next_weight][]" value="" placeholder="输入续重"  required></td><td>续重费用<input type="number" min="0" class="tpl-form-input" name="line[next_price][]" value="" placeholder="输入续重费用"  required>';
         Item.innerHTML = _html;
         amformItem.appendChild(Item);
     }

@@ -964,6 +964,21 @@ class Index extends Controller
         return $this->renderSuccess('批量修改货架位置成功');
     }
     
+    
+    // 批量修改包裹类型
+    public function changetype(){
+        $ids = $this->postData('selectIds')[0];
+        $params = $this->request->param()['package'];
+ 
+        $idsArr = explode(',',$ids);
+        $pack = (new Package())->whereIn('id',$idsArr)->select();
+        foreach($pack as $v){
+                $v->save(['shop_id'=>$params['shop_id'],'pack_type'=>$params['pack_type']]);
+        }
+        return $this->renderSuccess('批量修改包裹类型成功');
+    }
+    
+    
     public function shelfDown(){
         $ids = $this->postData('id')[0];
         $model = (new ShelfUnitItem());
@@ -1284,7 +1299,7 @@ class Index extends Controller
     public function scanoutshop(){
         $code = request()->param('barcode');
         $batch_id = request()->param('batch_id');
-        $data = (new Package())->alias('a')->field('a.id,a.storage_id,a.is_scan,a.wxapp_id,a.order_sn,u.nickName,a.member_id,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title')->join('user u', 'a.member_id = u.user_id',"LEFT")
+        $data = (new Package())->alias('a')->field('a.id,a.storage_id,a.is_scan,a.wxapp_id,a.order_sn,u.nickName,a.member_id,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title')->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
             ->where(['express_num'=>$code])
@@ -1328,7 +1343,7 @@ class Index extends Controller
         $form = input('form','scan');
         $code = request()->param('barcode');
         $shop_id = request()->param('shop_id');
-        $data = (new Package())->alias('a')->field('a.id,a.storage_id,a.is_scan,a.wxapp_id,a.order_sn,u.nickName,a.member_id,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_attr,a.goods_attr,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title')->join('user u', 'a.member_id = u.user_id',"LEFT")
+        $data = (new Package())->alias('a')->field('a.id,a.storage_id,a.is_scan,a.wxapp_id,a.order_sn,u.nickName,a.member_id,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title')->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
             ->where(['express_num'=>$code])

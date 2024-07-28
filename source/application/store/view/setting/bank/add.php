@@ -9,24 +9,38 @@
                                 <div class="widget-title am-fl">汇款账号编辑</div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">开户行 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">账号类型 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="bank[bank_name]"
-                                           placeholder="请输入开户行" value="" required>
-                                </div>
-                            </div>  
-                            <div class="am-form-group am-padding-top">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 开户支行 </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="bank[child_bank_name]"
-                                           placeholder="请输入开户支行" value="" required>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="bank[bank_type]" value="0" data-am-ucheck
+                                               checked>
+                                        银行账户
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="bank[bank_type]" value="1" data-am-ucheck>
+                                        收款码
+                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 银行卡号 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">开户行 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="bank[bank_name]"
+                                           placeholder="请输入开户行" value="">
+                                </div>
+                            </div>  
+                            <div class="am-form-group am-padding-top">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 开户支行 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="bank[child_bank_name]"
+                                           placeholder="请输入开户支行" value="">
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 银行卡号 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="bank[bank_card]"
-                                           placeholder="请输入银行卡号" value="" required>
+                                           placeholder="请输入银行卡号" value="">
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -37,15 +51,30 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 开户人 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 开户人 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="bank[open_name]"
-                                           placeholder="请输入开户人" value="" required>
+                                           placeholder="请输入开户人" value="">
                                     
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">状态 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">收款码 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <div class="am-form-file">
+                                            <button type="button"
+                                                    class="upload-file am-btn am-btn-secondary am-radius">
+                                                <i class="am-icon-cloud-upload"></i> 选择图片
+                                            </button>
+                                            <div class="uploader-list am-cf">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">状态 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">
                                         <input type="radio" name="bank[status]" value="1" data-am-ucheck
@@ -77,6 +106,18 @@
 {{include file="layouts/_template/file_library" /}}
 
 <script src="assets/store/js/select.region.js?v=1.2"></script>
+<!-- 图片文件列表模板 -->
+<script id="tpl-file-item" type="text/template">
+    {{ each list }}
+    <div class="file-item">
+        <a href="{{ $value.file_path }}" title="点击查看大图" target="_blank">
+            <img src="{{ $value.file_path }}">
+        </a>
+        <input type="hidden" name="{{ name }}" value="{{ $value.file_id }}">
+        <i class="iconfont icon-shanchu file-item-delete"></i>
+    </div>
+    {{ /each }}
+</script>
 
 <script>
 
@@ -84,7 +125,7 @@
 
         // 选择图片
         $('.upload-file').selectImages({
-            name: 'shop[logo_image_id]'
+            name: 'bank[image_id]'
         });
 
         /**

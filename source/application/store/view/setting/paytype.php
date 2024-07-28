@@ -295,6 +295,53 @@
                                 </div>
                             </div>
                      
+                     
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    线下支付
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="paytype[bankimage][is_open]" value="1"
+                                               data-am-ucheck  <?= $values['bankimage']['is_open'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="paytype[bankimage][is_open]" value="0"
+                                               data-am-ucheck <?= $values['bankimage']['is_open'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="paytype[bankimage][platfrom][MP-WEIXIN]" value="1" data-am-ucheck
+                                            <?= $values['bankimage']['platfrom']['MP-WEIXIN']==1?'checked' : '' ?>>
+                                        小程序
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="paytype[bankimage][platfrom][H5-WEIXIN]" value="1" data-am-ucheck
+                                            <?= $values['bankimage']['platfrom']['H5-WEIXIN']==1?'checked' : '' ?>>
+                                        公众号
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="paytype[bankimage][platfrom][H5]" value="1" data-am-ucheck
+                                            <?= $values['bankimage']['platfrom']['H5']==1?'checked' : '' ?>>
+                                        H5
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="paytype[bankimage][platfrom][APP]" value="1" data-am-ucheck
+                                            <?= $values['bankimage']['platfrom']['APP']==1?'checked' : '' ?>>
+                                        APP
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="paytype[bankimage][platfrom][WEB]" value="1" data-am-ucheck
+                                            <?= $values['bankimage']['platfrom']['WEB']==1?'checked' : '' ?>>
+                                        WEB
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                               <label class="am-u-sm-3 am-form-label"></label>
+                                    <small>注：线下支付是指用户可以通过银行转行，微信支付宝收款码等方式进行收款</small>
+                            </div>
                             
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">

@@ -80,12 +80,15 @@ class Package extends Controller
         $PackageModel = new PackageModel;
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
         $storesetting = SettingModel::getItem('store');
+
         $inpackOrder = [
           'order_sn' => createSn(),
           'remark' =>$param['remark'],
           'pack_services_id' => $param['pack_ids'],
           'storage_id' => $clerk['shop_id'],
+          'address_id'=>0,
           'free' => 0,
+          'member_id'=>0,
           'weight' =>$param['weight'],
           'length' =>$param['length'],
           'width' =>$param['width'],
@@ -101,6 +104,12 @@ class Package extends Controller
           'wxapp_id' => $param['wxapp_id'],
           'line_id' => $param['line_id'],
         ];
+
+        if(isset($param['address_id'])){
+            $address = (new UserAddress())->find($param['address_id']); //获取地址信息
+            $inpackOrder['member_id'] = $address['user_id'];
+            $inpackOrder['address_id'] = $address['address_id'];
+        }
         // 开启事务
         Db::startTrans();
         $inpack = (new Inpack())->insertGetId($inpackOrder);
@@ -140,6 +149,7 @@ class Package extends Controller
                     'entering_warehouse_time'=>getTime(),
                     'status'=>8,
                     'express_num'=>$val,
+                    'member_id'=>isset($address['user_id'])?$address['user_id']:0,
                     'storage_id'=>$clerk['shop_id'],
                     'updated_time'=>getTime(),
                     'created_time'=>getTime(),
