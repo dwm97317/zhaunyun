@@ -97,6 +97,7 @@ class Package extends Controller
           'volume' => 0, //体积重
           'pack_free' => 0,
           'other_free' =>0,
+          'insure_free'=>isset($param['insurefree'])?$param['insurefree']:0,
           'created_time' => getTime(),
           'updated_time' => getTime(),
           'status' => 1,
@@ -131,21 +132,21 @@ class Package extends Controller
         (new InpackServiceModel())->doservice($inpack,$param['pack_ids']);
         //查询仓库是否存在此包裹，如果存在，则更新入库时间和入库的状态；
         //如果不存在，则需要入库操作；
-        $pack_id = [];
-        // dump($clerk);die;
         $express_nums = explode(',',$param['packids']);
         foreach ($express_nums as $key => $val){
-            $number = $PackageModel->where('express_num',$val)->find();
-            
+            $number = $PackageModel->where(['express_num'=>$val,'is_delete'=>0])->find();
             if(!empty($number) && $number['status']>4){
                 return $this->renderError($val.'已被打包');
             }
-            // dump($number->toArray());die;
             if(!empty($number)){
-                $number->save(['entering_warehouse_time'=>getTime(),'status'=>8,'inpack_id'=>$inpack,'storage_id'=>$clerk['shop_id'],]);
-                $pack_id[$key] = $number['id'];
+                $number->where(['express_num'=>$val,'is_delete'=>0])->update([
+                    'entering_warehouse_time'=>getTime(),
+                    'status'=>8,
+                    'inpack_id'=>$inpack,
+                    'storage_id'=>$clerk['shop_id']
+                ]);
             }else{
-                $id = $PackageModel->insertGetId([
+                $result = $PackageModel->insert([
                     'entering_warehouse_time'=>getTime(),
                     'status'=>8,
                     'express_num'=>$val,
@@ -157,10 +158,12 @@ class Package extends Controller
                     'inpack_id'=>$inpack,
                     'order_sn'=> CreateSn()
                 ]);
-                $pack_id[$key] = $id;
+                 if (!$result){
+                    Db::rollback();
+                    return $this->renderError('提交打包失败');
+                 }
             }
         }
-        (new Inpack())->where('id',$inpack)->update(['pack_ids'=>implode(',',$pack_id)]);
         Db::commit();
         return $this->renderSuccess('提交打包成功');
         //包裹处理完成后，需要把包裹的id加入到集运订单中，创建新的快速打包订单；

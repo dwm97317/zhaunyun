@@ -154,7 +154,6 @@ class Newpack extends Controller
                      $data['status'] = 2;  //已入库
                      $data['is_take'] = (!empty($param['member_id']) || !empty($detail['member_id']))?2:1;
                      $data['source'] = 2; //电脑后台录入
-                     $data['pack_attr'] = !empty($param['pack_attr'])?$param['pack_attr']:$detail['pack_attr']; //电脑后台录入
                      $data['entering_warehouse_time'] = getTime();
                      $data['created_time'] = getTime();
                      $data['updated_time'] = getTime();
@@ -257,7 +256,6 @@ class Newpack extends Controller
                      $data['status'] = 2;  //已入库
                      $data['is_take'] = $param['member_id']?2:1;  //已入库
                      $data['source'] = 2; //电脑后台录入
-                     $data['pack_attr'] = isset($param['pack_attr'])?$param['pack_attr']:''; //电脑后台录入
                      $data['entering_warehouse_time'] = getTime();
                      $data['created_time'] = getTime();
                      $data['updated_time'] = getTime();
