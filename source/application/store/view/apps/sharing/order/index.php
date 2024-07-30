@@ -215,7 +215,7 @@
                                             <?php endif ;?>
                                             <?php endif; ?>
                                              <?php if ($item['is_verify'] == 2): ?>
-                                            <a class="shenhe" href="javascript:void(0);" data-id="<?= $item['order_id'] ?>">通过</a>
+                                            <a class="shenhe" href="<?= url('store/apps.sharing.order/edit', ['order_id' => $item['order_id']]) ?>" >通过</a>
                                             <?php endif; ?>
                                             <?php if ($item['is_verify'] == 3): ?>
                                             <a class="shenhe" href="javascript:void(0);" data-id="<?= $item['order_id'] ?>">未通过</a>

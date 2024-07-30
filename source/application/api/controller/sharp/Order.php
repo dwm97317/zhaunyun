@@ -64,7 +64,7 @@ class Order extends Controller
         // 当前用户信息
         $userInfo = $this->getUser();
         $query['member_id'] = $userInfo['user_id'];
-        
+        // 【1 开团中 2 待开团 3 待打包 4 待付款 5 待发货 6 已发货 7 已完成 8 已取消】
         if ($query['type']=='sharing'){
             $query['status'] = 1;
         }
