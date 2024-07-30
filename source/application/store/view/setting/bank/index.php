@@ -232,6 +232,9 @@
         </div>  
     </div>
 </div>
+
+<!-- 文件库弹窗 -->
+{{include file="layouts/_template/file_library" /}}
 <script src="assets/common/plugins/umeditor/umeditor.config.js?v=<?= $version ?>"></script>
 <script src="assets/common/plugins/umeditor/umeditor.min.js"></script>
 <script>

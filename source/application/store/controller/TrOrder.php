@@ -802,8 +802,12 @@ class TrOrder extends Controller
         //找到集运单所有的包裹单号，循环设置状态为2；
         $package_ids = $model['pack_ids'];
         $pack = explode(',',$package_ids);
-        foreach ($pack as $key => $val){
-            (new Package())->where('id',$val)->update(['status' => 2]);
+        if(!empty($pack)){
+          foreach ($pack as $key => $val){
+            (new Package())->where('id',$val)->update(['status' => 2,'inpack_id'=>null]);
+          }  
+        }else{
+            (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>null]);
         }
         if ($model->removedelete($id)) {
             return $this->renderSuccess('删除成功');

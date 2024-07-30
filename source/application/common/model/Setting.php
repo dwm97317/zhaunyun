@@ -179,6 +179,7 @@ class Setting extends BaseModel
                     'is_cuppon'=>1,
                     'is_point'=>1,
                     'is_jiyun'=>1,
+                    'is_shoporder'=>1,
                     'is_pintuan'=>1,
                     'is_fenxiao'=>1,
                     'is_email'=>1,

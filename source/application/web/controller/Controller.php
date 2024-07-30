@@ -31,14 +31,19 @@ class Controller extends \think\Controller
         // 登录页面
         'passport/login',
         'track/search',
-        'home/index'
+        'home/index',
+        'home/line'
     ];
     /* @var array $notLayoutAction 无需全局layout */
     protected $notLayoutAction = [
         // 登录页面
         'passport/login',
         'track/search',
-        'home/index'
+        'home/index',
+        'index/index',
+        'home/contact',
+        'home/line',
+        'home/track',
     ];
     /**
      * API基类初始化

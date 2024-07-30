@@ -1275,6 +1275,26 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
+                                    个人中心是否开启商城订单
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_shoporder]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['is_shoporder'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_shoporder]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['is_shoporder'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
                                     个人中心是否开启拼团功能
                                 </label>
                                 <div class="am-u-sm-9">

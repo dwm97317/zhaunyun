@@ -18,10 +18,9 @@
 </head>
 	
 <body>
-<!-- banner -->
+
 <div class="main_section_agile">
 		<div class="agileits_w3layouts_banner_nav">
-		   
 			<nav class="navbar navbar-default">
 				<div class="navbar-header navbar-left">
 					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
@@ -31,7 +30,6 @@
 						<span class="icon-bar"></span>
 					</button>
 				<h1><a class="navbar-brand" href="<?=urlCreate('/index.php/web/home/index') ?>"><i class="fa fa-plane" aria-hidden="true"></i> <?= $setting['name'] ;?> </a></h1>
-
 				</div>
 				 <ul class="agile_forms">
 					<li><a class="active" href="#" data-toggle="modal" data-target="#myModal2"><i class="fa fa-sign-in" aria-hidden="true"></i> Sign In</a> </li>
@@ -42,22 +40,22 @@
 					<nav class="link-effect-2" id="link-effect-2">
 						<ul class="nav navbar-nav">
 							<li class="active"><a href="<?=urlCreate('/index.php/web/home/index') ?>" class="effect-3">Home</a></li>
-							<li><a href="<?=urlCreate('/index.php/web/home/index') ?>" class="effect-3">Services</a></li>
-							<li><a href="<?=urlCreate('/index.php/web/track/search') ?>" class="effect-3">Track</a></li>
-							<li class="dropdown">
-								<a href="#" class="dropdown-toggle effect-3" data-toggle="dropdown">Short Codes <b class="fa fa-caret-down" aria-hidden="true"></b></a>
-								<ul class="dropdown-menu agile_short_dropdown">
-									<li><a href="icons.html">Web Icons</a></li>
-									<li><a href="typography.html">Typography</a></li>
-								</ul>
-							</li>
-							<li><a href="<?=urlCreate('/index.php/web/home/index') ?>" class="effect-3">Contact</a></li>
+							<li><a href="<?=urlCreate('/index.php/web/home/line') ?>" class="effect-3">Line</a></li>
+							<li><a href="<?=urlCreate('/index.php/web/home/track') ?>" class="effect-3">Track</a></li>
+							<!--<li class="dropdown">-->
+							<!--	<a href="#" class="dropdown-toggle effect-3" data-toggle="dropdown">Short Codes <b class="fa fa-caret-down" aria-hidden="true"></b></a>-->
+							<!--	<ul class="dropdown-menu agile_short_dropdown">-->
+							<!--		<li><a href="icons.html">Web Icons</a></li>-->
+							<!--		<li><a href="typography.html">Typography</a></li>-->
+							<!--	</ul>-->
+							<!--</li>-->
+							<li><a href="<?=urlCreate('/index.php/web/home/contact') ?>" class="effect-3">Contact</a></li>
 						</ul>
 					</nav>
 
 				</div>
 			</nav>	
-<div class="clearfix"> </div> 
+            <div class="clearfix"></div> 
 		</div>
 </div>
 <!-- banner -->

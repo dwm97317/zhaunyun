@@ -12,8 +12,7 @@ class Index extends Controller
 {
      
     public function index(){
-        $zhe = '';    
-       return $this->fetch('index',compact('data','zhe','list'));
+       return $this->fetch('index');
     }
     
     public function passport(){

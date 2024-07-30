@@ -856,7 +856,6 @@ class Page extends Controller
    
        //这里用于计算路线国家的匹配度
         if($freeType==0){
-            $where['line_type_unit'] = $setting['weight_mode']['mode'];
             $where['line_type'] = $freeType;
             if($linecategory !=0){
                     $where['line_category'] = $linecategory;
@@ -934,12 +933,19 @@ class Page extends Controller
               'price' => '包裹重量超限',
            ]; 
            $oWeigth = $value['weight'];
+           if($value['line_type_unit'] == 10){
+                   $oWeigth = 1000 * $oWeigth;
+            }
+            if($value['line_type_unit'] == 30){
+                   $oWeigth = 2.2046226 * $oWeigth;
+            }
             //税和增值服务费用
            $otherfree = 0;
            $reprice=0;
            switch ($value['free_mode']) {
              case '1':
                $free_rule = json_decode($value['free_rule'],true);
+               
                $size = sizeof($free_rule);    
                if(($oWeigth>= $free_rule[0]['weight'][0]) && ($oWeigth<= $free_rule[$size-1]['weight'][1])){
    
@@ -966,7 +972,7 @@ class Page extends Controller
                break;
              case '2':
                //首重价格+续重价格*（总重-首重）
-           
+               
                $free_rule = json_decode($value['free_rule'],true);
                foreach ($free_rule as $k => $v) {
                    //判断时候需要取整
@@ -1369,7 +1375,8 @@ class Page extends Controller
     //银行账户列表 
     public function bankCardList(){
       $Bank = (new Bank());
-      $list['data'] = $Bank->getList();
+      $where['bank_type']=0;
+      $list['data'] = $Bank->getList($where);
       $list['setting'] = html_entity_decode((new SettingModel())->getItem('bank')['setting']);
       return $this->renderSuccess($list);
     }
