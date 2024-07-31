@@ -241,6 +241,8 @@
 		"no_package_yet": "暂无包裹"
 	},
 	"page_cangkudizhi": {
+	    "zitidian_address": "自提点地址",
+	    "takecode": "取件邮编",
 		"warehouse_address": "仓库地址",
 		"recipient": "收件人",
 		"copy": "复制",
@@ -1276,7 +1278,8 @@
 	"page_dizhi": {
 		"pickup_address_yet": "自提点地址",
 		"choose": "选择",
-		"No_pickup_address_yet": "暂无自提点地址"
+		"No_pickup_address_yet": "暂无自提点地址",
+		"zitidian_search": "搜索自提点"
 	},
 	"page_sharing_create": {
 		"Start_group": "发起拼团",

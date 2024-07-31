@@ -58,6 +58,15 @@
                                 <div class="row am-cf">
                                     <div class="am-fl">地址：</div>
                                     <div class="am-fl">
+                                        <span class="x-color-green">/pages/category/index</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">指定分类商品列表</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
                                         <span class="x-color-green">/pages/category/list?category_id=ID(分类ID)</span>
                                     </div>
                                 </div>
@@ -158,6 +167,15 @@
                                     <div class="am-fl">地址：</div>
                                     <div class="am-fl">
                                         <span class="x-color-green">/pages/indexs/cangkudizhi_list/cangkudizhi_list</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">自提点列表</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/pages/pintuans/zitidian/zitidian</span>
                                     </div>
                                 </div>
                             </li>
