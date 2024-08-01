@@ -889,6 +889,9 @@
 		"Valid_until": "有效期至",
 		"day": "領取後有效天數 {num}天",
 		"zhe": "折",
+		"manjian":"滿減券",
+		"zhekou":"折扣券",
+		"renwu":"任務送",
 		"keyong": "滿{price}可用",
 		"Click_collect": "點擊領取",
 		"currently_no_coupons": "當前暫無優惠券"

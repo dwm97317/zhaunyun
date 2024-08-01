@@ -826,7 +826,7 @@ class Page extends Controller
       }
     //   dump($data['free_rule']);die;
       $data['line_content'] = html_entity_decode($data['line_content']);
-      $line_type_unit_map = [10 =>'g',20=>'kg',30=>'lb',40=>'CBM'];
+      $line_type_unit_map = [10 =>'g',20=>'kg',30=>'lbs',40=>'CBM'];
       $data['line_type_unit_name'] = $line_type_unit_map[$data['line_type_unit']];
       return $this->renderSuccess($data);
     }
@@ -852,7 +852,7 @@ class Page extends Controller
        $weigthV_fi =0;
        $wxappId = $this->request->param('wxapp_id');
        $setting = SettingModel::getItem('store',$wxappId);
-       $line_type_unit_map = [10 =>'g',20=>'kg',30=>'lb',40=>'CBM'];
+       $line_type_unit_map = [10 =>'g',20=>'kg',30=>'lbs',40=>'CBM'];
    
        //这里用于计算路线国家的匹配度
         if($freeType==0){
@@ -898,10 +898,10 @@ class Page extends Controller
                  continue;
              }
            }
-         
+        //   dump($setting['weight_mode']['mode']);die;
        if($setting['is_discount']==1){
         $this->user = $this->getUser();
-        // dump($this->user->toArray());die;
+      
         $UserLine =  (new UserLine());
         $linedata= $UserLine->where('user_id',$this->user['user_id'])->where('line_id',$value['id'])->find();
             if($linedata){
@@ -933,12 +933,43 @@ class Page extends Controller
               'price' => '包裹重量超限',
            ]; 
            $oWeigth = $value['weight'];
-           if($value['line_type_unit'] == 10){
-                   $oWeigth = 1000 * $oWeigth;
-            }
-            if($value['line_type_unit'] == 30){
-                   $oWeigth = 2.2046226 * $oWeigth;
-            }
+           
+           //单位转化
+           switch ($setting['weight_mode']['mode']) {
+               case '10':
+                    if($value['line_type_unit'] == 20){
+                        $oWeigth = 0.001 * $oWeigth;
+                    }
+                    if($value['line_type_unit'] == 30){
+                        $oWeigth = 0.00220462262185 * $oWeigth;
+                    }
+                   break;
+               case '20':
+                    if($value['line_type_unit'] == 10){
+                        $oWeigth = 1000 * $oWeigth;
+                    }
+                    if($value['line_type_unit'] == 30){
+                        $oWeigth = 2.20462262185 * $oWeigth;
+                    }
+                   break;
+               case '30':
+                   if($value['line_type_unit'] == 10){
+                        $oWeigth = 453.59237 * $oWeigth;
+                    }
+                    if($value['line_type_unit'] == 20){
+                        $oWeigth = 0.45359237 * $oWeigth;
+                    }
+                   break;
+               default:
+                   if($value['line_type_unit'] == 10){
+                        $oWeigth = 1000 * $oWeigth;
+                    }
+                    if($value['line_type_unit'] == 30){
+                        $oWeigth = 2.20462262185 * $oWeigth;
+                    }
+                   break;
+           }
+           $oWeigth = round($oWeigth,2);
             //税和增值服务费用
            $otherfree = 0;
            $reprice=0;
@@ -1053,6 +1084,7 @@ class Page extends Controller
                     }else{
                         $ww = ($oWeigth-$vv['first_weight'])/$vv['next_weight'];
                     }
+                   
                     if ($oWeigth >= $vv['first_weight']){
                           $lines[$key]['sortprice'] =($vv['first_price']+ $ww*$vv['next_price'] + $otherfree)*$value['discount'];
                           $lines[$key]['predict'] = [

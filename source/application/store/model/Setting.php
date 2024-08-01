@@ -43,7 +43,7 @@ class Setting extends SettingModel
                     $values['weight_mode']['unit_name'] = '千克';
                     break;
                 case '30':
-                    $values['weight_mode']['unit'] = 'lb';
+                    $values['weight_mode']['unit'] = 'lbs';
                     $values['weight_mode']['unit_name'] = '磅';
                     break;
                 default:

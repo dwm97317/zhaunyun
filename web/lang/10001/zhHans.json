@@ -890,6 +890,9 @@
 		"day": "领取后有效天数 {num}天",
 		"zhe": "折",
 		"keyong": "满{price}可用",
+		"manjian":"满减券",
+		"zhekou":"折扣券",
+		"renwu":"任务送",
 		"Click_collect": "点击领取",
 		"currently_no_coupons": "当前暂无优惠券"
 	},

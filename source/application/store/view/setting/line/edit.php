@@ -112,7 +112,7 @@
                                     </label>
                                     <label class="am-radio-inline line_type_weight" <?= $model['line_type'] == 0 ? 'style="display:inline-block;"' : 'style="display:none;"' ?>>
                                         <input type="radio" name="line[line_type_unit]"  <?= $model['line_type_unit'] == 30 ? 'checked' : '' ?> value="30" data-am-ucheck>
-                                         lb
+                                         lbs
                                     </label>
                                  
                                     <label class="am-radio-inline line_type_vol" <?= $model['line_type'] == 1 ? 'style="display:inline-block;"' : 'style="display:none;"' ?>>

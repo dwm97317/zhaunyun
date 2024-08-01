@@ -686,7 +686,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                             data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
                                             <option value="10" <?= $values['weight_mode']['mode'] == 10 ? 'selected' : '' ?>>克/g</option>
                                             <option value="20" <?= $values['weight_mode']['mode'] == 20 ? 'selected' : '' ?>>千克/kg</option>
-                                            <option value="30" <?= $values['weight_mode']['mode'] == 30 ? 'selected' : '' ?> >磅/lb</option>
+                                            <option value="30" <?= $values['weight_mode']['mode'] == 30 ? 'selected' : '' ?> >磅/lbs</option>
                                     </select>
                                     <div class="help-block">
                                         <small>目前仅支持克、千克、磅等单位的切换,默认全局重量单位</small>

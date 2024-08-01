@@ -244,7 +244,7 @@ class Setting extends BaseModel
                         ],
                         '30'=>[
                             'number'=>'30',
-                            'unit'=>'lb',
+                            'unit'=>'lbs',
                         ],
                     ],
                     'size_mode'=>[

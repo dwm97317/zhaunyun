@@ -101,7 +101,7 @@
                                     </label>
                                     <label class="am-radio-inline line_type_weight">
                                         <input type="radio" name="line[line_type_unit]"  value="30" data-am-ucheck <?= $set['weight_mode']['mode']==30?'checked':'' ?>>
-                                         lb
+                                         lbs
                                     </label>
                                  
                                     <label class="am-radio-inline line_type_vol" style="display:none;">
