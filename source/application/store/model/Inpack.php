@@ -522,6 +522,7 @@ class Inpack extends InpackModel
         return self::get($id, ['inpackimage.file','line','address','certimage']);
     }
 
+
     public function setWhere($query){
         // dump($query);die;
         !empty($query['status']) && $this->where('pa.status','in',$query['status']);

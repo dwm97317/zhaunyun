@@ -266,8 +266,7 @@ class Inpack extends BaseModel
      */
     public function certimage()
     {
-         return $this->belongsTo('UploadFile', 'cert_image', 'file_id')
-            ->bind(['file_path', 'file_name', 'file_url']);
+         return $this->belongsTo('UploadFile', 'cert_image', 'file_id');
     }
     
     

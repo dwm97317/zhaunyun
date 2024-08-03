@@ -218,7 +218,7 @@
                     </div>
                     
                     <figure style="display:inline-flex;" data-am-widget="figure" class="am am-figure am-figure-default "  data-am-figure="{  pureview: 'true' }">
-                            <a href="<?= $detail['file_path'] ?>"><img style="max-width: 200px;max-height: 200px;" src="<?= $detail['file_path'] ?>"/></a>
+                            <a href="<?= $detail['certimage']['file_path'] ?>"><img style="max-width: 200px;max-height: 200px;" src="<?= $detail['certimage']['file_path'] ?>"/></a>
                       
                     </figure>
                     
