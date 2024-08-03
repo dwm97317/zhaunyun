@@ -167,7 +167,8 @@
 		"order_sn":"所屬訂單",
 		"problem_piece": "問題件",
 		"tobodabao":"待打包",
-		"yijingshouhuo":"收貨簽收",
+		"yijingshouhuo":"已到貨",
+		"yijingqianshou":"已簽收",
 		"daizhifu":"待支付",
 		"yifahuo":"已發貨",
 		"daifahuo":"待發貨",
@@ -795,6 +796,7 @@
 	"page_my_dingdan_details": {
 		"my_order": "我的訂單",
 		"replace": "更換",
+		"xianxiazhifu": "線下支付",
 		"add_shipping_address": "添加收貨地址",
 		"order_number": "訂單編號：",
 		"international_waybill_number": "國際運單號：",

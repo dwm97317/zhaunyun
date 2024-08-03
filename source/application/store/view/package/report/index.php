@@ -128,7 +128,7 @@
                                     <td class="am-text-middle"><?= $item['shop_name'] ?></td>
                                     <td class="am-text-middle"><?= $item['title'] ?></td>
                                     <td class="am-text-middle"><?= $item['free'] ."-".$item['pack_free']."-".$item['real_payment']?><?= $set['price_mode']['unit'] ?></td>
-                                    <td class="am-text-middle">长:<?= $item['length']?></br>宽:<?= $item['width']?></br>高:<?= $item['height']?></br>称重:<?= $item['weight']?></br>物品属性:<?= implode(',',json_decode($item['goods_attr'],true)??[])?></br>物品价值:<?= $item['price']?></td>
+                                    <td class="am-text-middle">长:<?= $item['length']?></br>宽:<?= $item['width']?></br>高:<?= $item['height']?></br>称重:<?= $item['weight']?></br>物品价值:<?= $item['price']?></td>
                                     <td class="am-text-middle">包裹状态:<?= $status[$item['a_status']];?></br>认领状态:<?= $taker_status[$item['is_take']];?></td>
                                     <td class="am-text-middle">预报时间:<?= $item['created_time'] ?></br>更新时间:<?= $item['updated_time'] ?></br>入库时间:<?= $item['entering_warehouse_time'] ?></td>
                                     <td class="am-text-middle">

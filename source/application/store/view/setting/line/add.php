@@ -74,6 +74,21 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 重量向上取整 </label>
+                                <div class="am-u-sm-9 am-u-end" >
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[weight_integer]"  value="1" data-am-ucheck
+                                               checked>
+                                        向上取整
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[weight_integer]" value="0" data-am-ucheck>
+                                        按实际重量
+                                    </label>
+                                    <div class="help-block"><small>当包裹重量带小数时，将会向上取整<，如9.01会以10来结算。/small></div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否向上取整 </label>
                                 <div class="am-u-sm-9 am-u-end" >
                                     <label class="am-radio-inline">
@@ -85,6 +100,7 @@
                                         <input type="radio" name="line[is_integer]" value="2" data-am-ucheck>
                                         按实际重量
                                     </label>
+                                    <div class="help-block"><small>当包裹重量在参与计算时，如首重1kg100元，续重10元/0.5kg，当重量为6.2时候，续重重量则为(6.2-1)/0.5=10.4，向上取整则为11，如此算下来的费用则为100+11*10=210元</small></div>
                                 </div>
                             </div>
                             <div class="am-form-group">

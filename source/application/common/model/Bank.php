@@ -20,4 +20,13 @@ class Bank extends BaseModel
     {
         return self::get($printer_id);
     }
+    
+    /**
+     * 关联封面图
+     * @return \think\model\relation\HasOne
+     */
+    public function image()
+    {
+        return $this->hasOne('uploadFile', 'file_id', 'image_id');
+    }
 }

@@ -1093,6 +1093,7 @@ class Package extends Controller
      
      // 提交打包处理
      public function postPack(){
+        $params = $this->request->param();
         $ids = $this->postData('packids')[0];
         $line_id = $this->postData('line_id')[0];
         $pack_ids = $this->postData('pack_ids')[0];
@@ -1138,6 +1139,7 @@ class Package extends Controller
           'storage_id' => $pack[0]['storage_id'],
           'address_id' => $address_id,
           'free' => $price,
+          'delivery_method'=>isset($params['currentTab'])?$params['currentTab']:1,
           'weight' => $allWeigth,
           'cale_weight' => $caleWeigth,
           'volume' => $volumn,
@@ -1647,6 +1649,7 @@ class Package extends Controller
             'yetsend' => $PackageModel->querycount($where,$status=9),
             'procount' => $PackageModel->querycount($where,$status=-1),
             'yishouhuo' => $PackageModel->querycount($where,$status=10),
+            'yijingqianshou' => $PackageModel->querycount($where,$status=11),
             'daifahuo' => $PackageModel->querycount($where,$status=8),
             'daizhifu' => $PackageModel->querycount($where,$status=5),
             'daidabao' => $PackageModel->querycount($where,$status=4)
@@ -1955,7 +1958,8 @@ class Package extends Controller
          }else{
             $update['status'] =3;
          }
-         
+         $params = $this->request->param();
+   
          Db::startTrans();
          $update['real_payment'] = $amount;
          $update['is_pay'] = 1;
@@ -2062,6 +2066,24 @@ class Package extends Controller
                     // 支付状态提醒
                     $message = ['success' => '支付成功', 'error' => '订单未支付'];
                     return $this->renderSuccess(compact('payment', 'message'), $message);
+                    break;
+                    
+                case 60:
+                    // 构建線下支付
+                   if(!isset($params['image']) && count($params['image'])==0){
+                        Db::rollback();
+                        return $this->renderError('支付失败,请重试');
+                   }
+                    //记录支付类型
+                    $payres = (new Inpack())->where('id',$pack['id'])->update([
+                        'is_pay_type' => 6,
+                        'cert_image'=>$params['image'][0],
+                        'is_pay' => 3
+                        ]);
+                    if(!$payres){
+                          Db::rollback();
+                          return $this->renderError('支付失败,请重试');
+                    }      
                     break;
                      
                  default:

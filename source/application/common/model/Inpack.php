@@ -259,6 +259,18 @@ class Inpack extends BaseModel
         return $this->hasMany('InpackImage')->order(['id' => 'asc']);
     }
     
+    
+    /**
+     * 关联包裹图片表
+     * @return \think\model\relation\HasMany
+     */
+    public function certimage()
+    {
+         return $this->belongsTo('UploadFile', 'cert_image', 'file_id')
+            ->bind(['file_path', 'file_name', 'file_url']);
+    }
+    
+    
     /**
      * 关联货架表
      * @return \think\model\relation\HasMany
@@ -318,7 +330,7 @@ class Inpack extends BaseModel
     public function getIsPayTypeAttr($value)
     {
         //0 后台操作 1 微信 2 余额 3 汉特  4omipay  5现金支付
-        $type = [0=>'后台操作',1=>'微信支付',2=>'余额支付',3=>'汉特支付',4=>'OMIPAY',5=>'现金支付'];
+        $type = [0=>'后台操作',1=>'微信支付',2=>'余额支付',3=>'汉特支付',4=>'OMIPAY',5=>'现金支付',6=>'线下支付'];
         return [
             'text'=> $type[$value],
             'value'=>$value

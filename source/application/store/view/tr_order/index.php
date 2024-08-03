@@ -290,7 +290,7 @@
                             <tbody id="body">
                             <?php if (!$list->isEmpty()): foreach ($list as $item): ?>
                             <?php $status = [1=>'待查验',2=>'待发货',3=>'待发货','4'=>'待发货','5'=>'待发货','6'=>'已发货','7'=>'已到货','8'=>'已完成','-1'=>'问题件']; ?>
-                            <?php $paytime_status = [ 1=>'已支付',2=>'未支付'] ; ?>
+                            <?php $paytime_status = [ 1=>'已支付',2=>'未支付',3=>'支付待审核'] ; ?>
                         
                                 <tr>
                                     <td class="am-text-middle">
@@ -310,7 +310,9 @@
                                         <?php if (!empty($item['user']['service'])): ?> 
                                         专属客服：<?= $item['user']['service']['real_name']; ?></br>
                                         <?php endif ;?>
-                                        
+                                        <span class="am-badge <?= $item['delivery_method']==1?'am-badge-success':'am-badge-secondary' ?>">
+                                            <?= $item['delivery_method']==1?"转运":"自提"   ?>
+                                        </span></br>
                                         <?php if (!empty($item['t_order_sn'])): ?> 
                                         承运商:
                                         <span style="cursor:pointer" text="<?= $item['t_name'] ?>" onclick="copyUrl2(this)"><?= $item['t_name'] ?></span></br>

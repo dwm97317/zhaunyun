@@ -166,7 +166,8 @@
 		"yessend": "已发货",
 		"order_sn":"所属订单",
 		"tobodabao":"待打包",
-		"yijingshouhuo":"收货签收",
+		"yijingshouhuo":"已到货",
+		"yijingqianshou":"已签收",
 		"daizhifu":"待支付",
 		"yifahuo":"已发货",
 		"daifahuo":"待发货",
@@ -794,6 +795,7 @@
 	},
 	"page_my_dingdan_details": {
 		"my_order": "我的订单",
+		"xianxiazhifu": "线下支付",
 		"replace": "更换",
 		"add_shipping_address": "添加收货地址",
 		"order_number": "订单编号：",

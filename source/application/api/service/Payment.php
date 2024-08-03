@@ -127,32 +127,6 @@ class Payment
         return $payment;
     }
 
-/**
-     * 构建微信支付
-     * @param \app\api\model\User $user
-     * @param $orderId
-     * @param $orderNo
-     * @param $payPrice
-     * @param int $orderType
-     * @return array
-     * @throws \app\common\exception\BaseException
-     * @throws \think\exception\DbException
-     */
-    public static function wechatdivide(
-        $user,
-        $orderId,
-        $orderNo,
-        $payPrice,
-        $orderType = OrderTypeEnum::MASTER
-    )
-    {
-        // 统一下单API
-        $wxConfig = WxappModel::getWxappCache($user['wxapp_id']);
-        $paytype = SettingModel::getItem('paytype');
-        // dump($paytype);die; 
-        $WxPay = new WxPay($wxConfig);
-        $payment = $WxPay->wechatdivideunifiedorder($orderNo, $user['open_id'], $payPrice, $orderType,$paytype);
-        return $payment;
-    }
+
 
 }

@@ -9,6 +9,7 @@ class Bank extends BankModel
 
    public function getList($query=[]){
         return $this->setListQueryWhere($query)
+        ->with("image")
         ->paginate(10,false,[
             'query'=>\request()->request()
         ]);
