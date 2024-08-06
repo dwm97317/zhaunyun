@@ -110,7 +110,7 @@
                                     </td>
                                     <td class="am-text-middle"><?= $item['shop_name'] ?></td>
                                     <td class="am-text-middle"><?= $item['title'] ?></td>
-                                    <td class="am-text-middle">长:<?= $item['length']?></br>宽:<?= $item['width']?></br>高:<?= $item['height']?></br>称重:<?= $item['weight']?></br>物品属性:<?= implode(',',json_decode($item['goods_attr'],true)??[])?></td>
+                                    <td class="am-text-middle">长:<?= $item['length']?></br>宽:<?= $item['width']?></br>高:<?= $item['height']?></br>称重:<?= $item['weight']?></br></td>
                                     <td class="am-text-middle"><?= $item['remark'] ?></td>
                                     <td class="am-text-middle">包裹状态:<?= $status[$item['a_status']];?></br>认领状态:<?= $taker_status[$item['is_take']];?></td>
                                     <td class="am-text-middle"></td>

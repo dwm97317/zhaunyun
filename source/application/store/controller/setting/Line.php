@@ -7,6 +7,7 @@ use app\store\model\Countries;
 use app\store\model\Category;
 use app\common\model\Setting;
 use app\store\model\LineService;
+use app\store\model\store\Shop as ShopModel;
 
 /**
  * 线路设置
@@ -64,9 +65,9 @@ class Line extends Controller
     {
         $set = Setting::detail('store')['values'];
         $lineservice = (new LineService())->getListAll();
-        // dump($lineservice);die;
         if (!$this->request->isAjax()) {
-            return $this->fetch('add',compact('set','lineservice'));
+            $shopList = ShopModel::getAllList();
+            return $this->fetch('add',compact('set','lineservice','shopList'));
         }
         // 新增记录
         $model = new LineModel();
@@ -165,13 +166,14 @@ class Line extends Controller
         $set = Setting::detail('store')['values'];
   
         if (!$this->request->isAjax()) {
-                // dump($model);die;
-            return $this->fetch('edit', compact('model','country','set','lineservice'));
+            $shopList = ShopModel::getAllList();
+            return $this->fetch('edit', compact('model','country','set','lineservice','shopList'));
         }
         //  dump($this->postData('line'));die;
         // 更新记录
                 // dump($this->postData('line'));die;
         if ($model->edit($this->postData('line'))) {
+            
             return $this->renderSuccess('更新成功', url('setting.line/index'));
         }
         return $this->renderError($model->getError() ?: '更新失败');

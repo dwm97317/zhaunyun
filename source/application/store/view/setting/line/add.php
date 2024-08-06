@@ -464,6 +464,27 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 所属仓库 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="line[shop_id]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'所有仓库', maxHeight: 400}">
+                                          <option value="0">所有仓库</option>
+                                        <?php if (isset($shopList) && !$shopList->isEmpty()):
+                                            foreach ($shopList as $item): ?>
+                                                 <?php if(isset($data['storage_id'])): ?>
+                                                      <option value="<?= $item['shop_id'] ?>"  <?= $data['storage_id'] == $item['shop_id'] ? 'selected' : '' ?>><?= $item['shop_name'] ?></option>
+                                                <?php else: ?>  
+                                                     <option value="<?= $item['shop_id'] ?>"><?= $item['shop_name'] ?></option>
+                                                <?php endif; ?>
+                                             
+                                            <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>可以设置多个仓库，让管理员能够查看多个仓库的包裹和订单信息</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 状态 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">

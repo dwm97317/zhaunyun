@@ -2687,6 +2687,28 @@ class Package extends Controller
         
         return $this->renderSuccess($data);
     }
+    
+        // 线路列表   版本20220916
+    public function lineForShop(){
+        $param = $this->request->param();
+        $idsArr = explode(',',$param['packids']);
+        $pack = (new PackageModel())->whereIn('id',$idsArr)->select();
+        if (!$pack || count($pack) !== count($idsArr)){
+            return $this->renderError('打包包裹数据错误');
+        }
+        $pack_storage = array_unique(array_column($pack->toArray(),'storage_id'));
+        if (count($pack_storage)!=1){
+             return $this->renderError('请选择同一仓库的包裹进行打包');
+        }
+        if(!empty($param)){
+            count($pack_storage)==1 && $param['shops'] = $pack_storage[0];
+            $data = (new Line())->getLineForShop($param);
+        }else{
+            $data = (new Line())->getLine([]); 
+        }
+        
+        return $this->renderSuccess($data);
+    }
 
      // 仓库列表
      public function storage(){

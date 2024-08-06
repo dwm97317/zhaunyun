@@ -611,6 +611,23 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 所属仓库 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="line[shop_id]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'所有仓库', maxHeight: 400}">
+                                            <option value="0">所有仓库</option>
+                                        <?php if (isset($shopList)): foreach ($shopList as $role): ?>
+                                            <option value="<?= $role['shop_id'] ?>"
+                                                <?= $role['shop_id']==$model['shop_id']? 'selected' : '' ?>>
+                                                <?= $role['shop_name'] ?></option>
+                                        <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>可以设置多个仓库，让管理员能够查看多个仓库的包裹和订单信息</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 状态 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">

@@ -34,6 +34,33 @@ class Line extends LineModel
       return $this->field('id,name')->order('sort DESC')->paginate(600);
     }
     
+    public function getLineForShop($param){
+       $data =  (new UserAddress())->where('address_id',$param['address_id'])->find();
+       if($data['country_id']){
+           $where['status'] = 1;
+           if(isset($param['shops'])){
+              $list = $this->where('FIND_IN_SET(:ids,countrys)', ['ids' => $data['country_id']])
+                        ->where($where)
+                        ->where(function($query) use($param){
+                              $query->where('shop_id',0)->whereOr('shop_id',$param['shops']);
+                         })
+                       ->field('id,name')
+                       ->order('sort DESC')
+                       ->paginate(600); 
+                       
+                // dump($this->getLastsql());die;
+                return $list;       
+           }
+    
+           return $this->where('FIND_IN_SET(:ids,countrys)', ['ids' => $data['country_id']])
+                       ->where($where)
+                       ->field('id,name')
+                       ->order('sort DESC')
+                       ->paginate(600);
+       }
+      return $this->field('id,name')->order('sort DESC')->paginate(600);
+    }
+    
     // 推荐路线
     public function goodsLine(){
         return $this

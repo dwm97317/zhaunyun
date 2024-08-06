@@ -28,7 +28,7 @@ class Line extends LineModel
         // 保存数据
         $data['wxapp_id'] = self::$wxapp_id;
         $data['created_time'] = time();
-
+    
         unset($data['weight']);
         unset($data['weight_price']);
         if ($this->allowField(true)->save($data)) {
@@ -195,9 +195,8 @@ class Line extends LineModel
         // 表单验证
         if (!$this->onValidate($data)) return false;
         $rule = $this->parseRuleData($data);
-        //  dump($rule);die; 
+       
         $data['free_rule'] = json_encode($rule);
-         
         // 保存数据
         $data['wxapp_id'] = self::$wxapp_id;
         if($data['countrys']=='' || $data['countrys']==null){
@@ -205,6 +204,7 @@ class Line extends LineModel
         }
         unset($data['weight']);
         unset($data['weight_price']);
+  
         // 保存数据
         if ($this->allowField(true)->save($data)) {
              return true;
