@@ -206,7 +206,7 @@ window.onload = function(){
 					label: 'Series B',
 					backgroundColor: app.colors.transparent,
 					borderColor: app.colors.success,
-					data: [<?= $zhe ?>]
+					data: []
 				}],
 			},
 			options: {

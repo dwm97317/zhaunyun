@@ -18,7 +18,7 @@ class Bank extends BaseModel
      */
     public static function detail($printer_id)
     {
-        return self::get($printer_id);
+        return self::get($printer_id,['image']);
     }
     
     /**
