@@ -385,7 +385,7 @@ class Page extends Controller
                     }
                 }
            }    
-       }else if($setting['usercode_mode']['is_show']==0){
+       }else{
           foreach ($data as $k => $v){
                if($v['type']==1){
                    $data[$k]['region']['province'] = '';
@@ -436,59 +436,6 @@ class Page extends Controller
                     }
                }
                 
-            }
-       }else if($setting['usercode_mode']['is_show']==2){
-          foreach ($data as $k => $v){
-               if($v['type']==1){
-                   $data[$k]['region']['province'] = '';
-                   $data[$k]['region']['city'] = '';
-                   $data[$k]['region']['region'] = '';
-               }
-               if($v['type']==1){
-                $data[$k]['address'] = 'UID:'.$this->user['user_id'].'-CODE:'.$this->user['user_code'].'-'.$v['address'];
-                if($setting['link_mode'] == 10){
-                 $data[$k]['linkman'] =$data[$k]['shop_name'].'-UID:'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 20){
-                     $data[$k]['linkman'] =$data[$k]['linkman'].'-UID:'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 30){
-                     $data[$k]['linkman'] =($this->user)['nickName'].'-UID:'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 40){
-                 $data[$k]['linkman'] =$data[$k]['shop_alias_name'].'-UID:'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 50){
-                    $data[$k]['address'] =  $v['address'].$this->user['user_id'].'/'.$this->user['user_code'];
-                    $data[$k]['linkman'] = ($this->user)['nickName'];
-                }
-                if($setting['link_mode'] == 60){
-                        $data[$k]['address'] =  $v['address'].$this->user['user_id'].'/'.$this->user['user_code'];
-                        $data[$k]['linkman'] = $data[$k]['shop_name'];
-                }
-               }else{
-                $data[$k]['address'] = $v['address'].'UID:'.$this->user['user_id'].'-CODE:'.$this->user['user_code'];
-                if($setting['link_mode'] == 10){
-                 $data[$k]['linkman'] =$data[$k]['shop_name'].'-UID:'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 20){
-                     $data[$k]['linkman'] =$data[$k]['linkman'].'-UID:'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 30){
-                     $data[$k]['linkman'] =($this->user)['nickName'].'-UID:'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 40){
-                 $data[$k]['linkman'] =$data[$k]['shop_alias_name'].'-UID:'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 50){
-                    $data[$k]['address'] =  $v['address'].$this->user['user_id'].'/'.$this->user['user_code'];
-                    $data[$k]['linkman'] = ($this->user)['nickName'];
-                }
-                if($setting['link_mode'] == 60){
-                        $data[$k]['address'] =  $v['address'].$this->user['user_id'].'/'.$this->user['user_code'];
-                        $data[$k]['linkman'] = $data[$k]['shop_name'];
-                }
-               }
             }
        }
       return $this->renderSuccess($data);
@@ -610,16 +557,16 @@ class Page extends Controller
              if($data['type']==1){
                 
                 if($setting['link_mode'] == 10){
-                     $data['linkman'] =$data['shop_name'].'-UID'.($this->user)['user_id'];
+                     $data['linkman'] =$data['shop_name'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 20){
-                     $data['linkman'] =$data['linkman'].'-UID'.($this->user)['user_id'];
+                     $data['linkman'] =$data['linkman'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 30){
-                     $data['linkman'] =($this->user)['nickName'].'-UID'.($this->user)['user_id'];
+                     $data['linkman'] =($this->user)['nickName'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 40){
-                     $data['linkman'] =$data['shop_alias_name'].'-UID'.($this->user)['user_id'];
+                     $data['linkman'] =$data['shop_alias_name'].($this->user)['user_id'];
                 }
                 if($setting['link_mode'] == 50){
                      $data['linkman'] = ($this->user)['nickName'];
@@ -634,13 +581,13 @@ class Page extends Controller
                         $data['address'] = $data['address'];
                         break;
                     case '20':
-                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.$data['address'];
+                        $data['address'] = $data['address'].$this->user['user_id'].' '.$data['address'];
                         break;
                     case '30':
-                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.$data['address'];
+                        $data['address'] = $data['address'].$this->user['user_id'].' '.$data['address'];
                         break;
                     case '40':
-                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.$data['address'].''.($this->user['service']['real_name']);
+                        $data['address'] = $data['address'].$this->user['user_id'].' '.$data['address'].''.($this->user['service']['real_name']);
                         break;
                     default:
                         // code...
@@ -689,91 +636,8 @@ class Page extends Controller
              }
             
        }
-       //ID和CODE都显示
-       if($setting['usercode_mode']['is_show']==2){
-            if($data['type']==1){
-                
-                if($setting['link_mode'] == 10){
-                     $data['linkman'] =$data['shop_name'].'-UID'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 20){
-                     $data['linkman'] =$data['linkman'].'-UID'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 30){
-                     $data['linkman'] =($this->user)['nickName'].'-UID'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 40){
-                     $data['linkman'] =$data['shop_alias_name'].'-UID'.($this->user)['user_id'].'-CODE:'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 50){
-                     $data['linkman'] = ($this->user)['nickName'];
-                }
-                if($setting['link_mode'] == 60){
-                     $data['linkman'] = $data['shop_name'];
-                }
-                
-                // 根据地址的设置，生成不同的地址展示模式
-                switch ($setting['address_mode']) {
-                    case '10':
-                        $data['address'] = $data['address'];
-                        break;
-                    case '20':
-                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.'-CODE:'.$this->user['user_code'].$data['address'];
-                        break;
-                    case '30':
-                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.'-CODE:'.$this->user['user_code'].$data['address'];
-                        break;
-                    case '40':
-                        $data['address'] = $data['address'] = 'UID'.' '.$this->user['user_id'].' '.'-CODE:'.$this->user['user_code'].$data['address'].($this->user['service']['real_name']);
-                        break;
-                    default:
-                        // code...
-                        break;
-                }
-                
-            }else{
-                
-                if($setting['link_mode'] == 10){
-                     $data['linkman'] =$data['shop_name'].'-UID'.($this->user)['user_id'].'-CODE'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 20){
-                     $data['linkman'] =$data['linkman'].'-UID'.($this->user)['user_id'].'-CODE'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 30){
-                     $data['linkman'] =($this->user)['nickName'].'-UID'.($this->user)['user_id'].'-CODE'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 40){
-                     $data['linkman'] =$data['shop_alias_name'].'-UID'.($this->user)['user_id'].'-CODE'.$this->user['user_code'];
-                }
-                if($setting['link_mode'] == 50){
-                     $data['linkman'] = ($this->user)['nickName'];
-                }
-                if($setting['link_mode'] == 60){
-                     $data['linkman'] = $data['shop_name'];
-                }
-                
-                // 根据地址的设置，生成不同的地址展示模式
-                switch ($setting['address_mode']) {
-                    case '10':
-                        $data['address'] = $data['address'];
-                        break;
-                    case '20':
-                        $data['address'] = $data['address'].$this->user['user_id'];
-                        break;
-                    case '30':
-                        $data['address'] = $data['address'].$this->user['user_id'];
-                        break;
-                    case '40':
-                        $data['address'] = $data['address'].$this->user['user_id'].($this->user['service']['real_name']);
-                        break;
-                    default:
-                        // code...
-                        break;
-                }
-            }
-       }
-       
-       
+
+      
        return $this->renderSuccess($data);
     }
 
