@@ -997,7 +997,44 @@ class TrOrder extends Controller
         $otherfree = getServiceFree($line['services_require'],$oWeigth,$long);
         // dump($otherfree);die;
         $insure_free = $pakdata['insure_free'];
-        $reprice=0;  
+        $reprice=0;
+         //单位转化
+           switch ($setting['weight_mode']['mode']) {
+               case '10':
+                    if($line['line_type_unit'] == 20){
+                        $oWeigth = 0.001 * $oWeigth;
+                    }
+                    if($line['line_type_unit'] == 30){
+                        $oWeigth = 0.00220462262185 * $oWeigth;
+                    }
+                   break;
+               case '20':
+                    if($line['line_type_unit'] == 10){
+                        $oWeigth = 1000 * $oWeigth;
+                    }
+                    if($line['line_type_unit'] == 30){
+                        $oWeigth = 2.20462262185 * $oWeigth;
+                    }
+                   break;
+               case '30':
+                   if($line['line_type_unit'] == 10){
+                        $oWeigth = 453.59237 * $oWeigth;
+                    }
+                    if($line['line_type_unit'] == 20){
+                        $oWeigth = 0.45359237 * $oWeigth;
+                    }
+                   break;
+               default:
+                   if($line['line_type_unit'] == 10){
+                        $oWeigth = 1000 * $oWeigth;
+                    }
+                    if($line['line_type_unit'] == 30){
+                        $oWeigth = 2.20462262185 * $oWeigth;
+                    }
+                   break;
+           }
+           $oWeigth = round($oWeigth,2);
+
         $lines['predict'] = [
               'weight' => $oWeigth,
               'price' => '包裹重量超限',
@@ -1089,6 +1126,109 @@ class TrOrder extends Controller
                    }
                }
                
+               break;
+               
+               case '5':
+                $free_rule = json_decode($line['free_rule'],true);
+            
+               foreach ($free_rule as $k => $vv) {
+                   
+                   //判断时候需要取整
+                if($vv['type']=="1"){
+                    if($line['is_integer']==1){
+                        $ww = ceil((($oWeigth-$vv['first_weight'])/$vv['next_weight']));
+                    }else{
+                        $ww = ($oWeigth-$vv['first_weight'])/$vv['next_weight'];
+                    }
+                   
+                    if ($oWeigth >= $vv['first_weight']){
+                          $lines['sortprice'] =($vv['first_price']+ $ww*$vv['next_price'] + $otherfree)*$value['discount'];
+                          $lines['predict'] = [
+                              'weight' => $oWeigth,
+                              'price' => number_format(($vv['first_price']+ $ww*$vv['next_price'] + $otherfree)*$value['discount'],2),
+                              'rule' => $vv,
+                              'service' =>0,
+                          ]; 
+                  }else{
+                      $lines['sortprice'] = $vv['first_price'];
+                      $lines['predict'] = [
+                              'weight' => $oWeigth,
+                              'price' => number_format(($vv['first_price']+ $otherfree)*$value['discount'],2),
+                              'rule' => $vv,
+                              'service' =>0,
+                          ]; 
+                  }
+                }
+                
+                if($vv['type']=="2"){
+           
+                       if ($oWeigth >= $vv['weight'][0]){
+                          if (isset($vv['weight'][1]) && $oWeigth<=$vv['weight'][1]){
+                              $lines['sortprice'] =(floatval($vv['weight_price']) + $otherfree)*$value['discount'] ;
+                              $lines['predict'] = [
+                                  'weight' => $oWeigth,
+                                  'price' => number_format((floatval($vv['weight_price']) + $otherfree)*$value['discount'],2),
+                                  'rule' => $vv,
+                                  'service' =>0,
+                              ];   
+                          }
+                       }
+                   
+                }
+       
+                if($vv['type']=="3"){
+                   //判断时候需要取整
+                    if($line['is_integer']==1){
+                        $ww = ceil(floatval($oWeigth)/floatval($vv['weight_unit']));
+                    }else{
+                        $ww = floatval($oWeigth)/floatval($vv['weight_unit']);
+                    }
+                   if ($oWeigth >= $vv['weight'][0]){
+                      if (isset($vv['weight'][1]) && $oWeigth<=$vv['weight'][1]){
+                          !isset($vv['weight_unit']) && $vv['weight_unit']=1;
+                          $lines['sortprice'] =(floatval($vv['weight_price']) *$ww  + floatval($otherfree))*$value['discount'] ;
+                          $lines['predict'] = [
+                              'weight' => $oWeigth,
+                              'price' => number_format((floatval($vv['weight_price']) * $ww + floatval($otherfree))*$value['discount'],2),
+                              'rule' => $vv,
+                              'service' =>0,
+                          ]; 
+                      }
+                   }
+                }
+               }
+               
+               break;
+               
+               case '6':
+                $free_rule = json_decode($line['free_rule'],true);
+
+                foreach ($free_rule as $k => $v) {
+                    if($oWeigth >= $v['weight'][0] ){
+                       //判断时候需要取整
+                            if($line['is_integer']==1){
+                                $ww = ceil((($oWeigth-$v['first_weight'])/$v['next_weight']));
+                            }else{
+                                $ww = ($oWeigth-$v['first_weight'])/$v['next_weight'];
+                            }
+                       
+                           if ($oWeigth >= $v['first_weight']){
+                                  $lines['sortprice'] =($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'];
+                                  $lines['predict'] = [
+                                      'weight' => $oWeigth,
+                                      'price' => number_format(($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'],2),
+                                      'rule' => $v
+                                  ]; 
+                            }else{
+                              $lines['sortprice'] = $v['first_price'];
+                              $lines['predict'] = [
+                                      'weight' => $oWeigth,
+                                      'price' => number_format(($v['first_price']+ $otherfree)*$value['discount'],2),
+                                      'rule' => $v
+                                  ]; 
+                          }
+                        }
+               }
                break;
         }
         $PackageService = new PackageService(); 
