@@ -156,6 +156,14 @@
                                         10000计费
                                     </label>
                                     <label class="am-radio-inline">
+                                        <input type="radio" name="line[volumeweight]"  value="15000" data-am-ucheck>
+                                        15000计费
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[volumeweight]"  value="18000" data-am-ucheck>
+                                        18000计费
+                                    </label>
+                                    <label class="am-radio-inline">
                                         <input type="radio" name="line[volumeweight]"  value="27000" data-am-ucheck>
                                         27000计费
                                     </label>

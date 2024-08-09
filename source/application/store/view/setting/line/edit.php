@@ -167,6 +167,14 @@
                                         10000计费
                                     </label>
                                     <label class="am-radio-inline">
+                                        <input type="radio" name="line[volumeweight]"  <?= $model['volumeweight'] == 15000 ? 'checked' : '' ?> value="15000" data-am-ucheck>
+                                        15000计费
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[volumeweight]"  <?= $model['volumeweight'] == 18000 ? 'checked' : '' ?> value="18000" data-am-ucheck>
+                                        18000计费
+                                    </label>
+                                    <label class="am-radio-inline">
                                         <input type="radio" name="line[volumeweight]"  <?= $model['volumeweight'] == 27000 ? 'checked' : '' ?> value="27000" data-am-ucheck>
                                         27000计费
                                     </label>
