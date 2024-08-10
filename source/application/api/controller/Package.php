@@ -1418,6 +1418,7 @@ class Package extends Controller
          $list = (new Inpack())->getList($query);
          foreach ($list as &$value) {
             $value['num'] = count(explode(',',$value['pack_ids']));
+            $value['weight_unit'] = [10=>'g',20=>'kg',30=>'lbs',40=>'cbm'];
             $value['total_free'] = round($value['free'] + $value['pack_free'] + $value['other_free'] + $value['insure_free'],2);
          }
          return $this->renderSuccess($list);
