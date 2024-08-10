@@ -2208,6 +2208,7 @@ class Package extends Controller
         $data = (new Inpack())->getDetailsplus($id,$field_group[$method[0]]);
         $data['free_total'] = round($data['free'] + $data['pack_free'] + $data['other_free'] + $data['insure_free'],2);
         $data['fyouhui_total'] = $this->UseConponPrice($couponId,$data['free_total']);
+        $data['weight_unit'] = [10=>'g',20=>'kg',30=>'lbs',40=>'cbm'];
         return $this->renderSuccess($data);
      }
      
