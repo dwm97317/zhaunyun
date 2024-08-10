@@ -494,13 +494,13 @@ class Page extends Controller
                         $data['address'] = $data['address'];
                         break;
                     case '20':
-                        $data['address'] = 'UID'.' '.$this->user['user_code'].' '.$data['address'];
+                        $data['address'] = $data['address'].'  '.$this->user['user_code'];
                         break;
                     case '30':
-                        $data['address']  = 'UID'.' '.$this->user['user_code'].' '.$data['address'];
+                        $data['address']  = $data['address'].'  '.$this->user['user_code'];
                         break;
                     case '40':
-                        $data['address'] = 'UID'.' '.$this->user['user_code'].' '.$data['address'].''.($this->user['service']['real_name']);
+                        $data['address'] = $data['address'].''.$this->user['user_code'].' '.($this->user['service']['real_name']);
                         break;
                     default:
                         // code...
@@ -581,13 +581,13 @@ class Page extends Controller
                         $data['address'] = $data['address'];
                         break;
                     case '20':
-                        $data['address'] = $data['address'].$this->user['user_id'].' '.$data['address'];
+                        $data['address'] = $data['address'].$this->user['user_id'];
                         break;
                     case '30':
-                        $data['address'] = $data['address'].$this->user['user_id'].' '.$data['address'];
+                        $data['address'] = $data['address'].$this->user['user_id'];
                         break;
                     case '40':
-                        $data['address'] = $data['address'].$this->user['user_id'].' '.$data['address'].''.($this->user['service']['real_name']);
+                        $data['address'] = $data['address'].$this->user['user_id'].''.($this->user['service']['real_name']);
                         break;
                     default:
                         // code...
