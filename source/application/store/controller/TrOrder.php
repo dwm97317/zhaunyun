@@ -987,7 +987,7 @@ class TrOrder extends Controller
             $weigthV = round(($data['weight'] + (($data['length']*$data['width']*$data['height'])/$line['volumeweight'] - $data['weight'])*$line['bubble_weight']/100),2);
         }
         // 取两者中 较重者 
-        $oWeigth = $weigthV>$data['weight']?$weigthV:$data['weight'];
+        $oWeigth = $weigthV>$data['weight']*$line['volumeweight_weight'] ?$weigthV:$data['weight'];
         if($line['line_type']==1){
             $oWeigth = round(($data['length']*$data['width']*$data['height'])/$line['volumeweight'],2);
         }

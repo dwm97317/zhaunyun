@@ -3,7 +3,9 @@
    .am-form-title { font-size: 13px; color:#666; cursor: pointer; }
    .am-form-up-item { width: 100%; height: auto;} 
    .am-form-item-del { font-size: 13px; color: #ff6666; cursor: pointer;}
-</style>
+   .support-title { font-size:13px; height:30px; line-height:30px; color:#ccc;}
+   .support-list { display:block;}
+</style> 
 <link rel="stylesheet" href="assets/common/plugins/umeditor/themes/default/css/umeditor.css">
 <?php $weiStatus=[10=>'g',20=>'kg',30=>'bl',40=>'CBM'] ?>
 <div class="row-content am-cf">
@@ -184,6 +186,13 @@
                                          139计费
                                     </label>
                                 </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 体积重大于实重  </label>
+                                <div class="am-u-sm-1 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="line[volumeweight_weight]" value="1" required>
+                                </div>
+                                <span style="font-size: 16px;">倍时以体积重计费</span>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 计费模式 </label>
