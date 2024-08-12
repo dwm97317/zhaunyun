@@ -754,7 +754,7 @@ class Page extends Controller
              if($value['volumeweight_type']==20){
                  $weigthV = round(($oWeigth + (($length*$width*$height)/$value['volumeweight'] - $oWeigth)*$value['bubble_weight']/100),2); 
              }
-             $oWeigth = $weigthV>$weigth*$value['volumeweight_weight']?$weigthV:$weigth; 
+             $oWeigth = $weigthV>=$weigth*$value['volumeweight_weight']?$weigthV:$weigth; 
            }
 
            if(isset($value['max_weight']) && isset($value['weight_min'])){
