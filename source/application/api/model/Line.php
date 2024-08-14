@@ -36,8 +36,9 @@ class Line extends LineModel
     
     public function getLineForShop($param){
        $data =  (new UserAddress())->where('address_id',$param['address_id'])->find();
+        $where['status'] = 1;
        if($data['country_id']){
-           $where['status'] = 1;
+          
            if(isset($param['shops'])){
               return $this->where('FIND_IN_SET(:ids,countrys)', ['ids' => $data['country_id']])
                         ->where($where)

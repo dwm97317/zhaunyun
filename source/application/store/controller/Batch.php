@@ -398,14 +398,25 @@ class Batch extends Controller
         // dump($batch_id);die;
         //将集运单和包裹都设置为已发货状态
         if($detail['status']==1 && $param['status']==1){
-            $Inpack->where('batch_id',$batch_id)->update(['status'=>6]);
-            $package->where('batch_id',$batch_id)->update(['status'=>9]);
+            $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($inpackdata)){
+                $Inpack->where('batch_id',$batch_id)->update(['status'=>6]);
+            }
+            $packdata = $package->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($packdata)){
+                $package->where('batch_id',$batch_id)->update(['status'=>9]);
+            }
             unset($param['status']);
-        }
+        }elseif($param['status']==2){
         //将集运单和包裹都设置为已到货状态
-        if($param['status']==2){
-            $Inpack->where('batch_id',$batch_id)->update(['status'=>7]);
-            $package->where('batch_id',$batch_id)->update(['status'=>11]);
+            $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($inpackdata)){
+                $Inpack->where('batch_id',$batch_id)->update(['status'=>7]);
+            }
+            $packdata = $package->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($packdata)){
+                $package->where('batch_id',$batch_id)->update(['status'=>11]);
+            }
         }
         // 新增记录
         if ($detail->editbatch($param)){

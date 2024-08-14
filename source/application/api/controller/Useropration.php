@@ -1457,10 +1457,10 @@ class Useropration extends Controller
       $tomorrow = date('Y-m-d', strtotime('+1 day'));
       $values = SettingModel::getItem('store')['retention_day'];
       $res = [
-         'today' => $packModel ->where('status','in',[2,3,4,5])->where(['storage_id'=>$clerk['shop_id']])->whereTime('entering_warehouse_time','between',[$today,$tomorrow])->count(),
+         'today' => $packModel ->where('status','=',2)->where(['storage_id'=>$clerk['shop_id']])->whereTime('entering_warehouse_time','between',[$today,$tomorrow])->count(),
          'all' => $packModel -> where(['storage_id'=>$clerk['shop_id'],'is_delete'=>0])->where('status','in',[-1,2,3,4,5,6,7])->count(),
-         'pack' => $inpackModel ->where(['status'=>1,'storage_id'=>$clerk['shop_id']])->count(), //待打包的集运单
-         'waitTake' => $inpackModel->where(['status'=>7,'shop_id'=>$clerk['shop_id']])->count(),
+         'pack' => $packModel->where('status','in',[2,3,4,5,6])->where(['storage_id'=>$clerk['shop_id'],'is_take'=>2,'is_delete'=>0])->count(), //待打包的集运单
+         'waitTake' => $inpackModel->where(['status'=>7,'shop_id'=>$clerk['shop_id'],'is_delete'=>0])->count(),
          'appointment' => $packModel->where(['status'=>1,'storage_id'=>$clerk['shop_id'],'source'=>7])->count(),
          'retention' => $inpackModel->where(['status'=>7,'shop_id'=>$clerk['shop_id']])->where('updated_time','<= time',date('Y-m-d',time()-7*86400))->count(),
       ];
