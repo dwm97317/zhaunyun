@@ -865,7 +865,7 @@ class Package extends PackageModel
             // ->with(['categoryAttr','categoryAttr' => function($quer) use($query) {
             //     $quer->where('class_id','=',$query['category_id']);
             // }])
-            ->field('a.pack_type,a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time')
+            ->field('a.pack_type,a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time,pi.class_id')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -932,7 +932,7 @@ class Package extends PackageModel
     private function setListQueryWhere($param = [])
     {
         // 查询参数
- 
+        // dump($param);die;
         if(!empty($param['status']) && $param['status']==12){
             !empty($param['status'])&& $this->where('a.status','in',[-1,2,3,4,5,6,7]);
         }else if(!empty($param['status']) && $param['status']==13){
@@ -941,7 +941,7 @@ class Package extends PackageModel
             !empty($param['status'])&& $this->where('a.status','in',$param['status']);
         }
         empty($param['is_delete']) && $this->where('a.is_delete','=',0);
-        !empty($param['class_id'])&& $this->where('class_id','in',$param['class_id']);
+        !empty($param['class_id'])&& $this->where('pi.class_id','in',$param['class_id']);
         !empty($param['is_take'])&& $this->where('is_take','in',$param['is_take']);
         !empty($param['source'])&& $this->where('source','=',$param['source']);
         !empty($param['is_delete'])&& $this->where('a.is_delete','=',$param['is_delete']);

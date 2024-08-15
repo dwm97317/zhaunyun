@@ -320,6 +320,7 @@ class Package extends Controller
              $classItem = $this->parseClass($class_ids);
                 foreach ($goodslist as $k => $val){
                      $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['pinming'];
+                     $classItems[$k]['class_id'] = !empty($classItem)?$classItem[0]['category_id']:0;
                      $classItems[$k]['one_price'] = isset($val['danjia'])?$val['danjia']:'';
                      $classItems[$k]['all_price'] = (!empty($val['danjia'])?$val['danjia']:0) * (!empty($val['shuliang'])?$val['shuliang']:0);
                      $classItems[$k]['product_num'] = isset($val['shuliang'])?$val['shuliang']:'';

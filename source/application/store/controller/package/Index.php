@@ -350,9 +350,9 @@ class Index extends Controller
         $map1 = ['is_take'=>2,'status'=>[2,3,4],'category_id' =>null];
         $map2 = \request()->param();
         $map = array_merge($map1,$map2);
-        //  dump($map2);die;
+       
         $list = $packageModel->getUnpackList($map);
-        
+        //   dump($packageModel->getLastsql());die;
         $countweight = '+∞';
         if(isset($map['search']) || isset($map['likesearch']) || isset($map['express_num'])){
             $countweight = $packageModel->getListSum($map);
