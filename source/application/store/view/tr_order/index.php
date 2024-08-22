@@ -558,7 +558,7 @@
                                                 <i class="iconfont icon-dizhi"></i> 余额扣除
                                             </a>
                                              <?php endif ;?>
-                                            <?php if (checkPrivilege('tr_order/cashforprice') && $item['is_pay'] ==2) : ?>
+                                            <?php if (checkPrivilege('tr_order/cashforprice') && ($item['is_pay'] ==2 || $item['is_pay'] ==3)) : ?>
                                             <a class='tpl-table-black-operation-warning j-payxianjin' href="javascript:void(0);" data-balance="0" data-price="0" data-name="<?= $item['nickName'] ?>" data-user_id="<?= $item['member_id'] ?>" data-id="<?= $item['id'] ?>">
                                                 <i class="iconfont icon-dizhi"></i> 现金收款
                                             </a>

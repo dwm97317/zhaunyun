@@ -711,13 +711,14 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 <div class="am-u-sm-9 am-u-end">
                                     <select name="store[price_mode][mode]"
                                             data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
-                                            <option value="10" <?= $values['price_mode']['mode'] == 10 ? 'selected' : '' ?>>元/¥</option>
-                                            <option value="20" <?= $values['price_mode']['mode'] == 20 ? 'selected' : '' ?>>美元/$</option>
-                                            <option value="30" <?= $values['price_mode']['mode'] == 30 ? 'selected' : '' ?> >加币/C$</option>
-                                            <option value="40" <?= $values['price_mode']['mode'] == 40 ? 'selected' : '' ?> >欧元/€</option>
-                                            <option value="50" <?= $values['price_mode']['mode'] == 50 ? 'selected' : '' ?> >澳元/AUD</option>
-                                            <option value="60" <?= $values['price_mode']['mode'] == 60 ? 'selected' : '' ?> >港币/HK$</option>
-                                            <option value="70" <?= $values['price_mode']['mode'] == 70 ? 'selected' : '' ?> >澳门币/MOP</option>
+                                        <option value="10" <?= $values['price_mode']['mode'] == 10 ? 'selected' : '' ?>>元/¥</option>
+                                        <option value="20" <?= $values['price_mode']['mode'] == 20 ? 'selected' : '' ?>>美元/$</option>
+                                        <option value="30" <?= $values['price_mode']['mode'] == 30 ? 'selected' : '' ?> >加币/C$</option>
+                                        <option value="40" <?= $values['price_mode']['mode'] == 40 ? 'selected' : '' ?> >欧元/€</option>
+                                        <option value="50" <?= $values['price_mode']['mode'] == 50 ? 'selected' : '' ?> >澳元/AUD</option>
+                                        <option value="60" <?= $values['price_mode']['mode'] == 60 ? 'selected' : '' ?> >港币/HK$</option>
+                                        <option value="70" <?= $values['price_mode']['mode'] == 70 ? 'selected' : '' ?> >澳门币/MOP</option>
+                                        <option value="80" <?= $values['price_mode']['mode'] == 80 ? 'selected' : '' ?> >迪拉姆/AED</option>
                                     </select>
                                     <div class="help-block">
                                         <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>

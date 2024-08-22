@@ -299,6 +299,11 @@ class Setting extends BaseModel
                             'unit'=>'MOP',
                             'unit_name'=>'澳门币',
                         ],
+                        '80'=>[
+                            'number'=>'80',
+                            'unit'=>'AED',
+                            'unit_name'=>'迪拉姆',
+                        ],
                     ],
                     'address_setting'=>[
                         'is_tel_code'=>1, 
