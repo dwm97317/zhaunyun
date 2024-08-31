@@ -66,6 +66,11 @@
                                         <?= isset($model['clerk_authority']['is_fahuolist']) && $model['clerk_authority']['is_fahuolist'] == 1 ? 'checked' : '' ?>>
                                         发货仓包裹列表
                                     </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="clerk[clerk_authority][is_zhiyoufahuoin]" value="1" data-am-ucheck
+                                        <?= isset($model['clerk_authority']['is_zhiyoufahuoin']) && $model['clerk_authority']['is_zhiyoufahuoin'] == 1 ? 'checked' : '' ?>>
+                                        直邮包裹入库
+                                    </label>
                                     <div class="help-block">
                                         <small>入库员: 包裹入库时,进行入库操作;</small>
                                     </div>
@@ -151,7 +156,12 @@
                                     <label class="am-checkbox-inline">
                                         <input type="checkbox" name="clerk[clerk_authority][is_chajianqianshou]" value="1" data-am-ucheck
                                         <?= isset($model['clerk_authority']['is_chajianqianshou']) && $model['clerk_authority']['is_chajianqianshou'] == 1 ? 'checked' : '' ?>>
-                                        查件签收
+                                        拼邮签收
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="clerk[clerk_authority][is_directqianshou]" value="1" data-am-ucheck
+                                        <?= isset($model['clerk_authority']['is_directqianshou']) && $model['clerk_authority']['is_directqianshou'] == 1 ? 'checked' : '' ?>>
+                                        直邮签收
                                     </label>
                                     <label class="am-checkbox-inline">
                                         <input type="checkbox" name="clerk[clerk_authority][is_daipaijian]" value="1" data-am-ucheck

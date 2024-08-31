@@ -509,6 +509,7 @@ class Useropration extends Controller
         $code = $this->postData()['search'];
         $type = $this->postData()['type'];
         $Inpack = new Inpack();
+        $Package = new Package();
         //搜索
         $pack = [];$i=0;
         if($type==1){
@@ -550,6 +551,59 @@ class Useropration extends Controller
         }
     }
     
+    /**
+     * 仓管查询包裹
+     * @param int $payType
+     * @return bool
+     * @throws \think\exception\DbException
+     */
+    public function directsearchPack(){
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        
+        $code = $this->postData()['search'];
+        $type = $this->postData()['type'];
+
+        $Package = new Package();
+        //搜索
+        $pack = [];$i=0;
+        if($type==1){
+            //查询是否是手机尾号，用户id，用户code，取货码
+            $UserModel = new UserModel();
+            $UserAddress = new UserAddress();
+            $userData = $UserModel->where('user_id|user_code|mobile','like','%'.$code.'%')->field('user_id')->select()->toArray();
+         
+            $userData2 = $UserAddress->field('user_id,region')->where('phone','like','%'.$code.'%')->select()->toArray();
+            $userCon = array_merge($userData,$userData2);
+            $userArr =[];
+            if(count($userCon)>0){
+                foreach ($userCon as $k => $v){
+                    $userArr[$k] = $v['user_id'];
+                }
+            }
+            $usernewArr= array_unique($userArr);
+            foreach ($usernewArr as $key => $val){
+                //查询出所有的shop_id为仓管所在仓库的集运单；
+               $rest= $Package->where('member_id',$val)->where('storage_id',$clerk['shop_id'])->where('status','<',10)->with(['Member','address','shelfunititem.shelfunit.shelf'])->select();
+               if(count($rest)>0){
+                   $pack[$i] = $rest;
+                   $i += 1;
+               }
+            }
+         
+            $packs = $Package->where('express_num',$code)->where('storage_id',$clerk['shop_id'])->where('status','<',10)->with(['Member','address','shelfunititem.shelfunit.shelf'])->select();
+            
+            if(count($packs)>0){
+                $pack[0] = $packs;
+            }
+            return $this->renderSuccess($pack);
+        }
+        //扫码签收
+        if($type==2){
+            $pack[$i] = $Package->where('storage_id',$clerk['shop_id'])->where('status','<',10)->where('order_sn|t_order_sn',$code)->with(['Member','address','shelfunititem.shelfunit.shelf'])->select();
+            return $this->renderSuccess($pack); 
+        }
+    }
+    
      /**
      * 仓管签收包裹
      * @param int $payType
@@ -572,8 +626,47 @@ class Useropration extends Controller
         //2、添加一条入库记录； 
         Logistics::addInpackGetLog2($id,'包裹已签收，感谢您的支持',$packData['t_order_sn'],$clerk['clerk_id']);
         //3、发送模板消息到货并通知用户取货；
+        $data['t_order_sn'] = $packData['order_sn'];
+        $data['order'] = $packData;
+        $data['order']['total_free'] = $packData['free'];
+        $data['order']['userName'] = $userInfo['nickName'];
+        $data['order_type'] = 10;
+        $data['order']['remark'] = $logis['logistics_describe'];
+        //
+        $resss = Message::send('order.payment',$data);  
+        //4、发送邮件通知
+        !empty($userInfo['email']) && (new Email())->sendemail($userInfo,$logis,$type=1);
+        //5、清空货架数据
+        (new ShelfUnitItem())->where(['pack_id'=>$packData['order_sn']])->delete();
+        return $this->renderSuccess('',"操作成功");
+    }
+    
+    
+    /**
+     * 直邮包裹签收包裹
+     * @param int $payType
+     * @return bool
+     * @throws \think\exception\DbException
+     */
+    public function directPackageQianshou(){
+        $id = $this->postData()['id'];
+        if(!$id){
+             return $this->renderError('参数错误');
+        }
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->with('shop')->find();
+        $Package = new Package();
+        $res = $Package->where('id',$id)->update(['status'=> 10,'receipt_time'=>getTime()]);
+        $packData = $Package->getDetails($id,"*");
+        //进行模板消息，邮件通知
+        $userInfo = $this->user;
+        $logis['code'] = $packData['express_num'];
+        $logis['logistics_describe']='包裹已签收，感谢您的支持';
+        //2、添加一条入库记录； 
+        Logistics::add2($id,'包裹已签收，感谢您的支持',$packData['express_num'],$clerk['clerk_id']);
+        //3、发送模板消息到货并通知用户取货；
         $data['order_sn'] = $packData['order_sn'];
         $data['order'] = $packData;
+        $data['order']['t_order_sn'] =$packData['express_num'];
         $data['order']['total_free'] = $packData['free'];
         $data['order']['userName'] = $userInfo['nickName'];
         $data['order_type'] = 10;
@@ -582,7 +675,7 @@ class Useropration extends Controller
         //4、发送邮件通知
         !empty($userInfo['email']) && (new Email())->sendemail($userInfo,$logis,$type=1);
         //5、清空货架数据
-        (new ShelfUnitItem())->where(['pack_id'=>$packData['order_sn']])->delete();
+        (new ShelfUnitItem())->where(['express_num'=>$packData['express_num']])->delete();
         return $this->renderSuccess('',"操作成功");
     }
      
@@ -1170,6 +1263,388 @@ class Useropration extends Controller
        }
        
     }
+    
+    
+    
+    /**
+     * 仓管端直邮入库
+     * BY FENG 2022年12月27日 
+     * 代码比较乱，等后续有时间再优化
+     * @param Array
+     * @return bool
+     * @throws \think\exception\DbException
+     */
+    public function directInStorage() {
+        // 员工信息
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->with('shop')->find();
+        if (!$clerk){return $this->renderError('角色权限非法');}
+      
+       $packItemModel = new PackageItemModel();
+       $id = $this->postData('id')[0];
+       $user_id = $this->postData('user_id')[0];
+       $class_ids = $this->postData('class_ids')[0];
+       $user_code = $this->postData('user_Code')[0];
+       $is_pre = $this->postData('is_pre')[0];
+       $express_num = $this->postData('express_num')[0];
+       $weight = $this->postData('weight')[0];
+       $height = $this->postData('height')[0];
+       $length = $this->postData('length')[0];
+       $width = $this->postData('width')[0];
+       $imageIds = $this->postData('imageIds');
+       $wxapp_id = \request()->get('wxapp_id');
+       $remark = $this->postData('remark')[0];
+       $useremark = $this->postData('usermark')[0];
+       $shelf_unit = $this->postData('shelf_unit')[0];
+       $shelf_id = $this->postData('shelf_id')[0];
+       $goodslist = $this->postData('goodslist');
+       $is_verify = $this->postData('is_verify')[0];
+
+       //再加一层校验；
+        $map[] = ['is_delete','=',0];
+        $map[] = ['express_num','=',$express_num];
+        //对京东单号进行特殊处理
+        // if(strstr($express_num,'JD')){
+        //     $a = explode('-',$express_num);
+        //     count($a)>1 && $express_num = $a[0];
+        // }
+            //  dump($shelf_id);die;
+       //$is_pre==0 为没有查询到包裹数据的情况，需要插入新数据
+       if ($is_pre==0){
+           if ($user_id){
+                $user = (new UserModel())->find($user_id);
+                if (!$user)
+                    return $this->renderError('用户不存在');
+            }
+              
+            if($user_code){
+                $users = (new UserModel())->where('user_code',$user_code)->find();
+                if (!$users){
+                    return $this->renderError('用户不存在');}
+                $user_id = $users['user_id'];
+            }
+           $packdatas = (new Package())->where('express_num',$express_num)->where('is_delete',0)->find();
+           if(!empty($packdatas)){
+              if($length>0 && $width>0 && $height>0){
+                 $volume = $width*$length*$height/1000000;
+              }
+              $order = [
+                'status'=>2,
+                'member_id'=> !empty($user_id)?$user_id:$packdatas['member_id'],
+                'source'=>8,
+                'express_num'=>$express_num,
+                'storage_id'=>$clerk['shop_id'],
+                'is_take'=>!empty($user_id)?2:$packdatas['is_take'],
+                'entering_warehouse_time'=>getTime(),
+                'updated_time'=>getTime(),
+                'length'=>$length,
+                'width'=>$width,
+                'height'=>$height,
+                'admin_remark'=>$remark,
+                'usermark'=>$useremark,
+                'shelf_id'=>$shelf_id,
+                'weight'=>$weight,
+                'pack_type'=>1,
+                'volume'=>isset($volume)?$volume:$packdatas['volume']
+              ];
+              $packdatas->save($order);
+              $restwo = $packdatas['id'];
+           }else{
+                     
+
+            $order['status'] = 2;
+            $order['is_take'] = 1;
+            $order['storage_id'] = $clerk['shop_id'];
+            if ($user_id){
+                $order['member_id'] = $user_id;
+                $order['is_take'] = 2;
+            }
+            $order['order_sn'] = createSn();
+            $order['weight'] = $weight;
+            $order['source'] = 8;
+            $order['length'] = $length;
+            $order['width'] = $width;
+            $order['height'] = $height;
+            $order['pack_type'] = 1;
+            $order['express_num'] = $express_num;
+            $order['updated_time'] = getTime();
+            $order['created_time'] = getTime();
+            $order['admin_remark'] = $remark;
+            $order['usermark'] = $useremark;
+            $order['shelf_id'] = $shelf_id;
+            $order['entering_warehouse_time'] = getTime();
+            if($length>0 && $width>0 && $height>0){
+                 $order['volume'] = $width*$length*$height/1000000;
+            }
+            
+            $restwo = (new Package())->saveData($order); //获取到包裹的id
+            if (!$restwo){
+                 return $this->renderError('包裹入库失败');
+            }
+           }
+           $Barcode = new Barcode();
+               //存储包裹的分类信息；
+            $classItem = [];
+           if ($class_ids || $goodslist){
+             $classItem = $this->parseClass($class_ids);
+                foreach ($goodslist as $k => $val){
+                     $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['pinming'];
+                     $classItems[$k]['class_id'] = !empty($classItem)?$classItem[0]['category_id']:0;
+                     $classItems[$k]['one_price'] = isset($val['danjia'])?$val['danjia']:'';
+                     $classItems[$k]['all_price'] = (!empty($val['danjia'])?$val['danjia']:0) * (!empty($val['shuliang'])?$val['shuliang']:0);
+                     $classItems[$k]['product_num'] = isset($val['shuliang'])?$val['shuliang']:'';
+                     $classItems[$k]['express_num'] = $express_num;
+                     $classItems[$k]['goods_name'] = isset($val['pinming'])?$val['pinming']:'';
+                     $classItems[$k]['class_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:''; // 英文品名
+                     $classItems[$k]['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:'';
+                     $classItems[$k]['length'] = isset($val['depth'])?$val['depth']:'';
+                     $classItems[$k]['width'] = isset($val['width'])?$val['width']:'';
+                     $classItems[$k]['height'] = isset($val['height'])?$val['height']:'';
+                     $classItems[$k]['unit_weight'] = isset($val['gross_weight'])?$val['gross_weight']:'';
+                     $classItems[$k]['brand'] = isset($val['brand'])?$val['brand']:'';
+                     $classItems[$k]['spec'] = isset($val['spec'])?$val['spec']:'';
+                     $classItems[$k]['net_weight'] = isset($val['net_weight'])?$val['net_weight']:'';
+                     $classItems[$k]['barcode'] = isset($val['barcode'])?$val['barcode']:'';
+                     
+                     
+                     if(isset($val['barcode']) && !empty($val['barcode'])){
+                         $barcoderesu =  $Barcode::useGlobalScope(false)->where('barcode',$val['barcode'])->find();
+                         
+                         $barcodelist['barcode'] = isset($val['barcode'])?$val['barcode']:$barcoderesu['barcode'];
+                         $barcodelist['brand'] = isset($val['brand'])?$val['brand']:$barcoderesu['brand'];
+                         $barcodelist['goods_name_en'] = isset($val['goods_name_en'])?$val['goods_name_en']:$barcoderesu['goods_name_en'];
+                         $barcodelist['goods_name_jp'] = isset($val['goods_name_jp'])?$val['goods_name_jp']:$barcoderesu['goods_name_jp'];
+                         $barcodelist['goods_name'] = isset($val['pinming'])?$val['pinming']:$barcoderesu['goods_name'];
+                         $barcodelist['spec'] = isset($val['spec'])?$val['spec']:$barcoderesu['spec'];
+                         $barcodelist['price'] = isset($val['danjia'])?$val['danjia']:$barcoderesu['price'];
+                         $barcodelist['gross_weight'] = isset($val['gross_weight'])?$val['gross_weight']:$barcoderesu['gross_weight'];
+                         $barcodelist['net_weight'] = isset($val['net_weight'])?$val['net_weight']:$barcoderesu['net_weight'];
+                         $barcodelist['depth'] = isset($val['depth'])?$val['depth']:$barcoderesu['depth'];
+                         $barcodelist['width'] = isset($val['width'])?$val['width']:$barcoderesu['width'];
+                         $barcodelist['height'] = isset($val['height'])?$val['height']:$barcoderesu['height'];
+                         
+                         
+                         if(empty($barcoderesu)){
+                             $barresult = $Barcode::useGlobalScope(false)->insert($barcodelist);
+                         }else{
+                             $barcoderesu->save($barcodelist);
+                         }
+                     }
+                     
+                }
+                
+         }
+        
+
+             if (isset($classItems)){
+                 $packItemRes = $packItemModel->saveAllData($classItems,$restwo);
+                 if (!$packItemRes){
+                    return $this->renderError('包裹类目更新失败');
+                 }
+             }
+            //存储上传的图片
+            $this->inImages($restwo,$imageIds,$wxapp_id);
+            $shopData =  (new Shop())->where('shop_id',$clerk['shop_id'])->find();
+            //存入货架信息
+            if(!empty($shelf_unit)){
+                 $shelfunit = new ShelfUnitItem();
+                 $shelf = [
+                    'pack_id' => $restwo,
+                    'user_id' => $user_id,
+                    'express_num' => $express_num,
+                    'shelf_unit' => $shelf_unit,
+                 ];  
+                 $shelfunit->post($shelf);
+            }
+             
+            //邮件通知
+            //判断是否有用户id，发送邮件
+              if(isset($user_id) || !empty($user_id)){
+                  $EmailUser = UserCommonModel::detail($user_id);
+// dump($order);die;
+                  if($EmailUser['email']){
+                      $EmailData['code'] = $order['express_num'];
+                      $EmailData['logistics_describe']='包裹已入库，可提交打包';
+                     (new Email())->sendemail($EmailUser,$EmailData,$type=1);
+                  }
+                    $data['order'] = [];
+                    //发送订阅消息以及模板消息
+                    //发送订阅消息，模板消息
+                    $order['id'] = $restwo;
+                    $order['wxapp_id'] = $wxapp_id;
+                    $order['shop_name'] = $shopData['shop_name'];
+                    $data['order'] = $order;
+                    $data['order']['member_name'] = $EmailUser['nickName'];
+                    $data['order_type'] = 10;
+                    $data['order']['remark'] ="包裹已入库，可提交打包" ;
+                    if($user_id!=0){
+                        $tplmsgsetting = SettingModel::getItem('tplMsg');
+                        if($tplmsgsetting['is_oldtps']==1){
+                          //发送旧版本订阅消息以及模板消息
+                          $sub = (new Package())->sendEnterMessage([$order]);
+                        }else{
+                          //发送新版本订阅消息以及模板消息
+                          Message::send('package.inwarehouse',$order);
+                        }
+                    }
+              }
+            //判断是否打印标签
+            $packagePrintData = (new Package())->where(['id'=>$restwo])->find();
+            (new Printer())->printTicket($packagePrintData,10);
+            Logistics::add2($restwo,'仓管员手动入库',$clerk['clerk_id']);
+            return $this->renderSuccess('包裹入库成功');
+          
+       }elseif($is_pre==10){
+       //有对应数据情况下
+       $data = (new Package())->find($id);
+    //   if ($data['status']==2){
+    //      return $this->renderError('包裹已入库');
+    //   }
+       if ($user_id){
+            $user = (new UserModel())->find($user_id);
+            if (!$user)
+            return $this->renderError('用户不存在');
+        }
+              
+        if($user_code){
+            $users = (new UserModel())->where('user_code',$user_code)->find();
+            if (!$users){
+                return $this->renderError('用户不存在');}
+            $user_id = $users['user_id'];
+        }
+       //更新包裹信息
+       $update['member_id'] = !empty($user_id)?$user_id:$data['member_id'];
+       $update['length'] = !empty($length)?$length:$data['length'];
+       $update['height'] = !empty($height)?$height:$data['height'];
+       $update['width'] = !empty($width)?$width:$data['width'];
+       $update['weight'] = !empty($weight)?$weight:$data['weight'];
+       $update['admin_remark'] = !empty($remark)?$remark:$data['admin_remark'];
+       $update['storage_id'] = $clerk['shop_id'];
+       $update['status'] = 2;
+       $update['usermark'] = !empty($usermark)?$usermark:$data['usermark'];
+       $update['shelf_id'] = $shelf_id;
+       $update['is_verify'] = $is_verify;
+       $update['pack_type'] = 1;
+       $update['updated_time'] = getTime();
+       $update['entering_warehouse_time'] = getTime();
+       if($length>0 && $width>0 && $height>0){
+             $update['volume'] = $width*$length*$height/1000000;
+       }
+       
+    //   dump($update);die;
+       $res = (new Package())->where(['id'=>$id])->update($update);
+       //插入图片
+       $this->inImages($id,$imageIds,$wxapp_id);
+       //更新日志
+       Logistics::add2($id,'包裹已到达仓库',$clerk['clerk_id']);
+       if (!$res){
+        return $this->renderError('包裹入库失败');
+       }
+       //存储包裹的分类信息；
+        $classItem = [];
+         if ($class_ids){
+             //清理之前的类目，更新掉
+             $packItemModel->where('order_id',$id)->delete();
+             $classItem = $this->parseClass($class_ids);
+             foreach ($classItem as $k => $val){
+                   $classItem[$k]['class_id'] = $val['category_id'];
+                   $classItem[$k]['express_name'] = $data['express_name'];
+                   $classItem[$k]['class_name'] = $val['name'];
+                   $classItem[$k]['express_num'] = $data['express_num'];
+                   $classItem[$k]['all_price'] = '';
+                   unset($classItem[$k]['category_id']); 
+                   unset($classItem[$k]['name']);        
+             }
+         }
+         if ($classItem){
+             $packItemRes = $packItemModel->saveAllData($classItem,$id);
+             if (!$packItemRes){
+                return $this->renderError('包裹类目更新失败');
+             }
+         }
+       
+         //存入货架信息
+         if(!empty($shelf_unit)){
+             $shelfunit = new ShelfUnitItem();
+             $shelf = [
+                'pack_id' => $data['id'],
+                'user_id' => isset($user_id)?$user_id:$data['member_id'],
+                'express_num' => $data['express_num'],
+                'shelf_unit' => $shelf_unit,
+             ];  
+             $shelfunit->post($shelf);
+         }
+         
+       
+       //仓库id存在，则查询到仓库名称，传入模板消息
+        if($data['storage_id']){
+            $shopData =  (new Shop())->where('shop_id',$data['storage_id'])->find();
+            $post['shop_name'] = $shopData['shop_name'];
+        }
+       //包裹入库通知
+       $data = array_merge($data->toArray(),$update);
+       $data['shop_name']= $shopData['shop_name'];
+       
+       $tplmsgsetting = SettingModel::getItem('tplMsg');
+       if($tplmsgsetting['is_oldtps']==1){
+          //发送旧版本订阅消息以及模板消息
+          $sub = (new Package())->sendEnterMessage([$data]);
+       }else{
+          //发送新版本订阅消息以及模板消息
+          Message::send('package.inwarehouse',$data);
+       }
+       
+       
+       if($data['member_id']){
+          //邮件通知
+           $data['code'] = $data['express_num'];
+           $data['logistics_describe']='包裹已入库，可提交打包';
+           $user = (new UserModel())->find($data['member_id']);
+           if($user['email']){
+               (new Email())->sendemail($user,$data,$type=1);
+           } 
+       }
+        //判断是否打印标签
+        $packagePrintData = (new Package())->where(['id'=>$id])->find();
+        (new Printer())->printTicket($packagePrintData,10);
+       return $this->renderSuccess('包裹入库成功'); 
+           
+       }elseif($is_pre==20){
+        //1、当是集运订单的单号时，存储当前的入库仓库id，使用字段shop_id
+        $Inpack = new Inpack();
+        $packData = $Inpack::detail($id);
+        $userInfo = $this->user;
+        //存入货架信息
+        $takecode = rand(100000,999999);
+        if(!empty($shelf_unit)){
+            $this->saveToShelf($packData['id'],$userInfo['user_id'],$packData['t_order_sn'],$shelf_unit);
+            $takecode =$this->takecode($id);
+        }
+        
+        
+        $logis['code'] = $express_num;
+        $logis['logistics_describe']='包裹已到达'.$clerk['shop']['shop_name'].'取货码：'.$takecode;
+        // dump($clerk['shop']['shop_name']);die;
+        $Inpack->UpdateShop($id,$clerk['shop_id'],$takecode);
+        //2、添加一条入库记录； 
+        Logistics::addInpackGetLog2($id,'包裹已到达'.$clerk['shop']['shop_name'].'请及时前来取货',$express_num,$clerk['clerk_id']);
+        //3、发送模板消息到货并通知用户取货；
+        
+        $data['order_sn'] = $packData['order_sn'];
+        $data['order'] = $packData;
+        $data['order']['total_free'] = $packData['free'];
+        $data['order']['userName'] = $userInfo['nickName'];
+        $data['order_type'] = 10;
+        $data['order']['remark'] = $logis['logistics_describe'];
+        $resss = Message::send('order.payment',$data);  
+        //4、发送邮件通知
+        !empty($userInfo['email']) && (new Email())->sendemail($userInfo,$logis,$type=1);
+        
+        
+        return $this->renderSuccess('集运单入库成功');    
+       }
+       
+    }
+    
     
     //存入货架信息
     public function saveToShelf($order_id,$user_id,$express_num,$shelf_unit){
