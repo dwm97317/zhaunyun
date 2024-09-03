@@ -198,6 +198,17 @@ class Order extends Controller
         return $this->renderError($model->getError() ?: '添加失败');
     }
     
+    //删除拼团订单
+    public function orderdelete($id){
+        $model = new SharingOrder;
+        $detail = $model::detail($id);
+        if($detail){
+            $detail->save(['is_delete'=>1]);
+            return $this->renderSuccess('删除成功');
+        }
+        return $this->renderError('删除失败');
+    }
+    
     
     
     // 拼团编辑

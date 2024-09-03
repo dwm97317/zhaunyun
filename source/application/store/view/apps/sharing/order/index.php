@@ -207,6 +207,15 @@
                                                 <i class="am-icon-pencil"></i> 编辑
                                             </a>
                                             <?php endif; ?>
+                                            <?php if (checkPrivilege('apps.sharing.order/delete')): ?>
+                                            <a href="javascript:void(0);"
+                                               class="item-delete tpl-table-black-operation-del"
+                                               data-id="<?= $item['order_id'] ?>">
+                                                <i class="am-icon-trash"></i> 删除
+                                            </a>
+                                            <?php endif; ?>
+                                            
+                                            
                                             <?php if (checkPrivilege('apps.sharing.order/delivery')): ?>
                                             <?php if (in_array($item['status']['value'],[1,2,3,4,5])): ?>
                                              <a href="<?= url('apps.sharing.order/delivery', ['id' => $item['order_id']]) ?>">
@@ -280,7 +289,7 @@
 <script>
  $(function () {
         // 删除元素
-        var url = "<?= url('store/trOrder/orderdelete') ?>";
+        var url = "<?= url('store/apps.sharing.order/orderdelete') ?>";
         $('.item-delete').delete('id', url);
          /**
          * 审核操作状态

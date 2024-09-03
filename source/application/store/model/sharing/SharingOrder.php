@@ -95,7 +95,7 @@ class SharingOrder extends SharingOrderModel {
         !empty($params['start_time']) && $this->where('order.create_time', '>=', strtotime($params['start_time']));
         // 截止时间
         !empty($params['end_time']) && $this->where('order.create_time', '<', strtotime($params['end_time']) + 86400);
-        return $this;
+        return $this->where("is_delete",0);
     }
     
 }  
