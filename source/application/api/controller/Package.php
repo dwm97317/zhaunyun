@@ -2026,7 +2026,7 @@ class Package extends Controller
                     );
                     // 支付状态提醒
                     $message = ['success' => '支付成功', 'error' => '订单未支付'];
-                    return $this->renderSuccess(compact('payment', 'message'), $message);
+                    
                     break;
                 
                 
@@ -2041,7 +2041,7 @@ class Package extends Controller
                     );
                     // 支付状态提醒
                     $message = ['success' => '支付成功', 'error' => '订单未支付'];
-                    return $this->renderSuccess(compact('payment', 'message'), $message);
+                   
                      break;
                 case 40:
                     $payment = PaymentService::Omipay(
@@ -2052,7 +2052,7 @@ class Package extends Controller
                         OrderTypeEnum::TRAN
                     );
                     $message = ['success' => '支付成功', 'error' => '订单未支付'];
-                    return $this->renderSuccess(compact('payment', 'message'), $message);
+                   
                      break;
                      
                 case 50:
@@ -2067,7 +2067,7 @@ class Package extends Controller
                     );
                     // 支付状态提醒
                     $message = ['success' => '支付成功', 'error' => '订单未支付'];
-                    return $this->renderSuccess(compact('payment', 'message'), $message);
+                    
                     break;
                     
                 case 60:
@@ -2119,7 +2119,7 @@ class Package extends Controller
              return $this->renderError('支付失败,请重试');
          }
          Db::commit();
-         return $this->renderSuccess('支付成功');
+         return $this->renderSuccess(compact('payment', 'message'), $message);
      }
      
 
