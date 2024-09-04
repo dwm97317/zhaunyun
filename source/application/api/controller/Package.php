@@ -1975,14 +1975,14 @@ class Package extends Controller
              (new UserCoupon())->where('user_coupon_id',$couponId)->update(['is_use'=>1]);
              
              $update['status'] = 6;
-            //  dump($pack['pack_ids']);die;
-             $up = (new PackageModel())->where('inpack_id',$pack['id'])->update($update);
-            // dump((new PackageModel())->getLastsql());die;
-             if (!$up){
-                Db::rollback();
-                return $this->renderError('支付失败,请重试');
+             $packageData = (new PackageModel())->where('inpack_id',$pack['id'])->where('is_delete',0)->select();
+             if(count($packageData)>0){
+                 $up = (new PackageModel())->where('inpack_id',$pack['id'])->update($update);
+                 if (!$up){
+                    Db::rollback();
+                    return $this->renderError('支付失败,请重试');
+                 }
              }
-             
              switch ($paytype) {
                 case 10:
                     // 构建余额支付

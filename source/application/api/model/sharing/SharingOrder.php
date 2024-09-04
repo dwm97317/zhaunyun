@@ -36,7 +36,7 @@ class SharingOrder extends SharingOrderModel {
         if (isset($query['keyword']) && $query['keyword']){
             $this->where('title','like',"%".$query['keyword']."%");
         }
-        return $this;
+        return $this->where("is_delete",0);
     }
     
     // 热门国家

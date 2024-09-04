@@ -599,7 +599,7 @@ class Useropration extends Controller
         }
         //扫码签收
         if($type==2){
-            $pack[$i] = $Package->where('storage_id',$clerk['shop_id'])->where('status','<',10)->where('order_sn|t_order_sn',$code)->with(['Member','address','shelfunititem.shelfunit.shelf'])->select();
+            $pack[$i] = $Package->where('storage_id',$clerk['shop_id'])->where('status','<',10)->where('express_num',$code)->with(['Member','address','shelfunititem.shelfunit.shelf'])->select();
             return $this->renderSuccess($pack); 
         }
     }
