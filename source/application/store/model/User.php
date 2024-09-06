@@ -107,7 +107,7 @@ class User extends UserModel
        // 表单验证
      
        if(!empty($data['user']['user_code'])){
-           $usercode = $this->where('user_code', '=',$data['user']['user_code'])->where('user_id','<>',$data['user_id'])->find();
+           $usercode = $this->where('user_code', '=',$data['user']['user_code'])->where('user_id','<>',$data['user_id'])->where('is_delete',0)->find();
            if (!empty($usercode)){
               $this->error = '用户编号已存在，请更换编号';
               return false;
@@ -135,19 +135,19 @@ class User extends UserModel
           $this->error = '两次输入密码不一致';
           return false;
       }
-      $usercode = $this->where('user_code', '=',$data['user_code'])->find();
+      $usercode = $this->where('user_code', '=',$data['user_code'])->where('is_delete',0)->find();
       if (!empty($usercode)){
           $this->error = '用户编号已存在，请更换编号';
           return false;
       }
-      $usermobile = $this->where('mobile', '=',$data['mobile'])->find();
+      $usermobile = $this->where('mobile', '=',$data['mobile'])->where('is_delete',0)->find();
       if (!empty($usermobile)){
           $this->error = '手机号已存在，请更换手机号';
           return false;
       }
       
       if(!empty($data['email'])){
-          $useremail = $this->where('email', '=',$data['email'])->find();
+          $useremail = $this->where('email', '=',$data['email'])->where('is_delete',0)->find();
           if (!empty($useremail)){
               $this->error = '邮箱已存在，请更换邮箱';
               return false;
