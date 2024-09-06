@@ -719,6 +719,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                         <option value="60" <?= $values['price_mode']['mode'] == 60 ? 'selected' : '' ?> >港币/HK$</option>
                                         <option value="70" <?= $values['price_mode']['mode'] == 70 ? 'selected' : '' ?> >澳门币/MOP</option>
                                         <option value="80" <?= $values['price_mode']['mode'] == 80 ? 'selected' : '' ?> >迪拉姆/AED</option>
+                                        <option value="90" <?= $values['price_mode']['mode'] == 90 ? 'selected' : '' ?> >泰铢/THB</option>
                                     </select>
                                     <div class="help-block">
                                         <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>

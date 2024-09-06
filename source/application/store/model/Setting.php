@@ -87,6 +87,10 @@ class Setting extends SettingModel
                     $values['price_mode']['unit'] = 'AED';
                     $values['price_mode']['unit_name'] = '迪拉姆';
                     break;
+                case '90':
+                    $values['price_mode']['unit'] = 'THB';
+                    $values['price_mode']['unit_name'] = '泰铢';
+                    break;
                 default:
                     $values['price_mode']['unit'] = '¥';
                     $values['price_mode']['unit_name'] = '元';

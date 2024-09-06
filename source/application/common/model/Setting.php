@@ -304,6 +304,11 @@ class Setting extends BaseModel
                             'unit'=>'AED',
                             'unit_name'=>'迪拉姆',
                         ],
+                        '90'=>[
+                            'number'=>'90',
+                            'unit'=>'HTB',
+                            'unit_name'=>'泰铢',
+                        ],
                     ],
                     'address_setting'=>[
                         'is_tel_code'=>1, 

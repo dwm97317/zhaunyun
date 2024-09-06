@@ -690,14 +690,12 @@ class Useropration extends Controller
         $post = $this->postData('code')[0];
         //特殊处理京东单号
 
-        
-      
         $map[] = ['is_delete','=',0];
         $map[] = ['express_num','=',$post]; 
         $res = (new Package())
             ->setQuery($map)
             ->field('id,express_num,order_sn,member_id,storage_id,status,width,height,weight,length,remark,admin_remark')
-            ->with('storage')
+            ->with(['storage','packageimage.filepackage'])
             ->find();
         //当查询不到包裹时，尝试查询是否是集运单的国际单号；
         //当查询是JD包裹时，可以用原来的单号再查询一遍
@@ -710,7 +708,7 @@ class Useropration extends Controller
             $res = (new Package())
                 ->setQuery($maps)
                 ->field('id,express_num,order_sn,member_id,storage_id,status,width,height,weight,length,remark,admin_remark')
-                ->with('storage')
+                ->with(['storage','packageimage.filepackage'])
                 ->find();
            
         }
@@ -1913,6 +1911,19 @@ class Useropration extends Controller
                      }
                 }
             }    
+        return true;
+    }
+    
+        /**
+     * $id 包裹的id
+     * $imageIds 图片数组
+     */
+    public function deleteImage(){
+        $param = $this->request->param();
+        $PackageImage =  new PackageImage();
+        if(isset($param['imageId'])){
+            $PackageImage->where('image_id',$param['imageId'])->delete();
+        }
         return true;
     }
     
