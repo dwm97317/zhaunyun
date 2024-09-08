@@ -7,7 +7,7 @@ use app\api\model\recharge\Plan as PlanModel;
 use app\api\model\recharge\Order as OrderModel;
 use app\api\service\Payment as PaymentService;
 use app\common\enum\OrderType as OrderTypeEnum;
-
+use app\common\service\Message;
 /**
  * 用户充值管理
  * Class Recharge
@@ -141,7 +141,14 @@ class Recharge extends Controller
                 // code...
                 break;
         }
-        
+        $data = [
+            'order_no'=> $model['order_no'], 
+            'pay_price'=> $model['pay_price'],   
+            'pay_time'=> getTime(),
+            'wxapp_id'=>$userInfo['wxapp_id'],
+            'member_id'=>$userInfo['user_id']
+        ];
+        Message::send('package.balancepay',$data);   
         // 充值状态提醒
         $message = ['success' => '充值成功', 'error' => '订单未支付'];
         return $this->renderSuccess(compact('payment', 'message'), $message);

@@ -459,6 +459,75 @@
                                     <small>模板编号45318，关键词 (订单号、客户代号、重量、金额、时间)</small>
                                 </div>
                             </div>
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">余额充值成功通知(新类目模板)</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否启用
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="tplMsg[balancepay][is_enable]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['balancepay']['is_enable'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="tplMsg[balancepay][is_enable]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['balancepay']['is_enable'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    模板消息ID
+                                    <span class="tpl-form-line-small-title">Template ID</span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="tplMsg[balancepay][template_id]"
+                                           value="<?= $values['balancepay']['template_id'] ?>">
+                                    <small>模板编号43369，关键词 (支付单号,充值金额,充值时间)</small>
+                                </div>
+                            </div>
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">订单待审核提醒(新类目模板)-通知员工</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否启用
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="tplMsg[orderreview][is_enable]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['orderreview']['is_enable'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="tplMsg[orderreview][is_enable]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['orderreview']['is_enable'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    模板消息ID
+                                    <span class="tpl-form-line-small-title">Template ID</span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="tplMsg[orderreview][template_id]"
+                                           value="<?= $values['orderreview']['template_id'] ?>">
+                                    <small>模板编号55117，关键词 (订单编号,提交人,提交时间)</small>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交

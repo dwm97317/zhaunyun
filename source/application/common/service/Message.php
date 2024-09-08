@@ -48,6 +48,10 @@ class Message extends Basics
         'package.sendpack'=>'app\common\service\message\package\Sendpack',
         //付款单生成提醒
         'package.payorder'=>'app\common\service\message\package\Payorder',
+         //余额充值成功通知
+        'package.balancepay'=>'app\common\service\message\package\Balancepay',
+         //订单待审核提醒
+        'package.orderreview'=>'app\common\service\message\package\Orderreview',
     ];
 
     /**

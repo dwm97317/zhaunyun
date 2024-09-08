@@ -1943,7 +1943,7 @@ class Package extends Controller
          $couponId = $this->postData('coupon_id')[0]; //优惠券id
          $paytype = $this->postData('paytype')[0];  //支付类型
          $client = $this->postData('client')[0];  //支付所在客户端 client:"MP-WEIXIN"
-         $pack = (new Inpack())->field('id,insure_free,status,pack_ids,free,order_sn,pack_free,other_free,remark,storage_id,is_pay,pay_order')->find($id);
+         $pack = (new Inpack())->field('id,insure_free,status,pack_ids,free,order_sn,pack_free,other_free,remark,storage_id,is_pay,pay_order,wxapp_id')->find($id);
          //生成支付订单号
          $payorderSn = createOrderSn();
          (new Inpack())->where('id',$pack['id'])->update(['pay_order'=>$payorderSn]);
@@ -2074,18 +2074,34 @@ class Package extends Controller
                     // 构建線下支付
                    if(!isset($params['image']) && count($params['image'])==0){
                         Db::rollback();
-                        return $this->renderError('支付失败,请重试');
+                        return $this->renderError('请上传支付凭证');
                    }
                     //记录支付类型
                     $payres = (new Inpack())->where('id',$pack['id'])->update([
                         'is_pay_type' => 6,
                         'cert_image'=>$params['image'][0],
-                        'is_pay' => 3
+                        'is_pay' => 2
                         ]);
                     if(!$payres){
                           Db::rollback();
                           return $this->renderError('支付失败,请重试');
-                    }      
+                    }
+                    $clerk = (new Clerk())->where('shop_id',$pack['storage_id'])->where('mes_status',0)->where('is_delete',0)->select();
+                    // dump($clerk);die;
+                    if(!empty($clerk)){
+                          //循环通知员工打包消息 
+                          foreach ($clerk as $key => $val){
+                              $data = [
+                                    'wxapp_id'=> $pack['wxapp_id'],
+                                    'member_id'=>$val['user_id'],
+                                    'order_no'=>$pack['order_sn'],
+                                    'member_name'=>$user['nickName'].$user['user_id'],
+                                    'pay_time'=>getTime(),
+                                ];
+                              Message::send('package.orderreview',$data);  
+                          }
+                    }
+                    $message = ['success' => '支付成功', 'error' => '订单未支付'];
                     break;
                      
                  default:
