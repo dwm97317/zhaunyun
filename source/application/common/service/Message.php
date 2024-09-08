@@ -40,6 +40,7 @@ class Message extends Basics
         //新模板消息
         //入库通知
         'package.inwarehouse'=>'app\common\service\message\package\Inwarehouse',
+        
         'package.dabaosuccess'=>'app\common\service\message\package\Dabaosuccess',
         'package.outapply'=>'app\common\service\message\package\Outapply',
         //到仓通知

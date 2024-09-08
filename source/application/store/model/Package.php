@@ -136,7 +136,7 @@ class Package extends PackageModel
             }
         }
         if(!empty($data['user_code'])){
-            $userData = (new User())->where('user_code',$data['user_code'])->find();
+            $userData = (new User())->where('user_code',$data['user_code'])->where('is_delete',0)->find();
             isset($userData) && $data['user_id'] = $userData['user_id'];
         }
         if($result['member_id']){
@@ -241,6 +241,7 @@ class Package extends PackageModel
                   $sub = $this->sendEnterMessage([$post]);
               }else{
                   //发送新版本订阅消息以及模板消息
+             
                   Message::send('package.inwarehouse',$post);
               }
               
@@ -311,6 +312,7 @@ class Package extends PackageModel
             $post['shop_name'] = $shopData['shop_name'];
         }
         $tplmsgsetting = SettingModel::getItem('tplMsg');
+             
         if($tplmsgsetting['is_oldtps']==1){
             //触发旧版本订阅消息
             $sub= $this->sendEnterMessage([$post]);

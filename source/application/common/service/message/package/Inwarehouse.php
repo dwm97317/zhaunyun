@@ -66,15 +66,15 @@ class Inwarehouse extends Basics
       
         $noticesetting = SettingModel::getItem('notice');
         $storesetting = SettingModel::getItem('store');
-          
+         
         if ($template['is_enable']==0) {
             return false;
         }
-        
+
         if(empty($this->getGzhOpenidByUserId($this->param['member_id']))){
             return false;
         }
-        
+       
         if (empty($template['template_id'])) {
             return false;
         }
@@ -84,7 +84,7 @@ class Inwarehouse extends Basics
              return false;
         }
         //判断是否采用H5方式；H5+小程序；
-
+  
         if ($storesetting['client']['mode']==10) {
             return  $this->sendWxTplMsgForH5($orderInfo['wxapp_id'], [
             'touser' => $this->getGzhOpenidByUserId($this->param['member_id']),
@@ -158,18 +158,18 @@ class Inwarehouse extends Basics
     }
     
     public function getOpenidByUserId($user_id){
-        return User::where(['user_id'=>$user_id])->value('open_id');
+        return User::where(['user_id'=>$user_id])->where('is_delete',0)->value('open_id');
     }
     
     public function getGzhOpenidByUserId($user_id){
-        return User::where(['user_id'=>$user_id])->value('gzh_openid');
+        return User::where(['user_id'=>$user_id])->where('is_delete',0)->value('gzh_openid');
     }
     
     public function getUnionidByUserId($user_id){
-        return User::where(['user_id'=>$user_id])->value('union_id');
+        return User::where(['user_id'=>$user_id])->where('is_delete',0)->value('union_id');
     }
     
     public function getShopByShopId($shop_id){
-        return (new Shop())->where(['shop_id'=>$shop_id])->value('shop_name');
+        return (new Shop())->where(['shop_id'=>$shop_id])->where('is_delete',0)->value('shop_name');
     }
 }
