@@ -216,7 +216,7 @@ class Comment extends CommentModel
     {
         // 生成 formData
         $formData = $this->formatFormDataPack($post);
-        if ($order['status']!=7){
+        if ($order['status']< 6){
              $this->error = '该订单未完成，无法评价';
              return false;
         }
@@ -232,7 +232,7 @@ class Comment extends CommentModel
             $result = $this->isUpdate(false)->insertGetId($data);
              // 记录评价图片
             $this->saveAllImages($result, $formData);
-            (new Inpack())->where('id',$order['id'])->update(['status'=>8]);
+            (new Inpack())->where('id',$order['id'])->update(['status'=>8,'is_comment'=>1]);
             // 更新订单评价状态
             (new Package())->where('id','in',explode(',',$order['pack_ids']))->update(['status'=>11]);
             return true;
