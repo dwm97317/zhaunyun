@@ -5,11 +5,12 @@ namespace app\api\service\package;
 use app\api\service\Basics;
 use app\api\model\User as UserModel;
 use app\api\model\Inpack as InpackModel;
+use app\api\model\Package as PackageModel;
 use app\api\model\user\BalanceLog as BalanceLogModel;
 use app\common\enum\order\PayType as PayTypeEnum;
 use app\common\enum\user\balanceLog\Scene as SceneEnum;
 use app\common\enum\recharge\order\PayStatus as PayStatusEnum;
-
+use app\api\model\UserCoupon;
 class PaySuccess extends Basics
 {
     // 订单模型
@@ -51,8 +52,9 @@ class PaySuccess extends Basics
      */
     public function onPaySuccess($payType, $payData)
     {
-       
-        return $this->model->transaction(function () use ($payType, $payData) {
+        $PackageModel = new PackageModel();
+        $UserCoupon = new UserCoupon();
+        return $this->model->transaction(function () use ($payType, $payData,$PackageModel,$UserCoupon) {
 //             // 更新订单状态
                 if($payType == PayTypeEnum::HANTEPAY){
                       $this->model->save([
@@ -90,7 +92,13 @@ class PaySuccess extends Basics
                         'is_pay_type' => 4,
                     ]);
                 }
-                
+                $PackageModel->where('inpack_id',$this->model['id'])->update([
+                    'is_pay'=>1,
+                    'status'=>6,
+                    'pay_time'=>getTime(),
+                    'real_payment'=>$payData['total_fee']/100,
+                ]);
+                $UserCoupon->where('user_coupon_id',$this->model['user_coupon_id'])->update(['is_use'=>1]);
                 return true;
         });
     }

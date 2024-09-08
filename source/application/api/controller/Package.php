@@ -1955,34 +1955,19 @@ class Package extends Controller
          if($couponId){
              $amount = $this->UseConponPrice($couponId,$amount);
          }
-         if($pack['status']!=2){
-            $update['status'] =  $pack['status'];
-         }else{
-            $update['status'] =3;
-         }
+        //  if($pack['status']!=2){
+        //     $update['status'] =  $pack['status'];
+        //  }else{
+        //     $update['status'] =2;
+        //  }
          $params = $this->request->param();
    
          Db::startTrans();
-         $update['real_payment'] = $amount;
-         $update['is_pay'] = 1;
-         $update['pay_time'] = getTime();
          $coupon['user_coupon_id'] = $couponId;
          $coupon['user_coupon_money'] = $pack['free'] + $pack['pack_free'] + $pack['other_free']  + $pack['insure_free'] - $amount; //计算优惠了多少费用；
          try {
-             (new Inpack())->where('id',$pack['id'])->update($update);
              (new Inpack())->where('id',$pack['id'])->update($coupon);
-             //更新优惠券的状态为is_use
-             (new UserCoupon())->where('user_coupon_id',$couponId)->update(['is_use'=>1]);
              
-             $update['status'] = 6;
-             $packageData = (new PackageModel())->where('inpack_id',$pack['id'])->where('is_delete',0)->select();
-             if(count($packageData)>0){
-                 $up = (new PackageModel())->where('inpack_id',$pack['id'])->update($update);
-                 if (!$up){
-                    Db::rollback();
-                    return $this->renderError('支付失败,请重试');
-                 }
-             }
              switch ($paytype) {
                 case 10:
                     // 构建余额支付
@@ -1994,17 +1979,30 @@ class Package extends Controller
                        'balance'=>$user['balance']-$amount,
                        'pay_money' => $user['pay_money']+ $amount,
                     ]);
-                           
+                
                     if (!$memberUp){
                         Db::rollback();
                         return $this->renderError('支付失败,请重试');
                     }
                     //记录支付类型
-                    $payres = (new Inpack())->where('id',$pack['id'])->update(['is_pay_type' => 2]);
+                    $payres = (new Inpack())->where('id',$pack['id'])->update([
+                        'is_pay_type' => 2,
+                        'is_pay' => 1,
+                        'pay_time' => getTime(),
+                        'status' =>3,
+                    ]);
                     if(!$payres){
                           Db::rollback();
                           return $this->renderError('支付失败,请重试');
-                    }          
+                    }
+                    //更新优惠券的状态为is_use
+                    (new UserCoupon())->where('user_coupon_id',$couponId)->update(['is_use'=>1]);
+                    (new PackageModel())->where('inpack_id',$pack['id'])->update([
+                        'is_pay'=>1,
+                        'status'=>6,
+                        'pay_time'=>getTime(),
+                        'real_payment'=>$amount,
+                    ]);
                     // 新增余额变动记录
                     BalanceLog::add(SceneEnum::CONSUME, [
                       'user_id' => $user['user_id'],
@@ -2013,6 +2011,8 @@ class Package extends Controller
                       'sence_type' => 2,
                   ], [$user['nickName']]);
                   
+                    $message = ['success' => '支付成功', 'error' => '支付失败'];
+                    // return $this->renderSuccess(compact('message'), $message);
                      break;
                 case 20:
                     // 构建微信支付

@@ -107,12 +107,12 @@
                                                     <i class="am-icon-pencil"></i> 设置翻译
                                                 </a>
                                             <?php endif; ?>
-                                            <!--<?php if (checkPrivilege('store/wxapp/ailang')): ?>-->
-                                            <!--    <a href="<?= url('store/wxapp/ailang',['lang' => $item['enname'],'to'=>isset($item['langto'])?$item['langto']:'']) ?>" class="tpl-table-black-operation"-->
-                                            <!--       data-id="<?= $item['enname'] ?>">-->
-                                            <!--        <i class="am-icon-pencil"></i> AI翻译-->
-                                            <!--    </a>-->
-                                            <!--<?php endif; ?>-->
+                                            <?php if (checkPrivilege('store/wxapp/ailang')): ?>
+                                                <a href="<?= url('store/wxapp/ailang',['lang' => $item['enname'],'to'=>isset($item['langto'])?$item['langto']:'']) ?>" class="tpl-table-black-operation"
+                                                   data-id="<?= $item['enname'] ?>">
+                                                    <i class="am-icon-pencil"></i> AI翻译
+                                                </a>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>

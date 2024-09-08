@@ -509,6 +509,7 @@ class Setting extends BaseModel
                     'loginsetting'=>[
                         'is_passwordlogin'=>0, //在小程序或公众号模式中是否开启账号密码登录方式;
                         'is_phone'=>0,
+                        'is_addressforce'=>0, //是否强制填写地址
                         'is_wxopen'=>0, //是否开启了微信开放平台
                         'is_merge_user'=>0, //默认不合并用户的
                     ],
@@ -516,6 +517,9 @@ class Setting extends BaseModel
                         'first_title'=>"第一步：复制仓库地址",
                         'first_remark'=>"复制仓库地址后前往购物平台下单，将仓库地址粘贴到购物平台收货地址中。",
                         'second_title'=>"第二步：预报包裹",
+                        'second_anniu'=>"预报包裹",
+                        'second_tiaozhuantype'=>1,  //1=站内地址 2=站外地址
+                        'second_tiaozhuanurl'=>"/pages/indexs/baoguoyg/baoguoyg",
                         'second_remark'=>"下单后可以在购物平台获取到快递单号，将快递单号预报系统中",
                         'third_title'=>"第三步：申请打包",
                         'third_remark'=>"包裹到达仓库后，可向仓库申请打包出库。",

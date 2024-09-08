@@ -776,6 +776,26 @@
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
+                                    是否强制用户填写地址
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[loginsetting][is_addressforce]" value="1"
+                                               data-am-ucheck  <?= $values['loginsetting']['is_addressforce'] == 1 ? 'checked' : '' ?>>
+                                        强制
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[loginsetting][is_addressforce]" value="0"
+                                               data-am-ucheck <?= $values['loginsetting']['is_addressforce'] == 0 ? 'checked' : '' ?>>
+                                        不强制
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>必填项请在上方【用户资料功能设置】中设置</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
                                     在小程序或公众号中是否开启账号密码登录方式
                                 </label>
                                   <div class="am-u-sm-9">
@@ -880,6 +900,41 @@
                                 <div class="am-u-sm-9">
                                     <input type="text" class="tpl-form-input" name="userclient[newuserprocess][second_title]"
                                            value="<?= $values['newuserprocess']['second_title'] ?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 第二步的按钮文字标题 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[newuserprocess][second_anniu]"
+                                           value="<?= $values['newuserprocess']['second_anniu'] ?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    第二步的按钮跳转地址类型
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[newuserprocess][second_tiaozhuantype]" value="1"
+                                               data-am-ucheck  <?= $values['newuserprocess']['second_tiaozhuantype'] == 1 ? 'checked' : '' ?>>
+                                        站内
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[newuserprocess][second_tiaozhuantype]" value="2"
+                                               data-am-ucheck <?= $values['newuserprocess']['second_tiaozhuantype'] == 2 ? 'checked' : '' ?>>
+                                        站外
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>站内请使用下方的链接库，站外链接请先在微信小程序官网后台添加域名授权</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label"> 第二步的按钮跳转地址 </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[newuserprocess][second_tiaozhuanurl]"
+                                           value="<?= $values['newuserprocess']['second_tiaozhuanurl'] ?>">
+                                    <small>注意：小程序内部链接使用链接库中的<a target="_blank" href="index.php?s=/store/wxapp.page/links">点击打开链接库</a></small>
                                 </div>
                             </div>
                             <div class="am-form-group">
