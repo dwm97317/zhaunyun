@@ -110,7 +110,7 @@ use app\common\enum\BatchType as BatchTypeEnum;
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 运单号 </label>
                                 <div class="am-u-sm-3 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="batch[t_order_sn]"
+                                    <input type="text" class="tpl-form-input" name="batch[express_no]"
                                            placeholder="请输入运单号" >
                                 </div>
                             </div>
