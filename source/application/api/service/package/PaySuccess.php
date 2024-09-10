@@ -98,7 +98,10 @@ class PaySuccess extends Basics
                     'pay_time'=>getTime(),
                     'real_payment'=>$payData['total_fee']/100,
                 ]);
-                $UserCoupon->where('user_coupon_id',$this->model['user_coupon_id'])->update(['is_use'=>1]);
+                if(isset($this->model['user_coupon_id']) && !empty($this->model['user_coupon_id'])){
+                    $UserCoupon->where('user_coupon_id',$this->model['user_coupon_id'])->update(['is_use'=>1]);
+                }
+                
                 return true;
         });
     }
