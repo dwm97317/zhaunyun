@@ -76,7 +76,9 @@ class Batch extends BatchModel
   
         if(isset($data['status']) && $data['status']==1){
             $list = $BatchTemplateItem->getList(['template_id'=>$data['template_id']]);
-            $data['last_time'] =  time() + $list[0]['wait_time'] * 3600;
+            if(count($list)>0){
+                $data['last_time'] =  time() + $list[0]['wait_time'] * 3600;
+            }
         }
         return $this->allowField(true)->save($this->createData($data));
     }
