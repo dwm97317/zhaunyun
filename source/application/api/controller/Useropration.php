@@ -2043,6 +2043,54 @@ class Useropration extends Controller
         return $this->renderSuccess($data);
     }
 
+
+/**
+     * 仓库管理员 包裹列表
+     * @param 
+     * @return bool
+     * @throws \think\exception\DbException
+     */
+    public function userpackagelist(){
+        // 员工信息
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        if (!$clerk){
+            return $this->renderError('角色权限非法');
+        }
+        $params = $this->request->param();
+        $UserModel = new UserModel();
+        $today = date('Y-m-d',time());
+        $todayend = date('Y-m-d',time()+86400);
+        $yestoday = date('Y-m-d',time() - 86400);
+        $firstMouth = date('Y-m-01');
+        $keyword = $this->postData("keyword")[0];
+        if(isset($keyword)  && !empty($keyword)){
+            $member = $UserModel->where('nickName|user_code|user_id',$keyword)->where('is_delete',0)->find();
+            if(!empty($member)){
+                $map['member_id'] = $member['user_id'];
+            }else{
+                $map['member_id'] = $keyword;
+            }
+        }
+        $map['storage_id'] = $clerk['shop_id'];
+       
+        $packModel = (new Package());
+        $userlist = [];
+        $data = $packModel->where('status','in',[2,3])->where('is_take',2)->where($map)->field('member_id')->select()->toArray();
+        foreach($data as $key=>$value){
+            $userlist[$key]=$value['member_id'];
+        }
+        $usernewArr= array_unique($userlist);
+        $list = [];
+        
+        foreach ($usernewArr as $k => $v){
+            $list[$k]['member']= $UserModel::detail($v);
+            $list[$k]['package'] = $packModel->where('member_id',$v)->where('is_take',2)->where('status','in',[2,3])->select();
+            $list[$k]['total'] = $packModel->where('member_id',$v)->where('is_take',2)->where('status','in',[2,3])->SUM('weight');
+        }
+        // dump($usernewArr);die;   
+        return $this->renderSuccess($list);
+    }
+
 /**
      * 仓管端数据统计
      * BY FENG 2022年12月27日
@@ -2066,15 +2114,29 @@ class Useropration extends Controller
             //今日入库包裹
             [
                 'icon' => base_url().'assets/api/images//today.png' ,
-                'content'=>'今日入库',
+                'content'=>'今日入库数量',
                 'num'=> $packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=1"
+            ],
+            //今日入库重量
+            [
+                'icon' => base_url().'assets/api/images//today.png' ,
+                'content'=>'今日入库重量',
+                'num'=> round($packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->SUM('weight'),2),
                 'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=1"
             ],
             //昨日入库
             [
                 'icon' => base_url().'assets/api/images/yesterday.png' ,
-                'content'=>'昨日入库',
+                'content'=>'昨日入库数量',
                 'num'=> $packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$yestoday,$today])->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=2"
+            ],
+            //昨日入库重量
+            [
+                'icon' => base_url().'assets/api/images/yesterday.png' ,
+                'content'=>'昨日入库重量',
+                'num'=> round($packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$yestoday,$today])->SUM('weight'),2),
                 'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=2"
             ],
             //本月累计入库

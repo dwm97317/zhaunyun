@@ -359,6 +359,7 @@ class Inpack extends InpackModel
             }
         }else{
             $update['status'] = '6';
+            $update['sendout_time'] = getTime();
              // 更新查验物流信息
             $pack = $this->where(['id'=>$data['id']])->find();
             $useraddress = UserAddress::detail($pack['address_id']);

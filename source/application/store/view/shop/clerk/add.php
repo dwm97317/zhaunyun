@@ -80,6 +80,16 @@
                                         <?= isset($model['clerk_authority']['is_fahuolist']) && $model['clerk_authority']['is_fahuolist'] == 1 ? 'checked' : '' ?>>
                                         发货仓包裹列表
                                     </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="clerk[clerk_authority][is_zhiyoufahuoin]" value="1" data-am-ucheck
+                                        <?= isset($model['clerk_authority']['is_zhiyoufahuoin']) && $model['clerk_authority']['is_zhiyoufahuoin'] == 1 ? 'checked' : '' ?>>
+                                        直邮包裹入库
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="clerk[clerk_authority][is_userpacklist]" value="1" data-am-ucheck
+                                        <?= isset($model['clerk_authority']['is_userpacklist']) && $model['clerk_authority']['is_userpacklist'] == 1 ? 'checked' : '' ?>>
+                                        用户入库包裹
+                                    </label>
                                     <div class="help-block">
                                         <small>入库员: 包裹入库时,进行入库操作;</small>
                                     </div>

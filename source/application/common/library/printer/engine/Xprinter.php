@@ -77,8 +77,10 @@ class Xprinter extends Basics
             'user' => $this->config['USER'],
             'timestamp' => $time,
             'sign' => $sign,
+            'paperType'=>'M',
             'sn' => $this->config['SN'], //打印机编号
             'content' => $content,
+            'paperWidth'=>800,
             'copies' => $this->times,   // 打印次数
             'direct'=> true
         ];
