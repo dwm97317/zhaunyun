@@ -28,8 +28,6 @@ use app\api\model\user\UserMark;
 use app\common\service\package\Printer;
 use app\api\model\Barcode;
 
-
-
 /**
  * 用户管理
  * Class User

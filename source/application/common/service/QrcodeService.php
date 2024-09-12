@@ -19,7 +19,126 @@ class QrcodeService {
         if ($this->engine=='barcode'){
             
         }
-    }    
+    }
+    
+    public function createprint($storeConfig,$package,$url){
+        // 创建一个宽度为800px、高度为800px的白色背景图像
+        // dump($package);die;
+        $width = 800;
+        $height = 800;
+        $image = imagecreatetruecolor($width, $height);
+        $white = imagecolorallocate($image, 255, 255, 255);
+        imagefill($image, 0, 0, $white);
+         
+        // 设置字体文件的路径（确保你的服务器上有这个字体文件）
+        $fontPath = 'assets/common/fonts/verdanab.ttf';
+        
+        // 设置字体颜色和大小
+        $fontColor = imagecolorallocate($image, 0, 0, 0);
+        $fontSize = 40;
+        $descSize = 20;
+        $epxressSize = 20;
+        $addcSize = 16;
+        // 计算文本的尺寸
+        $textBox = imagettfbbox($fontSize, 0, $fontPath, $storeConfig['title']);
+       
+        $textWidth = $textBox[2] - $textBox[0];
+        $textHeight = $textBox[7] - $textBox[1];
+
+        // 绘制文本到图像
+        imagettftext($image, $fontSize, 0, ($width - $textWidth) / 2, 80, $fontColor, $fontPath, $storeConfig['title']);
+        
+        //计算描述内容
+        $descBox = imagettfbbox($descSize, 0, $fontPath, $storeConfig['desc']);
+        $descWidth = $descBox[2] - $descBox[0];
+        $descHeight = $descBox[7] - $descBox[1];
+        
+        
+        imagettftext($image, $descSize, 0, ($width - $descWidth) / 2, 130, $fontColor, $fontPath, $storeConfig['desc']);
+        
+        //融合二维码
+        $erweima = $this->createQrcodeByQrPrint($url);
+
+        // 创建源图像资源
+        $sourceImage = imagecreatefrompng($erweima);
+     
+        // 获取第二张图片的宽度和高度
+        $width2 = imagesx($sourceImage);
+        $height2 = imagesy($sourceImage);
+        // dump($erweima);die;
+        imagecopymerge($image,$sourceImage,550,400, 0, 0,$width2,$height2,100);
+        
+        //条形码
+        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorJPG(); #创建SVG类型条形码
+        $barcode = $generatorSVG->getBarcode($package['express_num'], $generatorSVG::TYPE_CODE_128,$widthFactor =3, $totalHeight = 100);
+        // 从数据创建图像资源
+        $mergeImageResource = imagecreatefromstring($barcode);
+    
+        // 获取第二张图片的宽度和高度
+        $width3 = imagesx($mergeImageResource);
+        $height3 = imagesy($mergeImageResource);
+        imagecopymerge($image,$mergeImageResource,($width - $width3) /2,200, 0, 0,$width3,$height3,100);
+        //绘制单号到图片上
+        $expresstextBox = imagettfbbox($epxressSize, 0, $fontPath,$package['express_num']);
+        $expresstextWidth = $expresstextBox[2] - $expresstextBox[0];
+        $expresstextHeight = $expresstextBox[7] - $expresstextBox[1];
+        // 绘制文本到图像
+        imagettftext($image, $epxressSize, 0, ($width - $expresstextWidth) / 2, 350, $fontColor, $fontPath,$package['express_num']);
+        // 绘制线条
+        $black = imagecolorallocate($image, 0, 0, 0);
+        imageline($image,0, 380, 800, 380, $black);
+        imageline($image,0, 381, 800, 381, $black);
+        imageline($image,0, 382, 800, 382, $black);
+        
+        $text1 = "Код клиента:".$package['member_id'];
+        $text3 = "Вес:".$package['weight'];
+        $text8 = $package['entering_warehouse_time'];
+        if(isset($package['address'])){
+            $text2 = "Страна:".$package['address']['country'];
+            $text4 = "Адрес клиента:".$package['address']['province'];
+            $text5 = $package['address']['city'];
+            $text6 = $package['address']['region'];
+            $text7 = $package['address']['detail'];
+            imagettftext($image, $addcSize, 0, 30, 500, $fontColor, $fontPath,$text2);
+            imagettftext($image, $addcSize, 0, 30, 540, $fontColor, $fontPath,$text4);
+            imagettftext($image, $addcSize, 0, 100, 580, $fontColor, $fontPath,$text5);
+            imagettftext($image, $addcSize, 0, 100, 620, $fontColor, $fontPath,$text6);
+            imagettftext($image, $addcSize, 0, 100, 660, $fontColor, $fontPath,$text7);
+        }
+        // dump($text2);die;
+         // 绘制文本到图像
+        imagettftext($image, $addcSize, 0, 30, 420, $fontColor, $fontPath,$text1);
+        imagettftext($image, $addcSize, 0, 30, 460, $fontColor, $fontPath,$text3);
+        imagettftext($image, $addcSize, 0, 30, 740, $fontColor, $fontPath,$text8);
+        
+        $outfile = $this->outPut.date("YmdHis").rand(000000,999999).'.jpg';
+ 
+		imagejpeg($image, $outfile);
+        // 释放内存
+        imagepng($image);
+        imagedestroy($image);
+        return $outfile;
+    }
+    
+    public function createQrcodeByQrPrint($text){
+        // dump($text);die;
+        require_once APP_PATH.'/common/library/phpqrcode/phpqrcode.php';
+        $data = $text;//内容
+        $level = 'L';// 纠错级别：L、M、Q、H
+        $size = 6;//元素尺寸
+        $margin = 1;//边距
+        $outfile = $this->outPut.date("YmdHis").rand(000000,999999).'.png';
+
+        $saveandprint = false;// true直接输出屏幕  false 保存到文件中
+        $back_color = 0xFFFFFF;//白色底色
+        $fore_color = 0x000000;//黑色二维码色 若传参数要hexdec处理，如 $fore_color = str_replace('#','0x',$fore_color); $fore_color = hexdec('0xCCCCCC');
+        
+        $QRcode = new \QRcode();
+        
+        //生成png图片
+        $QRcode->png($data, $outfile, $level, $size, $margin, false, $back_color, $fore_color);
+        return $outfile;
+    }
     
     public function createQrcodeByQr($text){
         // dump($text);die;
