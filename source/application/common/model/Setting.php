@@ -911,6 +911,10 @@ class Setting extends BaseModel
                         'is_enable' => 1,
                         'describe' => "包裹已到货，请注意查收",
                     ],
+                    'zhuandan'=>[
+                        'is_enable' => 1,
+                        'describe' => "包裹已转单，快递单号：{code}",  
+                    ],
                     //已收货
                     'take'=>[
                         'is_enable' => 1,

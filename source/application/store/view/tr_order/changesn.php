@@ -2,7 +2,7 @@
     <div class="row">
         <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
             <div class="widget am-cf">
-                <form id="my-form" action="<?= url('/store/tr_order/deliverySave') ?>" class="am-form tpl-form-line-form" method="post">
+                <form id="my-form" action="<?= url('/store/tr_order/zddeliverySave') ?>" class="am-form tpl-form-line-form" method="post">
                     <div class="widget-body">
                         <fieldset>
                             <div class="widget-head am-cf">

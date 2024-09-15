@@ -147,7 +147,7 @@
                             
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
-                                    是否支持查询发货完成日志记录
+                                    是否支持发货日志记录
                                 </label>
                                 <div class="am-u-sm-9">
                                     <label class="am-radio-inline">
@@ -169,7 +169,7 @@
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
-                                     <span class="tpl-form-line-small-title">发货完成物流信息</span>
+                                     <span class="tpl-form-line-small-title">发货物流信息</span>
                                 </label>
                                 <div class="am-u-sm-9">
                                     <input type="text" class="tpl-form-input"
@@ -217,6 +217,47 @@
                                     
                                 </div>
                             </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否支持转单日志记录
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="notice[zhuandan][is_enable]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['zhuandan']['is_enable'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="notice[zhuandan][is_enable]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['zhuandan']['is_enable'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                       
+                                    </label>
+                                    
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                     <span class="tpl-form-line-small-title">转单物流信息</span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input"
+                                           name="notice[zhuandan][describe]"
+                                           value="<?= $values['zhuandan']['describe'] ?>">
+                                    
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <div class="am-u-sm-9 am-u-sm-push-3">
+                                    <small>需要显示转单单号就填写：{code}，否则可以不填！</small>
+                                </div>
+                            </div>
+                            
+                            
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
                                     是否支持查询已收货日志记录

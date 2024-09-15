@@ -169,6 +169,7 @@ class Logistics extends BaseModel
      public static function addInpackLog($id,$desc,$t_order_sn){
         
         $Inpack = (new Inpack())->where('order_sn',$id)->find();
+
         $model = new static;
         return $model->insert([
             'order_sn' => $Inpack['order_sn'],
@@ -181,6 +182,27 @@ class Logistics extends BaseModel
             'wxapp_id'=>self::$wxapp_id?self::$wxapp_id:$Inpack['wxapp_id'],
         ]);
     }
+    
+    public static function inpackstatus($id,$desc,$t_order_sn,$status){
+        
+        $Inpack = (new Inpack())->where('order_sn',$id)->find();
+
+        $model = new static;
+        return $model->insert([
+            'order_sn' => $Inpack['order_sn'],
+            // 'express_num' => $Inpack['t_order_sn'],
+            'status' => $status,
+            'status_cn' => $model->maps[$status],
+            'logistics_describe' => $desc?$desc:'包裹状态更新',
+            'logistics_sn'=> $t_order_sn,
+            'created_time' => getTime(),
+            'wxapp_id'=>self::$wxapp_id?self::$wxapp_id:$Inpack['wxapp_id'],
+        ]);
+    }
+    
+    
+    
+    
       //集运单到货的日志
       public static function addInpackGetLog($id,$desc,$t_order_sn){
         

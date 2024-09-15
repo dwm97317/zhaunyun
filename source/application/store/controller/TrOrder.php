@@ -745,6 +745,15 @@ class TrOrder extends Controller
         ));
     }
     
+    // 转单物流
+    public function zddeliverySave(){
+       $model = (new Inpack());
+       if ($model->zddeliverySave($this->postData('delivery'))){
+           return $this->renderSuccess('操作成功');
+       } 
+       return $this->renderError($model->getError() ?: '操作失败');
+    }
+    
     // 打印面单
     public function printOrder($id){
         $detail = Inpack::details($id);
