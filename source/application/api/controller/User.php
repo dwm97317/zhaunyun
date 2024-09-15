@@ -14,6 +14,7 @@ use app\api\model\Setting;
 use think\Cache;
 use app\api\model\Wxapp as WxappModel;
 use app\api\model\UserCoupon;
+use app\common\service\Message;
 /**
  * 用户管理
  * Class User
@@ -270,12 +271,28 @@ class User extends Controller
          // 当前用户信息
          $userInfo = $this->getUser();
          $post = $this->postData();
-      
+        
          $cer = (new Certificate());
    
          if (!$cer->create($post)){
             return $this->renderError($cer->getError()??"提交失败");
-         }  
+         }
+
+        $clerk = (new Clerk())->where('mes_status',0)->where('is_delete',0)->select();
+                    
+        if(!empty($clerk)){
+              //循环通知员工打包消息 
+              foreach ($clerk as $key => $val){
+                  $data = [
+                        'wxapp_id'=> $userInfo['wxapp_id'],
+                        'member_id'=>$val['user_id'],
+                        'order_no'=>"CHONGZHI".rand(100000,999999),
+                        'member_name'=>$userInfo['nickName'].$userInfo['user_id'],
+                        'pay_time'=>getTime(),
+                    ];
+                  Message::send('package.orderreview',$data);  
+              }
+        }
          return $this->renderSuccess('提交成功');          
     }
     //支付凭证列表

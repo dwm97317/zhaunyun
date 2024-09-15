@@ -3,6 +3,8 @@ namespace app\store\controller\setting;
 use app\store\controller\Controller;
 use app\common\model\Certificate as CertificateModel;
 use think\Cache;
+use app\common\service\Message;
+
 /**
  * 汇款凭证
  * Class Certificate
@@ -51,6 +53,16 @@ class Certificate extends Controller
         $model = CertificateModel::detail($id);
         // 更新记录
         if ($model->edit($id,$cert_status)) {
+           if($cert_status==2){
+               $data = [
+                'wxapp_id'=> $model['wxapp_id'],
+                'member_id'=>$model['user_id'],
+                'order_no'=>$model['id'],
+                'pay_price'=>$model['cert_price'],
+                'pay_time'=>getTime(),
+                ];
+                Message::send('package.balancepay',$data);  
+           }
             return $this->renderSuccess('更新成功', url('setting.certificate/index'));
         }
         return $this->renderError($model->getError() ?: '更新失败');

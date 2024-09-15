@@ -15,6 +15,7 @@ use app\store\model\UserAddress;
 use app\store\model\Package;
 use app\store\model\Inpack;
 use app\store\model\Setting as SettingModel;
+use app\common\service\Message;
 /**
  * 用户模型
  * Class User
@@ -260,6 +261,15 @@ class User extends UserModel
                 'sence_type' => 1,
             ], [$storeUserName]);
         });
+
+        $data = [
+            'wxapp_id'=> $this['wxapp_id'],
+            'member_id'=>$this['user_id'],
+            'order_no'=> "CHONGZHI".rand(100000,999999),
+            'pay_price'=>$diffMoney,
+            'pay_time'=>getTime(),
+        ];
+        Message::send('package.balancepay',$data);  
         return true;
     }
 

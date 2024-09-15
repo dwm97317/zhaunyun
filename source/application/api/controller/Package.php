@@ -1217,7 +1217,7 @@ class Package extends Controller
          $data=[
             'id'=>$inpackdate['order_sn'],
             'nickName' => ($this->user)['nickName'],
-            'userCode' => ($this->user)['user_code'],
+            'userCode' => $user_id,
             'countpack' =>count($idsArr),
             'packtime' => getTime(),
             'packid' => $inpack,
