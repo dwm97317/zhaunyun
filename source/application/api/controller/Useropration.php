@@ -1942,7 +1942,7 @@ class Useropration extends Controller
       $tomorrow = date('Y-m-d', strtotime('+1 day'));
       $values = SettingModel::getItem('store')['retention_day'];
       $res = [
-         'today' => $packModel ->where('status','=',2)->where(['storage_id'=>$clerk['shop_id']])->whereTime('entering_warehouse_time','between',[$today,$tomorrow])->count(),
+         'today' => $packModel->where(['storage_id'=>$clerk['shop_id']])->whereTime('entering_warehouse_time','between',[$today,$tomorrow])->count(),
          'all' => $packModel -> where(['storage_id'=>$clerk['shop_id'],'is_delete'=>0])->where('status','in',[-1,2,3,4,5,6,7])->count(),
          'pack' => $packModel->where('status','in',[2,3,4,5,6])->where(['storage_id'=>$clerk['shop_id'],'is_take'=>2,'is_delete'=>0])->count(), //待打包的集运单
          'waitTake' => $inpackModel->where(['status'=>7,'shop_id'=>$clerk['shop_id'],'is_delete'=>0])->count(),
@@ -2115,42 +2115,42 @@ class Useropration extends Controller
             [
                 'icon' => base_url().'assets/api/images//today.png' ,
                 'content'=>'今日入库数量',
-                'num'=> $packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->count(),
+                'num'=> $packModel->where($where)->where(['storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->count(),
                 'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=1"
             ],
             //今日入库重量
             [
                 'icon' => base_url().'assets/api/images//today.png' ,
                 'content'=>'今日入库重量',
-                'num'=> round($packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->SUM('weight'),2),
+                'num'=> round($packModel->where($where)->where(['storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->SUM('weight'),2),
                 'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=1"
             ],
             //昨日入库
             [
                 'icon' => base_url().'assets/api/images/yesterday.png' ,
                 'content'=>'昨日入库数量',
-                'num'=> $packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$yestoday,$today])->count(),
+                'num'=> $packModel->where($where)->where(['storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$yestoday,$today])->count(),
                 'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=2"
             ],
             //昨日入库重量
             [
                 'icon' => base_url().'assets/api/images/yesterday.png' ,
                 'content'=>'昨日入库重量',
-                'num'=> round($packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$yestoday,$today])->SUM('weight'),2),
+                'num'=> round($packModel->where($where)->where(['storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$yestoday,$today])->SUM('weight'),2),
                 'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=2"
             ],
             //本月累计入库
             [
                 'icon' => base_url().'assets/api/images//mouth.png' ,
                 'content'=>'本月累计入库',
-                'num'=> $packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$firstMouth,$today])->count(),
+                'num'=> $packModel->where($where)->where(['storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$firstMouth,$today])->count(),
                 'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=3"
             ],
             //本月入库重量
             [
                 'icon' => base_url().'assets/api/images//today_weight.png' ,
                 'content'=>'本月入库重量',
-                'num'=> $packModel->where($where)->where(['status' => 2,'storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$firstMouth,$today])->SUM('weight'),
+                'num'=> round($packModel->where($where)->where(['storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$firstMouth,$today])->SUM('weight'),2),
                 'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=3"
             ], 
             //未入库包裹

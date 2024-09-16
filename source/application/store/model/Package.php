@@ -728,12 +728,12 @@ class Package extends PackageModel
            'yesin_weight'=> $this->where('is_delete',0)->where('entering_warehouse_time','between',[$yestoday,$today])->SUM('weight'),
            
            'yesout'=>$this->where('is_delete',0)->where('status','in',[5,6,7,8])->where('entering_warehouse_time','between',[$yestoday,$today])->count(),
-           'yesout_weight'=>$this->where('is_delete',0)->where('status','in',[5,6,7,8])->where('entering_warehouse_time','between',[$yestoday,$today])->SUM('weight'),
+           'yesout_weight'=>round($this->where('is_delete',0)->where('status','in',[5,6,7,8])->where('entering_warehouse_time','between',[$yestoday,$today])->SUM('weight'),2),
            
            'report'=>$this->where(['status'=>1,'is_delete'=>0])->count(),
            
            'instore'=>$this->where('is_delete',0)->where('status','in',[2,3,4,5,6,7,8])->count(),
-           'instore_weight'=>$this->where('is_delete',0)->where('status','in',[2,3,4,5,6,7,8])->SUM('weight'),
+           'instore_weight'=>round($this->where('is_delete',0)->where('status','in',[2,3,4,5,6,7,8])->SUM('weight'),2),
            
            'other'=>$this->where('is_delete',0)->where('status','in',[9,10,11])->count(),
            'other_weight'=>$this->where('is_delete',0)->where('status','in',[9,10,11])->SUM('weight'),
