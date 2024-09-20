@@ -1080,16 +1080,19 @@ class TrOrder extends Controller
                foreach ($free_rule as $k => $v) {
                     //判断时候需要取整
                     if($line['is_integer']==1){
+                        if($oWeigth<$v['first_weight']){
+                            $ww = $v['first_weight'];
+                        }
                         $ww = ceil((($oWeigth-$v['first_weight'])/$v['next_weight']));
                     }else{
                         $ww = ($oWeigth-$v['first_weight'])/$v['next_weight'];
                     }
-                          $lines['predict'] = [
-                              'weight' => $oWeigth,
-                              'price' => ($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'],
-                              'rule' => $v,
-                              'service' =>0,
-                          ];   
+                    $lines['predict'] = [
+                      'weight' => $oWeigth,
+                      'price' => ($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'],
+                      'rule' => $v,
+                      'service' =>0,
+                    ];   
                }
           
                 break;
