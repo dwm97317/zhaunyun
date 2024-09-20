@@ -1081,7 +1081,7 @@ class TrOrder extends Controller
                     //判断时候需要取整
                     if($line['is_integer']==1){
                         if($oWeigth<$v['first_weight']){
-                            $ww = $v['first_weight'];
+                            $oWeigth = $v['first_weight'];
                         }
                         $ww = ceil((($oWeigth-$v['first_weight'])/$v['next_weight']));
                     }else{
