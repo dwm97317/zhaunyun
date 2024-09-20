@@ -645,7 +645,7 @@ class Index extends Controller
         }
         $shopList = ShopModel::getAllList();
         if($this->store['user']['shop_id']>0){
-            $shopList = (new ShopModel())->where('shop_id',$this->store['user']['shop_id'])->select();
+            $shopList = (new ShopModel())->where('shop_id','in',$this->store['user']['shop_id'])->select();
         }
         // dump($this->store);die;
         $expressList = Express::getAll();
