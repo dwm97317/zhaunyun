@@ -16,6 +16,13 @@ class SharingOrder extends SharingOrderModel {
             ]);
     }
     
+    public function getAllList(){
+        return $this
+            ->with(['country','User','storage','line','address'])
+            ->order('create_time','desc')
+            ->select();
+    }
+    
     public function edit($data)
     {
         if (!$this->validateForm($data, 'edit')) {

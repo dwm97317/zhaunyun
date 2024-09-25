@@ -1625,7 +1625,7 @@
             data.selectCount = selectIds.length;
             console.log(data.selectId)
             $.showModal({
-                title: '修改包裹位置'
+                title: '加入拼团'
                 , area: '460px'
                 , content: template('tpl-shelf', data)
                 , uCheck: true

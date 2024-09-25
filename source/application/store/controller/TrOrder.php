@@ -841,17 +841,17 @@ class TrOrder extends Controller
         $set = Setting::detail('store')['values'];
         $userclient =  Setting::detail('userclient')['values'];
         $list = $model->getList($dataType, $this->request->param());
-        // dump($list->toArray());die;
+      
         $tracklist = $Track->getAllList();
         $servicelist = $Clerk->where('clerk_authority','like','%is_myuser%')->where('clerk_authority','like','%is_myuserpackage%')->where('is_delete',0)->select();
-        $pintuanlist = (new SharingOrder())->getList([]);
+        $pintuanlist = (new SharingOrder())->getAllList();
         $batchlist = (new Batch())->getAllwaitList([]);
         $shopList = ShopModel::getAllList();
         $lineList = $Line->getListAll();
         foreach ($list as &$value) {
             $value['num'] =  (new Package())->where(['inpack_id'=>$value['id'],'is_delete'=>0])->count();
         }
-
+//   dump($pintuanlist->toArray());die;
         return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
     }
     
