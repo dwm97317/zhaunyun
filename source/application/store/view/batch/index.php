@@ -89,9 +89,9 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                             </a>
                                             <?php endif; ?>
                                             
-                                            <a class='tpl-table-black-operation-green j-invoice' href="javascript:void(0);" data-id="<?= $item['batch_id'] ?>">
-                                                <i class="iconfont icon-daochu"></i> 导出INVOICE
-                                            </a>
+                                            <!--<a class='tpl-table-black-operation-green j-invoice' href="javascript:void(0);" data-id="<?= $item['batch_id'] ?>">-->
+                                            <!--    <i class="iconfont icon-daochu"></i> 导出INVOICE-->
+                                            <!--</a>-->
                                         </div>
                                         <div style="margin-top:10px;" class="tpl-table-black-operation">
                                             <?php if (checkPrivilege('batch/batchvsinpack')): ?>
@@ -105,9 +105,9 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                             </a>
                                             <?php endif; ?>
                                             
-                                            <a class='tpl-table-black-operation-green j-clearance' href="javascript:void(0);" data-id="<?= $item['batch_id'] ?>">
-                                                <i class="iconfont icon-daochu"></i> 导出清关模板
-                                            </a>
+                                            <!--<a class='tpl-table-black-operation-green j-clearance' href="javascript:void(0);" data-id="<?= $item['batch_id'] ?>">-->
+                                            <!--    <i class="iconfont icon-daochu"></i> 导出清关模板-->
+                                            <!--</a>-->
                                         </div>
                                     </td>
                                 </tr>
