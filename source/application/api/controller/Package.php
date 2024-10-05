@@ -1425,6 +1425,35 @@ class Package extends Controller
          return $this->renderSuccess($list);
      }
      
+     // 包裹列表
+     public function packageListPlus(){
+         $this->user = $this->getUser(); 
+         $query = [];
+         $status = $this->request->param('type');
+         $statusMap = [
+           'all' =>[1,2,3,4,5,6,7,8],
+           'verify' => [1],     
+           'nopay' => [2],
+           'no_send' => [3,4,5],
+           'send' => [6],
+           'reach' => [7],
+           'complete' => [8]
+         ];
+         if ($status)
+         $query['status'] = $statusMap[$status];
+         if($status == 'nopay'){
+             $query['is_pay'] = 0;
+         }
+         $query['member_id'] = $this->user['user_id']; 
+         $list = (new Inpack())->getList($query);
+         foreach ($list as &$value) {
+            $value['num'] = count(explode(',',$value['pack_ids']));
+            $value['weight_unit'] = [10=>'g',20=>'kg',30=>'lbs',40=>'cbm'];
+            $value['total_free'] = round($value['free'] + $value['pack_free'] + $value['other_free'] + $value['insure_free'],2);
+         }
+         return $this->renderSuccess($list);
+     }
+     
       // 可以参与拼团的包裹列表
      public function pintuanpackageList(){
          $this->user = $this->getUser(); 
