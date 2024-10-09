@@ -106,7 +106,6 @@ class User extends UserModel
     
     public function edit($data){
        // 表单验证
-     
        if(!empty($data['user']['user_code'])){
            $usercode = $this->where('user_code', '=',$data['user']['user_code'])->where('user_id','<>',$data['user_id'])->where('is_delete',0)->find();
            if (!empty($usercode)){
@@ -114,10 +113,12 @@ class User extends UserModel
               return false;
            }  
        }
-        // dump($data);die;
+ 
        // 保存数据
        $data['user']['update_time'] = time();
+        
        if($this->allowField(true)->save($data['user'])){
+          
            return true;
        }
        return false;

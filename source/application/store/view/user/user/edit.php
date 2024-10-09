@@ -86,6 +86,13 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">用户备注 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <textarea class="tpl-form-input" autocomplete="off" name="user[remark]"
+                                          ><?= $detail['remark'] ?></textarea>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
                                     </button>
