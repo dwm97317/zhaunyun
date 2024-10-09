@@ -75,7 +75,7 @@ class Payment extends Basics
         $orderType = $this->param['order_type'];
        
         // 获取订阅消息配置
-        $storesetting = SettingModel::getItem('store');
+        $storesetting = SettingModel::getItem('store',$orderInfo['wxapp_id']);
         $template = SettingModel::getItem('tplMsg', $orderInfo['wxapp_id'])['delivery'];
         if ($template['is_enable']==0) {
             return false;
