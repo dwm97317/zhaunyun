@@ -2745,20 +2745,12 @@ class Useropration extends Controller
         $InpackService = new InpackService();//包装服务 
         $data['service'] = $InpackService->with('service')->where('inpack_id',$id)->select();
 
-        $packData = explode(',',$data['pack_ids']);
+        // $packData = explode(',',$data['pack_ids']);
         $dataPack =[];
         $pack =  (new Package());
         $shelf = new ShelfUnitItem();
-
-        foreach($packData as $key => $val){
-          $dataPack[$key] = $pack->where('id',$val)->with(['packageimage.file','packitem','shelfunititem.shelfunit.shelf'])->find();
-        //   $dataPack[$key]['shelfNo'] = $shelf->getShelfUnitByPackId($val);
-       
-        }
-        
-        $data['packs'] =json_encode($dataPack);
-        $data['packs'] =json_decode($data['packs']);
-        $data['countpack'] =count($packData);
+        $data['packs']= $pack->where('inpack_id',$id)->with(['packageimage.file','packitem','shelfunititem.shelfunit.shelf'])->select();
+        $data['countpack'] =count($dataPack);
         // 获取物品详情
         // $packItem = (new PackageItemModel())->where(['order_id'=>$data['id']])->field('class_name,id,class_id,order_id')->select();
        
