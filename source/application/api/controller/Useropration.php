@@ -2744,20 +2744,13 @@ class Useropration extends Controller
         
         $InpackService = new InpackService();//包装服务 
         $data['service'] = $InpackService->with('service')->where('inpack_id',$id)->select();
-
-        // $packData = explode(',',$data['pack_ids']);
-        $dataPack =[];
         $pack =  (new Package());
         $shelf = new ShelfUnitItem();
         $data['packs']= $pack->where('inpack_id',$id)->with(['packageimage.file','packitem','shelfunititem.shelfunit.shelf'])->select();
-        $data['countpack'] =count($dataPack);
+        $data['countpack'] =count($data['packs']);
         // 获取物品详情
-        // $packItem = (new PackageItemModel())->where(['order_id'=>$data['id']])->field('class_name,id,class_id,order_id')->select();
-       
         $data['shop'] = '';
-        // if ($packItem){
-        //     $data['shop'] = implode(',',array_column($packItem->toArray(),'class_name'));
-        // }
+
     
         if ($data['address_id']){
             $data['address'] = (new UserAddress())->find($data['address_id']);
