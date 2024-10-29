@@ -863,13 +863,13 @@ class Setting extends BaseModel
                         'balancepayft' => [
                             'is_enable' => '0',
                             'template_id' => '',
-                            'keywords' => ['character_string1', 'thing2', 'time3'],
+                            'keywords' => ['character_string1', 'amount2', 'time3'],
                         ],
                         //订单待审核提醒 √
                         'orderreviewft' => [
                             'is_enable' => '0',
                             'template_id' => '',
-                            'keywords' => ['character_string1', 'amount2','time3'],
+                            'keywords' => ['character_string1', 'thing2','time3'],
                         ],
                     ],
                 ],
