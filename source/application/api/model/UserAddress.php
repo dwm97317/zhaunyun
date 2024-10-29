@@ -60,7 +60,7 @@ class UserAddress extends UserAddressModel
     
      // 设置 条件
     public function setWhere($query){
-        isset($query['keyword']) && $this->where('phone|name|takecode','like','%'.$query['keyword'].'%');
+        isset($query['keyword']) && $this->where('phone|name|takecode|user_id','like','%'.$query['keyword'].'%');
         return $this;
     }
 

@@ -859,6 +859,18 @@ class Setting extends BaseModel
                             'template_id' => '',
                             'keywords' => ['character_string5', 'thing2','time3'],
                         ],
+                        //余额充值成功通知 √
+                        'balancepayft' => [
+                            'is_enable' => '0',
+                            'template_id' => '',
+                            'keywords' => ['character_string1', 'thing2', 'time3'],
+                        ],
+                        //订单待审核提醒 √
+                        'orderreviewft' => [
+                            'is_enable' => '0',
+                            'template_id' => '',
+                            'keywords' => ['character_string1', 'amount2','time3'],
+                        ],
                     ],
                 ],
             // 小票打印机设置

@@ -50,7 +50,10 @@ class Orderreview extends Basics
         $noticesetting = SettingModel::getItem('notice');
         $storesetting = SettingModel::getItem('store');
         if ($template['is_enable']==0) {
-            return false;
+            $template = SettingModel::getItem('tplMsg', $this->param['wxapp_id'])['orderreviewft'];
+             if (empty($template['template_id'])) {
+                  return false;
+             }
         }
         if (empty($template['template_id'])) {
             return false;

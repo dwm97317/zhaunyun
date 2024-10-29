@@ -52,8 +52,11 @@ class Balancepay extends Basics
         if ($template['is_enable']==0) {
             return false;
         }
-        if (empty($template['template_id'])) {
-            return false;
+        if ($template['is_enable']==0) {
+            $template = SettingModel::getItem('tplMsg', $this->param['wxapp_id'])['balancepayft'];
+             if (empty($template['template_id'])) {
+                  return false;
+             }
         }
         //当入库不存在用户id，则不发送提醒；
         if(!isset($this->param['member_id'])){

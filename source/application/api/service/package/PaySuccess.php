@@ -63,6 +63,12 @@ class PaySuccess extends Basics
                         'status' =>3,
                         'is_pay_type' => 3,
                      ]);
+                     $PackageModel->where('inpack_id',$this->model['id'])->update([
+                        'is_pay'=>1,
+                        'status'=>6,
+                        'pay_time'=>getTime(),
+                        'real_payment'=>$payData['total_fee']/100,
+                    ]);
                 }
                 
                 if($payType == PayTypeEnum::BALANCE){
@@ -71,6 +77,12 @@ class PaySuccess extends Basics
                         'pay_time' => getTime(),
                         'status' =>3,
                         'is_pay_type' => 2,
+                    ]);
+                    $PackageModel->where('inpack_id',$this->model['id'])->update([
+                        'is_pay'=>1,
+                        'status'=>6,
+                        'pay_time'=>getTime(),
+                        'real_payment'=>$payData['total_fee']/100,
                     ]);
                 }
                 
@@ -83,6 +95,12 @@ class PaySuccess extends Basics
                         'real_payment'=>$payData['total_fee']/100,
                         'is_pay_type' => 1,
                     ]);
+                    $PackageModel->where('inpack_id',$this->model['id'])->update([
+                        'is_pay'=>1,
+                        'status'=>6,
+                        'pay_time'=>getTime(),
+                        'real_payment'=>$payData['total_fee']/100,
+                    ]);
                 }
                 if($payType == PayTypeEnum::OMIPAY){
                     $this->model->save([
@@ -91,13 +109,14 @@ class PaySuccess extends Basics
                         'status' =>3,
                         'is_pay_type' => 4,
                     ]);
+                    $PackageModel->where('inpack_id',$this->model['id'])->update([
+                        'is_pay'=>1,
+                        'status'=>6,
+                        'pay_time'=>getTime(),
+                        'real_payment'=>$payData['total_amount']/100,
+                    ]);
                 }
-                $PackageModel->where('inpack_id',$this->model['id'])->update([
-                    'is_pay'=>1,
-                    'status'=>6,
-                    'pay_time'=>getTime(),
-                    'real_payment'=>$payData['total_fee']/100,
-                ]);
+                
                 if(isset($this->model['user_coupon_id']) && !empty($this->model['user_coupon_id'])){
                     $UserCoupon->where('user_coupon_id',$this->model['user_coupon_id'])->update(['is_use'=>1]);
                 }

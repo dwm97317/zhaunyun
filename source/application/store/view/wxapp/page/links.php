@@ -299,11 +299,20 @@
                                 </div>
                             </li>
                             <li class="link-item">
+                                <div class="row page-name">已到货</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/pages/indexs/my_dingdan/my_dingdan?id=5&type=reach</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
                                 <div class="row page-name">已完成</div>
                                 <div class="row am-cf">
                                     <div class="am-fl">地址：</div>
                                     <div class="am-fl">
-                                        <span class="x-color-green">/pages/indexs/my_dingdan/my_dingdan?id=5&type=complete</span>
+                                        <span class="x-color-green">/pages/indexs/my_dingdan/my_dingdan?id=6&type=complete</span>
                                     </div>
                                 </div>
                             </li>

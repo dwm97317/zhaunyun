@@ -540,6 +540,7 @@ class Index extends Controller
         
         //物品类目
         $category = (new Category())->getAll()['tree'];
+        // dump($category);die;
         // 货架功能
         $shelfitem=[];
         $shelf = (new Shelf())->where('ware_no',$detail['storage_id'])->select();
@@ -1057,9 +1058,12 @@ class Index extends Controller
        }
        
        if(empty($packdata)){
-           $res = (new Package())->insertGetId($postData);
+            $res = (new Package())->insertGetId($postData);
+            $postData['id'] = $res;
+            (new Package())->sendEnterMessage([$postData]);
        }else{
-           $packdata->save($postData);
+            $packdata->save($postData);
+            (new Package())->sendEnterMessage([$packdata->toArray()]);
            $res = $packdata['id'];
        }
        $PackageItem->save([
@@ -1076,6 +1080,7 @@ class Index extends Controller
        if($noticesetting['enter']['is_enable']==1){
            Logistics::add($res,$noticesetting['enter']['describe']);
        }
+      
        $post['success'] = '导入成功';
        return $this->renderSuccess('导入成功','',$post);
     }
