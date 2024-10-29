@@ -50,9 +50,6 @@ class Balancepay extends Basics
         $noticesetting = SettingModel::getItem('notice');
         $storesetting = SettingModel::getItem('store');
         if ($template['is_enable']==0) {
-            return false;
-        }
-        if ($template['is_enable']==0) {
             $template = SettingModel::getItem('tplMsg', $this->param['wxapp_id'])['balancepayft'];
              if (empty($template['template_id'])) {
                   return false;
