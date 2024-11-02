@@ -59,10 +59,6 @@
             <!-- 其它功能-->
             <div class="am-fr tpl-header-navbar">
                 <ul>
-                    <li class="am-text-sm tpl-header-navbar-welcome">
-                        <a href="https://zhuanyun.sllowly.com/"><span>新版后台</span>
-                        </a>
-                    </li>
                     <!-- 欢迎语 -->
                     <li class="am-text-sm tpl-header-navbar-welcome">
                         <a href="javascript:;">有限期：<span><?= $store['wxapp']['end_time'] ?></span>

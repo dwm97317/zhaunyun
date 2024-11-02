@@ -116,6 +116,15 @@ class TrOrder extends Controller
     }
     
     /**
+     * 超时件订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function exceedorder(){
+        return $this->getExceedList('超时件订单列表', 'exceed');
+    }
+    
+    /**
      * 订单列表
      * @param string $title
      * @param string $dataType
@@ -141,6 +150,48 @@ class TrOrder extends Controller
         return $this->fetch('index', compact('list','dataType','set'));
     }
     
+    
+        
+    //欠费用户列表
+    public function arrearsuser(){
+        $Inpack = new Inpack;
+        $UserModel = new UserModel;
+        //找到所有未结算的订单的用户id
+        $packdata = $Inpack->where(['is_pay'=>2,'pay_type'=>2,'status'=>8,'is_delete'=>0])->field('member_id')->select()->toArray();
+        $packdata = $this->uniquArr($packdata);
+    
+        foreach($packdata as $key =>$value){
+            $list[$key] = $UserModel::detail($value['member_id']);
+            $list[$key]['total'] = $Inpack->where(['is_pay'=>2,'pay_type'=>2,'status'=>8,'is_delete'=>0])->where('member_id',$value['member_id'])->count();
+        }
+        
+        $set = Setting::detail('store')['values']['usercode_mode'];
+        return $this->fetch('arrearsuser', compact('list','set'));
+    }
+    
+        /**
+     * 订单列表
+     * @param string $title
+     * @param string $dataType
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    private function getExceedList($title, $dataType)
+    {
+        // 订单列表
+        $model = new Inpack;
+        $Line = new Line;
+        $lineList = $Line->getListAll();
+        $set = Setting::detail('store')['values'];
+        $list = $model->getExceedList($dataType, $this->request->param());
+        foreach ($list as &$value) {
+            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['down_shelf'] = 0;
+            $value['inpack'] = 0;
+        }
+
+        return $this->fetch('index', compact('list','dataType','set','lineList'));
+    }
     
     /**
      * 获取用户每个月都出货量
@@ -855,6 +906,82 @@ class TrOrder extends Controller
         return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
     }
     
+        //货到付款欠费用户列表
+    public function nopayuser(){
+        $Inpack = new Inpack;
+        $UserModel = new UserModel;
+        //找到所有未结算的订单的用户id
+        $packdata = $Inpack->where(['is_pay'=>2,'pay_type'=>1,'is_delete'=>0])->where(in_array('status',[7,8]))->where('member_id','>',0)->field('member_id')->select()->toArray();
+        $packdata = $this->uniquArr($packdata);
+            // dump($packdata);die;
+        foreach($packdata as $key =>$value){
+            $list[$key] = $UserModel::detail($value['member_id']);
+            $list[$key]['total'] = $Inpack->where(['is_pay'=>2,'pay_type'=>1,'is_delete'=>0])->where('status','in',[7,8])->where('member_id',$value['member_id'])->count();
+        }
+        
+        $set = Setting::detail('store')['values']['usercode_mode'];
+        return $this->fetch('nopayuser', compact('list','set'));
+    }
+    
+        /**
+     * 货到付款订单
+     * @param $selectIds
+     * @param $status
+     * @return false|int
+     * @throws \think\exception\DbException
+     */
+    public function nopayorder(){
+        // 订单列表
+        $model = new Inpack;
+        $set = Setting::detail('store')['values'];
+        $dataType = 'arrearsorder';
+        $Line = new Line;
+        $lineList = $Line->getListAll();
+        $list = $model->getnopayorderList([7,8], $this->request->param());
+        $pintuanlist = (new SharingOrder())->getList([]);
+        $shopList = ShopModel::getAllList();
+        foreach ($list as &$value) {
+            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['down_shelf'] = 0;
+            $value['inpack'] = 0;
+           if ($dataType=='payed'){
+                $value['down_shelf'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
+                $value['inpack'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',8)->count();
+           }
+        }
+
+        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList'));
+    }
+    
+        /**
+     * 货到付款订单
+     * @param $selectIds
+     * @param $status
+     * @return false|int
+     * @throws \think\exception\DbException
+     */
+    public function arrearsorder(){
+        // 订单列表
+        $model = new Inpack;
+        $set = Setting::detail('store')['values'];
+        $dataType = 'arrearsorder';
+        $Line = new Line;
+        $lineList = $Line->getListAll();
+        $list = $model->getArrearsList([8], $this->request->param());
+        $pintuanlist = (new SharingOrder())->getList([]);
+        $shopList = ShopModel::getAllList();
+        foreach ($list as &$value) {
+            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['down_shelf'] = 0;
+            $value['inpack'] = 0;
+           if ($dataType=='payed'){
+                $value['down_shelf'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
+                $value['inpack'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',8)->count();
+           }
+        }
+
+        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList'));
+    }
     
     /**
      * 订单列表
@@ -950,6 +1077,25 @@ class TrOrder extends Controller
             return $this->renderSuccess('修改成功','javascript:history.back(1)');
         }
         return $this->renderError($Inpack->getError() ?: '修改失败');
+    }
+    
+        
+    //二位数组去除重复的工具类
+    private function uniquArr($array){
+        $result = array();
+        foreach($array as $k=>$val){
+            $code = false;
+            foreach($result as $_val){
+                if($_val['member_id'] == $val['member_id']){
+                    $code = true;
+                    break;
+                }
+            }
+            if(!$code){
+                $result[]=$val;
+            }
+        }
+        return $result;
     }
     
     // 计算价格

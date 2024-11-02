@@ -108,6 +108,10 @@ return [
                 'index' => 'tr_order/cancel_list',
             ],
             [
+                'name' => '超时件',
+                'index' => 'tr_order/exceedorder',
+            ],
+            [
                 'name' => '用户评价',
                 'index' => 'tr_order/comment',
             ],
@@ -115,6 +119,34 @@ return [
                 'name' => '快速打包件',
                 'index' => 'tr_order/quicklypack',
             ],
+            [
+                'name' => '月结订单',
+                'active' => true,
+                'submenu' => [
+                    [
+                        'name' => '欠费用户',
+                        'index' => 'tr_order/arrearsuser',
+                    ],
+                    [
+                        'name' => '月结订单',
+                        'index' => 'tr_order/arrearsorder',
+                    ],
+                ]
+            ],
+            [
+                'name' => '货到付款',
+                'active' => true,
+                'submenu' => [
+                    [
+                        'name' => '欠费用户',
+                        'index' => 'tr_order/nopayuser',
+                    ],
+                    [
+                        'name' => '未付订单',
+                        'index' => 'tr_order/nopayorder',
+                    ],
+                ]
+            ]
            
         ]
     ],

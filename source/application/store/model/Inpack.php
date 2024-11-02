@@ -37,7 +37,8 @@ class Inpack extends InpackModel
         'payed' => [2,3,4,5], // 已支付
         'sending' => [6],
         'sended' => [7],
-        'complete' => [8]
+        'complete' => [8],
+        'exceed'=>[6],
      ];
      
      /**
@@ -80,6 +81,36 @@ class Inpack extends InpackModel
     }
     
     
+        /**
+     * 未支付月结订单列表
+     * @param string $dataType
+     * @param array $query
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getArrearsList($dataType, $query = [])
+    {
+        // 检索查询条件
+        empty($query['limitnum']) && $query['limitnum']=10;
+        !empty($query) && $this->ArrearsetWhere($query);
+        // 获取数据列表
+        $res= $this
+            ->alias('pa')
+            ->with(['line','address','storage','user'])
+            ->join('user u','u.user_id = pa.member_id','left')
+            ->join('user_address add','add.address_id = pa.address_id','left')
+            ->where('pa.status','in',$dataType)
+            ->where('pa.is_delete',0)
+            ->where('pa.is_pay',2)
+            ->where('pa.pay_type',2)
+            ->order(['pa.created_time' => 'desc'])
+            ->paginate($query['limitnum'], false, [
+                'query' => \request()->request()
+            ]);
+            // dump($res->toArray());die;
+         return $res;
+    }
+    
     /**
      * 未支付订单列表
      * @param string $dataType
@@ -112,6 +143,36 @@ class Inpack extends InpackModel
                 'query' => \request()->request()
             ]);
             // dump($res->toArray());die;
+         return $res;
+    }
+    
+    /**
+     * 超时件订单列表
+     * @param string $dataType
+     * @param array $query
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getExceedList($dataType, $query = [])
+    {
+        // 检索查询条件
+        empty($query['limitnum']) && $query['limitnum']=10;
+        !empty($query) && $this->setWhere($query);
+        // 获取数据列表
+        $res= $this
+            ->alias('pa')
+            ->with(['line','address','storage','user'])
+            ->join('user u','u.user_id = pa.member_id','left')
+            ->join('user_address add','add.address_id = pa.address_id','left')
+            // ->join('line li','li.id = pa.line_id','left')
+            ->where('pa.status','in',$this->status[$dataType])
+            ->where('pa.is_delete',0)
+            ->where('pa.exceed_date','>',0)
+            ->where('pa.exceed_date','<',time())
+            ->order(['pa.status' => 'desc'])
+            ->paginate($query['limitnum'], false, [
+                'query' => \request()->request()
+            ]);
          return $res;
     }
     
@@ -150,6 +211,49 @@ class Inpack extends InpackModel
          return $res;
     }
     
+    public function ArrearsetWhere($query){
+        !empty($query['status']) && $this->where('pa.status','in',$query['status']);
+        !empty($query['order_sn']) && $this->where('pa.order_sn|pa.t_order_sn','like','%'.$query['order_sn'].'%');
+        !empty($query['extract_shop_id']) && $this->where('pa.storage_id','=',$query['extract_shop_id']);
+        !empty($query['user_code']) && $this->where('u.user_code','=',$query['user_code']);
+        !empty($query['service_id']) && $this->where('u.service_id','=',$query['service_id']);
+        !empty($query['user_id']) && $this->where('pa.member_id','=',$query['user_id']);
+        !empty($query['line_id']) && $this->where('pa.line_id','=',$query['line_id']);
+        !empty($query['start_time']) && $this->where('receipt_time', '>', $query['start_time']);
+        !empty($query['end_time']) && $this->where('receipt_time', '<', $query['end_time']." 23:59:59");
+        !empty($query['search']) && $this->where('pa.member_id|u.nickName|u.user_code','like','%'.$query['search'].'%');
+        return $this;
+    }
+    
+        /**
+     * 货到付款订单列表
+     * @param string $dataType
+     * @param array $query
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getnopayorderList($dataType, $query = [])
+    {
+        // 检索查询条件
+        empty($query['limitnum']) && $query['limitnum']=10;
+        !empty($query) && $this->ArrearsetWhere($query);
+        // 获取数据列表
+        $res= $this
+            ->alias('pa')
+            ->with(['line','address','storage','user'])
+            ->join('user u','u.user_id = pa.member_id','left')
+            ->join('user_address add','add.address_id = pa.address_id','left')
+            ->where('pa.status','in',$dataType)
+            ->where('pa.is_delete',0)
+            ->where('pa.is_pay',2)
+            ->where('pa.pay_type',1)
+            ->order(['pa.created_time'=>'desc'])
+            ->paginate($query['limitnum'], false, [
+                'query' => \request()->request()
+            ]);
+            // dump($res->toArray());die;
+         return $res;
+    }
     
     
     // 代购单 同步
