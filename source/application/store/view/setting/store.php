@@ -1010,7 +1010,29 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     </label>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    海外仓派件是否强制要求上传派送照片才能确认签收
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_focus_savaimage]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['is_focus_savaimage'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_focus_savaimage]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['is_focus_savaimage'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                    <div class="help-block">
+                                        <small>开启强制后，在没有上传派件照片前不可确认签收</small>
+                                    </div>
+                                </div>
+                            </div> 
                             
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl"> 功能开启隐藏设置</div>

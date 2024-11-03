@@ -165,7 +165,7 @@ class Setting extends BaseModel
                     'wechathao' => "f18995802785",
                     'emailname' =>"客服邮箱",
                     'kefuemail' =>"sllowly@sllowly.com",
-                    
+                    'is_focus_savaimage'=> 1, //海外派件，是否强制要求上传图片才可以完成
                     'is_service' => 0, //查询运费时是否启用增值服务项目
                     'service_othername'=>'增值服务',
                     'service_des' => '运输只能够不包破损，建议选择合适的包装方式，可多选，超特大件另议非要。打包后重量会有所增加，实际重量以出货后置！',

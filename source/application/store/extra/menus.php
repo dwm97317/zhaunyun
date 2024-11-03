@@ -23,6 +23,10 @@ return [
               'index' => 'package.index/add',
           ],
           [
+              'name' => '新后台录入',
+              'index' => 'package.newpack/newadd',
+          ],
+          [
               'name' => '一票多件录入',
               'index' => 'package.newpack/addpackage',
           ],
