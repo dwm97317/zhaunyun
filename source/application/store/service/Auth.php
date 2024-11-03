@@ -68,7 +68,8 @@ class Auth
         'apps.sharing.order/inpacklist',
         'tools/search',
         'tr_order/zddeliverysave',
-        'package.index/importdo'
+        'package.index/importdo',
+        'package.newpack/newadd'
     ];
 
     /** @var array $accessUrls 商家用户权限url */
