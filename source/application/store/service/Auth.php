@@ -69,7 +69,8 @@ class Auth
         'tools/search',
         'tr_order/zddeliverysave',
         'package.index/importdo',
-        'package.newpack/newadd'
+        'package.newpack/newadd',
+        'package.newpack/newsavepackage'
     ];
 
     /** @var array $accessUrls 商家用户权限url */
