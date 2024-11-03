@@ -297,9 +297,18 @@
                                        <input name="checkIds" type="checkbox" value="<?= $item['id'] ?>"> 
                                     </td>
                                     <td class="am-text-middle">
-                                        <span style="cursor:pointer" text="<?= $item['order_sn'] ?>" onclick="copyUrl2(this)"><?= $item['order_sn'] ?></span></br>
+                                        系统单号：<?= $item['order_sn'] ?><br>
                                         <?php if ($item['inpack_type']==1): ?> 
-                                        <span class="am-badge am-badge-secondary">拼团订单</span>
+                                            <span class="am-badge am-badge-secondary">拼团订单</span>
+                                        <?php endif ;?>
+                                        <?php if ($item['inpack_type']==2): ?> 
+                                            <span class="am-badge am-badge-secondary">直邮订单</span>
+                                        <?php endif ;?>
+                                        <?php if ($item['inpack_type']==3): ?> 
+                                            <span class="am-badge am-badge-success">拼邮订单</span>
+                                        <?php endif ;?>
+                                        <?php if ($item['is_exceed']==1): ?> 
+                                            <span class="am-badge am-badge-danger">超时订单</span>
                                         <?php endif ;?>
                                         <?php if ($item['batch_id']): ?> 
                                         批次号：<?= $item['batch']['batch_name'] ?><br>

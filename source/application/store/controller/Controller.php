@@ -5,6 +5,7 @@ namespace app\store\controller;
 use app\store\service\Auth;
 use app\store\service\Menus;
 use app\store\model\Setting;
+use app\store\model\Inpack;
 use app\common\exception\BaseException;
 use app\common\model\Setting as SettingModel;
 use app\common\model\UploadFile;
@@ -92,13 +93,12 @@ class Controller extends \think\Controller
      * @throws \think\exception\DbException
      * @throws \Exception
      */
-    private function layout()
+private function layout()
     {
         // 验证当前请求是否在白名单
-        // dump(in_array($this->routeUri, $this->notLayoutAction));die;
         if (!in_array($this->routeUri, $this->notLayoutAction)) {
             $storeData = $this->store;
-            
+            $Inpack = new Inpack;
             $storeData['wxapp']['end_time'] = date("Y-m-d",$storeData['wxapp']['end_time']);
             // 输出到view
             $this->assign([
@@ -110,12 +110,9 @@ class Controller extends \think\Controller
                 'setting' => Setting::getAll() ?: null,        // 当前商城设置
                 'request' => Request::instance(),              // Request对象
                 'version' => get_version(),                    // 系统版本号
+                'count'=>$Inpack->getExceedCountList('exceed'),
             ]);
         }
-        // else{
-        //     $this->routeUri = $this->routeUri.'&wxapp_id=10001';
-        // }
-        
     }
     
     public function withImageById($data,$field,$name=null){

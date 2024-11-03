@@ -41,6 +41,30 @@ class Inpack extends InpackModel
         'exceed'=>[6],
      ];
      
+         /**
+     * 超时件订单列表
+     * @param string $dataType
+     * @param array $query
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getExceedCountList($dataType)
+    {
+        // 获取数据列表
+        return $this
+            ->alias('pa')
+            ->with(['line','address','storage','user'])
+            ->join('user u','u.user_id = pa.member_id','left')
+            ->join('user_address add','add.address_id = pa.address_id','left')
+            // ->join('line li','li.id = pa.line_id','left')
+            ->where('pa.status','in',$this->status[$dataType])
+            ->where('pa.is_delete',0)
+            ->where('pa.exceed_date','>',0)
+            ->where('pa.exceed_date','<',time())
+            ->order(['pa.status' => 'desc'])
+            ->count();
+    }
+     
      /**
      * 订单列表
      * @param string $dataType

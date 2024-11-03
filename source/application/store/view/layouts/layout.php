@@ -59,6 +59,19 @@
             <!-- 其它功能-->
             <div class="am-fr tpl-header-navbar">
                 <ul>
+                    <?php if (isset($count)): ?>
+                    <li style="margin-top:10px" class="am-text-sm tpl-header-navbar-welcome">
+                        <div class="am-dropdown" data-am-dropdown>
+                              <button class="am-btn <?= $count>0?"am-btn-danger":"am-btn-success" ?> am-dropdown-toggle" data-am-dropdown-toggle>待处理 <span class="am-icon-caret-down"></span></button>
+                              <ul class="am-dropdown-content">
+                                <li class="am-dropdown-header"><a style="line-height:20px;" href="index.php?s=/store/tr_order/exceedorder" >超时订单 <span class="tipsspan"> <?= $count ?> </span></a></li>
+                                <!--<li class="am-dropdown-header"><a style="line-height:20px;" href="###" >待发货订单 <span class="tipsspan">1</span></a></li>-->
+                                <!--<li class="am-dropdown-header"><a style="line-height:20px;" href="###" >待发货订单 <span class="tipsspan">1</span></a></li>-->
+                                <!--<li class="am-dropdown-header"><a style="line-height:20px;" href="###" >问题包裹 <span class="tipsspan">1</span></a></li>-->
+                              </ul>
+                            </div>
+                    </li>
+                    <?php endif; ?>
                     <!-- 欢迎语 -->
                     <li class="am-text-sm tpl-header-navbar-welcome">
                         <a href="javascript:;">有限期：<span><?= $store['wxapp']['end_time'] ?></span>
