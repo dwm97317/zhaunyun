@@ -445,9 +445,9 @@ class Batch extends Controller
      */
     public function createbatchname()
     {
-        $settingDate = SettingModel::getItem('forwarder_setting',$this->getWxappId());
+        $settingDate = SettingModel::getItem('batch',$this->getWxappId());
         $a = $b = $c = '';
-        if($settingDate['batch']==1){
+        if($settingDate['firstword_mode']==1){
             $a = $settingDate['firstword'];
         }
         if($settingDate['ftime_mode']==1){
