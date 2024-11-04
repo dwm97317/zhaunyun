@@ -447,7 +447,7 @@ class Batch extends Controller
     {
         $settingDate = SettingModel::getItem('forwarder_setting',$this->getWxappId());
         $a = $b = $c = '';
-        if($settingDate['firstword_mode']==1){
+        if($settingDate['batch']==1){
             $a = $settingDate['firstword'];
         }
         if($settingDate['ftime_mode']==1){
