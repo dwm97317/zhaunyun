@@ -92,7 +92,7 @@ class Batch extends BatchModel
     {
         if($data['transfer']==1){
             $data['express'] = $data['tt_number'];
-            $data['express_no'] = $data['t_order_sn'];
+            $data['express_no'] = $data['express_no'];
         }else{
             $data['express'] = $data['t_number'];
         }
