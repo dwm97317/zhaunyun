@@ -76,6 +76,9 @@ class Controller extends \think\Controller
         if ($wxapp['is_recycle'] || $wxapp['is_delete']) {
             throw new BaseException(['msg' => '当前小程序已删除']);
         }
+        if ($wxapp['end_time']< time()) {
+            throw new BaseException(['msg' => '当前系统已到期']);
+        }
     }
 
     public function withImageById($data,$field,$name=null){

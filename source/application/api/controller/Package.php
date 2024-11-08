@@ -2041,7 +2041,6 @@ class Package extends Controller
                   ], [$user['nickName']]);
                   
                     $message = ['success' => '支付成功', 'error' => '支付失败'];
-                    // return $this->renderSuccess(compact('message'), $message);
                      break;
                 case 20:
                     // 构建微信支付
@@ -2142,19 +2141,28 @@ class Package extends Controller
          //处理通知信息
          $clerk = (new Clerk())->where('shop_id',$pack['storage_id'])->where('mes_status',0)->where('is_delete',0)->select();
        
+         $tplmsgsetting = SettingModel::getItem('tplMsg',$pack['wxapp_id']);
          if(!empty($clerk)){
-         $data=[
-            'amount' =>$amount,
-            'paytime' => getTime(),
-            'packid' => $id,
-            'wxapp_id' => \request()->get('wxapp_id'),
-            'remark' => $pack['remark'],
-          ];
-           
-          foreach ($clerk as $key => $val){
-                 $data['clerkid'] = $val['user_id'];
-                 $reeee = Message::send('order.paymessage',$data);  
-          }
+             $data=[
+                'amount' =>$amount,
+                'paytime' => getTime(),
+                'packid' => $pack['order_sn'],
+                'wxapp_id' => \request()->get('wxapp_id'),
+                'remark' => $pack['remark'],
+              ];
+            
+            if($tplmsgsetting['is_oldtps']==1){
+                  //循环通知员工打包消息 
+                  foreach ($clerk as $key => $val){
+                      $data['clerkid'] = $val['user_id'];
+                      Message::send('order.paymessage',$data);   
+                  }
+              }else{
+                  foreach ($clerk as $key => $val){
+                      $data['member_id'] = $val['user_id'];
+                      Message::send('package.paysuccess',$data);
+                  }
+              }
          }
           // 处理分销逻辑的源头
           $this->dealerData(['amount'=>$amount,'order_id'=>$id],$user);
