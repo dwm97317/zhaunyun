@@ -6,6 +6,38 @@
                     <div class="widget-body">
                         <fieldset>
                             <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">电脑端全局功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    集运订单分页默认数量设置
+                                </label>
+                                <div class="am-u-sm-9">
+                                   <select name="adminstyle[pageno][inpack]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="15" <?= $values['pageno']['inpack'] == '15' ? 'selected' : '' ?>>15</option>
+                                            <option value="30" <?= $values['pageno']['inpack'] == '30' ? 'selected' : '' ?>>30</option>
+                                            <option value="50" <?= $values['pageno']['inpack'] == '50' ? 'selected' : '' ?>>50</option>
+                                            <option value="100" <?= $values['pageno']['inpack'] == '100' ? 'selected' : '' ?>>100</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    包裹分页默认数量设置
+                                </label>
+                                <div class="am-u-sm-9">
+                                   <select name="adminstyle[pageno][package]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="15" <?= $values['pageno']['package'] == '15' ? 'selected' : '' ?>>15</option>
+                                            <option value="30" <?= $values['pageno']['package'] == '30' ? 'selected' : '' ?>>30</option>
+                                            <option value="50" <?= $values['pageno']['package'] == '50' ? 'selected' : '' ?>>50</option>
+                                            <option value="100" <?= $values['pageno']['package'] == '100' ? 'selected' : '' ?>>100</option>
+                                    </select>
+                                </div>
+                            </div>
+                         
+                            <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">包裹入库功能设置</div>
                             </div>
 

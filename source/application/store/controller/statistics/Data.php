@@ -4,6 +4,7 @@ namespace app\store\controller\statistics;
 
 use app\store\controller\Controller;
 use app\store\service\statistics\Data as StatisticsDataService;
+use app\store\model\Inpack;
 
 /**
  * 数据概况
@@ -66,6 +67,40 @@ class Data extends Controller
      //渠道排行榜    
     public function ditch(){
       return $this->fetch('ditch', ['ditchRanking' => $this->statisticsDataService->geOrderDitchRanking()]); 
+    }
+    
+    //集运订单排行榜    
+    public function inpackorder(){
+      $Inpack = new Inpack;
+      $param = $this->request->param();
+      $start = strtotime(date("Y-m-1",time()));
+      $end = time();
+      if(isset($param['start_time']) && isset($param['end_time'])){
+          $start = $param['start_time'];
+          $end = $param['end_time'];
+      }
+      $orderinpack = [
+        0=> [
+            'mouth'=>1,
+            'pay_type'=> '月结',
+            'totalprice'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->SUM("real_payment"),
+            'haspay'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->where('is_pay',1)->count(),
+            'ordernum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->count(),
+            'customnum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->count('DISTINCT member_id'),
+        ],
+        1=>[
+            'mouth'=>1,
+            'pay_type'=> '货到付款',
+            'totalprice'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->SUM("real_payment"),
+            'haspay'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_pay',1)->count(),
+            'ordernum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->count(),
+            'customnum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->count('DISTINCT member_id'),
+        ]
+      ]; 
+    //   dump($Inpack->getLastsql());die;
+      return $this->fetch('inpackorder', [
+          'ditchRanking' => $orderinpack]
+      ); 
     }
     
 

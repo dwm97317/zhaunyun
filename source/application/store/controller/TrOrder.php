@@ -892,8 +892,10 @@ class TrOrder extends Controller
         $Track = new Track;
         $set = Setting::detail('store')['values'];
         $userclient =  Setting::detail('userclient')['values'];
-        $list = $model->getList($dataType, $this->request->param());
-      
+        $adminstyle = Setting::detail('adminstyle')['values'];
+        $params = $this->request->param();
+        $params['limitnum'] = isset($adminstyle['pageno'])?$adminstyle['pageno']['inpack']:15;
+        $list = $model->getList($dataType, $params);
         $tracklist = $Track->getAllList();
         $servicelist = $Clerk->where('clerk_authority','like','%is_myuser%')->where('clerk_authority','like','%is_myuserpackage%')->where('is_delete',0)->select();
         $pintuanlist = (new SharingOrder())->getAllList();
@@ -904,7 +906,7 @@ class TrOrder extends Controller
             $value['num'] =  (new Package())->where(['inpack_id'=>$value['id'],'is_delete'=>0])->count();
         }
 //   dump($pintuanlist->toArray());die;
-        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
+        return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
     }
     
         //货到付款欠费用户列表
@@ -2807,7 +2809,7 @@ class TrOrder extends Controller
        
         if($ids){
            $data = (new Inpack())->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
-                    $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
+                    $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile,user_code')->find();
                     $item['t_name'] = (new Line())->where('id',$item['line_id'])->value('name');
                     $item['total_free'] = $item['free']+ $item['pack_free'] +$item['other_free'] +$item['insure_free'];
                     
@@ -2863,7 +2865,7 @@ class TrOrder extends Controller
             }
             $data =(new Inpack())->where($where)->select()->each(function ($item, $key) use($map){
                     $item['total_free'] = $item['free']+ $item['pack_free'] +$item['other_free'] +$item['insure_free'];
-                    $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile')->find();
+                    $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile,user_code')->find();
                     //判断是否有优惠折扣
                     $discountData = (new UserLine())->where(['user_id'=>$item["user"]['user_id'],'line_id'=>$item['line_id']])->find();
                     if($discountData){
@@ -2992,7 +2994,12 @@ class TrOrder extends Controller
         //8.设置当前激活的sheet表格名称；
         $objPHPExcel->getActiveSheet()->setTitle('业务结算清单');
         //9.设置浏览器窗口下载表格
-        $filename = "用户包裹"  . rand(1000000, 9999999) . ".xlsx";
+        if($setting['usercode_mode']['is_show']==0){
+            $filename = $data[0]['user']['user_id'].'-'. date("Ymd") . ".xlsx";
+        }else{
+            $filename = $data[0]['user']['user_code'].'-'. date("Ymd") . ".xlsx";
+        }
+        
         // $objWriter = new \PHPExcel_Writer_Excel5($objPHPExcel);
 
         $ov = \PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");

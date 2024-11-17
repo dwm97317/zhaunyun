@@ -590,6 +590,10 @@ return [
                 'index' => 'statistics.data/ditch',
             ],
             [
+                'name' => '订单统计',
+                'index' => 'statistics.data/inpackorder',
+            ],
+            [
                 'name' => '数据大屏',
                 'index' => 'statistics.data/datascreen',
             ], 

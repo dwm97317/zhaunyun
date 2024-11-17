@@ -594,14 +594,24 @@ class Useropration extends Controller
             $usernewArr= array_unique($userArr);
             foreach ($usernewArr as $key => $val){
                 //查询出所有的shop_id为仓管所在仓库的集运单；
-               $rest= $Package->where('member_id',$val)->where('storage_id',$clerk['shop_id'])->where('status','<',10)->with(['Member','address','shelfunititem.shelfunit.shelf'])->select();
+               $rest= $Package->where('member_id',$val)
+               ->where('storage_id',$clerk['shop_id'])
+               ->where('status','<',10)
+               ->where('is_delete',0)
+               ->with(['Member','address','shelfunititem.shelfunit.shelf'])
+               ->select();
                if(count($rest)>0){
                    $pack[$i] = $rest;
                    $i += 1;
                }
             }
          
-            $packs = $Package->where('express_num',$code)->where('storage_id',$clerk['shop_id'])->where('status','<',10)->with(['Member','address','shelfunititem.shelfunit.shelf'])->select();
+            $packs = $Package->where('express_num',$code)
+            ->where('storage_id',$clerk['shop_id'])
+            ->where('status','<',10)
+            ->where('is_delete',0)
+            ->with(['Member','address','shelfunititem.shelfunit.shelf'])
+            ->select();
             
             if(count($packs)>0){
                 $pack[0] = $packs;
@@ -610,7 +620,12 @@ class Useropration extends Controller
         }
         //扫码签收
         if($type==2){
-            $pack[$i] = $Package->where('storage_id',$clerk['shop_id'])->where('status','<',10)->where('express_num',$code)->with(['Member','address','shelfunititem.shelfunit.shelf'])->select();
+            $pack[$i] = $Package->where('storage_id',$clerk['shop_id'])
+            ->where('status','<',10)
+            ->where('is_delete',0)
+            ->where('express_num',$code)
+            ->with(['Member','address','shelfunititem.shelfunit.shelf'])
+            ->select();
             return $this->renderSuccess($pack); 
         }
     }
@@ -666,8 +681,12 @@ class Useropration extends Controller
         }
         $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->with('shop')->find();
         $Package = new Package();
+        $Inpack = new Inpack();
         $res = $Package->where('id',$id)->update(['status'=> 10,'receipt_time'=>getTime()]);
         $packData = $Package->getDetails($id,"*");
+        if(!empty($packData['inpack_id'])){
+            $Inpack->where('id',$packData['inpack_id'])->update(['status'=>8,'receipt_time'=>getTime()]);
+        }
         //进行模板消息，邮件通知
         $userInfo = $this->user;
         $logis['code'] = $packData['express_num'];

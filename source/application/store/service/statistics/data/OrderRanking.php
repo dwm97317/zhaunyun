@@ -5,6 +5,7 @@ namespace app\store\service\statistics\data;
 use app\common\service\Basics as BasicsService;
 use app\store\model\OrderGoods as OrderGoodsModel;
 use app\store\model\Countries as CountriesModel;
+use app\store\model\Inpack as InpackModel;
 use app\common\enum\order\Status as OrderStatusEnum;
 use app\common\enum\order\PayStatus as OrderPayStatusEnum;
 
@@ -38,5 +39,6 @@ class OrderRanking extends BasicsService
             // ->limit(10)
             ->select();
     }
+
 
 }

@@ -51,7 +51,7 @@ class Data extends Basics
     {
         return (new OrderRanking)->getOrderCountryRanking();
     }
-
+    
     /**
      * 商品销售榜
      * @return string

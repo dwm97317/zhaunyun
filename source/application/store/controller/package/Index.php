@@ -46,6 +46,8 @@ class Index extends Controller
         $packageModel = new Package();
         $Category = new Category();
         $map = \request()->param();
+        $adminstyle = Setting::detail('adminstyle')['values'];
+        $map['limitnum'] = isset($adminstyle['pageno'])?$adminstyle['pageno']['package']:15;
         $list = $packageModel->getList($map);
         // dump($packageModel->getLastsql());die;
         $shelf =   (new Shelf())->getList(['ware_no' => $this->store['user']['shop_id']]);
@@ -62,7 +64,7 @@ class Index extends Controller
         $packageService = (new PackageService())->getList([]);
         //获取设置
         $set = Setting::detail('store')['values'];
-        $adminstyle = Setting::detail('adminstyle')['values'];
+        
         $type = 'all';
    
         $topcategory = $Category->getListTop($name=null)->toArray()['data'];

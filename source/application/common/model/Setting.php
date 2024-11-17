@@ -424,6 +424,10 @@ class Setting extends BaseModel
                     'delivertempalte'=>[
                         'orderface'=> 10, //原始面单  20=系统名称改为集运路线  30=带查询物流二维码的
                         'labelface'=>10,  // 原始标签  20=二维码上显示包裹信息的
+                    ],
+                    'pageno'=>[
+                        'package'=> 15, //默认分页数量
+                        'inpack'=>15,  // 默认分页数量
                     ]
                 ]
             ],
