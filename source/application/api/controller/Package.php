@@ -276,9 +276,6 @@ class Package extends Controller
          if (!$storage){
              return $this->renderError('仓库信息错误');
          }
-         if (!$post['express_id']){
-             return $this->renderError('请选择快递');
-         }
          if (!$post['express_sn']){
              return $this->renderError('快递单号错误');
          }
