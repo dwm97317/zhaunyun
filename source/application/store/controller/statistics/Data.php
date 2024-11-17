@@ -83,18 +83,18 @@ class Data extends Controller
         0=> [
             'mouth'=>1,
             'pay_type'=> '月结',
-            'totalprice'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->SUM("real_payment"),
-            'haspay'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->where('is_pay',1)->SUM("real_payment"),
-            'ordernum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->count(),
-            'customnum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->count('DISTINCT member_id'),
+            'totalprice'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->where('is_delete',0)->SUM("real_payment"),
+            'haspay'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->where('is_pay',1)->where('is_delete',0)->SUM("real_payment"),
+            'ordernum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->where('is_delete',0)->count(),
+            'customnum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->where('is_delete',0)->count('DISTINCT member_id'),
         ],
         1=>[
             'mouth'=>1,
             'pay_type'=> '货到付款',
-            'totalprice'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->SUM("real_payment"),
-            'haspay'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_pay',1)->SUM("real_payment"),
-            'ordernum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->count(),
-            'customnum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->count('DISTINCT member_id'),
+            'totalprice'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_delete',0)->SUM("real_payment"),
+            'haspay'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_pay',1)->where('is_delete',0)->SUM("real_payment"),
+            'ordernum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_delete',0)->count(),
+            'customnum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_delete',0)->count('DISTINCT member_id'),
         ]
       ]; 
     //   dump($Inpack->getLastsql());die;
