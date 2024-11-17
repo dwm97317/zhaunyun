@@ -73,8 +73,8 @@ class Data extends Controller
     public function inpackorder(){
       $Inpack = new Inpack;
       $param = $this->request->param();
-      $start = strtotime(date("Y-m-1",time()));
-      $end = time();
+      $start = date("Y-m-1",time());
+      $end = date("Y-m-d",time());
       if(isset($param['start_time']) && isset($param['end_time'])){
           $start = $param['start_time'];
           $end = $param['end_time'];
