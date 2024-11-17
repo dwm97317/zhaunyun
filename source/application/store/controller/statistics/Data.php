@@ -79,8 +79,7 @@ class Data extends Controller
           $start = $param['start_time'];
           $end = date("Y-m-d",strtotime($param['end_time'])+86400);
       }
-      $orderinpack = [
-        $orderinpack = [
+    $orderinpack = [
         0=> [
             'mouth'=>1,
             'pay_type'=> '月结',
@@ -98,7 +97,6 @@ class Data extends Controller
             'customnum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_delete',0)->count('DISTINCT member_id'),
         ]
       ]; 
-    //   dump($Inpack->getLastsql());die;
       return $this->fetch('inpackorder', [
           'ditchRanking' => $orderinpack]
       ); 
