@@ -295,14 +295,10 @@ class Package extends Controller
              return $this->renderError('快递单号不能使用特殊字符');
            } 
          }
-         
-         $express = (new Express())->getValueById($post['express_id'],'express_name');
-         $express_code = (new Express())->getValueById($post['express_id'],'express_code');
-        //  dump($express);die;
-         if (!$express){
-             return $this->renderError('快递信息错误');
+         if(isset($post['express_id'])){
+             $express = (new Express())->getValueById($post['express_id'],'express_name');
+             $express_code = (new Express())->getValueById($post['express_id'],'express_code');
          }
-         
          $goodslist = isset($post['goodslist'])?$post['goodslist']:[];
          if (isset($post['share_id']) && $post['share_id']){
              $ShareSettingService = (new ShareOrderService());
@@ -452,7 +448,7 @@ class Package extends Controller
          $noticesetting = SettingModel::getItem('notice');
          $storesetting = SettingModel::getItem('store');
         //  dump($noticesetting);die;
-         if($noticesetting['is_track_yubao']['is_enable']==1){
+         if($noticesetting['is_track_yubao']['is_enable']==1 && isset($express_code)){
                 $trackd = (new TrackApi())
                 ->register([
                     'track_sn'=>$post['express_num'],
