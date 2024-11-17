@@ -156,6 +156,32 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 仓库位置 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shop[type]" value="0" data-am-ucheck checked>
+                                        国内仓库
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shop[type]" value="1" data-am-ucheck>
+                                        国外仓库
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 仓库类型 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shop[is_join]" value="0" data-am-ucheck checked>
+                                        自营仓库
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shop[is_join]" value="1" data-am-ucheck>
+                                        加盟仓库
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 仓库状态 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">
@@ -166,6 +192,20 @@
                                     <label class="am-radio-inline">
                                         <input type="radio" name="shop[status]" value="0" data-am-ucheck>
                                         禁用
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否公开 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shop[is_see]" value="1" data-am-ucheck
+                                            checked>
+                                        公开
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shop[is_see]" value="0" data-am-ucheck>
+                                        不公开
                                     </label>
                                 </div>
                             </div>

@@ -36,7 +36,8 @@ use app\store\model\UploadFile;
 use app\store\model\Track;
 use app\common\library\Pinyin;
 use app\common\library\AITool\BaiduTextTran;
-
+use Dompdf\Dompdf;
+use Dompdf\Options;
 /**
  * 订单管理
  * Class Order
@@ -2189,14 +2190,21 @@ class TrOrder extends Controller
     // 渲染面单生成网页数据
     public function template10($data){
       return  $html = '<style>
+      @font-face
+        {
+            font-family:ttt;
+            src: url(assets/common/fonts/msyh.ttf)
+        }
 	* {
 		margin: 0;
-		padding: 0
+		padding: 0;
+		font-family: ttt, sans-serif;
+		
 	}
 
 	table {
 		margin-top: -1px;
-		font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
+		font: 12px,msyh, dejavu serif, arial, sans-serif;
 		border-collapse: collapse
 	}
 
@@ -2708,14 +2716,66 @@ class TrOrder extends Controller
     // 批量打印面单 [生成pdf]
     public function expressBillbatch(){
         $selectIds = $this->postData("selectIds");
-        $inpack = (new Inpack());    
+        $inpack = (new Inpack());   
+        
+        
         $data = $inpack->getExpressBatchData($selectIds);
+        // dump($data);die;
         $html = '';
+        $setting = Setting::getItem('store',$data[0]['wxapp_id']);
+        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
         foreach($data as $v){
+           $v['setting'] = $setting;
+           $v['barcode'] = $generatorSVG->getBarcode($v['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
+           
+           $v['shoujianren'] = $v['address']['name'];
+           isset($v['setting']['address_setting']['is_tel_code'])  && $v['setting']['address_setting']['is_tel_code']==1 && $v['shoujianren']=$v['shoujianren'].$v['address']['tel_code'];
+           $v['shoujianren']= $v['shoujianren'].'  '.$v['address']['phone'];
+    
+           $v['address']['xiangxi'] = $v['address']['country'];
+           isset($v['setting']['address_setting']['is_province'])  && $v['setting']['address_setting']['is_province']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['province'];
+           
+           isset($v['setting']['address_setting']['is_city'])  && $v['setting']['address_setting']['is_city']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['city'];
+           
+           isset($v['setting']['address_setting']['is_region'])  && $v['setting']['address_setting']['is_region']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['region'];
+           
+           isset($v['setting']['address_setting']['is_street'])  && $v['setting']['address_setting']['is_street']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['street'];
+           
+           isset($v['setting']['address_setting']['is_door'])  && $v['setting']['address_setting']['is_door']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['door'];
+           
+           $v['address']['xiangxi'] = $v['address']['xiangxi'] . $v['address']['detail'];
+           
            $html.= $this->template10($v); 
            $html.="</hr>";
         }
-        file_put_contents('expressBill.html', charsetToUTF8($html));
+        $html = mb_convert_encoding($html,'UTF-8','auto'); 
+        $options = new Options();
+        $options->set('enable_remote', TRUE);
+        $options->set('defaultFont','monospace.ttf');
+        $dompdf = new Dompdf($options);
+        
+        // dump($html);die;
+        $dompdf->loadHtml($html, 'UTF-8');
+        // 加载HTML到Dompdf
+        // $dompdf->loadHtml(charsetToUTF8($html));
+        
+        // 设置（纸张大小和方向）
+        // 可在https://dompdf.github.io/查看支持的纸张尺寸
+        $dompdf->setPaper('A4', 'portrait');
+         
+        // 渲染HTML为PDF
+        $dompdf->render();
+        // $dompdf->stream("output.pdf", array("Attachment" => false));
+        // 指定文件名和路径
+        $filename =  rand(100000,999999);
+        $filePath = WEB_PATH.'/excel/'. $filename .'.pdf';
+ 
+        // 将PDF内容保存到服务器文件
+        file_put_contents($filePath, $dompdf->output()); 
+        return base_url().'/excel/'.$filename.'.pdf'; 
+        // 输出PDF到浏览器（用于直接预览）
+        // echo($html);
+        // file_put_contents('expressBill.html', charsetToUTF8($html));
     }
     
     

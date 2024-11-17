@@ -4,7 +4,7 @@ composer.lock
 *.txt
 *.css.map
 .sass-cache
-web/excel
+web/excel/
 web/uploads
 web/html5
 web/html5/

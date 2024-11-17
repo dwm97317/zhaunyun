@@ -33,6 +33,8 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
             'Symfony\\Polyfill\\Php72\\' => 23,
             'Symfony\\Polyfill\\Intl\\Normalizer\\' => 33,
             'Symfony\\Polyfill\\Intl\\Idn\\' => 26,
+            'Svg\\' => 4,
+            'Sabberworm\\CSS\\' => 15,
         ),
         'Q' => 
         array (
@@ -52,6 +54,7 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
         'M' => 
         array (
             'MyCLabs\\Enum\\' => 13,
+            'Masterminds\\' => 12,
         ),
         'L' => 
         array (
@@ -65,6 +68,14 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
             'GuzzleHttp\\Command\\' => 19,
             'GuzzleHttp\\' => 11,
             'Grafika\\' => 8,
+        ),
+        'F' => 
+        array (
+            'FontLib\\' => 8,
+        ),
+        'D' => 
+        array (
+            'Dompdf\\' => 7,
         ),
     );
 
@@ -92,6 +103,14 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
         'Symfony\\Polyfill\\Intl\\Idn\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-intl-idn',
+        ),
+        'Svg\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phenx/php-svg-lib/src/Svg',
+        ),
+        'Sabberworm\\CSS\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/sabberworm/php-css-parser/src',
         ),
         'Qiniu\\' => 
         array (
@@ -121,6 +140,10 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
         array (
             0 => __DIR__ . '/..' . '/myclabs/php-enum/src',
         ),
+        'Masterminds\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/masterminds/html5/src',
+        ),
         'Lvht\\' => 
         array (
             0 => __DIR__ . '/..' . '/lvht/geohash/src',
@@ -149,10 +172,19 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
         array (
             0 => __DIR__ . '/..' . '/kosinix/grafika/src/Grafika',
         ),
+        'FontLib\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phenx/php-font-lib/src/FontLib',
+        ),
+        'Dompdf\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dompdf/dompdf/src',
+        ),
     );
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'Dompdf\\Cpdf' => __DIR__ . '/..' . '/dompdf/dompdf/lib/Cpdf.php',
         'Normalizer' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
     );
 

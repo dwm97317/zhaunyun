@@ -1573,7 +1573,7 @@
         });
         
         /**
-         * 批量手动更新物流信息
+         * 批量打印面单
          */
         $('#j-batch-print').on('click', function () {
             var $tabs, data = $(this).data();
@@ -1589,7 +1589,7 @@
                 data:{selectIds:selectIds},
                 dataType:"JSON",
                 success:function(result){
-                    console.log(result,'2222');
+                    window.open(result, '_blank');
                 }
             })
             

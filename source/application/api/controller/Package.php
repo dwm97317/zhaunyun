@@ -1418,7 +1418,7 @@ class Package extends Controller
          $query['member_id'] = $this->user['user_id']; 
          $list = (new Inpack())->getList($query);
          foreach ($list as &$value) {
-            $value['num'] = count(explode(',',$value['pack_ids']));
+            $value['num'] =  (new PackageModel())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['weight_unit'] = [10=>'g',20=>'kg',30=>'lbs',40=>'cbm'];
             $value['total_free'] = round($value['free'] + $value['pack_free'] + $value['other_free'] + $value['insure_free'],2);
          }
@@ -1447,7 +1447,7 @@ class Package extends Controller
          $query['member_id'] = $this->user['user_id']; 
          $list = (new Inpack())->getList($query);
          foreach ($list as &$value) {
-            $value['num'] = count(explode(',',$value['pack_ids']));
+            $value['num'] = (new PackageModel())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['weight_unit'] = [10=>'g',20=>'kg',30=>'lbs',40=>'cbm'];
             $value['total_free'] = round($value['free'] + $value['pack_free'] + $value['other_free'] + $value['insure_free'],2);
          }
@@ -1464,7 +1464,7 @@ class Package extends Controller
          $query['member_id'] = $this->user['user_id']; 
          $list = (new Inpack())->getList($query);
          foreach ($list as &$value) {
-            $value['num'] = count(explode(',',$value['pack_ids']));
+            $value['num'] =  (new PackageModel())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['total_free'] = $value['free'] + $value['pack_free'] + $value['other_free'];
          }
          return $this->renderSuccess($list);

@@ -515,8 +515,7 @@ class Useropration extends Controller
             $UserModel = new UserModel();
             $UserAddress = new UserAddress();
             $userData = $UserModel->where('user_id|user_code|mobile','like','%'.$code.'%')->field('user_id')->select()->toArray();
-         
-            $userData2 = $UserAddress->field('user_id,region')->where('phone','like','%'.$code.'%')->select()->toArray();
+            $userData2 = $UserAddress->field('user_id')->where('phone','like','%'.$code.'%')->select()->toArray();
             $userCon = array_merge($userData,$userData2);
             $userArr =[];
             if(count($userCon)>0){
@@ -527,15 +526,25 @@ class Useropration extends Controller
             $usernewArr= array_unique($userArr);
             foreach ($usernewArr as $key => $val){
                 //查询出所有的shop_id为仓管所在仓库的集运单；
-               $rest= $Inpack->where('member_id',$val)->where('shop_id',$clerk['shop_id'])->where('status','<',8)->with(['Member','address','service','shelfunititem.shelfunit.shelf'])->select();
+               $rest= $Inpack->where('member_id',$val)
+                ->where('shop_id',$clerk['shop_id'])
+                ->where('status','<',8)
+                ->where('is_delete',0)
+                ->with(['Member','address','service','shelfunititem.shelfunit.shelf'])
+                ->select();
                if(count($rest)>0){
                    $pack[$i] = $rest;
                    $i += 1;
                }
             }
          
-            $packs = $Inpack->where('take_code|order_sn|t_order_sn',$code)->where('shop_id',$clerk['shop_id'])->where('status','<',8)->with(['Member','address','service','shelfunititem.shelfunit.shelf'])->select();
-            //   dump($packs);die;
+            $packs = $Inpack->where('is_delete',0)
+            ->where('take_code|order_sn|t_order_sn',$code)
+            ->where('shop_id',$clerk['shop_id'])
+            ->where('status','<',8)
+            ->with(['Member','address','service','shelfunititem.shelfunit.shelf'])
+            ->select();
+           
             if(count($packs)>0){
                 $pack[0] = $packs;
             }
@@ -544,7 +553,11 @@ class Useropration extends Controller
         
         //扫码签收
         if($type==2){
-            $pack[$i] = $Inpack->where('shop_id',$clerk['shop_id'])->where('status','<',8)->where('order_sn|t_order_sn',$code)->with(['Member','address','service','shelfunititem.shelfunit.shelf'])->select();
+            $pack[$i] = $Inpack->where('is_delete',0)
+                ->where('shop_id',$clerk['shop_id'])
+                ->where('status','<',8)->where('order_sn|t_order_sn',$code)
+                ->with(['Member','address','service','shelfunititem.shelfunit.shelf'])
+                ->select();
             return $this->renderSuccess($pack); 
         }
     }
