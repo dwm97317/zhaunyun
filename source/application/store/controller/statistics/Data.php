@@ -74,16 +74,17 @@ class Data extends Controller
       $Inpack = new Inpack;
       $param = $this->request->param();
       $start = date("Y-m-1",time());
-      $end = date("Y-m-d",time());
+      $end = date("Y-m-d",time()+86400);
       if(isset($param['start_time']) && isset($param['end_time'])){
           $start = $param['start_time'];
-          $end = $param['end_time'];
+          $end = date("Y-m-d",strtotime($param['end_time'])+86400);
       }
       $orderinpack = [
+        $orderinpack = [
         0=> [
             'mouth'=>1,
             'pay_type'=> '月结',
-            'totalprice'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->where('is_delete',0)->SUM("real_payment"),
+            'totalprice'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->where('is_delete',0)->SUM("free+pack_free+other_free"),
             'haspay'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->where('is_pay',1)->where('is_delete',0)->SUM("real_payment"),
             'ordernum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->where('is_delete',0)->count(),
             'customnum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',2)->where('is_delete',0)->count('DISTINCT member_id'),
@@ -91,7 +92,7 @@ class Data extends Controller
         1=>[
             'mouth'=>1,
             'pay_type'=> '货到付款',
-            'totalprice'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_delete',0)->SUM("real_payment"),
+            'totalprice'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_delete',0)->SUM("free+pack_free+other_free"),
             'haspay'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_pay',1)->where('is_delete',0)->SUM("real_payment"),
             'ordernum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_delete',0)->count(),
             'customnum'=>$Inpack->whereBetween('created_time',[$start,$end])->where('pay_type',1)->where('is_delete',0)->count('DISTINCT member_id'),
