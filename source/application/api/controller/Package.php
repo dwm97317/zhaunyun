@@ -517,7 +517,7 @@ class Package extends Controller
              return $this->renderError('快递单号不能使用特殊字符');
          }
          $express = "国内快递";
-         if(isset($post['express_id'])){
+         if(isset($post['express_id']) && $post['express_id'] !=0){
              $express = (new Express())->getValueById($post['express_id'],'express_name');
              if (!$express){
                  return $this->renderError('快递信息错误');
