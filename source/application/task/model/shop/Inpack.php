@@ -12,6 +12,26 @@ use app\common\service\Order as OrderService;
  */
 class Inpack extends InpackModel
 {
+    
+        
+    /**
+     * 获取超时的集运订单
+     * @return false|\PDOStatement|string|\think\Collection
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function getExceedList($wxapp_id)
+    {
+        return (new InpackModel())
+            ->where('is_delete', '=', 0)
+            ->where('status', '=', 6)
+            ->where('exceed_date','>',0)
+            ->where('exceed_date','<',time())
+            ->where('wxapp_id',$wxapp_id)
+            ->select();
+    }
+    
     /**
      * 获取未结算的集运订单
      * @return false|\PDOStatement|string|\think\Collection

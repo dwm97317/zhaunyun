@@ -34,6 +34,10 @@ class Inpack extends BaseModel
         
     }
     
+    public static function setExceedOrder($item){
+        return self::detail($item['id'])->save(['is_exceed'=>1]);
+    }
+    
      /**
      * 滞留件并发送消息
      * @param array|\think\Model $order 订单详情

@@ -533,6 +533,13 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 超时时间</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                     <input type="number" min="0" class="tpl-form-input" name="line[exceed_date]" value="<?= $model['exceed_date']; ?>"
+                                           required><small>设置订单超时的最大时间，在订单发货累计到达设置天数后，则订单会被标记为超时件。设置0天则不参与超时处理</small>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 关税说明 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                      <input type="text"  class="tpl-form-input" name="line[tariff]" value="<?= $model['tariff']; ?>"

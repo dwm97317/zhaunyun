@@ -29,17 +29,46 @@ class Inpack
         }
         $this->model = $model;
         $this->wxappId = $model::$wxapp_id;
+        // dump(Cache::has("__task_space__ShopOrder__{$this->wxappId}"));die;
         if (!Cache::has("__task_space__ShopOrder__{$this->wxappId}")) {
             $this->model->startTrans();
             try {
                 // 发放加盟订单佣金
                 $this->grantMoney();
+                // 设置超时件的状态
+                $this->setExceed();
                 $this->model->commit();
             } catch (\Exception $e) {
                 $this->model->rollback();
             }
             Cache::set("__task_space__ShopOrder__{$this->wxappId}", time(), 3600);
         }
+        return true;
+    }
+
+    /**
+     * 设置超时间
+     * @return bool
+     * @throws \think\Exception
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    private function setExceed()
+    {
+        // 获取未结算佣金的订单列表
+      
+        $list = $this->model->getExceedList($this->wxappId);
+    //  dump($list);die;
+        if ($list->isEmpty()) return false;
+        foreach ($list->toArray() as $item) {
+            // 未被标记的订单
+            if ($item['is_exceed'] == 0) {
+                InpackModel::setExceedOrder($item);
+            }
+        }
+        // 记录日志
+        $this->dologs('setExceed', ['Ids' => $list]);
         return true;
     }
 

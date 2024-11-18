@@ -780,7 +780,9 @@ class Inpack extends InpackModel
             }
         }
         unset($update['verify']);
-        
+        $linedetail = $Line->details($pack['line_id']);
+        $update['sendout_time'] = getTime();
+        $update['exceed_date'] = $linedetail['exceed_date']==0?0:(time()+$linedetail['exceed_date']*86400);
         if($data['type']=='change'){
        
             $upd['t2_number'] = $update['t_number'];
