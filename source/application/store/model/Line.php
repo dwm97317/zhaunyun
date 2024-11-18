@@ -160,7 +160,7 @@ class Line extends LineModel
       !empty($query) && $this->setListQueryWhere($query);
       return $this
         ->with('image')
-        ->order('created_time','desc')
+        ->order(['sort desc','created_time desc'])
         ->paginate(10,false,[
             'query'=>\request()->request()
         ]);

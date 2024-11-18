@@ -21,6 +21,7 @@ use app\store\model\Ditch as DitchModel;
 use app\store\model\Express;
 use app\common\service\Message;
 use app\common\model\DitchNumber;
+use app\store\model\Line;
 /**
  * 打包模型
  * Class Delivery
@@ -595,7 +596,8 @@ class Inpack extends InpackModel
      * @param $data []
      */
     public function modify($data){
-        $DitchNumber = new DitchNumber();       
+        $DitchNumber = new DitchNumber();
+        $Line = new Line();
         $field = ['line_id','length','width','height','weight','verify','free','pack_free','cale_weight','volume','other_free','remark','t_number','t_name','t_order_sn'];
         $update = [];
         //物流模板设置
