@@ -168,7 +168,7 @@ class Line extends LineModel
     
     public function getListAll(){
       return $this
-        ->order('created_time','desc')
+        ->order(['sort desc','created_time desc'])
         ->select();
     }
 
