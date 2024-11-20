@@ -15,6 +15,7 @@ use think\Cache;
 use app\api\model\Wxapp as WxappModel;
 use app\api\model\UserCoupon;
 use app\common\service\Message;
+use app\api\model\Certificate;
 /**
  * 用户管理
  * Class User

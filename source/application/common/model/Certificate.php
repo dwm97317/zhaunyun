@@ -87,10 +87,11 @@ class Certificate extends BaseModel
      */
     public function getList($scoreType)
     {
-        switch ($scoreType) {
+        switch ($scoreType['is_verify']) {
             case '1':
                 return $this
                 ->where('wxapp_id', '=',self::$wxapp_id)
+                ->where('user_id', '=',$scoreType['member_id'])
                 ->where('cert_status', '=',1)
                 ->order('create_time','desc')
                 ->paginate(15, false, [
@@ -102,6 +103,7 @@ class Certificate extends BaseModel
                 return $this
                 ->where('wxapp_id', '=',self::$wxapp_id)
                 ->where('cert_status', '=',2)
+                ->where('user_id', '=',$scoreType['member_id'])
                 ->order('create_time','desc')
                 ->paginate(15, false, [
                     'query' => request()->request()
@@ -113,6 +115,7 @@ class Certificate extends BaseModel
                 ->where('wxapp_id', '=',self::$wxapp_id)
                 ->where('cert_status', '=',3)
                 ->order('create_time','desc')
+                ->where('user_id', '=',$scoreType['member_id'])
                 ->paginate(15, false, [
                     'query' => request()->request()
                 ]);
