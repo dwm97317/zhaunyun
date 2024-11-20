@@ -34,14 +34,16 @@ class Certificate extends CertificateModel
     {
         // 生成图片数据
         $imageData = [];
-        
-        foreach ($imageIda as $imageId) {
-            $imageData[] = [
-                'cert_id' => $certId,
-                'image_id' => $imageId,
-                'wxapp_id' => self::$wxapp_id,
-                'create_time'=> time()
-            ];
+
+        if(count($imageIda)>0){
+            foreach ($imageIda as $imageId) {
+                $imageData[] = [
+                    'cert_id' => $certId,
+                    'image_id' => $imageId,
+                    'wxapp_id' => self::$wxapp_id,
+                    'create_time'=> time()
+                ];
+            }
         }
        
         $model = new CertificateImage();
@@ -56,7 +58,6 @@ class Certificate extends CertificateModel
      */
     public function add($post)
     {
-            // dump(isset($post['amount'])??$post['amount']);die;
         $data= [
           'cert_order' => isset($post['order_sn'])?$post['order_sn']:'',
           'cert_price' => isset($post['amount'])?$post['amount']:0,
@@ -68,8 +69,10 @@ class Certificate extends CertificateModel
           'create_time'=>time(),
           'update_time'=>time(),
         ];
+       
        $res = $this->insertGetId($data);
        $imageIda = $post['imageIds'];
+        
        $this->saveAllImages($res,$imageIda);
        if($res){
            return true;

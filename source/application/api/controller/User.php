@@ -274,13 +274,15 @@ class User extends Controller
          $post = $this->postData();
         
          $cer = (new Certificate());
-   
-         if (!$cer->create($post)){
+         $post['user_id'] = $userInfo['user_id'];
+        
+         if (!$cer->add($post)){
+             
             return $this->renderError($cer->getError()??"提交失败");
          }
 
         $clerk = (new Clerk())->where('mes_status',0)->where('is_delete',0)->select();
-                    
+                   
         if(!empty($clerk)){
               //循环通知员工打包消息 
               foreach ($clerk as $key => $val){
