@@ -47,9 +47,10 @@ class Index extends Controller
         $Category = new Category();
         $map = \request()->param();
         $adminstyle = Setting::detail('adminstyle')['values'];
-        $map['limitnum'] = isset($adminstyle['pageno'])?$adminstyle['pageno']['package']:15;
+        $map['limitnum'] = isset($map['limitnum'])?$map['limitnum']:(isset($adminstyle['pageno'])?$adminstyle['pageno']['package']:15);
+                // dump($map['limitnum']);die;
         $list = $packageModel->getList($map);
-        // dump($packageModel->getLastsql());die;
+
         $shelf =   (new Shelf())->getList(['ware_no' => $this->store['user']['shop_id']]);
         
         $countweight = '+∞';

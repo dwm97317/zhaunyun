@@ -25,12 +25,13 @@
                                     <div class="am-form-group am-fl">
                                         <select name="limitnum"
                                                 data-am-selected="{btnSize: 'sm', placeholder: '显示条数'}">
-                                            <option value="15" <?= isset($adminstyle['pageno']) && $adminstyle['pageno']['package'] == 15 ? 'selected' : '' ?> >显示15条</option>
-                                            <option value="30" <?= isset($adminstyle['pageno']) &&  $adminstyle['pageno']['package'] == 30 ? 'selected' : '' ?>>显示30条</option>
-                                            <option value="50" <?= isset($adminstyle['pageno']) && $adminstyle['pageno']['package'] == 50 ? 'selected' : '' ?>>显示50条</option>
-                                            <option value="100" <?= isset($adminstyle['pageno']) &&  $adminstyle['pageno']['package'] == 100 ? 'selected' : '' ?>>显示100条</option>
-                                            <option value="200" <?= isset($adminstyle['pageno']) && $adminstyle['pageno']['package'] == 200 ? 'selected' : '' ?>>显示200条</option>
-                                            <option value="500" <?= isset($adminstyle['pageno']) && $adminstyle['pageno']['package'] == 500 ? 'selected' : '' ?>>显示500条</option>
+                                            <option value="10" >默认显示<?= $adminstyle['pageno']['package'] ?>条</option>
+                                            <option value="15">显示15条</option>
+                                            <option value="30">显示30条</option>
+                                            <option value="50">显示50条</option>
+                                            <option value="100">显示100条</option>
+                                            <option value="200">显示200条</option>
+                                            <option value="500">显示500条</option>
                                         </select>
                                     </div>
                                     
