@@ -25,7 +25,9 @@
                                     <div class="am-form-group am-fl">
                                         <select name="limitnum"
                                                 data-am-selected="{btnSize: 'sm', placeholder: '显示条数'}">
+                                            <?php if (isset($adminstyle['pageno'])): ?>
                                             <option value="10" >默认显示<?= $adminstyle['pageno']['package'] ?>条</option>
+                                            <?php endif;?>
                                             <option value="15">显示15条</option>
                                             <option value="30">显示30条</option>
                                             <option value="50">显示50条</option>
