@@ -368,7 +368,7 @@ class Useropration extends Controller
                   'wxapp_id' =>  \request()->get('wxapp_id'),
                 ];
                 $pid =(new Package())->insertGetId($update);
-                $shelfdata['pack_id'] = $update['order_sn'];
+                $shelfdata['pack_id'] = $pid;
                 $shelfdata['user_id'] = '';
                 (new ShelfUnitItem())->post($shelfdata);
           }
