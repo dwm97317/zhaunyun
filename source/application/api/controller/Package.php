@@ -2609,17 +2609,14 @@ class Package extends Controller
             $packinck = $PackageModel->where(['inpack_id'=>$inpackData['id'],'is_delete' => 0])->find();
             if(!empty($packinck)){
                 $logictik = $Logistics->getorderno($inpackData['order_sn']);
-                // dump($logictik);die;
             }else{
                 if(!empty($packinck['express_num'])){
                     $logictik = $Logistics->getList($packinck['express_num']);
                 }
             }
             $logici = array_merge_hebing($logicv,$logictik);
-            // dump($logici);die;
         }
-        //   dump($logicv);die;
-        $logic = array_merge($logic,$logici,$logicv);
+        $logic = array_merge_hebing($logic,$logici,$logicv);
         return $this->renderSuccess(compact('logic'));
      }
      

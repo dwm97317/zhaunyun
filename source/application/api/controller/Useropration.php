@@ -891,7 +891,6 @@ class Useropration extends Controller
         }
     
        $res = (new Package())->where(['id'=>$id])->update($update);
-    //   dump($id);die;
        if (!$res){
         return $this->renderError('包裹更新失败');
        }
