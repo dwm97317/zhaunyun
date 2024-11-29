@@ -1477,13 +1477,11 @@ class TrOrder extends Controller
        $ids = array_keys($ids);
        $idsArr = explode(',',$ids[0]);
        $arruser = [];
-       $packids = null;
 
        //判断所有包裹是否同一用户
       foreach($idsArr as $key =>$val ){
            $pack = $model->where('id',$val)->find();
            $arruser[] = $pack['member_id'];
-           $packids = $packids.",".$pack['pack_ids'];
       }
      
       if(count(array_unique($arruser))>1){
@@ -1492,7 +1490,6 @@ class TrOrder extends Controller
        //将包裹的packids合并在一个集运单中，并将另外一个集运单状态设置为isdelete；
        //合并包裹思路一：将其他集运单状态改为删除，将快递单id添加到第一个集运单中；
        //合并包裹思路二：新创建新的集运单，之前的集运单全部改为删除状态；此方案可用于创建多用户拼邮；
-       $packids = explode(',',$packids,2)[1];
       
         //思路 随意找到集运单的一个基本信息，去除id即可使用基础数据，创建新的order_sn即可
           foreach($idsArr as $key =>$val ){
@@ -1503,10 +1500,7 @@ class TrOrder extends Controller
             }     
          
           $newpack = $model->find($idsArr[0])->toArray();
-          
-          $newpack['pack_ids'] = $packids;
           unset($newpack['id']);
-        //   $newpack['order_sn'] = createSn();
           $newpack['updated_time'] = getTime();
           $newpack['created_time'] = getTime();
           $newpack['is_delete'] = 0;
@@ -1516,9 +1510,8 @@ class TrOrder extends Controller
           if (!$result){
               return $this->renderSuccess('合并失败');
           }
-          $packidss = explode(',',$packids);
-          foreach ($packidss as $va){
-             $Package->where('id',$va)->update(['inpack_id'=>$result]); 
+          foreach ($idsArr as $va){
+             $Package->where('inpack_id',$va)->update(['inpack_id'=>$result]); 
           }
        //返回成功状态并提示合并成功；
        return $this->renderSuccess('合并成功');
