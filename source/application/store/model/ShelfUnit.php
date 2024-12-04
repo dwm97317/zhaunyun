@@ -120,7 +120,7 @@ class ShelfUnit extends ShelfUnitModel
     }
 
     // 生成货位数据
-    public function getShelfUnitData($data,$shelf){
+    public function getShelfUnitData($data,$shelf,$type){
         $shelf_unit = [];
           
         $allrang = $data['shelf_row']*$data['shelf_column'];
@@ -129,7 +129,7 @@ class ShelfUnit extends ShelfUnitModel
             //   dump(createQrcodeCode($data['shelf_no'].'S'.$i));die;
                 $shelf_unit[$i]['shelf_unit_no'] = 'S'.$i;
                 $shelf_unit[$i]['shelf_unit_code'] = $data['shelf_no'].'S'.$i;
-                $shelf_unit[$i]['shelf_unit_qrcode'] = $qrcodeService->create($data['shelf_no'].'S'.$i);
+                $shelf_unit[$i]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'].'S'.$i,$type);
                 $shelf_unit[$i]['shelf_id'] = $shelf;
                 $shelf_unit[$i]['shelf_unit_floor'] = $i; //层数
                 $shelf_unit[$i]['wxapp_id'] = self::$wxapp_id;

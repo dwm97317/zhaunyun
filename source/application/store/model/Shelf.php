@@ -40,11 +40,13 @@ class Shelf extends ShelfModel
        // 保存数据
        $data['wxapp_id'] = self::$wxapp_id;
        $data['created_time'] = time();
+       $type = $data['barcode_type'];
+       unset($data['barcode_type']);
+       $res = $this->allowField(false)->insertGetId($data);
 
-       $res = $this->allowField(true)->insertGetId($data);
        if ($res) {
            if ($data['shelf_column'] && $data['shelf_row']){
-              $shelf_data = (new ShelfUnit())->getShelfUnitData($data,$res);
+              $shelf_data = (new ShelfUnit())->getShelfUnitData($data,$res,$type);
               $result = (new ShelfUnit())->insertAll($shelf_data);
               if(!$result){return false;}
            }

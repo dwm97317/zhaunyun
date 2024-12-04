@@ -9,15 +9,64 @@ class QrcodeService {
     
     public function create($text){
         // dump($text);die;
-        if ($this->engine=='phpQrcode'){
+        if ($this->engine =='phpQrcode'){
             $rout1 = $this->createQrcodeByQr($text);
             $rout2 = $this->makeImgWithStr($text,30);
             $this->CompositeImage([$rout1,$rout2],$rout1);
-            
             return $rout1;
         }
         if ($this->engine=='barcode'){
+             //条形码
+            $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorJPG(); #创建SVG类型条形码
+            $barcode = $generatorSVG->getBarcode($text, $generatorSVG::TYPE_CODE_128,$widthFactor =3, $totalHeight = 100);
+            // 从数据创建图像资源
+            $rout1 = imagecreatefromstring($barcode);
+
+            $rout2 = $this->makeImgWithStr($text,30);
+            $this->CompositeImage([$rout1,$rout2],$rout1);
+            return $rout1;
+        }
+    }
+    
+    public function createBarcode($text,$type){
+        // dump($text);die;
+        if ($type =='phpQrcode'){
+            $rout1 = $this->createQrcodeByQr($text);
+            $rout2 = $this->makeImgWithStr($text,30);
+            $this->CompositeImage([$rout1,$rout2],$rout1);
+            return $rout1;
+        }
+        if ($type=='barcode'){
+             //条形码
+            $width = 400;
+            $height = 200;
+            $image = imagecreatetruecolor($width, $height);
+            $white = imagecolorallocate($image, 255, 255, 255);
+            imagefill($image, 0, 0, $white);
+            $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorJPG(); #创建SVG类型条形码
+            $barcode = $generatorSVG->getBarcode($text, $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 80);
+            // 从数据创建图像资源
+            $mergeImageResource = imagecreatefromstring($barcode);
+            // 获取第二张图片的宽度和高度
+            $width3 = imagesx($mergeImageResource);
+            $height3 = imagesy($mergeImageResource);
+            imagecopymerge($image,$mergeImageResource,($width - $width3) /2,30, 0, 0,$width3,$height3,100);
             
+            $fontPath = 'assets/common/fonts/verdanab.ttf';
+            $fontColor = imagecolorallocate($image, 0, 0, 0);
+            $fontSize = 40;
+            $descSize = 20;
+            $addcSize = 16;
+            //绘制单号到图片上
+            $expresstextBox = imagettfbbox($fontSize, 0, $fontPath,$text);
+            $expresstextWidth = $expresstextBox[2] - $expresstextBox[0];
+            $expresstextHeight = $expresstextBox[7] - $expresstextBox[1];
+            imagettftext($image, $addcSize,0,200-($width - $expresstextWidth)/2,140, $fontColor, $fontPath,$text);
+            
+            $outfile = $this->outPut.date("YmdHis").rand(000000,999999).'.jpg';
+    		imagejpeg($image, $outfile);
+            imagedestroy($image);
+            return $outfile;
         }
     }
     

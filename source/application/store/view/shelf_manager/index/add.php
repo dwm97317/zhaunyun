@@ -53,6 +53,20 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 条码类型 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="shelf[barcode_type]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" data-select_type='shelf'>
+                                                <option value="phpQrcode">二维码</option>
+                                                <option value="barcode">条形码</option>
+                                    
+                                    </select>
+                                    <div class="help-block">
+                                        <small>货架所在仓库</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">货架状态 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">
