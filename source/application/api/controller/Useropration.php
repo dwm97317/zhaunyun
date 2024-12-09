@@ -2854,7 +2854,7 @@ class Useropration extends Controller
       if (!$packid){
         return $this->renderError('未查询到此快递单');
       }
-      if(in_array($packid['id'],$arrayPackid)){
+      if($packid['inpack_id']==$jid){
            $res =(new Package())->where('express_num',$code)->update(['is_scan'=>2,'scan_time'=>getTime()]);
            return $this->renderSuccess($code);
       }else{
