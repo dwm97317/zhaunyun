@@ -290,6 +290,7 @@
 	},
 	"page_my_huikuan": {
 		"remittance_account": "汇款账户",
+		"wechat_account": "收款码",
 		"kind_tips": "温馨提示",
 		"bank_name": "银行名称",
 		"account": "账号",
