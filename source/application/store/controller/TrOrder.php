@@ -894,7 +894,9 @@ class TrOrder extends Controller
         $userclient =  Setting::detail('userclient')['values'];
         $adminstyle = Setting::detail('adminstyle')['values'];
         $params = $this->request->param();
-        $params['limitnum'] = isset($adminstyle['pageno'])?$adminstyle['pageno']['inpack']:15;
+        if(!isset($params['limitnum'])){
+            $params['limitnum'] = isset($adminstyle['pageno'])?$adminstyle['pageno']['inpack']:15;
+        }
         $list = $model->getList($dataType, $params);
         $tracklist = $Track->getAllList();
         $servicelist = $Clerk->where('clerk_authority','like','%is_myuser%')->where('clerk_authority','like','%is_myuserpackage%')->where('is_delete',0)->select();

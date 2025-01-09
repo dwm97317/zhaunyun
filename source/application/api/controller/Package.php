@@ -2614,9 +2614,9 @@ class Package extends Controller
                     $logictik = $Logistics->getList($packinck['express_num']);
                 }
             }
-            $logici = array_merge_hebing($logicv,$logictik);
+            $logici = array_merge($logicv,$logictik);
         }
-        $logic = array_merge_hebing($logic,$logici,$logicv);
+        $logic = array_merge($logic,$logici,$logicv);
         return $this->renderSuccess(compact('logic'));
      }
      

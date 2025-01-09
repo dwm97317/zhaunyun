@@ -79,7 +79,7 @@ class Inpack extends InpackModel
         !empty($query) && $this->setWhere($query);
         !isset($query['limitnum']) && $query['limitnum'] = 10;
         
-        
+        // dump($query['limitnum']);die;
         $setting = SettingModel::detail("adminstyle")['values'];
         $order = ['updated_time'=>'desc'];
         if(isset($setting['inpackorderby'])){

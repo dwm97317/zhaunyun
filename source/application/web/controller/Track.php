@@ -124,7 +124,7 @@ class Track extends Controller
                 if($ditchdatas['ditch_no']==10006){
                     $Aolian =  new Aolian(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
                     $result = $Aolian->query($express);
-                    //   dump($result);die;
+                   
                 }
                 
                 //易抵达
@@ -140,6 +140,7 @@ class Track extends Controller
                 if(!empty($inpackData['t2_order_sn'])){
                      $logicdd = $Logistics->getZdList($inpackData['t2_order_sn'],$inpackData['t2_number'],$inpackData['wxapp_id']);
                 }
+                    // dump($logicdd);die;
                 $logic = array_merge($logicddd,$logicdd);
             }
            
