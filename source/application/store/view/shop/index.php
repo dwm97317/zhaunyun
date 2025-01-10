@@ -53,6 +53,7 @@
                                 <th>邮编</th>
                                 <th>仓库地址</th>
                                 <th>仓库状态</th>
+                                <th>排序</th>
                                 <th>创建时间</th>
                                 <th>操作</th>
                             </tr>
@@ -80,6 +81,7 @@
                                                <?= $item['status'] ? '启用' : '禁用' ?>
                                            </span>
                                     </td>
+                                    <td class="am-text-middle"><?= $item['sort'] ?></td>
                                     <td class="am-text-middle"><?= $item['create_time'] ?></td>
                                     <td class="am-text-middle">
                                         <div class="tpl-table-black-operation">
