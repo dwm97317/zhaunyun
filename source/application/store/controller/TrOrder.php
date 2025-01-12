@@ -2926,7 +2926,8 @@ class TrOrder extends Controller
                 ->setCellValue('R4', '备注')
                 ->setCellValue('S4', '状态')
                 ->setCellValue('T4', '业务日期')
-                ->setCellValue('U4', '专属客服');
+                ->setCellValue('U4', '签收时间')
+                ->setCellValue('V4', '专属客服');
                    
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:U')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
@@ -2960,7 +2961,7 @@ class TrOrder extends Controller
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('S')->setWidth(10);
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('T')->setWidth(22);
         $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('U')->setWidth(22);
-        
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('V')->setWidth(22);
         for($i=0;$i<count($data);$i++){
             // dump($data->toArray());die;
             $objPHPExcel->getActiveSheet()->setCellValue('A'.($i+5),$i+1);//序号
@@ -2983,7 +2984,8 @@ class TrOrder extends Controller
             $objPHPExcel->getActiveSheet()->setCellValue('R'.($i+5),$data[$i]['remark']);//备注
             $objPHPExcel->getActiveSheet()->setCellValue('S'.($i+5),$status[$data[$i]['status']]);//转单号码
             $objPHPExcel->getActiveSheet()->setCellValue('T'.($i+5),$data[$i]['created_time']);//业务日期
-            $objPHPExcel->getActiveSheet()->setCellValue('U'.($i+5),$data[$i]['user']['user_id']);//专属客服
+            $objPHPExcel->getActiveSheet()->setCellValue('U'.($i+5),$data[$i]['receipt_time']);//签收时间
+            $objPHPExcel->getActiveSheet()->setCellValue('V'.($i+5),$data[$i]['user']['user_id']);//专属客服
         }
         //7.设置保存的Excel表格名称
         //8.设置当前激活的sheet表格名称；
