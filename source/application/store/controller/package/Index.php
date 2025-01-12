@@ -529,7 +529,7 @@ class Index extends Controller
         // dump($shopShelf->toArray());die;
         $shopList = ShopModel::getListName();
         if($this->store['user']['shop_id']>0){
-            $shopList = (new ShopModel())->where('shop_id',$this->store['user']['shop_id'])->select();
+            $shopList = (new ShopModel())->whereIn('shop_id',$this->store['user']['shop_id'])->select();
         }
         //获取到国家信息
         $detail['country'] = (new Countries())->where('id',$detail['country_id'])->find();
