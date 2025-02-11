@@ -1279,6 +1279,8 @@
 		"mailboxNumber": "邮箱",
 		"placeholder11": "请输入您的邮箱",
 		"remarks": "备注：",
+		"usermark": "唛头",
+		"placeholderusermark":"请输入唛头",
 		"Save_address": "保存地址"
 	},
 	"page_dizhi": {

@@ -12,6 +12,7 @@ use app\api\model\dealer\Setting as DealerSettingModel;
 use app\common\model\Setting;
 use app\api\model\user\Grade;
 use app\api\model\store\shop\Clerk;
+use app\api\model\UserCoupon;
 /**
  * 用户模型类
  * Class User
@@ -248,7 +249,7 @@ class User extends UserModel
         }
         // dump($session);die;
         $setting = Setting::getItem('store',self::$wxapp_id);
-        
+        $couponsetting = Setting::getItem('coupon',self::$wxapp_id);
         $user_code= $user['user_code'];
         if($setting['usercode_mode']['is_show']==1 || $setting['usercode_mode']['is_show']==2){
             empty($user['user_code']) && $user_code = $this->checkUserCode($user,$setting); 
@@ -273,6 +274,10 @@ class User extends UserModel
             // 记录推荐人关系
             if (!$user && $refereeId > 0) {
                 RefereeModel::createRelation($model['user_id'], $refereeId);
+            }
+            //发送优惠券
+            if($couponsetting['is_register']==1){
+                (new UserCoupon())->receive($model,$couponsetting['register_coupon']);
             }
             $this->commit();
         } catch (\Exception $e) {
@@ -320,6 +325,8 @@ class User extends UserModel
             empty($user['user_code']) && $user_code = $this->checkUserCode($user,$setting); 
         }
         
+        $couponsetting = Setting::getItem('coupon',self::$wxapp_id);
+        
         $model = $user ?: $this;
         $this->startTrans();
         try {
@@ -337,6 +344,10 @@ class User extends UserModel
             // 记录推荐人关系
             if (!$user && $refereeId > 0) {
                 RefereeModel::createRelation($model['user_id'], $refereeId);
+            }
+            //发送优惠券
+            if($couponsetting['is_register']==1){
+                (new UserCoupon())->receive($model,$couponsetting['register_coupon']);
             }
             $this->commit();
         } catch (\Exception $e) {

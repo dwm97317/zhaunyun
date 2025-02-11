@@ -321,6 +321,7 @@ class Setting extends BaseModel
                         'is_email'=>1,
                         'is_code'=>1,
                         'is_street'=>1,
+                        'is_usermark'=>1,
                         'is_door'=>1,
                         'is_remark'=>1,
                         'remark'=>'',
@@ -1035,6 +1036,17 @@ class Setting extends BaseModel
                         "2. 账户充值套餐赠送的金额即时到账；\n" .
                         "3. 账户余额有效期：自充值日起至用完即止；\n" .
                         "4. 若有其它疑问，可拨打客服电话",     // 充值说明
+                ],
+            ],
+            // 用户充值设置
+            'coupon' => [
+                'key' => 'coupon',
+                'describe' => '优惠券设置',
+                'values' => [
+                    'is_register' => '1',   // 用户注册是否发放优惠券
+                    'register_coupon' => 0,   // 用户注册是否发放优惠券
+                    'is_order' => '1',   // 用户下单是否发放优惠券
+                    'order_coupon' => 0,   // 用户注册是否发放优惠券
                 ],
             ],
             // 积分设置

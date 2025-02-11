@@ -93,6 +93,7 @@ class UserAddress extends UserAddressModel
                 'detail' => isset($data['detail'])?$data['detail']:'',
                 'user_id' => $user['user_id'],
                 'street' => isset($data['userstree'])?$data['userstree']:'',
+                'usermark' => isset($data['usermark'])?$data['usermark']:'',
                 'wxapp_id' => self::$wxapp_id
             ]);
             // 设为默认收货地址
@@ -124,6 +125,7 @@ class UserAddress extends UserAddressModel
                 'region' => isset($data['district'])?$data['district']:'',
                 'email' => isset($data['email'])?$data['email']:'',
                 'street' => isset($data['userstree'])?$data['userstree']:'',
+                'usermark' => isset($data['usermark'])?$data['usermark']:'',
                 'door' => isset($data['door'])?$data['door']:'',
                 'code' => isset($data['code'])?$data['code']:'',
                 'detail' => isset($data['detail'])?$data['detail']:'',

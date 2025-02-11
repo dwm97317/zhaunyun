@@ -520,6 +520,10 @@ return [
                         'name' => '领取记录',
                         'index' => 'market.coupon/receive'
                     ],
+                    [
+                        'name' => '发放设置',
+                        'index' => 'market.coupon/setting'
+                    ],
                 ]
             ],
             [

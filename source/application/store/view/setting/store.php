@@ -1855,6 +1855,27 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启唛头
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[address_setting][is_usermark]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address_setting']['is_usermark'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[address_setting][is_usermark]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address_setting']['is_usermark'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label">自定义备注</label>
                                 <div class="am-u-sm-9">
                                     <input type="text" class="tpl-form-input" name="store[address_setting][remark]"

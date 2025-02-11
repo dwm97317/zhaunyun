@@ -27,10 +27,10 @@ class Setting extends EnumBasics
     const USERCLIENT = 'userclient';
     // 语言设置
     const LANG = 'lang';
-    
-     // 邮件通知
+    // 邮件通知
     const EMAIL = 'email';
-
+    // 优惠券
+    const COUPON = 'coupon';
     // 温馨提示
     const BANK = 'bank';
     
@@ -73,6 +73,10 @@ class Setting extends EnumBasics
             self::STORE => [
                 'value' => self::STORE,
                 'describe' => '系统设置',
+            ],
+            self::COUPON => [
+                'value' => self::COUPON,
+                'describe' => '优惠券设置',
             ],
             self::ADMINSTYLE => [
                 'value' => self::ADMINSTYLE,

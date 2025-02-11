@@ -6,6 +6,7 @@ use app\store\controller\Controller;
 use app\store\model\Coupon as CouponModel;
 use app\store\model\UserCoupon as UserCouponModel;
 use app\common\model\Setting;
+use app\store\model\Setting as SettingModel;
 /**
  * 优惠券管理
  * Class Coupon
@@ -123,6 +124,26 @@ class Coupon extends Controller
         $set = Setting::detail('store')['values'];
         $list = $model->getList($query);
         return $this->fetch('receive', compact('list','set'));
+    }
+    
+    /**
+     * 发放设置
+     * @return array|bool|mixed
+     * @throws \think\exception\DbException
+     */
+    public function setting()
+    {
+        if (!$this->request->isAjax()) {
+            $list = $this->model->getList();
+            $values = SettingModel::getItem('coupon');
+            //   dump($values);die;
+            return $this->fetch('setting', ['values' => $values,'list'=>$list]);
+        }
+        $model = new SettingModel;
+        if ($model->edit('coupon', $this->postData('coupon'))) {
+            return $this->renderSuccess('操作成功');
+        }
+        return $this->renderError($model->getError() ?: '操作失败');
     }
 
 }

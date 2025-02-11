@@ -4,6 +4,8 @@ namespace app\api\controller;
 use app\common\model\Inpack;
 use app\api\model\Comment as CommentModel;
 use app\api\model\Package;
+use app\api\model\UserCoupon;
+use app\common\model\Setting;
 /**
  * 商品评价控制器
  * Class Comment
@@ -58,10 +60,11 @@ class Comment extends Controller
                 return $this->renderError($model->getError() ?: '评论创建失败');
             }
         }
-        
-        
-        
-        
+        //发送优惠券
+        $couponsetting = Setting::getItem('coupon',$this->wxapp_id);
+        if($couponsetting['is_order']==1){
+            (new UserCoupon())->receive( $this->user,$couponsetting['order_coupon']);
+        }
         return $this->renderSuccess('评论创建成功');
     }
     
