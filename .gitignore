@@ -1,0 +1,11 @@
+.idea
+composer.lock
+*.log
+*.txt
+*.css.map
+.sass-cache
+web/excel
+web/html5
+web/uploads
+web/datascreen
+web/barcode
