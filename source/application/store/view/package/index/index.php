@@ -23,17 +23,18 @@
                              <div class="am-u-sm-12 am-u-md-12">
                                 <div class="am">
                                     <div class="am-form-group am-fl">
+                                        <?php $extractpageno = $request->get('limitnum'); ?>
                                         <select name="limitnum"
                                                 data-am-selected="{btnSize: 'sm', placeholder: '显示条数'}">
-                                            <?php if (isset($adminstyle['pageno'])): ?>
-                                            <option value="10" >默认显示<?= $adminstyle['pageno']['package'] ?>条</option>
+                                            <?php if(isset($adminstyle['pageno'])): ?>
+                                            <option value="<?= $adminstyle['pageno']['inpack'] ?>" <?=  $adminstyle['pageno']['inpack'] == 500 ? 'selected' : '' ?>>系统默认<?= $adminstyle['pageno']['inpack'] ?>条</option>
                                             <?php endif;?>
-                                            <option value="15">显示15条</option>
-                                            <option value="30">显示30条</option>
-                                            <option value="50">显示50条</option>
-                                            <option value="100">显示100条</option>
-                                            <option value="200">显示200条</option>
-                                            <option value="500">显示500条</option>
+                                            <option value="15" <?= $extractpageno == 15 ? 'selected' : '' ?> >显示15条</option>
+                                            <option value="30" <?= $extractpageno == 30 ? 'selected' : '' ?>>显示30条</option>
+                                            <option value="50" <?= $extractpageno == 50 ? 'selected' : '' ?>>显示50条</option>
+                                            <option value="100" <?= $extractpageno == 100 ? 'selected' : '' ?>>显示100条</option>
+                                            <option value="200" <?= $extractpageno== 200 ? 'selected' : '' ?>>显示200条</option>
+                                            <option value="500" <?= $extractpageno == 500 ? 'selected' : '' ?>>显示500条</option>
                                         </select>
                                     </div>
                                     

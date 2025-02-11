@@ -4,7 +4,7 @@ $config = [
     'host' => '127.0.0.1',
     'database' => 'zhuanyun_sllowly',
     'username' => 'zhuanyun_sllowly',
-    'password' => '7RApecE6Wt8BtJLB',
+    'password' => 'yZTcir3KtdtikFQJ',
     'port' => '3306',
     'charset' => 'utf8',
 ];

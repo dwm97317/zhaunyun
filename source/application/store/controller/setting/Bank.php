@@ -21,13 +21,12 @@ class Bank extends Controller
         $model = new BankModel;
         if ($this->request->isAjax()){
           $postData = $this->postData('bank_setting');
-        //   dump($postData);die;
           $model2 = new setting();
           $model2->edit('bank',$postData);
           return $this->renderSuccess('修改成功');
         }
         $list = $model->getList();
-        $values = setting::getItem('bank',10001);
+        $values = setting::getItem('bank',$this->store['wxapp']['wxapp_id']);
      
         return $this->fetch('index', compact('list','values'));
     }

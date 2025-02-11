@@ -502,21 +502,22 @@ class TrOrder extends Controller
         $user =  new UserModel;
         $inpackdata = $model::details($data['id']);
         $userdata = User::detail($data['user_id']);
-        
+ 
         $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free']  + $inpackdata['insure_free'];
         if($payprice==0){
             return $this->renderError('订单金额为0，请先设置订单金额');
         }
         //扣除余额，并产生一天用户的消费记录；减少用户余额；
-        $res = $user->logUpdate('remove',$data['user_id'],$payprice,date("Y-m-d H:i:s").',集运单'.$inpackdata['order_sn'].'使用现金支付'.$payprice.'（现金支付不改变用户余额）');
+        $res = $user->logUpdate(0,$data['user_id'],$payprice,date("Y-m-d H:i:s").',集运单'.$inpackdata['order_sn'].'使用现金支付'.$payprice.'（现金支付不改变用户余额）');
         if(!$res){
             return $this->renderError($user->getError() ?: '操作失败');
         }
+              
         //累计消费金额
         $userdata->setIncPayMoney($payprice);
         $this->dealerData(['amount'=>$payprice,'order_id'=>$data['id']],$userdata);
         //修改集运单状态何支付状态
-        // dump($rrr);die;
+       
         if($inpackdata['status']==2){
             $inpackdata->where('id',$data['id'])->update(['real_payment'=>$payprice,'status'=>3,'is_pay'=>1,'is_pay_type'=>5,'pay_time'=>date('Y-m-d H:i:s',time())]);
         }else{
