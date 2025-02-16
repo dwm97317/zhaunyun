@@ -124,6 +124,7 @@ class Package extends PackageModel
         // 查询参数
         // dump($param);die;
         !empty($param['entering_warehouse_time']) && $this->where('pa.entering_warehouse_time','between',[$param['entering_warehouse_time'][0],$param['entering_warehouse_time'][1]]);
+        !empty($param['created_time']) && $this->where('pa.created_time','between',[$param['created_time'][0],$param['created_time'][1]]);
         !empty($param['storage_id']) && $this->where('pa.storage_id','=',$param['storage_id']);
         !empty($param['source']) && $this->where('pa.source','=',$param['source']);
         !empty($param['is_take'])  && $this->where('pa.is_take',$param['is_take']);

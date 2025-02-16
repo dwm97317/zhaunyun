@@ -165,7 +165,7 @@ class Store extends StoreModel
     	$end=date("Y-m-d",mktime(23,59,59,date("m",$t),date("d",$t),date("Y",$t)))." 23:59:59";
         $time['start'] = $start;
         $time['end'] = $end;
-        return number_format($this->PackageModel->getPackTotal($time));
+        return number_format($this->PackageModel->getPackTotalplus($time));
     }
 
 

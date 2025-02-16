@@ -2057,6 +2057,11 @@ class Useropration extends Controller
             case '11':
                 $map['status'] = [-1];
                 break;
+            
+            case '12':
+                $map['source'] = 1;
+                $map['created_time'] = [$today,$todayend];
+                break;
                 
             default:
                 $map['status'] = [2];
@@ -2155,6 +2160,13 @@ class Useropration extends Controller
                 'content'=>'今日入库重量',
                 'num'=> round($packModel->where($where)->where(['storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->SUM('weight'),2),
                 'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=1"
+            ],
+            //今日预报数量->where(['storage_id' =>$data['shop_id']])
+            [
+                'icon' => base_url().'assets/api/images//today.png' ,
+                'content'=>'今日预报数量',
+                'num'=> $packModel->where($where)->where('created_time','between',[$today,$todayend])->where('source',1)->count(),
+                'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=12"
             ],
             //昨日入库
             [
@@ -2633,12 +2645,9 @@ class Useropration extends Controller
         foreach ($sdata as $key => $val){
             $pack_id = explode(',',$val['pack_ids']);
             $sdata[$key]['is_scan'] = 2;
-                $is_scan = $Package->field('is_scan')->where('inpack_id',$val['id'])->select();
-                foreach ($is_scan as $k =>$va){
-                    if($va['is_scan']==1){
-                        $sdata[$key]['is_scan'] = 1;
-                    }
-                    break;
+                $is_scan = $Package->field('is_scan')->where('inpack_id',$val['id'])->where('is_scan',1)->find();
+                if(!empty($is_scan)){
+                    $sdata[$key]['is_scan'] = 1;
                 }
         }
         $data =$sdata;

@@ -1039,6 +1039,16 @@ class Package extends PackageModel
         return $model->count();
     }
     
+    // 统计数据
+    public function getPackTotalplus($time=null){
+        $_map = ['is_delete'=>0];
+        $model = $this->where($_map)->where('source',1);
+        if ($time){
+            $model->whereBetween('created_time',[$time['start'],$time['end']]);
+        }
+        return $model->count();
+    }
+    
      public function detail($id){
        return $this->alias('pa')
        ->with(['packageimage.file','Member','country','shelfunititem.shelfunit.shelf','inpack'])
