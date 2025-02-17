@@ -258,7 +258,7 @@ class Package extends Controller
          $Barcode = new Barcode;
          
          $post = $this->postData();
-         
+        //  dump($post);die;
          if($userclient['yubao']['is_country']==1){
             if ($post['country_id']){
               $country = (new Country())->getValueById($post['country_id'],'title');
@@ -409,12 +409,12 @@ class Package extends Controller
            $resup = $packModel->where('id',$packres['id'])->update(
                ['price'=>$post['price'],
                'remark'=>$post['remark'],
-               'country_id'=>$post['country_id'],
-               'express_name'=>$post['express_name'],
-               'express_id'=>$post['express_id'],
+               'country_id'=>isset($post['country_id'])?$post['country_id']:$packres['country_id'],
+               'express_name'=>isset($post['express_name'])?$post['express_name']:$packres['express_name'],
+               'express_id'=>isset($post['express_id'])?$post['express_id']:$packres['express_id'],
                'member_id'=>$user['user_id'],
                'member_name'=>$user['nickName'],
-               'storage_id'=>$post['storage_id'],
+               'storage_id'=>isset($post['storage_id'])?$post['storage_id']:$packres['storage_id'],
                'is_take'=>2
                ]);
 
@@ -490,7 +490,7 @@ class Package extends Controller
          }
          $user = (new User())->find($this->user['user_id']);
          $post = $this->postData();
-         if ($post['country_id']){
+         if (isset($post['country_id']) && !empty($post['country_id'])){
              $country = (new Country())->getValueById($post['country_id'],'title');
              if (!$country){
                  return $this->renderError('国家信息错误');
