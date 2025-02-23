@@ -117,7 +117,9 @@
 		"zaituzhong":"待收货",
 		"yiwancheng":"待评价",
 		"daifukuan":"待付款",
-		"save_phone_number": "保存手机号"
+		"save_phone_number": "保存手机号",
+		"usermark":"请切换唛头",
+		"bind_usermark":"切换唛头"
 	},
 	"page_baoguoyg": {
 		"package_forecast": "包裹预报",
@@ -127,6 +129,7 @@
 		"choose_country": "选择国家",
 		"consolidation_warehouse": "集运仓库",
 		"courier_name": "快递名称",
+		"usermark": "唛头",
 		"tracking_number": "快递单号",
 		"please_enter_tracking_number": "请输入快递单号",
 		"item_category": "物品品类",

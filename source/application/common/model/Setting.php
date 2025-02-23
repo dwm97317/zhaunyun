@@ -455,6 +455,8 @@ class Setting extends BaseModel
                         'is_price_force' => 1,
                         'is_remark' => 1,
                         'is_remark_force' => 1,
+                        'is_userremark' => 0,
+                        'is_userremark_force' => 0,
                         'is_images' => 1,
                         'is_images_force' => 1,
                         'is_xieyi' => 1,

@@ -519,25 +519,33 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                             </div>
                              <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
-                                    是否展示用户编号
+                                    用户编号模式
                                 </label>
                                 <div class="am-u-sm-9">
+                                    <label class="am-radio-inline" id>
+                                        <input type="radio" name="store[usercode_mode][is_show]" value="0" onclick="switchLineMode(this)"
+                                               data-am-ucheck 
+                                            <?= $values['usercode_mode']['is_show'] == '0' ? 'checked' : '' ?>>
+                                        使用系统用户ID
+                                    </label>
                                     <label class="am-radio-inline">
                                         <input type="radio" name="store[usercode_mode][is_show]" value="1" onclick="switchLineMode(this)"
                                                data-am-ucheck
                                             <?= $values['usercode_mode']['is_show'] == '1' ? 'checked' : '' ?>
                                                required>
-                                        只显示编号CODE
+                                        使用唯一编号CODE
                                     </label>
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="store[usercode_mode][is_show]" value="0" onclick="switchLineMode(this)"
+                                        <input type="radio" name="store[usercode_mode][is_show]" value="2" onclick="switchLineMode(this)"
                                                data-am-ucheck
-                                            <?= $values['usercode_mode']['is_show'] == '0' ? 'checked' : '' ?>>
-                                        只显示ID
+                                            <?= $values['usercode_mode']['is_show'] == '2' ? 'checked' : '' ?>
+                                               required>
+                                        使用可切换的唛头
                                     </label>
                                 </div>
                             </div>
-                            <div class="am-form-group usercoded" style="<?= $values['usercode_mode']['is_show'] == 0 ? 'display:none;' : 'display:block' ?>"> 
+                            <div id="usercode">
+                            <div class="am-form-group usercoded"> 
                                 <label class="am-u-sm-3  am-form-label form-require"> 用户编号模式设置 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <select name="store[usercode_mode][mode]"
@@ -551,7 +559,6 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     </div>
                                 </div>
                             </div>
-                            
                             <!-- 用户编号配置：纯数字模式 -->
                          
                             <div id="<?= UserCodeTypeEnum::SHUZI ?>" class="form-tab-group  <?= $values['usercode_mode']['mode'] == 10 ? 'active' : '' ?> <?= ($values['usercode_mode']['mode'] == 10 && $values['usercode_mode']['is_show'] == '0') ? 'disnone' : '' ?> " name="store[usercode_mode][mode]">
@@ -594,7 +601,6 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     </div>
                                 </div>
                             </div>
-                
                             
                             </div>
                             
@@ -1966,16 +1972,13 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
 
     function switchLineMode(_this){
         var _mode = _this.value;
-        console.log($('.active'));
-        console.log($('.active'));
-        
-        if(_mode==0){
+        if(_mode==0  || _mode==2){
           $('.usercoded').css('display','none');
           $('.usercodes').css('display','none');
           $('.active').addClass('goog');
           $('.active').removeClass('active');
         }
-        if(_mode==1 || _mode==2){
+        if(_mode==1){
           $('.active').removeClass('disnone');
           $('.usercoded').css('display','block');
           $('.goog').addClass('active');
@@ -1989,6 +1992,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
     }
     
     $(function () {
+
         $('#selectize-tags-1').selectize({
     	    delimiter: ',',
     	    persist: false,
@@ -2003,7 +2007,9 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
         $("select[name='store[usercode_mode][mode]']").on('change', function (e) {
             $('.form-tab-group').removeClass('active');
             $('.form-tab-group').removeClass('goog');
-            $('#' + e.currentTarget.value).addClass('active');
+            if(e.currentTarget.value == 1){
+                $('#usercode').addClass('active');
+            }
         });
         
          // 选择图片

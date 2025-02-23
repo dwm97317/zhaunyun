@@ -16,6 +16,8 @@ use app\api\model\Wxapp as WxappModel;
 use app\api\model\UserCoupon;
 use app\common\service\Message;
 use app\api\model\Certificate;
+use app\api\model\user\UserMark;
+
 /**
  * 用户管理
  * Class User
@@ -37,6 +39,15 @@ class User extends Controller
             'user_id' => $model->login($this->request->post()),
             'token' => $model->getToken()
         ]);
+    }
+    
+        
+    //获取用户唛头
+    public function getusermark(){
+        $this->user = $this->getUser();
+        $UserMark = new UserMark;
+        $list = $UserMark->getList($this->user['user_id']);
+        return $this->renderSuccess($list);
     }
     
     public function clerklogin()

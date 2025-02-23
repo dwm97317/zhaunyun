@@ -562,12 +562,12 @@ class Package extends Controller
                 $resup = $packModel->where('id',$packres['id'])->update(
                    ['price'=>$post['price'],
                    'remark'=>$post['remark'],
-                   'country_id'=>$post['country_id'],
-                   'express_name'=>$post['express_name'],
-                   'express_id'=>$post['express_id'],
+                   'country_id'=>isset($post['country_id'])?$post['country_id']:0,
+                   'express_name'=>isset($post['express_name'])?$post['express_name']:'',
+                   'express_id'=>isset($post['express_id'])?$post['express_id']:0,
                    'member_id'=>$user['user_id'],
                    'member_name'=>$user['nickName'],
-                   'storage_id'=>$post['storage_id'],
+                   'storage_id'=>isset($post['storage_id'])?$post['storage_id']:0,
                    'is_take'=>2
                    ]);
     
@@ -780,11 +780,12 @@ class Package extends Controller
         // $where[] = ['inpack_id','=',null];
         $where[] = ['member_id','=',$this->user['user_id']];
         $where[] = ['status','in',[2,3,4,7]];
+        $param = $this->request->param();
+        if(isset($param['usermark'])){
+           $where[] = ['usermark','=',$param['usermark']];
+        }
         $data = (new PackageModel())->Dbquery300($where,$field);
-        // $data = $this->getPackItemList($data);
-        // foreach($data as $k => $val){
-        //     $data[$k]['is_show'] = false;
-        // }
+        
         return $this->renderSuccess($data);
      }
      
@@ -1036,6 +1037,7 @@ class Package extends Controller
           'waitreceivedmoney'=>$param['waitreceivedmoney'],
           'storage_id' => isset($param['express']['storage_id'])?$param['express']['storage_id']:0,
           'address_id' => $param['address_id'],
+          'usermark' => isset($param['usermark'])?$param['usermark']:'',
           'free' => 0,
           'weight' => 0,
           'cale_weight' => 0,
@@ -1439,6 +1441,10 @@ class Package extends Controller
              $query['is_pay'] = 0;
          }
          $query['member_id'] = $this->user['user_id']; 
+         $param = $this->request->param();
+          if(isset($param['usermark'])){
+              $query['usermark'] = $param['usermark']; 
+         }
          $list = (new Inpack())->getList($query);
          foreach ($list as &$value) {
             $value['num'] = (new PackageModel())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
@@ -1631,6 +1637,10 @@ class Package extends Controller
           'status' =>\request()->get('status'),
           'member_id' => $this->user['user_id']
         ];
+        $param = $this->request->param();
+        if(isset($param['usermark'])){
+            $where['usermark'] = $param['usermark'];
+        }
         $data = (new PackageModel())->query($where,$field);
         $data = $this->getPackItemList($data);
         return $this->renderSuccess($data);
@@ -1668,6 +1678,10 @@ class Package extends Controller
           'is_delete' => 0,
           'member_id' => $this->user['user_id']
         ];
+        $param = $this->request->param();
+        if(isset($param['usermark'])){
+            $where['usermark'] = $param['usermark'];
+        }
         $data = [
             'nocount' => $PackageModel->querycount($where,$status=1),
             'yescount' => $PackageModel->querycount($where,$status=2),
@@ -2624,12 +2638,20 @@ class Package extends Controller
      // 包裹统计
      public function packTotal(){
          $model =  (new Inpack());
+         $param = $this->request->param();
+         $where = [
+          'is_delete' => 0,
+          'member_id' => $this->user['user_id']
+        ];
+         if(isset($param['usermark'])){
+             $where['usermark'] = $param['usermark'];
+         }   
          $return = [
-           'no_pay' => $model->where('status',2)->where('member_id',$this->user['user_id'])->where('is_delete',0)->count(),
-           'verify' => $model->whereIn('status',[1])->where('member_id',$this->user['user_id'])->where('is_delete',0)->count(),
-           'no_send' => $model->whereIn('status',[3,4,5])->where('member_id',$this->user['user_id'])->where('is_delete',0)->count(),
-           'send' => $model->whereIn('status',[6,7])->where('member_id',$this->user['user_id'])->where('is_delete',0)->count(),
-           'complete' => $model->whereIn('status',[8])->where('member_id',$this->user['user_id'])->where('is_delete',0)->count(),
+           'no_pay' => $model->where('status',2)->where($where)->count(),
+           'verify' => $model->whereIn('status',[1])->where($where)->count(),
+           'no_send' => $model->whereIn('status',[3,4,5])->where($where)->count(),
+           'send' => $model->whereIn('status',[6,7])->where($where)->count(),
+           'complete' => $model->whereIn('status',[8])->where($where)->count(),
          ];
          return $this->renderSuccess($return);
      }

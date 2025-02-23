@@ -385,7 +385,7 @@ class Page extends Controller
                     }
                 }
            }    
-       }else{
+       }elseif($setting['usercode_mode']['is_show']==0){
           foreach ($data as $k => $v){
                if($v['type']==1){
                    $data[$k]['region']['province'] = '';
@@ -435,8 +435,63 @@ class Page extends Controller
                         $data[$k]['linkman'] = $data[$k]['shop_name'];
                     }
                }
-                
             }
+       }elseif($setting['usercode_mode']['is_show']==2){
+           $param = $this->request->param();
+           if(isset($param['usermark'])){
+               $aliasid = $param['usermark'];
+               foreach ($data as $k => $v){
+               if($v['type']==1){
+                   $data[$k]['region']['province'] = '';
+                   $data[$k]['region']['city'] = '';
+                   $data[$k]['region']['region'] = '';
+                   $data[$k]['address'] = $aliasid.'-'.$v['address'];
+                    if($setting['link_mode'] == 10){
+                     $data[$k]['linkman'] =$data[$k]['shop_name'].$aliasid;
+                    }
+                    if($setting['link_mode'] == 20){
+                         $data[$k]['linkman'] =$data[$k]['linkman'].$aliasid;
+                    }
+                    if($setting['link_mode'] == 30){
+                         $data[$k]['linkman'] =($this->user)['nickName'].$aliasid;
+                    }
+                    if($setting['link_mode'] == 40){
+                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].$aliasid;
+                    }
+                    if($setting['link_mode'] == 50){
+                        $data[$k]['address'] =  $v['address'].$aliasid;
+                        $data[$k]['linkman'] = ($this->user)['nickName'];
+                    }
+                    if($setting['link_mode'] == 60){
+                        $data[$k]['address'] =  $v['address'].$aliasid;
+                        $data[$k]['linkman'] = $data[$k]['shop_name'];
+                    }
+               }else{
+                    $data[$k]['address'] = $v['address'].$aliasid;
+                    if($setting['link_mode'] == 10){
+                     $data[$k]['linkman'] =$data[$k]['shop_name'].$aliasid;
+                    }
+                    if($setting['link_mode'] == 20){
+                         $data[$k]['linkman'] =$data[$k]['linkman'].$aliasid;
+                    }
+                    if($setting['link_mode'] == 30){
+                         $data[$k]['linkman'] =($this->user)['nickName'].$aliasid;
+                    }
+                    if($setting['link_mode'] == 40){
+                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].$aliasid;
+                    }
+                    if($setting['link_mode'] == 50){
+                        $data[$k]['address'] =  $v['address'].$aliasid;
+                        $data[$k]['linkman'] = ($this->user)['nickName'];
+                    }
+                    if($setting['link_mode'] == 60){
+                        $data[$k]['address'] =  $v['address'].$aliasid;
+                        $data[$k]['linkman'] = $data[$k]['shop_name'];
+                    }
+               }
+            }
+           }
+           
        }
       return $this->renderSuccess($data);
     }
@@ -634,7 +689,94 @@ class Page extends Controller
                         break;
                 }
              }
-            
+       }
+       
+       //只显示唛头
+      if($setting['usercode_mode']['is_show']==2){
+             $param = $this->request->param();
+             if(isset($param['usermark'])){
+               $aliasid = $param['usermark'];
+               if($data['type']==1){
+                
+                if($setting['link_mode'] == 10){
+                     $data['linkman'] =$data['shop_name'].$aliasid;
+                }
+                if($setting['link_mode'] == 20){
+                     $data['linkman'] =$data['linkman'].$aliasid;
+                }
+                if($setting['link_mode'] == 30){
+                     $data['linkman'] =($this->user)['nickName'].$aliasid;
+                }
+                if($setting['link_mode'] == 40){
+                     $data['linkman'] =$data['shop_alias_name'].$aliasid;
+                }
+                if($setting['link_mode'] == 50){
+                     $data['linkman'] = ($this->user)['nickName'];
+                }
+                if($setting['link_mode'] == 60){
+                     $data['linkman'] = $data['shop_name'];
+                }
+                
+                // 根据地址的设置，生成不同的地址展示模式
+                switch ($setting['address_mode']) {
+                    case '10':
+                        $data['address'] = $data['address'];
+                        break;
+                    case '20':
+                        $data['address'] = $data['address'].$aliasid;
+                        break;
+                    case '30':
+                        $data['address'] = $data['address'].$aliasid;
+                        break;
+                    case '40':
+                        $data['address'] = $data['address'].$aliasid.''.($this->user['service']['real_name']);
+                        break;
+                    default:
+                        // code...
+                        break;
+                }
+                
+             }else{
+                
+                if($setting['link_mode'] == 10){
+                     $data['linkman'] =$data['shop_name'].$aliasid;
+                }
+                if($setting['link_mode'] == 20){
+                     $data['linkman'] =$data['linkman'].$aliasid;
+                }
+                if($setting['link_mode'] == 30){
+                     $data['linkman'] =($this->user)['nickName'].$aliasid;
+                }
+                if($setting['link_mode'] == 40){
+                     $data['linkman'] =$data['shop_alias_name'].$aliasid;
+                }
+                if($setting['link_mode'] == 50){
+                     $data['linkman'] = ($this->user)['nickName'];
+                }
+                if($setting['link_mode'] == 60){
+                     $data['linkman'] = $data['shop_name'];
+                }
+                
+                // 根据地址的设置，生成不同的地址展示模式
+                switch ($setting['address_mode']) {
+                    case '10':
+                        $data['address'] = $data['address'];
+                        break;
+                    case '20':
+                        $data['address'] = $data['address'].$aliasid;
+                        break;
+                    case '30':
+                        $data['address'] = $data['address'].$aliasid;
+                        break;
+                    case '40':
+                        $data['address'] = $data['address'].$aliasid.($this->user['service']['real_name']);
+                        break;
+                    default:
+                        // code...
+                        break;
+                }
+             }
+             }
        }
 
       

@@ -197,6 +197,30 @@
                                     </label>
                                 </div>
                             </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否需要填写唛头
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[yubao][is_userremark]" value="1"
+                                               data-am-ucheck  <?= $values['yubao']['is_userremark'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[yubao][is_userremark]" value="0"
+                                               data-am-ucheck <?= $values['yubao']['is_userremark'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[yubao][is_userremark_force]" value="1" data-am-ucheck
+                                            <?= $values['yubao']['is_userremark_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
                                     是否需要填写物品总价格价值
