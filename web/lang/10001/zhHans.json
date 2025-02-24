@@ -111,6 +111,8 @@
 		"wechat_name": "请授权微信昵称",
 		"binding_mobile_phone_number_hint_text": "为了在必要时能联系到您，请填写有效手机号",
 		"please_enter_phone_number": "请输入手机号",
+		"please_enter_usermark":"请输入唛头",
+		"add_usermark":"新增唛头",
 		"shoporder":"商城订单",
 		"quanbu":"全部订单",
 		"daifahuo":"待发货",

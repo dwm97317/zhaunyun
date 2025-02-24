@@ -50,6 +50,19 @@ class User extends Controller
         return $this->renderSuccess($list);
     }
     
+    //新增用户唛头
+    public function newAddUserMark(){
+        $this->user = $this->getUser();
+        $param = $this->request->param();
+        $param['user_id'] = $this->user['user_id'];
+        unset($param['token']);
+        if(UserMark::add($param)){
+            return $this->renderSuccess("新增成功");
+        }
+        return $this->renderError("新增失败");
+    }
+    
+    
     public function clerklogin()
     {
         $model = new UserModel;

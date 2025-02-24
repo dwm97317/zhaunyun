@@ -13,6 +13,6 @@ class UserMark extends UserMarkModel
 {
     public function getList($user_id)
     {
-        return $this->where('user_id',$user_id)->select();
+        return $this->where('user_id',$user_id)->order("create_time desc")->select();
     }
 }
