@@ -46,6 +46,7 @@ use app\common\library\Ditch\Yidida;
 use app\api\model\ShelfUnitItem;
 use app\api\model\Barcode;
 use app\api\model\InpackImage;
+use app\api\model\InpackItem;
 /**
  * 页面控制器
  * Class Index
@@ -2271,6 +2272,8 @@ class Package extends Controller
         $data = (new Inpack())->getDetailsplus($id,$field_group[$method[0]]);
         $data['free_total'] = round($data['free'] + $data['pack_free'] + $data['other_free'] + $data['insure_free'],2);
         $data['fyouhui_total'] = $this->UseConponPrice($couponId,$data['free_total']);
+        //获取子订单记录
+        $data['sonitem'] = (new InpackItem())->where('inpack_id',$id)->select();
         $data['weight_unit'] = [10=>'g',20=>'kg',30=>'lbs',40=>'cbm'];
         return $this->renderSuccess($data);
      }

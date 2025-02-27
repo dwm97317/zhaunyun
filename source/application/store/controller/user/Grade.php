@@ -4,6 +4,7 @@ namespace app\store\controller\user;
 
 use app\store\controller\Controller;
 use app\store\model\user\Grade as GradeModel;
+use app\store\model\Setting as SettingModel;
 
 /**
  * 会员等级
@@ -23,6 +24,27 @@ class Grade extends Controller
         $list = $model->getList();
         return $this->fetch('index', compact('list'));
     }
+    
+    
+    /**
+     * 会员等级设置
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function setting()
+    {
+        if (!$this->request->isAjax()) {
+            $vars['values'] = SettingModel::getItem("grade");
+            return $this->fetch("setting", $vars);
+        }
+        $model = new SettingModel;
+        if ($model->edit("grade", $this->postData("grade"))) {
+            return $this->renderSuccess('操作成功');
+        }
+        return $this->renderError($model->getError() ?: '操作失败');
+    }
+    
+   
 
     /**
      * 添加等级

@@ -33,6 +33,17 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 等级价格 </label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <div class="am-input-group">
+                                        <input type="number" name="grade[price]"
+                                               class="am-form-field" min="0.01" required>
+                                        <span class="widget-dealer__unit am-input-group-label am-input-group-label__right">元</span>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 升级条件 </label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
                                     <div class="am-input-group">
@@ -74,6 +85,14 @@
                                     </label>
                                 </div>
                             </div>
+                            <div class="am-form-group am-padding-top">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">等级描述 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <!-- 加载编辑器的容器 -->
+                                    <textarea id="container" name="article[desc]"
+                                              type="text/plain"></textarea>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary"> 提交
@@ -87,9 +106,18 @@
         </div>
     </div>
 </div>
+<link rel="stylesheet" href="assets/common/plugins/umeditor/themes/default/css/umeditor.css">
+<!-- 文件库弹窗 -->
+{{include file="layouts/_template/file_library" /}}
+<script src="assets/common/plugins/umeditor/umeditor.config.js?v=<?= $version ?>"></script>
+<script src="assets/common/plugins/umeditor/umeditor.min.js"></script>
 <script>
     $(function () {
-
+        // 富文本编辑器
+        UM.getEditor('container', {
+            initialFrameWidth: 575 + 15,
+            initialFrameHeight: 300
+        });
         /**
          * 表单验证提交
          * @type {*}

@@ -26,5 +26,21 @@ class PointsLog extends PointsLogModel
                 'query' => \request()->request()
             ]);
     }
+    
+    public function getPointsList($query)
+    {
+        // 获取列表数据
+        return $this->setwhere($query)
+            ->order(['create_time' => 'desc'])
+            ->paginate(15, false, [
+                'query' => \request()->request()
+            ]);
+    }
+    
+    public function setwhere($query){
+        !empty($query['user_id']) &&  $this->where('user_id','=',$query['user_id']); 
+        !empty($query['type']) &&  $this->where('type','=',$query['type']); 
+        return $this;
+    }
 
 }

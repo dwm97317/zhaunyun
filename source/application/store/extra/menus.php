@@ -191,6 +191,10 @@ return [
                             'user.grade/delete',
                         ]
                     ],
+                    [
+                        'name' => '等级设置',
+                        'index' => 'user.grade/setting',
+                    ],
                 ]
             ],
             [

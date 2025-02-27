@@ -425,7 +425,10 @@
                                         体积重量(<?= $set['weight_mode']['unit'] ?>):<?= $item['volume'] ?></br>
                                         计费重量(<?= $set['weight_mode']['unit'] ?>):<?= $item['cale_weight'] ?></br></br>
                                         共有 <?= $item['num'] ?> 个包裹 </br>
-                                        <a href="<?= url('store/trOrder/package', ['id' => $item['id']]) ?>">查看包裹明细</a>
+                                        <a href="<?= url('store/trOrder/package', ['id' => $item['id']]) ?>">查看包裹明细</a></br></br>
+                                        
+                                        共有 <?= $item['sonnum'] ?> 个子订单/分箱 </br>
+                                        <a href="<?= url('store/trOrder/orderdetail', ['id' => $item['id']]) ?>">查看子订单明细</a>
                                     </td>
                             
                                     <td class="am-text-middle">

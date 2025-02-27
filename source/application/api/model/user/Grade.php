@@ -11,5 +11,14 @@ use app\common\model\user\Grade as GradeModel;
  */
 class Grade extends GradeModel
 {
-
+    
+    /**
+     * 文章详情：HTML实体转换回普通字符
+     * @param $value
+     * @return string
+     */
+    public function getDescAttr($value)
+    {
+        return htmlspecialchars_decode($value);
+    }
 }

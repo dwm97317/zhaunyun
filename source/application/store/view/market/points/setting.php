@@ -9,6 +9,19 @@
                                 <div class="widget-title am-fl">积分设置</div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否开启积分 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="points[is_open]" value="1" data-am-ucheck
+                                            <?= $values['is_open'] ? 'checked' : '' ?>> 开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="points[is_open]" value="0" data-am-ucheck
+                                            <?= $values['is_open'] ? '' : 'checked' ?>> 关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 积分名称 </label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
                                     <input type="text" class="tpl-form-input" name="points[points_name]"
@@ -28,9 +41,48 @@
                                               placeholder="请输入积分说明/规则"><?= $values['describe'] ?></textarea>
                                 </div>
                             </div>
-
                             <div class="widget-head am-cf">
-                                <div class="widget-title am-fl">积分赠送</div>
+                                <div class="widget-title am-fl">集运积分赠送</div>
+                            </div>
+                            <div class="am-form-group am-padding-top">
+                                <label class="am-u-sm-3  am-u-lg-2 am-form-label form-require"> 是否开启集运送积分 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="points[is_logistics_gift]" value="1" data-am-ucheck
+                                            <?= $values['is_logistics_gift'] ? 'checked' : '' ?>> 开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="points[is_logistics_gift]" value="0" data-am-ucheck
+                                            <?= $values['is_logistics_gift'] ? '' : 'checked' ?>> 关闭
+                                    </label>
+                                    <div class="help-block">
+                                        <small>注：如开启则集运订单完成后赠送用户积分</small>
+                                    </div>
+                                    <div class="help-block am-padding-top-xs">
+                                        <small>积分赠送规则：1.集运订单确认签收或超过时效自动完成时</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 积分赠送比例 </label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <div class="am-input-group">
+                                        <input type="number" name="points[logistics_gift_ratio]"
+                                               class="am-form-field" min="0"
+                                               value="<?= $values['logistics_gift_ratio'] ?>" required>
+                                        <span class="am-input-group-label am-input-group-label__right">%</span>
+                                    </div>
+                                    <div class="help-block">
+                                        <small>注：赠送比例请填写数字0~100；订单的运费不参与积分赠送</small>
+                                    </div>
+                                    <div class="help-block">
+                                        <small>例：订单付款金额(100.00元) * 积分赠送比例(100%) = 实际赠送的积分(100积分)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">商城积分赠送</div>
                             </div>
                             <div class="am-form-group am-padding-top">
                                 <label class="am-u-sm-3  am-u-lg-2 am-form-label form-require"> 是否开启购物送积分 </label>

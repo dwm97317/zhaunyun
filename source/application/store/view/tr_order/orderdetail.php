@@ -84,8 +84,46 @@
                         </table>
                     </div>
                     
-                    <!-- 订单信息 -->
-                     <!-- 打包服务项目 -->
+                    <!-- 子订单信息 -->
+                    <div class="widget-head am-cf">
+                        <div class="widget-title am-fl">子订单/分箱清单</div>
+                        <div class="am-fr tpl-table-black-operation">
+                            <a id="j-soninpack" href="javascript:void(0)">
+                                <i class="am-icon-pencil"></i> 新增子订单
+                            </a>
+                        </div>
+                    </div>
+                    <div class="am-scrollable-horizontal">
+                        <table width="100%" class="regional-table am-table am-table-bordered am-table-centered
+                            am-text-nowrap am-margin-bottom-xs">
+                            <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>长/宽/高</th>
+                                <th>实重</th>
+                                <th>体积</th>
+                                <th>计费重量</th>
+                                <th>发货单号</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php  foreach ($detail['sonitem'] as $key=>$item): ?>
+                                <tr>
+                                    <td class="am-text-middle"><?= $key + 1 ?></td>
+                                    <td class="am-text-middle"><?= $item['length']. '/' .$item['width']. '/' .$item['height'] ?></td>
+                                    <td class="am-text-middle"><?= $item['weight'] ?></td>
+                                    <td class="am-text-middle"><?= $item['volume'] ?></td>
+                                    <td class="am-text-middle"><?= $item['cale_weight'] ?></td>
+                                    <td class="am-text-middle"><?= $item['t_order_sn'] ?></td>
+                                    <td class="am-text-middle"><a href="javascript:void(0);" class="item-deletet tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a></td>
+                                </tr>
+                            <?php endforeach?>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 打包服务项目 -->
                     <div class="widget-head am-cf">
                         <div class="widget-title am-fl">打包服务项目</div>
                         <div class="am-fr tpl-table-black-operation">
@@ -265,9 +303,112 @@
         </form>
     </div>
 </script>
+<script id="tpl-soninpack" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <input type="hidden" name="inpack[inpack_id]" value="<?= $detail['id'] ?>"/>
+            <div class="am-form-group">
+                <label class="am-u-sm-5 am-u-lg-2 am-form-label">长宽高体积重</label>
+                <div class="am-u-sm-10 am-u-end" style="position: relative">
+                     <div class="step_mode">
+                         <div style="display:flex;">
+                             <div class="span">
+                                <input type="text" class="vlength" class="tpl-form-input" onblur="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" name="inpack[length]" value="" placeholder="长<?= $set['size_mode']['unit'] ?>">
+                             </div>
+                             <div class="span">
+                                <input type="text" class="vwidth" class="tpl-form-input" onblur="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" name="inpack[width]" value="" placeholder="宽<?= $set['size_mode']['unit'] ?>">
+                             </div>
+                             <div class="span">
+                                 <input type="text" class="vheight" class="tpl-form-input" onblur="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" name="inpack[height]" value="" placeholder="高<?= $set['size_mode']['unit'] ?>">
+                             </div>
+                             <div class="span">
+                                 <select class="wvop" onchange="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" >
+                                    <option value="5000">5000</option>
+                                    <option value="6000">6000</option>
+                                    <option value="7000">7000</option>
+                                    <option value="8000">8000</option>
+                                    <option value="9000">9000</option>
+                                    <option value="10000">10000</option>
+                                    <option value="139">139</option>
+                                    <option value="166">166</option>
+                                 </select>
+                             </div>
+                             <div class="span">
+                                 <input id="volume0" class="volume" type="text" class="tpl-form-input" style="width:80px;border: 1px solid #c2cad8;" name="inpack[volume_weight]" value="" placeholder="体积重<?= $set['size_mode']['unit'] ?>">
+                             </div>
+                             <div class="span">
+                                 <input type="text" id="weight" class="tpl-form-input" style="width:60px;border: 1px solid #c2cad8;" name="inpack[weight]" value="" placeholder="重量<?= $set['weight_mode']['unit'] ?>">
+                             </div>
+                         </div>
+                     </div>
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-2 am-form-label">发货单号</label>
+                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                    <input type="text" class="tpl-form-input" name="inpack[t_order_sn]"
+                           value="" placeholder="请输入发货单号">
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
 <script>
+    function getweightvol(num){
+        console.log(num,6767);
+        var num=parseInt(num);
+        var length = 0;
+        var width = 0;
+        var height = 0;
+        var wvop = 0;
+        if($(".vlength")[num]){
+             length = $(".vlength")[num].value;
+        }
+        if($(".vwidth")[num]){
+             width = $(".vwidth")[num].value;
+        }
+        if($(".vheight")[num]){
+            height = $(".vheight")[num].value;
+        }
+        if($(".wvop")[num]){
+            wvop = $(".wvop")[num].value;
+        }
+        console.log(length,7878);
+        console.log(width,7878);
+        console.log(height,7878);
+        if(length !='' && width !='' && height !=''){
+            $("#volume"+num).val(length * width * height / wvop);
+        }
+        // console.log($("#volume"+num).val(34),7878);
+        
+    }
+
  $(function () {
-     
+         /**
+         * 新增子订单
+         */
+        $('#j-soninpack').on('click', function () {
+            var $tabs, data = $(this).data();
+            $.showModal({
+                title: '新增子订单'
+                , area: '800px'
+                , content: template('tpl-soninpack', data)
+                , uCheck: true
+                , success: function ($content) {
+                    $tabs = $content.find('.j-tabs');
+                    $tabs.tabs({noSwipe: 1});
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('store/TrOrder/addInpackItem') ?>',
+                        data: {
+                            service_id:data.selectId,
+                        }
+                    });
+                    return true;
+                }
+            });
+        });
         /**
          * 新增服务项目
          */

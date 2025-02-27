@@ -301,8 +301,9 @@ class Page extends Controller
         }
         $store['copyright']= WxappModel::detail(input('wxapp_id'));
         $store['paytype']= SettingModel::detail('paytype')['values'];
+        $store['grade']= SettingModel::detail('grade')['values'];
         $store['keeper']= SettingModel::detail('keeper')['values'];
-        // dump($store);die;
+        $store['points']= SettingModel::detail('points')['values'];
         return $this->renderSuccess($store);
     }
     

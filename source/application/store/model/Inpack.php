@@ -22,6 +22,7 @@ use app\store\model\Express;
 use app\common\service\Message;
 use app\common\model\DitchNumber;
 use app\store\model\Line;
+use app\store\model\InpackItem;
 /**
  * 打包模型
  * Class Delivery
@@ -340,9 +341,6 @@ class Inpack extends InpackModel
             //发送订阅消息以及模板消息,包裹查验完成，等待支付
             $noticesetting = SettingModel::getItem('notice');
             //根据设置内容，判断是否需要发送通知；
-            
-         
-            
             $pack['remark']= $noticesetting['check']['describe'];
             $pack['total_free'] = $pack['free']+$pack['other_free']+$pack['pack_free'];
             //获取模板消息设置，根据设置选择调用的函数
@@ -359,8 +357,12 @@ class Inpack extends InpackModel
         
         
         unset($data['verify']);
-        // dump($pack);die;
         $rers =  $this->where('id',$data['id'])->update($data);
+        if(!empty($data['length']) && !empty($data['width']) && !empty($data['height'])){
+            $data['inpack_id'] = $data['id'];
+            unset($data['id']);
+            (new InpackItem())->addItem($data);
+        }
         $tplmsgsetting = SettingModel::getItem('tplMsg');
             if($tplmsgsetting['is_oldtps']==1){
                   //发送旧版本订阅消息以及模板消息

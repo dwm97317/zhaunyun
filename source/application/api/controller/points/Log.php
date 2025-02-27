@@ -24,5 +24,17 @@ class Log extends Controller
         $list = (new PointsLogModel)->getList($user['user_id']);
         return $this->renderSuccess(compact('list'));
     }
+    
+    public function lists()
+    {
+        $user = $this->getUser();
+        $param = $this->request->param();
+        $param['user_id'] = $user['user_id'];
+        if($param['type']==0){
+            unset($param['type']);
+        }
+        $list = (new PointsLogModel)->getPointsList($param);
+        return $this->renderSuccess(compact('list'));
+    }
 
 }

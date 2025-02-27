@@ -2,6 +2,7 @@
 namespace app\store\controller;
 use app\api\model\Logistics;
 use app\store\model\Inpack;
+use app\store\model\InpackItem;
 use app\store\model\Package;
 use app\api\controller\Package as PackageModel;
 use app\store\model\PackageItem;
@@ -126,6 +127,21 @@ class TrOrder extends Controller
     }
     
     /**
+     * 添加子订单
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function addInpackItem(){
+        $param = $this->request->param();
+        $InpackItem = new InpackItem();
+        if($InpackItem->addItem($param['inpack'])){
+            return $this->renderSuccess('添加成功');
+        }
+        return $this->renderError($InpackItem->getError() ?: '添加失败');
+    }
+    
+    
+    /**
      * 订单列表
      * @param string $title
      * @param string $dataType
@@ -140,6 +156,7 @@ class TrOrder extends Controller
         $list = $model->getQuicklypack($dataType, $this->request->param());
         foreach ($list as &$value) {
             $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
             $value['down_shelf'] = 0;
             $value['inpack'] = 0;
            if ($dataType=='payed'){
@@ -187,6 +204,7 @@ class TrOrder extends Controller
         $list = $model->getExceedList($dataType, $this->request->param());
         foreach ($list as &$value) {
             $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
             $value['down_shelf'] = 0;
             $value['inpack'] = 0;
         }
@@ -341,6 +359,8 @@ class TrOrder extends Controller
         $detail['user'] = (new UserModel())->where('user_id',$detail['member_id'])->find();
         //获取到仓库信息
         $detail['storage'] = (new ShopModel())->where('shop_id',$detail['storage_id'])->find();
+        //获取子订单记录
+        $detail['sonitem'] = (new InpackItem())->where('inpack_id',$detail['id'])->select();
         $set = Setting::detail('store')['values'];
         return $this->fetch('orderdetail', compact(
             'detail','line','package','packageItem','packageService','set'
@@ -907,6 +927,7 @@ class TrOrder extends Controller
         $lineList = $Line->getListAll();
         foreach ($list as &$value) {
             $value['num'] =  (new Package())->where(['inpack_id'=>$value['id'],'is_delete'=>0])->count();
+            $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
         }
 //   dump($pintuanlist->toArray());die;
         return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
@@ -1004,6 +1025,7 @@ class TrOrder extends Controller
         $list = $model->getNoPayList($dataType, $this->request->param());
         foreach ($list as &$value) {
             $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
             $value['down_shelf'] = 0;
             $value['inpack'] = 0;
            if ($dataType=='payed'){

@@ -11,6 +11,8 @@ class Setting extends EnumBasics
 {
     // 系统设置
     const STORE = 'store';
+    // 会员等级设置
+    const GRADE = 'grade';
      // 智能AI
     const AIIDENTIFY = 'aiidentify';
     // 交易设置
@@ -73,6 +75,10 @@ class Setting extends EnumBasics
             self::STORE => [
                 'value' => self::STORE,
                 'describe' => '系统设置',
+            ],
+            self::GRADE => [
+                'value' => self::GRADE,
+                'describe' => '会员设置',
             ],
             self::COUPON => [
                 'value' => self::COUPON,

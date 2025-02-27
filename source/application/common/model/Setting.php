@@ -592,6 +592,14 @@ class Setting extends BaseModel
                     'freight_rule' => '10',
                 ]
             ],
+            // 会员等级设置
+            'grade' => [
+                'key' => 'grade',
+                'describe' => '等级设置',
+                'values' => [
+                    'is_open' => '0',   // 是否开启
+                ]
+            ],
             // 语言设置
             'lang' => [
                 'key' => 'lang',
@@ -1056,7 +1064,10 @@ class Setting extends BaseModel
                 'key' => SettingEnum::POINTS,
                 'describe' => SettingEnum::data()[SettingEnum::POINTS]['describe'],
                 'values' => [
+                    'is_open' => '0',         // 积分是否开启
                     'points_name' => '积分',         // 积分名称自定义
+                    'is_logistics_gift'=>'0',       // 是否开启集运送积分
+                    'logistics_gift_ratio' => '100',           // 是否开启集运送积分 
                     'is_shopping_gift' => '0',      // 是否开启购物送积分
                     'gift_ratio' => '100',            // 是否开启购物送积分
                     'is_shopping_discount' => '0',    // 是否允许下单使用积分抵扣
