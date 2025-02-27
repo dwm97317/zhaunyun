@@ -140,6 +140,49 @@ class TrOrder extends Controller
         return $this->renderError($InpackItem->getError() ?: '添加失败');
     }
     
+    /**
+     * 添加子订单
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function InpackItemdetail(){
+        $param = $this->request->param();
+        $InpackItem = new InpackItem();
+        $detail = $InpackItem->details($param['id']);
+        return $this->renderSuccess('添加成功','',compact('detail'));
+    }
+    
+    /**
+     * 添加子订单
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function editInpackItem(){
+        $param = $this->request->param();
+        $InpackItem = new InpackItem();
+        if($InpackItem->editItem($param['inpack'])){
+            return $this->renderSuccess('修改成功');
+        }
+        return $this->renderError($InpackItem->getError() ?: '修改失败');
+    }
+    
+    /**
+     * 删除子订单
+     * @param $delivery_id
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     * @throws \think\exception\PDOException
+     */
+    public function deleteInpackItem($id)
+    {
+        $model = new InpackItem();
+        if (!$model->deletes($id)) {
+            return $this->renderError($model->getError() ?: '删除失败');
+        }
+        return $this->renderSuccess('删除成功');
+    }
+    
     
     /**
      * 订单列表

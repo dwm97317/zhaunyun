@@ -38,6 +38,23 @@ class InpackItem extends InpackItemModel
         return true;
     }
     
+        
+    //编辑子项目
+    public function editItem($data){
+        $detail = $this->find($data['id']);
+        if(!empty($data['width']) && !empty($data['length']) && !empty($data['height'])){
+            $data['volume'] = $data['width']*$data['length']*$data['height']/1000000;
+        }
+        if(!empty($data['weight']) && !empty($data['volume_weight'])){
+            $data['cale_weight'] = $data['weight'] > $data['volume_weight']?$data['weight']:$data['volume_weight'];
+        }
+        if(!$detail->allowField(true)->save($data)){
+            $this->error = "保存失败";
+            return false;
+        }
+        return true;
+    }
+    
      /**
      * 处理包装服务
      * @var array

@@ -14,4 +14,7 @@ class InpackItem extends BaseModel
     protected $name = 'inpack_item';
     protected $updateTime = false;
     
+    public function details($id){
+        return $this->find($id);
+    }
 }

@@ -116,7 +116,12 @@
                                     <td class="am-text-middle"><?= $item['volume'] ?></td>
                                     <td class="am-text-middle"><?= $item['cale_weight'] ?></td>
                                     <td class="am-text-middle"><?= $item['t_order_sn'] ?></td>
-                                    <td class="am-text-middle"><a href="javascript:void(0);" class="item-deletet tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a></td>
+                                    <td class="am-text-middle">
+                                        <div class="tpl-table-black-operation">
+                                            <a href="javascript:void(0);" class="editinpackitem" data-id="<?= $item['id'] ?>" > <i class="am-icon-pencil"></i> 编辑</a>
+                                            <a href="javascript:void(0);" class="item-deletetitem tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a>
+                                        </div>
+                                    </td>
                                 </tr>
                             <?php endforeach?>
                             </tbody>
@@ -230,7 +235,7 @@
                                     <td class="am-text-middle"><?= $item['product_num'] ?></td>
                                     <td class="am-text-middle"><?= $item['all_price'] ?></td>
                                     <td class="am-text-middle"><?= $item['product_num'] ?></td>
-                                    <td class="am-text-middle"><a href="javascript:void(0);" class="item-deletet tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a></td>
+                                    <td class="am-text-middle"><a href="javascript:void(0);" class="item-deletetp tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a></td>
                                 </tr>
                             <?php endforeach?>
                             </tbody>
@@ -353,6 +358,60 @@
         </form>
     </div>
 </script>
+<script id="tpl-editsoninpack" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <input type="hidden" name="inpack[inpack_id]" value="<?= $detail['id'] ?>"/>
+            <div class="am-form-group">
+                <label class="am-u-sm-5 am-u-lg-2 am-form-label">长宽高体积重</label>
+                <div class="am-u-sm-10 am-u-end" style="position: relative">
+                     <div class="step_mode">
+                         <div style="display:flex;">
+                             <div class="span">
+                                <input type="text" class="vlength" class="tpl-form-input" onblur="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" name="inpack[length]" value="{{ length }}" placeholder="长<?= $set['size_mode']['unit'] ?>">
+                             </div>
+                             <div class="span">
+                                <input type="text" class="vwidth" class="tpl-form-input" onblur="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" name="inpack[width]" value="{{width}}" placeholder="宽<?= $set['size_mode']['unit'] ?>">
+                             </div>
+                             <div class="span">
+                                 <input type="text" class="vheight" class="tpl-form-input" onblur="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" name="inpack[height]" value="{{height}}" placeholder="高<?= $set['size_mode']['unit'] ?>">
+                             </div>
+                             <div class="span">
+                                 <select class="wvop" onchange="getweightvol(0)" style="width:60px;border: 1px solid #c2cad8;" >
+                                    <option value="5000">5000</option>
+                                    <option value="6000">6000</option>
+                                    <option value="7000">7000</option>
+                                    <option value="8000">8000</option>
+                                    <option value="9000">9000</option>
+                                    <option value="10000">10000</option>
+                                    <option value="139">139</option>
+                                    <option value="166">166</option>
+                                 </select>
+                             </div>
+                             <div class="span">
+                                 <input id="volume0" class="volume" type="text" class="tpl-form-input" style="width:80px;border: 1px solid #c2cad8;" name="inpack[volume_weight]" value="{{volume_weight}}" placeholder="体积重<?= $set['size_mode']['unit'] ?>">
+                             </div>
+                             <div class="span">
+                                 <input type="text" id="weight" class="tpl-form-input" style="width:60px;border: 1px solid #c2cad8;" name="inpack[weight]" value="{{weight}}" placeholder="重量<?= $set['weight_mode']['unit'] ?>">
+                             </div>
+                             <div class="span">
+                                 <input type="hidden" class="tpl-form-input" style="width:60px;border: 1px solid #c2cad8;" name="inpack[id]" value="{{id}}">
+                             </div>
+                         </div>
+                     </div>
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-2 am-form-label">发货单号</label>
+                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                    <input type="text" class="tpl-form-input" name="inpack[t_order_sn]"
+                           value="{{t_order_sn}}" placeholder="请输入发货单号">
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
 <script>
     function getweightvol(num){
         console.log(num,6767);
@@ -384,6 +443,36 @@
     }
 
  $(function () {
+        /**
+         * 新增子订单
+         */
+        $('.editinpackitem').on('click', function () {
+            var $tabs, data = $(this).data();
+            $.post('store/tr_Order/InpackItemdetail',{id:data.id}, function (result) {
+                if(result.code == 1 ){
+                    $.showModal({
+                        title: '编辑子订单'
+                        , area: '800px'
+                        , content: template('tpl-editsoninpack', result.data.detail)
+                        , uCheck: true
+                        , success: function ($content) {
+                        }
+                        , yes: function ($content) {
+                            $content.find('form').myAjaxSubmit({
+                                url: '<?= url('store/TrOrder/editInpackItem') ?>',
+                                data: {
+                                   
+                                }
+                            });
+                        }
+                    });
+                }else{
+                  $.show_error(result.msg);   
+                }
+            });
+        });
+     
+     
          /**
          * 新增子订单
          */
@@ -439,9 +528,13 @@
         $('.item-delete').delete('id', url);
         
         var url = "<?= url('store/PackageItem/delete') ?>";
-        $('.item-deletet').delete('id', url);
+        $('.item-deletetp').delete('id', url);
         
         var urle = "<?= url('store/InpackService/delete') ?>";
         $('.item-deletet').delete('id', urle);
+        
+        // 删除元素
+        var urll = "<?= url('store/TrOrder/deleteInpackItem') ?>";
+        $('.item-deletetitem').delete('id', urll);
  });
 </script>
