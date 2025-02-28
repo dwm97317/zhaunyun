@@ -47,6 +47,7 @@ use app\api\model\ShelfUnitItem;
 use app\api\model\Barcode;
 use app\api\model\InpackImage;
 use app\api\model\InpackItem;
+use app\api\model\user\PointsLog as PointsLogModel;
 /**
  * 页面控制器
  * Class Index
@@ -2671,14 +2672,32 @@ class Package extends Controller
          }
 
          (new Inpack())->where(['id'=>$id])->update(['status'=>7]);
-         $pack_ids = explode(',',$pack['pack_ids']);
-         $up = (new PackageModel())->where('id','in',$pack_ids)->update(['status'=>10]);
-         foreach($pack_ids as $v){
-            Logistics::add($v,'包裹已经本人签收,如有问题,请联系客服');
+         $up = (new PackageModel())->where('inpack_id',$id)->update(['status'=>10]);
+         
+         $inpacklist =  (new PackageModel())->where('inpack_id',$id)->where('is_delete',0)->select();
+         foreach($inpacklist as $v){
+            Logistics::add($v['express_num'],'包裹已经本人签收,如有问题,请联系客服');
          }
          if (!$up){
           return $this->renderError('签收失败');
+         }
+        
+        // 处理积分赠送,给用户增加积分，生成一条积分增加记录；
+        //根据积分设置的百分比来计算出需要赠送的积分数量
+        $setting = SettingModel::getItem('points');
+        if($setting['is_open']==1 && $setting['is_logistics_gift']==1){
+            $giftpoint = floor($pack['real_payment']*$setting['logistics_gift_ratio']/100);
         }
+
+        (new User())->where(['user_id' => $pack['member_id']])->setInc('points',$giftpoint);
+        // 新增积分变动记录
+        PointsLogModel::add([
+            'user_id' => $pack['member_id'],
+            'value' => $giftpoint,
+            'type' => 1,
+            'describe' => "用户签收赠送积分",
+            'remark' => "积分来自集运订单:".$pack['order_sn'],
+        ]);
         
         
         return $this->renderSuccess("签收成功");

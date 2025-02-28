@@ -700,7 +700,7 @@ class TrOrder extends Controller
         $inpackdata = $model::details($data['id']);
         $userdata = User::detail($data['user_id']);
         
-        $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free'];
+        $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free'] + $inpackdata['insure_free'];
       
         if(($userdata['balance'] < $payprice) || $payprice==0){
             return $this->renderError('用户余额不足');

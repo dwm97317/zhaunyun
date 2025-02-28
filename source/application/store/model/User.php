@@ -302,6 +302,7 @@ class User extends UserModel
             PointsLogModel::add([
                 'user_id' => $this['user_id'],
                 'value' => $diffMoney,
+                'type'=>$diffMoney>0?1:2,
                 'describe' => "后台管理员 [{$storeUserName}] 操作",
                 'remark' => $data['remark'],
             ]);
