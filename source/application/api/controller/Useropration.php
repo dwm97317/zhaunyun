@@ -54,13 +54,14 @@ class Useropration extends Controller
         }else{
             $this->user['user_id'] = 1;
         }
-        $this->setRole();
+        // $this->setRole();
     }
 
     
     // 设置角色
     private function setRole(){
         $userInfo = $this->user;
+        // dump($userInfo);die;
         switch($userInfo['user_type']){
           case 0:
           $role_name = '普通用户';

@@ -562,6 +562,7 @@ class TrOrder extends Controller
     public function cashforprice(){
         $data = $this->request->param();
         $model = new Inpack();
+        $Package = new Package();
         $user =  new UserModel;
         $inpackdata = $model::details($data['id']);
         $userdata = User::detail($data['user_id']);
@@ -586,7 +587,7 @@ class TrOrder extends Controller
         }else{
             $inpackdata->where('id',$data['id'])->update(['real_payment'=>$payprice,'is_pay'=>1,'is_pay_type'=>5,'pay_time'=>date('Y-m-d H:i:s',time())]);
         }
-        
+        $Package->where('inpack_id',$data['id'])->update(['status'=>6,'is_pay'=>1]);
         return $this->renderSuccess('操作成功');
     }
     
@@ -721,6 +722,7 @@ class TrOrder extends Controller
         }else{
             $inpackdata->where('id',$data['id'])->update(['real_payment'=>$payprice,'is_pay'=>1,'is_pay_type'=>0,'pay_time'=>date('Y-m-d H:i:s',time())]);
         }
+         $Package->where('inpack_id',$data['id'])->update(['status'=>6,'is_pay'=>1]);
         return $this->renderSuccess('操作成功');
     }
 

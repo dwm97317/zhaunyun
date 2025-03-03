@@ -1431,7 +1431,7 @@ class Package extends Controller
          $statusMap = [
            'all' =>[1,2,3,4,5,6,7,8],
            'verify' => [1],     
-           'nopay' => [2],
+           'nopay' => [2,3,4,5,6,7,8],
            'no_send' => [3,4,5],
            'send' => [6],
            'reach' => [7],
@@ -1440,7 +1440,7 @@ class Package extends Controller
          if ($status)
          $query['status'] = $statusMap[$status];
          if($status == 'nopay'){
-             $query['is_pay'] = 0;
+             $query['is_pay'] = 2;
          }
          $query['member_id'] = $this->user['user_id']; 
          $param = $this->request->param();
@@ -2279,6 +2279,34 @@ class Package extends Controller
         return $this->renderSuccess($data);
      }
      
+     //添加分箱-仓管端使用
+     public function addSonInpackItem(){
+         $param = $this->request->param();
+         $InpackItem = new InpackItem();
+         $InpackItem->where('inpack_id',$param['id'])->delete();
+         if(count($param['sonlist'])>0){
+             for ($i = 0; $i < count($param['sonlist']); $i++) {
+                     $data['inpack_id'] = $param['id'];
+                     $data['width'] = $param['sonlist'][$i]['width'];
+                     $data['length'] = $param['sonlist'][$i]['length'];
+                     $data['height'] = $param['sonlist'][$i]['height'];
+                     $data['weight'] = $param['sonlist'][$i]['weight'];
+                     $InpackItem->add($data);
+             }
+         }
+         return $this->renderSuccess("添加成功");
+     }
+     
+     //获取分箱-仓管端使用
+     public function getInpackItem(){
+         $param = $this->request->param();
+         $InpackItem = new InpackItem();
+         $list = $InpackItem->where('inpack_id',$param['inpack_id'])->select();
+         return $this->renderSuccess($list);
+     }
+
+     
+     
      //计算使用优惠券后的价格；
      public function UseConponPrice($couponId,$total){
          $totalFree = 0;
@@ -2651,7 +2679,7 @@ class Package extends Controller
              $where['usermark'] = $param['usermark'];
          }   
          $return = [
-           'no_pay' => $model->where('status',2)->where($where)->count(),
+           'no_pay' => $model->whereIn('status',[2,3,4,5,6,7,8])->where($where)->where('is_pay',2)->count(),
            'verify' => $model->whereIn('status',[1])->where($where)->count(),
            'no_send' => $model->whereIn('status',[3,4,5])->where($where)->count(),
            'send' => $model->whereIn('status',[6,7])->where($where)->count(),

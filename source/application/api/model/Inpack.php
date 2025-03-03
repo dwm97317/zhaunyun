@@ -147,6 +147,7 @@ class Inpack extends InpackModel
         isset($query['rfid_id']) && $this->where('rfid_id','=',$query['rfid_id']);
         isset($query['is_settled']) && $this->where('is_settled','=',$query['is_settled']);
         isset($query['usermark']) && $this->where('usermark','=',$query['usermark']);
+        isset($query['is_pay']) && $this->where('is_pay','=',$query['is_pay']);
         return $this;
     }
 
