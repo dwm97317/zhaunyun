@@ -915,6 +915,47 @@ class Useropration extends Controller
          }
          return $this->renderSuccess('包裹入库成功'); 
     }
+    
+    /**
+     * 仓管端快速入库
+     * @param Array
+     * @return bool
+     * @throws \think\exception\DbException
+     */
+      public function inStorageByPda() {
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->with('shop')->find();
+        if (!$clerk){return $this->renderError('角色权限非法');}
+        $params = $this->request->param();
+        
+        if(count($params['code'])==0){
+            return $this->renderError('请录入包裹单号');
+        }
+        foreach ($params['code'] as $val){
+            $packdatas = (new Package())->where('express_num',$val)->where('is_delete',0)->find();
+            if($packdatas){
+                $packdatas->save([
+                    'status'=>2,
+                    'storage_id'=>$clerk['shop_id'],
+                    'entering_warehouse_time'=>getTime(),
+                    'updated_time'=>getTime(),
+                    'wxapp_id'=>\request()->get('wxapp_id')
+                ]);
+            }else{
+                $order = [
+                    'status'=>2,
+                    'source'=>8,
+                    'express_num'=>$val,
+                    'storage_id'=>$clerk['shop_id'],
+                    'entering_warehouse_time'=>getTime(),
+                    'updated_time'=>getTime(),
+                    'wxapp_id'=>\request()->get('wxapp_id')
+                ];  
+                (new Package())->insert($order);
+            }
+        }
+        return $this->renderSuccess('','包裹入库成功');   
+      }
+     
  
     /**
      * 仓管端提交入库

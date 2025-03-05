@@ -54,7 +54,7 @@
                                     <label class="am-checkbox-inline">
                                         <input type="checkbox" name="clerk[clerk_authority][is_datatop]" value="1" data-am-ucheck
                                         <?= isset($model['clerk_authority']['is_datatop']) && $model['clerk_authority']['is_datatop'] == 1 ? 'checked' : '' ?>>
-                                        仓管端顶部数据统计
+                                        PDA快速入库
                                     </label>
                                     <label class="am-checkbox-inline">
                                         <input type="checkbox" name="clerk[clerk_authority][is_fahuoin]" value="1" data-am-ucheck

@@ -220,9 +220,20 @@ class User extends Controller
     
     //更新用户昵称
     public function changeName(){
+        $model = new UserModel;
         $user = $this->getUser();
         $name = input('nickname');
-        $res = $user->save(['nickName'=> $name]);
+        $user_code = input('user_code');
+        
+        if(!empty($user_code)){
+             $userResult = $model::detail(['user_code' => $user_code]);
+             if(!empty($userResult)){
+                 return $this->renderError('用户编号已存在');  
+             }
+             $data['user_code'] = $user_code;
+        }
+        $data['nickName'] = $name;
+        $res = $user->save($data);
         if($res){
             return $this->renderSuccess('更新昵称成功');   
         }
