@@ -441,7 +441,7 @@
                                             data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
                                             <option value="10" <?= $values['delivertempalte']['labelface'] == '10' ? 'selected' : '' ?>>模板A</option>
                                             <option value="20" <?= $values['delivertempalte']['labelface'] == '20' ? 'selected' : '' ?>>模板B</option>
-                                            <!--<option value="30" <?= $values['delivertempalte']['labelface'] == '30' ? 'selected' : '' ?>>模板C</option>-->
+                                            <option value="30" <?= $values['delivertempalte']['labelface'] == '30' ? 'selected' : '' ?>>模板C</option>
                                             <!--<option value="40" <?= $values['delivertempalte']['labelface'] == '40' ? 'selected' : '' ?>>模板D</option>-->
                                     </select>
                                     <div class="help-block">

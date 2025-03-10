@@ -1710,7 +1710,7 @@ class TrOrder extends Controller
            return $this->renderError('转运单号为空');
        }
        $adminstyle = Setting::getItem('adminstyle',$data['wxapp_id']);
-    //   dump($adminstyle);die;
+    //   dump($data->toArray());die;
        $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
        if(!empty($data['member_id'])){
            $member  = UserModel::detail($data['member_id']);
@@ -1727,14 +1727,22 @@ class TrOrder extends Controller
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
        $data['barcode'] = $generatorSVG->getBarcode($data['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
        $data['cover_id'] = UploadFile::detail($data['setting']['cover_id']);
-        // dump($data->toArray());die;
-        for ($i = 0; $i < count($data['packagelist']); $i++) {
-           switch ($adminstyle['delivertempalte']['orderface']) {
+        // dump($data['address']->toArray());die;
+        $data['total_free'] = $data['free'] + $data['pack_free'] + $data['insure_free']+$data['other_free'];
+        $line_type_unit = [10=>'g',20=>'kg',30=>'bl',40=>'cbm'];
+        $data['line_type_unit'] = $line_type_unit[$data['line']['line_type_unit']];
+        // 10 g  20 kg 30 bl  40 cbm
+        for ($i = 0; $i < count($data['packageitems']); $i++) {
+            $data['index'] = $i;
+           switch ($adminstyle['delivertempalte']['labelface']) {
                case '10':
                    echo $this->label10($data);
                    break;
                case '20':
                    echo $this->label20($data);
+                   break;
+               case '30':
+                   echo $this->label30($data);
                    break;
                default:
                     echo $this->label10($data);
@@ -2071,8 +2079,234 @@ class TrOrder extends Controller
 ';
     }
     
+    // 渲染标签模板B
+    public function label30($data){
+     return  $html = '<style>
+	* {
+		margin: 0;
+		padding: 0
+	}
+
+	table {
+		margin-top: -1px;
+		font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
+		border-collapse: collapse
+	}
+
+	table.container {
+	    width:527px;
+		border-bottom: 0
+	}
+	
+	.conta {
+            display: flex; /* 设置容器为flex布局 */
+            justify-content: center;
+            align-items: center;
+    }
+
+	table td {
+	}
+
+	table.nob {
+	    width:500px;
+	}
+
+	table.nob td {
+		border: 0
+	}
+
+	table td.center {
+		text-align: center
+	}
+
+	table td.right {
+		text-align: right
+	}
+
+	table td.pl {
+		padding-left: 5px;
+		margin:4px 0;
+	}
+
+	table td.br {
+		border-right: 1px solid #000
+	}
+
+	table.nobt,
+	table td.nobt {
+		border-top: 0
+	}
+
+	table.nobb,
+	table td.nobb {
+		border-bottom: 0
+	}
+
+	.font_s {
+		font-size: 10px;
+		-webkit-transform: scale(0.84, 0.84);
+		*font-size: 10px
+	}
+
+	.font_m {
+		font-size: 14px
+	}
+
+	.font_l {
+		font-size: 16px;
+		font-weight: bold
+	}
+
+	.font_xl {
+		font-size: 18px;
+		font-weight: bold
+	}
+
+	.font_xxl {
+		font-size: 28px;
+		font-weight: bold
+	}
+
+	.font_xxxl {
+		font-size: 32px;
+		font-weight: bold
+	}
+	tbody tr:nth-child(2n){
+	    color:#000;
+	}
+	.country{
+    	font-size: 37px;
+        padding: 0px;
+        margin: 0px;
+        font-weight: bold;
+        width: 100px;
+	}
+	.barcode{text-align:center;}
+	.barcode svg{width:378px;}
+	.font_12{font-size: 12px;font-weight: bold;}
+</style>
+<div style="550px;height:530px;margin:10px;border:2px solid #000;">
+<div>
+<table class="container" style="height:180px;">
+	<tr>
+		<td  height="76" class="font_xxxl">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_xxxl conta">'.$data['setting']['name'].'</td>
+		        </tr>
+		        <tr>
+		            <td  class="font_xl conta">'.$data['setting']['desc'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+	<tr>
+		<td  class="center">
+			<table class="nob">
+				<tr>
+					<td class="barcode center">'.$data['barcode'].'</td>
+				</tr>
+				<tr>
+					<td class="center font_xl">'.$data['order_sn'].'</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+
+<div style="height:1px;border-top:2px solid #000;margin:10px 0px 10px 0px;"></div>
+<table class="container" style="height:30px;">
+	<tr>
+		<td  height="55" class="font_xxxl conta">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_xxxl conta">目的地：'.$data['address']['country'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+</table>
+<div style="height:1px;border-top:2px solid #000;margin:10px 0px 10px 0px;"></div>
+<table class="container" style="height:30px;">
+	<tr>
+		<td  height="25" class="font_m">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_m">件數：'.($data['index'] +1).'/'.count($data['packageitems']).'</td>
+		            <td class="font_m">總收費：'.$data['total_free'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+	<tr>
+		<td  height="25" class="font_m">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_m">路線渠道：'.$data['line']['name'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+	<tr>
+		<td  height="25" class="font_m">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_m">重量：'.$data['packageitems'][$data['index']]['cale_weight'].$data['line_type_unit'].'</td>
+		            <td class="font_m">尺寸：'.$data['packageitems'][$data['index']]['length'].'*'.$data['packageitems'][$data['index']]['width'].'*'.$data['packageitems'][$data['index']]['height'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+</table>
+<div style="height:1px;border-top:2px solid #000;margin:10px 0px 10px 0px;"></div>
+<table class="container" style="height:30px;">
+	<tr>
+		<td  height="25" class="font_m">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_m">送貨地址：'.$data['address']['country'].$data['address']['province'].$data['address']['city'].$data['address']['detail'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+	<tr>
+		<td  height="25" class="font_m">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_m">收件人：'.$data['address']['name'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+	<tr>
+		<td  height="25" class="font_m">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_m">電話：'.$data['address']['phone'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+</table>
+<div style="width：100%;height:1px;border-top:2px solid #000;margin:10px 0px 20px 0px;"></div>
+<table class="container" style="height:30px;">
+	<tr>
+		<td  height="25" class="font_m">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_m">備註：'.$data['remark'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+</table>
+</div>
+</div>
+';
+}
     
-        // 渲染标签模板A
+    
+    // 渲染标签模板B
     public function label20($data){
      return  $html = '<style>
 	* {
@@ -2229,7 +2463,7 @@ class TrOrder extends Controller
         	</tr>
         	<tr>
         		<td class="font_xl pl">
-        		   Qty: 1 pkgs
+        		   Qty: '. count($data['packageitems']) .' pkgs
         		</td>
         	</tr>
         	<tr>
