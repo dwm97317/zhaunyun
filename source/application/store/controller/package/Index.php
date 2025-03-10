@@ -48,7 +48,7 @@ class Index extends Controller
         $map = \request()->param();
         $adminstyle = Setting::detail('adminstyle')['values'];
         $map['limitnum'] = isset($map['limitnum'])?$map['limitnum']:(isset($adminstyle['pageno'])?$adminstyle['pageno']['package']:15);
-                // dump($map['limitnum']);die;
+              
         $list = $packageModel->getList($map);
 
         $shelf =   (new Shelf())->getList(['ware_no' => $this->store['user']['shop_id']]);
@@ -59,7 +59,7 @@ class Index extends Controller
         }
         
         $shopList = ShopModel::getAllList(['wxapp_id'=> $this->getWxappId()]);
-        //   dump($shopList->toArray());die;
+
         $batchlist = (new Batch())->getAllwaitList([]);
         $line = (new Line())->getList([]);
         $packageService = (new PackageService())->getList([]);
@@ -74,7 +74,7 @@ class Index extends Controller
            empty($map['top_id']) && $map['top_id'] = '';
            $category = $Category->getListTopChild($map['top_id'])->toArray()['data']; 
         }
-        $datatotal = $packageModel->getDataTotal($map);    
+        // $datatotal = $packageModel->getDataTotal($map);    
         $storeAddress =(new UserAddress())->getDsList();
         $packlist = []; 
         $packlists = '';
@@ -92,8 +92,25 @@ class Index extends Controller
             }
             $packlists = implode(',',$packlist);
         }
-        return $this->fetch('index', compact('i','packlists','list','shopList','line','packageService','type','storeAddress','category','topcategory','set','datatotal','countweight','batchlist','adminstyle','shelf'));
+        return $this->fetch('index', compact('i','packlists','list','shopList','line','packageService','type','storeAddress','category','topcategory','set','countweight','batchlist','adminstyle','shelf'));
     }
+    
+    //获取包裹的统计数据
+    public function gettotal(){
+        $map = \request()->param();
+        $Category = new Category();
+        $map['limitnum'] = isset($map['limitnum'])?$map['limitnum']:(isset($adminstyle['pageno'])?$adminstyle['pageno']['package']:15);
+        $topcategory = $Category->getListTop($name=null)->toArray()['data'];
+   
+        if(!empty($topcategory)){
+           empty($map['top_id']) && $map['top_id'] = '';
+           $category = $Category->getListTopChild($map['top_id'])->toArray()['data']; 
+        }
+        $packageModel = new Package();
+        $datatotal = $packageModel->getDataTotal($map);    
+        return $this->renderSuccess("获取成功","",$datatotal);
+    }
+    
     
     //动态改变类目
     public function changecategory(){
@@ -167,7 +184,6 @@ class Index extends Controller
         }
         $type = 'deletepack';
         $set = Setting::detail('store')['values'];
-        $datatotal = $packageModel->getDataTotal($map);
         $packlist = []; 
         $packlists = '';
         $i = 0;
@@ -184,7 +200,7 @@ class Index extends Controller
             }
             $packlists = implode(',',$packlist);
         }
-        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','type','storeAddress','category','topcategory','set','datatotal','countweight'));
+        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','type','storeAddress','category','topcategory','set','countweight'));
     } 
      
     //deleteall 批量删除包裹
@@ -373,7 +389,7 @@ class Index extends Controller
         }
         //获取代收点的
         $storeAddress =(new UserAddress())->getDsList();
-        $datatotal = $packageModel->getDataTotal($map);    
+   
         $packlist = []; 
         $packlists = '';
         $i = 0;
@@ -390,7 +406,7 @@ class Index extends Controller
             }
             $packlists = implode(',',$packlist);
         }
-        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','type','storeAddress','topcategory','category','set','datatotal','countweight','batchlist'));
+        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','type','storeAddress','topcategory','category','set','countweight','batchlist'));
     }
     
     public function setErrors(){
@@ -453,7 +469,7 @@ class Index extends Controller
         $type = 'errors';
         $storeAddress =(new UserAddress())->getDsList();
         $set = Setting::detail('store')['values'];
-        $datatotal = $packageModel->getDataTotal($map);
+
         $packlist = []; 
         $packlists = '';
         $i = 0;
@@ -470,7 +486,7 @@ class Index extends Controller
             }
             $packlists = implode(',',$packlist);
         }
-        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','category','topcategory','type','storeAddress','set','datatotal','countweight'));
+        return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','category','topcategory','type','storeAddress','set','countweight'));
     }
     
     

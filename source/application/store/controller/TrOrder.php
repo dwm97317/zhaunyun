@@ -908,15 +908,7 @@ class TrOrder extends Controller
     //问题件删除
     public function orderdelete($id){
         $model = Inpack::details($id);
-        $package_ids = $model['pack_ids'];
-        $pack = explode(',',$package_ids);
-        if(!empty($pack)){
-          foreach ($pack as $key => $val){
-            (new Package())->where('id',$val)->update(['status' => 2,'inpack_id'=>null]);
-          }  
-        }else{
-            (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>null]);
-        }
+        (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>null]);
         if ($model->removedelete($id)) {
             return $this->renderSuccess('删除成功');
         }
@@ -964,16 +956,17 @@ class TrOrder extends Controller
             $params['limitnum'] = isset($adminstyle['pageno'])?$adminstyle['pageno']['inpack']:15;
         }
         $list = $model->getList($dataType, $params);
+        // dump($list->toArray());die;
         $tracklist = $Track->getAllList();
         $servicelist = $Clerk->where('clerk_authority','like','%is_myuser%')->where('clerk_authority','like','%is_myuserpackage%')->where('is_delete',0)->select();
         $pintuanlist = (new SharingOrder())->getAllList();
         $batchlist = (new Batch())->getAllwaitList([]);
         $shopList = ShopModel::getAllList();
         $lineList = $Line->getListAll();
-        foreach ($list as &$value) {
-            $value['num'] =  (new Package())->where(['inpack_id'=>$value['id'],'is_delete'=>0])->count();
-            $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
-        }
+        // foreach ($list as &$value) {
+        //     $value['num'] =  (new Package())->where(['inpack_id'=>$value['id'],'is_delete'=>0])->count();
+        //     $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
+        // }
 //   dump($pintuanlist->toArray());die;
         return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
     }
@@ -1734,18 +1727,20 @@ class TrOrder extends Controller
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
        $data['barcode'] = $generatorSVG->getBarcode($data['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
        $data['cover_id'] = UploadFile::detail($data['setting']['cover_id']);
-// dump($data->toArray());die;
-       switch ($adminstyle['delivertempalte']['orderface']) {
-           case '10':
-               echo $this->label10($data);
-               break;
-           case '20':
-               echo $this->label20($data);
-               break;
-           default:
-                echo $this->label10($data);
-               break;
-       }
+        // dump($data->toArray());die;
+        for ($i = 0; $i < count($data['packagelist']); $i++) {
+           switch ($adminstyle['delivertempalte']['orderface']) {
+               case '10':
+                   echo $this->label10($data);
+                   break;
+               case '20':
+                   echo $this->label20($data);
+                   break;
+               default:
+                    echo $this->label10($data);
+                   break;
+           }
+        }
     }
     
          // 打印账单
@@ -2258,7 +2253,7 @@ class TrOrder extends Controller
       @font-face
         {
             font-family:ttt;
-            src: url(assets/common/fonts/msyh.ttf)
+            src: url(assets/common/fonts/SimHei.ttf)
         }
 	* {
 		margin: 0;
@@ -2779,69 +2774,129 @@ class TrOrder extends Controller
     }
    
     // 批量打印面单 [生成pdf]
-    public function expressBillbatch(){
-        $selectIds = $this->postData("selectIds");
-        $inpack = (new Inpack());   
-        
-        
-        $data = $inpack->getExpressBatchData($selectIds);
-        // dump($data);die;
-        $html = '';
-        $setting = Setting::getItem('store',$data[0]['wxapp_id']);
-        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
-        foreach($data as $v){
-           $v['setting'] = $setting;
-           $v['barcode'] = $generatorSVG->getBarcode($v['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
-           
-           $v['shoujianren'] = $v['address']['name'];
-           isset($v['setting']['address_setting']['is_tel_code'])  && $v['setting']['address_setting']['is_tel_code']==1 && $v['shoujianren']=$v['shoujianren'].$v['address']['tel_code'];
-           $v['shoujianren']= $v['shoujianren'].'  '.$v['address']['phone'];
-    
-           $v['address']['xiangxi'] = $v['address']['country'];
-           isset($v['setting']['address_setting']['is_province'])  && $v['setting']['address_setting']['is_province']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['province'];
-           
-           isset($v['setting']['address_setting']['is_city'])  && $v['setting']['address_setting']['is_city']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['city'];
-           
-           isset($v['setting']['address_setting']['is_region'])  && $v['setting']['address_setting']['is_region']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['region'];
-           
-           isset($v['setting']['address_setting']['is_street'])  && $v['setting']['address_setting']['is_street']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['street'];
-           
-           isset($v['setting']['address_setting']['is_door'])  && $v['setting']['address_setting']['is_door']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['door'];
-           
-           $v['address']['xiangxi'] = $v['address']['xiangxi'] . $v['address']['detail'];
-           
-           $html.= $this->template10($v); 
-           $html.="</hr>";
-        }
-        $html = mb_convert_encoding($html,'UTF-8','auto'); 
-        $options = new Options();
-        $options->set('enable_remote', TRUE);
-        $options->set('defaultFont','monospace.ttf');
-        $dompdf = new Dompdf($options);
-        
-        // dump($html);die;
-        $dompdf->loadHtml($html, 'UTF-8');
-        // 加载HTML到Dompdf
-        // $dompdf->loadHtml(charsetToUTF8($html));
-        
-        // 设置（纸张大小和方向）
-        // 可在https://dompdf.github.io/查看支持的纸张尺寸
-        $dompdf->setPaper('A4', 'portrait');
-         
-        // 渲染HTML为PDF
-        $dompdf->render();
-        // $dompdf->stream("output.pdf", array("Attachment" => false));
-        // 指定文件名和路径
-        $filename =  rand(100000,999999);
-        $filePath = WEB_PATH.'/excel/'. $filename .'.pdf';
- 
-        // 将PDF内容保存到服务器文件
-        file_put_contents($filePath, $dompdf->output()); 
-        return base_url().'/excel/'.$filename.'.pdf'; 
-        // 输出PDF到浏览器（用于直接预览）
-        // echo($html);
-        // file_put_contents('expressBill.html', charsetToUTF8($html));
+public function expressBillbatch() {
+    $selectIds = $this->postData("selectIds");
+    if (empty($selectIds)) {
+        throw new Exception("未选择任何订单");
     }
+
+    $inpack = new Inpack();
+    $data = $inpack->getExpressBatchData($selectIds);
+    if (empty($data)) {
+        throw new Exception("未找到订单数据");
+    }
+
+    $setting = Setting::getItem('store', $data[0]['wxapp_id']);
+    $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG();
+    $htmlArray = [];
+
+    foreach ($data as $order) {
+        $order['setting'] = $setting;
+        $order['barcode'] = $generatorSVG->getBarcode($order['order_sn'], $generatorSVG::TYPE_CODE_128, 2, 50);
+
+        // 拼接收件人信息
+        $recipientInfo = $order['address']['name'];
+        if (isset($order['setting']['address_setting']['is_tel_code']) && $order['setting']['address_setting']['is_tel_code'] == 1) {
+            $recipientInfo .= $order['address']['tel_code'];
+        }
+        $order['shoujianren'] = $recipientInfo . '  ' . $order['address']['phone'];
+
+        // 拼接详细地址
+        $addressFields = ['country', 'province', 'city', 'region', 'street', 'door'];
+        $fullAddress = '';
+        foreach ($addressFields as $field) {
+            if (isset($order['setting']['address_setting']["is_$field"]) && $order['setting']['address_setting']["is_$field"] == 1) {
+                $fullAddress .= $order['address'][$field];
+            }
+        }
+        $order['address']['xiangxi'] = $fullAddress . $order['address']['detail'];
+
+        // 渲染模板
+        $htmlArray[] = $this->template10($order);
+    }
+
+    $html = implode('<hr>', $htmlArray);
+    $html = mb_convert_encoding($html, 'UTF-8', 'auto');
+
+    // 生成PDF
+    $options = new Options();
+    $options->set('isRemoteEnabled', true); // 允许加载远程资源
+    // dump($options);die;
+    $dompdf = new Dompdf($options);
+    $dompdf->loadHtml($html, 'UTF-8');
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+
+    // 保存PDF
+    $filename = rand(100000, 999999) . '.pdf';
+    $filePath = WEB_PATH . DIRECTORY_SEPARATOR . 'excel' . DIRECTORY_SEPARATOR . $filename;
+    file_put_contents($filePath, $dompdf->output());
+
+    return base_url() . '/excel/' . $filename;
+}
+    // public function expressBillbatch(){
+    //     $selectIds = $this->postData("selectIds");
+    //     $inpack = (new Inpack());   
+        
+        
+    //     $data = $inpack->getExpressBatchData($selectIds);
+    //     // dump($data);die;
+    //     $html = '';
+    //     $setting = Setting::getItem('store',$data[0]['wxapp_id']);
+    //     $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
+    //     foreach($data as $v){
+    //       $v['setting'] = $setting;
+    //       $v['barcode'] = $generatorSVG->getBarcode($v['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
+           
+    //       $v['shoujianren'] = $v['address']['name'];
+    //       isset($v['setting']['address_setting']['is_tel_code'])  && $v['setting']['address_setting']['is_tel_code']==1 && $v['shoujianren']=$v['shoujianren'].$v['address']['tel_code'];
+    //       $v['shoujianren']= $v['shoujianren'].'  '.$v['address']['phone'];
+    
+    //       $v['address']['xiangxi'] = $v['address']['country'];
+    //       isset($v['setting']['address_setting']['is_province'])  && $v['setting']['address_setting']['is_province']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['province'];
+           
+    //       isset($v['setting']['address_setting']['is_city'])  && $v['setting']['address_setting']['is_city']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['city'];
+           
+    //       isset($v['setting']['address_setting']['is_region'])  && $v['setting']['address_setting']['is_region']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['region'];
+           
+    //       isset($v['setting']['address_setting']['is_street'])  && $v['setting']['address_setting']['is_street']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['street'];
+           
+    //       isset($v['setting']['address_setting']['is_door'])  && $v['setting']['address_setting']['is_door']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['door'];
+           
+    //       $v['address']['xiangxi'] = $v['address']['xiangxi'] . $v['address']['detail'];
+           
+    //       $html.= $this->template10($v); 
+    //       $html.="</hr>";
+    //     }
+    //     $html = mb_convert_encoding($html,'UTF-8','auto'); 
+    //     $options = new Options();
+    //     $options->set('enable_remote', TRUE);
+    //     $options->set('defaultFont','DejaVu Sans.ttf');
+    //     $dompdf = new Dompdf($options);
+        
+    //     // dump($html);die;
+    //     $dompdf->loadHtml($html, 'UTF-8');
+    //     // 加载HTML到Dompdf
+    //     // $dompdf->loadHtml(charsetToUTF8($html));
+        
+    //     // 设置（纸张大小和方向）
+    //     // 可在https://dompdf.github.io/查看支持的纸张尺寸
+    //     $dompdf->setPaper('A4', 'portrait');
+         
+    //     // 渲染HTML为PDF
+    //     $dompdf->render();
+    //     // $dompdf->stream("output.pdf", array("Attachment" => false));
+    //     // 指定文件名和路径
+    //     $filename =  rand(100000,999999);
+    //     $filePath = WEB_PATH.'/excel/'. $filename .'.pdf';
+ 
+    //     // 将PDF内容保存到服务器文件
+    //     file_put_contents($filePath, $dompdf->output()); 
+    //     return base_url().'/excel/'.$filename.'.pdf'; 
+    //     // 输出PDF到浏览器（用于直接预览）
+    //     // echo($html);
+    //     // file_put_contents('expressBill.html', charsetToUTF8($html));
+    // }
     
     
     // 修改用户地址

@@ -94,7 +94,7 @@ class Inpack extends InpackModel
         $res= $this
             ->alias('pa')
             ->field('pa.*,ba.batch_id,ba.batch_name,ba.batch_no,u.nickName')
-            ->with(['line','address','storage','user','shop','usercoupon'])
+            ->with(['line','address','storage','user','shop','usercoupon','packagelist','packageitems'])
             ->join('user u','u.user_id = pa.member_id','left')
             ->join('batch ba','ba.batch_id = pa.batch_id','left')
             ->where('pa.status','in',$this->status[$dataType])
@@ -922,7 +922,7 @@ class Inpack extends InpackModel
     
     // 获取面单相关数据
     public function getExpressData($id){
-        $data = $this->with(['address','storage'])->find($id);
+        $data = $this->with(['address','storage','packagelist','packageitems'])->find($id);
         if ($data['member_id']){
             $data['member'] = (new UserModel())->find($data['member_id']);
         }

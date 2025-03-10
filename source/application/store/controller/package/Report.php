@@ -30,17 +30,17 @@ class Report extends Controller
         $map2 = \request()->param();
         $map = array_merge($map1,$map2);
         $list = $packageModel->getList($map);
-        // dump($list->toArray());die;
+      
         $shopList = ShopModel::getAllList();
-         
-        $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
-        $statusTotal = [];
-        foreach($status as $key => $val){
-            $map_where['status'] = $key;
-            $statusTotal[$key] = $packageModel->where($map_where)->count();
-        } 
+            // dump($shopList->toArray());die;
+        // $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
+        // $statusTotal = [];
+        // foreach($status as $key => $val){
+        //     $map_where['status'] = $key;
+        //     $statusTotal[$key] = $packageModel->where($map_where)->count();
+        // } 
         $set = Setting::detail('store')['values'];
-        return $this->fetch('index', compact('list','shopList','statusTotal','set'));
+        return $this->fetch('index', compact('list','shopList','set'));
     }
     //预报包裹入库功能
     public function depot(){

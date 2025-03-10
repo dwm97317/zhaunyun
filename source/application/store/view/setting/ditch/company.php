@@ -60,9 +60,9 @@
                             </tr>
                             <tr>
                                 <td>10006</td>
-                                <td>澳联国际</td>
-                                <td>澳联国际</td>
-                                <td>澳联国际</td>
+                                <td>跨境伙伴T6</td>
+                                <td>跨境伙伴T6</td>
+                                <td>跨境伙伴T6</td>
                                 <td>http://aus42.t6soft.com/api/doc</td>
                             </tr>
                             <tr>
@@ -72,13 +72,13 @@
                                 <td>易抵达</td>
                                 <td>https://www.itdida.com/</td>
                             </tr>
-                            <!--<tr>-->
-                            <!--    <td>10008</td>-->
-                            <!--    <td>Beone</td>-->
-                            <!--    <td>Beone</td>-->
-                            <!--    <td>Beone</td>-->
-                            <!--    <td>https://ibeone.com/</td>-->
-                            <!--</tr>-->
+                            <tr>
+                                <td>10008</td>
+                                <td>顺仓科技</td>
+                                <td>顺仓科技</td>
+                                <td>顺仓科技</td>
+                                <td>http://apidocs.tms.sc-express.cn/sctms/track/</td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>

@@ -126,7 +126,7 @@ class Store extends StoreModel
     {
         // 获取当前周几
         $date = [];
-        for ($i = 0; $i < 30; $i++) {
+        for ($i = 0; $i < 7; $i++) {
             $date[] = date('Y-m-d', strtotime('-' . $i . ' days'));
         }
         return array_reverse($date);

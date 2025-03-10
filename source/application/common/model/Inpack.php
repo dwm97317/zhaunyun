@@ -292,6 +292,24 @@ class Inpack extends BaseModel
         return $this->belongsTo('UserCoupon','user_coupon_id','user_coupon_id');
     }
     
+    /**
+     * 关联包裹列表
+     * @return \think\model\relation\HasMany
+     */
+    public function packagelist()
+    {
+        return $this->hasMany('Package','inpack_id','id');
+    }
+    
+    /**
+     * 关联包裹列表
+     * @return \think\model\relation\HasMany
+     */
+    public function packageitems()
+    {
+        return $this->hasMany('InpackItem','inpack_id','id');
+    }
+    
            
      /**
      * 关联服务项目表

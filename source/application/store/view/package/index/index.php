@@ -4,14 +4,8 @@
             <div class="widget am-cf">
                 <div class="widget-head am-cf">
                     <div class="widget-title am-cf">包裹列表<small style="padding-left:10px;color:#1686ef">(提示：需要导出某个用户所有包裹，可先通过id搜索该用户，然后点导出（无需勾选），勾选后只导出勾选部分的信息)</small></div>
-                    <div style="margin-top:30px;">
-                        <span style="line-height:30px;"  class="am-badge am-badge-warning">今日入库（个数/重量）：<?= isset($datatotal)?$datatotal['todayin']:0 ?>/<?= isset($datatotal['todayin_weight'])?$datatotal['todayin_weight']:0 ?></span>
-                        <span style="line-height:30px;"  class="am-badge am-badge-warning">今日出库（个数/重量）：<?= isset($datatotal['todayout'])?$datatotal['todayout']:0 ?>/<?= isset($datatotal['todayout_weight'])?$datatotal['todayout_weight']:0 ?></span>
-                        <span style="line-height:30px;"  class="am-badge am-badge-success">昨日入库（个数/重量）：<?= $datatotal['yesin'] ?>/<?= $datatotal['yesin_weight'] ?></span>
-                        <span style="line-height:30px;"  class="am-badge am-badge-success">昨日出库（个数/重量）：<?= $datatotal['yesout'] ?>/<?= $datatotal['yesout_weight'] ?></span>
-                        <span style="line-height:30px;"  class="am-badge am-badge-success">未入库(已预报)：<?= $datatotal['report'] ?></span>
-                        <span style="line-height:30px;"  class="am-badge am-badge-danger">在库中（个数/重量）：<?= $datatotal['instore'] ?>/<?= $datatotal['instore_weight'] ?></span>
-                        <span style="line-height:30px;"  class="am-badge am-badge-success">已发货（个数/重量）：<?= $datatotal['other'] ?>/<?= $datatotal['other_weight'] ?></span>
+                    <div id="datatotal"  style="margin-top:30px;">
+                        
                     </div>
                     
                 </div>
@@ -743,6 +737,58 @@
 			}
 		})
     } 
+    
+document.addEventListener('DOMContentLoaded', function() {
+    // 页面加载完成后执行
+    fetchDataAndRender();
+});
+
+function fetchDataAndRender() {
+    // 模拟从后台获取数据
+    $.ajax({
+        type:'post',
+        url:"<?= url('store/package.index/gettotal') ?>",
+        data:{
+            
+        },
+        dataType:"json",
+        success:function(res){
+              if (res.code==1){
+                  renderData(res.data);
+              }else{
+                  layer.alert(res.msg, {icon: 5});
+              } 
+        }
+    })
+}
+
+function renderData(datatotal) {
+    const userList = document.getElementById('datatotal');
+    userList.innerHTML = ''; // 清空现有内容
+    userList.innerHTML = `
+    <span style="line-height:30px;"  class="am-badge am-badge-warning">今日入库（个数/重量）：
+        ${datatotal.todayin}/${datatotal.todayin_weight}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-warning">今日出库（个数/重量）：
+        ${datatotal.todayout}/${datatotal.todayout_weight}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-success">昨日入库（个数/重量）：
+        ${datatotal.yesin}/${datatotal.yesin_weight}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-success">昨日出库（个数/重量）：
+        ${datatotal.yesout}/${datatotal.yesout_weight}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-success">未入库（已预报）：
+        ${datatotal.report}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-danger">在库中（个数/重量）：
+        ${datatotal.instore}/${datatotal.instore_weight}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-success">已发货（个数/重量）：
+        ${datatotal.other}/${datatotal.other_weight}
+    </span>`;
+}    
+    
 </script>
 <script>
     var _render = false;
