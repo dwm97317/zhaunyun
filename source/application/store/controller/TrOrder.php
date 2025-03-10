@@ -1731,10 +1731,8 @@ class TrOrder extends Controller
         $data['total_free'] = $data['free'] + $data['pack_free'] + $data['insure_free']+$data['other_free'];
         $line_type_unit = [10=>'g',20=>'kg',30=>'bl',40=>'cbm'];
         $data['line_type_unit'] = $line_type_unit[$data['line']['line_type_unit']];
-        // 10 g  20 kg 30 bl  40 cbm
-        for ($i = 0; $i < count($data['packageitems']); $i++) {
-            $data['index'] = $i;
-           switch ($adminstyle['delivertempalte']['labelface']) {
+        if(count($data['packageitems'])==0){
+            switch ($adminstyle['delivertempalte']['labelface']) {
                case '10':
                    echo $this->label10($data);
                    break;
@@ -1748,7 +1746,26 @@ class TrOrder extends Controller
                     echo $this->label10($data);
                    break;
            }
+        }else{
+            for ($i = 0; $i < count($data['packageitems']); $i++) {
+               $data['index'] = $i;
+               switch ($adminstyle['delivertempalte']['labelface']) {
+                   case '10':
+                       echo $this->label10($data);
+                       break;
+                   case '20':
+                       echo $this->label20($data);
+                       break;
+                   case '30':
+                       echo $this->label30($data);
+                       break;
+                   default:
+                        echo $this->label10($data);
+                       break;
+               }
+            }
         }
+        
     }
     
          // 打印账单
@@ -2081,6 +2098,19 @@ class TrOrder extends Controller
     
     // 渲染标签模板B
     public function label30($data){
+        
+    if(count($data['packageitems'])==0){
+        $hll = '<td class="font_m">重量：'.$data['cale_weight'].$data['line_type_unit'].'</td>
+		            <td class="font_m">尺寸：'.$data['length'].'*'.$data['width'].'*'.$data['height'].'</td>';
+		$jianshu = '<td class="font_m">件數：1/1</td>
+		            <td class="font_m">總收費：'.$data['total_free'].'</td>';
+    }else{
+        $hll = '<td class="font_m">重量：'.$data['packageitems'][$data['index']]['cale_weight'].$data['line_type_unit'].'</td>
+		            <td class="font_m">尺寸：'.$data['packageitems'][$data['index']]['length'].'*'.$data['packageitems'][$data['index']]['width'].'*'.$data['packageitems'][$data['index']]['height'].'</td>';
+		$jianshu = '<td class="font_m">件數：'.($data['index'] +1).'/'.count($data['packageitems']).'</td>
+		            <td class="font_m">總收費：'.$data['total_free'].'</td>';
+    }
+       
      return  $html = '<style>
 	* {
 		margin: 0;
@@ -2149,7 +2179,8 @@ class TrOrder extends Controller
 	}
 
 	.font_m {
-		font-size: 14px
+		font-size: 14px;
+		padding-left:10px;
 	}
 
 	.font_l {
@@ -2232,8 +2263,7 @@ class TrOrder extends Controller
 		<td  height="25" class="font_m">
 		    <table class="nob">
 		        <tr>
-		            <td class="font_m">件數：'.($data['index'] +1).'/'.count($data['packageitems']).'</td>
-		            <td class="font_m">總收費：'.$data['total_free'].'</td>
+		            '. $jianshu.'
 		        </tr>
 		    </table>
 		</td>
@@ -2251,8 +2281,7 @@ class TrOrder extends Controller
 		<td  height="25" class="font_m">
 		    <table class="nob">
 		        <tr>
-		            <td class="font_m">重量：'.$data['packageitems'][$data['index']]['cale_weight'].$data['line_type_unit'].'</td>
-		            <td class="font_m">尺寸：'.$data['packageitems'][$data['index']]['length'].'*'.$data['packageitems'][$data['index']]['width'].'*'.$data['packageitems'][$data['index']]['height'].'</td>
+		            '.$hll.'
 		        </tr>
 		    </table>
 		</td>
