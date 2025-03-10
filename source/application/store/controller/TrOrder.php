@@ -2820,7 +2820,7 @@ public function expressBillbatch() {
 
     // 生成PDF
     $options = new Options();
-    $options->set('isRemoteEnabled', true); // 允许加载远程资源
+    $options->set('enable_remote', true);
     // dump($options);die;
     $dompdf = new Dompdf($options);
     $dompdf->loadHtml($html, 'UTF-8');
