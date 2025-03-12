@@ -509,15 +509,9 @@ class Package extends Controller
          if (!$post['express_sn']){
              return $this->renderError('快递单号错误');
          }
-         if (preg_match('/[\x7f-\xff]/', $post['express_sn'])){
-             return $this->renderError('快递单号不能使用汉字或字符');
-         }
-         if(!preg_match('/^[^\s]*$/',$post['express_sn'])){
-             return $this->renderError('快递单号不能有空格');
-         }
-         if(!preg_match('^\w{3,20}$^',$post['express_sn'])){
-             return $this->renderError('快递单号不能使用特殊字符');
-         }
+        if (!preg_match('/^[a-zA-Z0-9\s_\-，,]+$/', $post['express_sn'])) {
+            return $this->renderError('快递单号只能包含大小写字母、数字、空格、下划线、横线或逗号');
+        }
          $express = "国内快递";
          if(isset($post['express_id']) && $post['express_id'] !=0){
              $express = (new Express())->getValueById($post['express_id'],'express_name');
