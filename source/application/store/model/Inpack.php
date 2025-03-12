@@ -922,7 +922,7 @@ class Inpack extends InpackModel
     
     // 获取面单相关数据
     public function getExpressData($id){
-        $data = $this->with(['address','storage','packagelist','packageitems'])->find($id);
+        $data = $this->with(['address','storage','packagelist','packageitems','user'])->find($id);
         if ($data['member_id']){
             $data['member'] = (new UserModel())->find($data['member_id']);
         }

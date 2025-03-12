@@ -1715,8 +1715,11 @@ class TrOrder extends Controller
        if(!empty($data['member_id'])){
            $member  = UserModel::detail($data['member_id']);
            $data['name'] = $member['nickName'];
-           if($data['setting']['usercode_mode']['is_show']!=0){
+           if($data['setting']['usercode_mode']['is_show']==1){
               $data['member_id'] = $member['user_code'];
+           }
+           if($data['setting']['usercode_mode']['is_show']==2){
+              $data['member_id'] = $data['usermark'];
            }
        } 
        
@@ -2303,6 +2306,7 @@ class TrOrder extends Controller
 		    <table class="nob">
 		        <tr>
 		            <td class="font_m">收件人：'.$data['address']['name'].'</td>
+		            <td class="font_m">编号：'.$data['member_id'].'</td>
 		        </tr>
 		    </table>
 		</td>
@@ -2324,6 +2328,9 @@ class TrOrder extends Controller
 		    <table class="nob">
 		        <tr>
 		            <td class="font_m">備註：'.$data['remark'].'</td>
+		        </tr>
+		        <tr>
+		            <td class="font_m">打印時間：'.date("Y-m-d H:i:s",time()).'</td>
 		        </tr>
 		    </table>
 		</td>
@@ -3189,8 +3196,7 @@ public function expressBillbatch() {
         $status = [1=>'待查验',2=>'待支付',3=>'已支付','4'=>'已拣货','5'=>'已打包','6'=>'已发货','7'=>'已收货','8'=>'已完成','-1'=>'已取消'];
        
         if($ids){
-           $data = (new Inpack())->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
-                    $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile,user_code')->find();
+           $data = (new Inpack())->with(['address','user'])->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
                     $item['t_name'] = (new Line())->where('id',$item['line_id'])->value('name');
                     $item['total_free'] = $item['free']+ $item['pack_free'] +$item['other_free'] +$item['insure_free'];
                     
@@ -3199,16 +3205,16 @@ public function expressBillbatch() {
                     $packClass = [];
                     $packprice = 0;
              
-                    foreach($packdata as $key => $vale){
-                        $expressnum = (new Package())->where('id',$vale)->find();
-                        $packitem = (new PackageItem())->where('express_num',$expressnum['express_num'])->select();
-                        $packClass[$key]="";
-                        $packprice=0;
-                        if(count($packitem)>0){
-                            $packClass[$key] = $packitem[0]['class_name'];
-                            $packprice += $packitem[0]['all_price'];
-                        } 
-                    }
+                    // foreach($packdata as $key => $vale){
+                    //     $expressnum = (new Package())->where('id',$vale)->find();
+                    //     $packitem = (new PackageItem())->where('express_num',$expressnum['express_num'])->select();
+                    //     $packClass[$key]="";
+                    //     $packprice=0;
+                    //     if(count($packitem)>0){
+                    //         $packClass[$key] = $packitem[0]['class_name'];
+                    //         $packprice += $packitem[0]['all_price'];
+                    //     } 
+                    // }
                     
                     $item['packClass'] = implode($packClass);
                     $item['packprice'] = $packprice;
@@ -3225,7 +3231,6 @@ public function expressBillbatch() {
                     $item['discount_price'] = $item['discount'] * $item['free'];
                
                     $item['status_text'] = $map[$item['status']];
-                    $item['address'] =(new UserAddress())->where('address_id',$item['address_id'])->find();
                     return $item;
                 }); 
         }else{
@@ -3244,9 +3249,8 @@ public function expressBillbatch() {
             if(!empty($seach['express_num'])){
                  $where['express_num'] = $seach['express_num'];  //快递单号
             }
-            $data =(new Inpack())->where($where)->select()->each(function ($item, $key) use($map){
+            $data =(new Inpack())->with(['address','user'])->where($where)->select()->each(function ($item, $key) use($map){
                     $item['total_free'] = $item['free']+ $item['pack_free'] +$item['other_free'] +$item['insure_free'];
-                    $item["user"] = (new UserModel())->where('user_id',$item['member_id'])->field('user_id,nickName,mobile,user_code')->find();
                     //判断是否有优惠折扣
                     $discountData = (new UserLine())->where(['user_id'=>$item["user"]['user_id'],'line_id'=>$item['line_id']])->find();
                     if($discountData){
@@ -3258,7 +3262,7 @@ public function expressBillbatch() {
                                    
                     $item['discount_price'] = $item['discount'] * $item['free'];
                     $item['status_text'] = $map[$item['status']];
-                    $item['phone'] =(new UserAddress())->where('address_id',$item['address_id'])->find();
+                    // $item['address'] =(new UserAddress())->where('address_id',$item['address_id'])->find();
                     return $item;
                 });
         }
