@@ -355,23 +355,27 @@ class Useropration extends Controller
                  $shelfdata['pack_id'] = $Inpack['order_sn'];
                  $shelfdata['user_id'] = $Inpack['member_id'];
                 (new ShelfUnitItem())->post($shelfdata);
-           }
-          else{
-              //查询不到就直接入库；
-                $update = [
-                  'order_sn' => createSn(),
-                  'status' => 2,
-                  'storage_id' =>$clerk['shop_id'],
-                  'express_num' =>$val,
-                  'updated_time'=>getTime(),
-                  'created_time'=>getTime(),
-                  'entering_warehouse_time'=>getTime(),
-                  'wxapp_id' =>  \request()->get('wxapp_id'),
-                ];
-                $pid =(new Package())->insertGetId($update);
-                $shelfdata['pack_id'] = $pid;
-                $shelfdata['user_id'] = '';
-                (new ShelfUnitItem())->post($shelfdata);
+           }else{
+               $settingkeeper  = SettingModel::getItem('keeper');
+               if($settingkeeper['shopkeeper']['is_sacn_shelf']==1){
+                   //查询不到就直接入库；
+                    $update = [
+                      'order_sn' => createSn(),
+                      'status' => 2,
+                      'storage_id' =>$clerk['shop_id'],
+                      'express_num' =>$val,
+                      'updated_time'=>getTime(),
+                      'created_time'=>getTime(),
+                      'entering_warehouse_time'=>getTime(),
+                      'wxapp_id' =>  \request()->get('wxapp_id'),
+                    ];
+                    $pid =(new Package())->insertGetId($update);
+                    $shelfdata['pack_id'] = $pid;
+                    $shelfdata['user_id'] = '';
+                    (new ShelfUnitItem())->post($shelfdata);
+               }else{
+                    return $this->renderError('单号'.$val.'未入库');
+               }
           }
        }
         return $this->renderSuccess("上架成功");
@@ -2793,20 +2797,6 @@ class Useropration extends Controller
             }
           }
       }
-     
-      // 下架 
-    // //   $res = (new ShelfUnitItem())->where(['shelf_unit_item_id'=>$shelfUnitItem['shelf_unit_item_id']])->delete();
-    //   if (!$res){
-    //       return $this->renderError('包裹操作失败');
-    //   }
-    //   $update['status'] = 7;
-    //   $up = (new Package())->where(['id'=>$id])->update($update);
-    //   if (!$up){
-    //     return $this->renderError('包裹操作失败');
-    //   }
-    //   $map['storage_id'] = $clerk['shop_id'];
-    //   (new Inpack())->CheckISShelf($map); 
-      
       return $this->renderSuccess('下架成功');
     }
     
