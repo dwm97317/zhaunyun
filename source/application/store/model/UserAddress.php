@@ -114,7 +114,7 @@ class UserAddress extends UserAddressModel
      */
     private function validateForm($data)
     {
-
+        // dump($data);die;
         if(!$data['phone']){
             $this->error = '手机号不能为空';
             return false;  
