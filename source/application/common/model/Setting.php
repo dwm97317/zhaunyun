@@ -363,7 +363,8 @@ class Setting extends BaseModel
                     ],
                     'shopkeeper'=>[
                         'is_rfid'=>0, //0=不开启，1=开启    
-                        'is_shelf'=>0, //0=不开启，1=开启    
+                        'is_shelf'=>0, //0=不开启，1=开启  
+                        'is_sacn_shelf' => 0,
                     ]
                 ]
             ],

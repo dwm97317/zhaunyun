@@ -1732,7 +1732,7 @@ class TrOrder extends Controller
        $data['cover_id'] = UploadFile::detail($data['setting']['cover_id']);
         // dump($data['address']->toArray());die;
         $data['total_free'] = $data['free'] + $data['pack_free'] + $data['insure_free']+$data['other_free'];
-        $line_type_unit = [10=>'g',20=>'kg',30=>'bl',40=>'cbm'];
+        $line_type_unit = [10=>'g',20=>'kg',30=>'bls',40=>'cbm'];
         $data['line_type_unit'] = $line_type_unit[$data['line']['line_type_unit']];
         if(count($data['packageitems'])==0){
             switch ($adminstyle['delivertempalte']['labelface']) {
@@ -2105,13 +2105,11 @@ class TrOrder extends Controller
     if(count($data['packageitems'])==0){
         $hll = '<td class="font_m">重量：'.$data['cale_weight'].$data['line_type_unit'].'</td>
 		            <td class="font_m">尺寸：'.$data['length'].'*'.$data['width'].'*'.$data['height'].'</td>';
-		$jianshu = '<td class="font_m">件數：1/1</td>
-		            <td class="font_m">總收費：'.$data['total_free'].'</td>';
+		$jianshu = '<td class="font_m">件數：1/1</td>';
     }else{
         $hll = '<td class="font_m">重量：'.$data['packageitems'][$data['index']]['cale_weight'].$data['line_type_unit'].'</td>
 		            <td class="font_m">尺寸：'.$data['packageitems'][$data['index']]['length'].'*'.$data['packageitems'][$data['index']]['width'].'*'.$data['packageitems'][$data['index']]['height'].'</td>';
-		$jianshu = '<td class="font_m">件數：'.($data['index'] +1).'/'.count($data['packageitems']).'</td>
-		            <td class="font_m">總收費：'.$data['total_free'].'</td>';
+		$jianshu = '<td class="font_m">件數：'.($data['index'] +1).'/'.count($data['packageitems']).'</td>';
     }
        
     return  $html = '<style>
@@ -2218,6 +2216,9 @@ class TrOrder extends Controller
 	.barcode{text-align:center;}
 	.barcode svg{width:378px;}
 	.font_12{font-size: 12px;font-weight: bold;}
+	.p-l-20{
+	    padding-left:20px;
+	}
 </style>
 <div style="550px;height:530px;margin:20px;border:2px solid #000;">
 <div>
@@ -2255,6 +2256,7 @@ class TrOrder extends Controller
 		    <table class="nob">
 		        <tr>
 		            <td class="font_xxxl conta">目的地：'.$data['address']['country'].'</td>
+		            <td class="font_xxxl p-l-20">會員ID：'.$data['member_id'].'</td>
 		        </tr>
 		    </table>
 		</td>
@@ -2296,7 +2298,7 @@ class TrOrder extends Controller
 		<td  height="25" class="font_m">
 		    <table class="nob">
 		        <tr>
-		            <td class="font_m">送貨地址：'.$data['address']['country'].$data['address']['province'].$data['address']['city'].$data['address']['detail'].'</td>
+		            <td class="font_m">送貨地址：'.$data['address']['province'].$data['address']['city'].$data['address']['detail'].'</td>
 		        </tr>
 		    </table>
 		</td>
@@ -2306,7 +2308,6 @@ class TrOrder extends Controller
 		    <table class="nob">
 		        <tr>
 		            <td class="font_m">收件人：'.$data['address']['name'].'</td>
-		            <td class="font_m">编号：'.$data['member_id'].'</td>
 		        </tr>
 		    </table>
 		</td>
