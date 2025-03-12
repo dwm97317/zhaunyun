@@ -1732,7 +1732,7 @@ class TrOrder extends Controller
        $data['cover_id'] = UploadFile::detail($data['setting']['cover_id']);
         // dump($data['address']->toArray());die;
         $data['total_free'] = $data['free'] + $data['pack_free'] + $data['insure_free']+$data['other_free'];
-        $line_type_unit = [10=>'g',20=>'kg',30=>'bls',40=>'cbm'];
+        $line_type_unit = [10=>'g',20=>'kg',30=>'lbs',40=>'cbm'];
         $data['line_type_unit'] = $line_type_unit[$data['line']['line_type_unit']];
         if(count($data['packageitems'])==0){
             switch ($adminstyle['delivertempalte']['labelface']) {
