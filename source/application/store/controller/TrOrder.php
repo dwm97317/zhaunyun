@@ -2114,7 +2114,7 @@ class TrOrder extends Controller
 		            <td class="font_m">總收費：'.$data['total_free'].'</td>';
     }
        
-     return  $html = '<style>
+    return  $html = '<style>
 	* {
 		margin: 0;
 		padding: 0
@@ -2219,7 +2219,7 @@ class TrOrder extends Controller
 	.barcode svg{width:378px;}
 	.font_12{font-size: 12px;font-weight: bold;}
 </style>
-<div style="550px;height:530px;margin:10px;border:2px solid #000;">
+<div style="550px;height:530px;margin:20px;border:2px solid #000;">
 <div>
 <table class="container" style="height:180px;">
 	<tr>
