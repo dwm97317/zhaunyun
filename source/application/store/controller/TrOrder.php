@@ -591,7 +591,7 @@ class TrOrder extends Controller
         //更新支付后的物流轨迹
         $noticesetting =  Setting::detail('notice')['values'];
         if($noticesetting['ispay']['is_enable']==1){
-            Logistics::addLog($inpackdata['order_sn'],$noticesetting['ispay']['describe'],time());
+            Logistics::addLog($inpackdata['order_sn'],$noticesetting['ispay']['describe'],date("Y-m-d H:i:s",time()));
         }
         return $this->renderSuccess('操作成功');
     }
@@ -731,7 +731,7 @@ class TrOrder extends Controller
         //更新支付后的物流轨迹
         $noticesetting =  Setting::detail('notice')['values'];
         if($noticesetting['ispay']['is_enable']==1){
-            Logistics::addLog($inpackdata['order_sn'],$noticesetting['ispay']['describe'],time());
+            Logistics::addLog($inpackdata['order_sn'],$noticesetting['ispay']['describe'],date("Y-m-d H:i:s",time()));
         }
         return $this->renderSuccess('操作成功');
     }
