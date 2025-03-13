@@ -2348,7 +2348,7 @@ class TrOrder extends Controller
 	.printdata{
 	    width:550px;
 	    height:530px;
-	    margin:40px 20px 20px 20px;
+	    margin:40px 20px 40px 20px;
 	    border:2px solid #000;
 	}
 	.printdata:last-child{
