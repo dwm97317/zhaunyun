@@ -2344,16 +2344,16 @@ class TrOrder extends Controller
 	.p-l-20{
 	    padding-left:20px;
 	}
-	
+	.printdata:nth-child(1) {
+	    margin-top:100px !important;
+	}
 	.printdata{
 	    width:550px;
-	    height:530px;
-	    margin:40px 20px 40px 20px;
+	    height:550px;
+	    margin:20px 20px 20px 20px;
 	    border:2px solid #000;
 	}
-	.printdata:last-child{
-	    margin-bottom:20px !important;
-	}
+	
 </style>
 <div class="printdata">
 <table class="container" style="height:180px;">
