@@ -2219,9 +2219,18 @@ class TrOrder extends Controller
 	.p-l-20{
 	    padding-left:20px;
 	}
+	
+	.printdata{
+	    width:550px;
+	    height:530px;
+	    margin:20px 20px 40px 20px;
+	    border:2px solid #000;
+	}
+	.printdata:last-child{
+	    margin-bottom:20px !important;
+	}
 </style>
-<div style="550px;height:530px;margin:20px;border:2px solid #000;">
-<div>
+<div class="printdata">
 <table class="container" style="height:180px;">
 	<tr>
 		<td  height="76" class="font_xxxl">
@@ -2255,8 +2264,8 @@ class TrOrder extends Controller
 		<td  height="55" class="font_xxxl conta">
 		    <table class="nob">
 		        <tr>
-		            <td class="font_xxxl conta">目的地：'.$data['address']['country'].'</td>
-		            <td class="font_xxxl p-l-20">會員ID：'.$data['member_id'].'</td>
+		            <td class="font_xxl conta">目的地：'.$data['address']['country'].'</td>
+		            <td class="font_xxl p-l-20">會員ID：'.$data['member_id'].'</td>
 		        </tr>
 		    </table>
 		</td>
@@ -2337,7 +2346,6 @@ class TrOrder extends Controller
 		</td>
 	</tr>
 </table>
-</div>
 </div>
 ';
 }
