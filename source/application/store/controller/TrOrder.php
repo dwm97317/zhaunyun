@@ -588,6 +588,11 @@ class TrOrder extends Controller
             $inpackdata->where('id',$data['id'])->update(['real_payment'=>$payprice,'is_pay'=>1,'is_pay_type'=>5,'pay_time'=>date('Y-m-d H:i:s',time())]);
         }
         $Package->where('inpack_id',$data['id'])->update(['status'=>6,'is_pay'=>1]);
+        //更新支付后的物流轨迹
+        $noticesetting =  Setting::detail('notice')['values'];
+        if($noticesetting['ispay']['is_enable']==1){
+            Logistics::addLog($inpackdata['order_sn'],$noticesetting['ispay']['describe'],time());
+        }
         return $this->renderSuccess('操作成功');
     }
     
@@ -722,7 +727,12 @@ class TrOrder extends Controller
         }else{
             $inpackdata->where('id',$data['id'])->update(['real_payment'=>$payprice,'is_pay'=>1,'is_pay_type'=>0,'pay_time'=>date('Y-m-d H:i:s',time())]);
         }
-         $Package->where('inpack_id',$data['id'])->update(['status'=>6,'is_pay'=>1]);
+        $Package->where('inpack_id',$data['id'])->update(['status'=>6,'is_pay'=>1]);
+        //更新支付后的物流轨迹
+        $noticesetting =  Setting::detail('notice')['values'];
+        if($noticesetting['ispay']['is_enable']==1){
+            Logistics::addLog($inpackdata['order_sn'],$noticesetting['ispay']['describe'],time());
+        }
         return $this->renderSuccess('操作成功');
     }
 
@@ -745,7 +755,7 @@ class TrOrder extends Controller
             if(empty($order_logic) && empty($this->postData('sendOrder')['track_id'])){
                  return $this->renderError('请输入物流轨迹');
             }
-        //发送用户以及用户信息
+            //发送用户以及用户信息
             $userId = $sendOrder['member_id'];
             $data['code'] = $id;
             $data['logistics_describe']= $order_logic;
