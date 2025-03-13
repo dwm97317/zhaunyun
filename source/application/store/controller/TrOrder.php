@@ -39,6 +39,7 @@ use app\common\library\Pinyin;
 use app\common\library\AITool\BaiduTextTran;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use app\common\library\Ditch\Hualei;
 /**
  * 订单管理
  * Class Order
@@ -312,6 +313,120 @@ class TrOrder extends Controller
         $xuhao = ((new Inpack())->where(['member_id'=>$detail['member_id'],'is_delete'=>0])->count()) + 1;
         $batch = createNewOrderSn($settingDate['orderno']['default'],$xuhao,$settingDate['orderno']['first_title'],$detail['member_id'],$shopname['shop_alias_name'],$address['country_id']);
         return $this->renderSuccess('获取成功','',$batch);
+    }
+
+    
+     /**
+     * 渠道列表
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function getProductList(){
+        $param = $this->request->param();
+        $DitchModel = new DitchModel();
+        $ditchdetail = $DitchModel::detail($param['ditch_no']);
+        if($ditchdetail['ditch_no']==10004){
+            $Hualei =  new Hualei(['key'=>$ditchdetail['app_key'],'token'=>$ditchdetail['app_token'],'apiurl'=>$ditchdetail['api_url']]);
+            return $this->renderSuccess('获取成功','', $Hualei->getProductList()); 
+        }
+        return $this->renderError("获取失败");
+    }
+
+
+    /**
+     * 推送至渠道商系统
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function sendtoqudaoshang()
+    {
+        $param = $this->request->param();
+        $Inpack =new Inpack;
+        $DitchModel = new DitchModel();
+        $settingDate = SettingModel::getItem('adminstyle',$this->getWxappId());
+        $detail = Inpack::details($param['id']);
+        $shopname = ShopModel::detail($detail['storage_id']);
+        $address = (new UserAddress())->where(['address_id'=>$detail['address_id']])->find();
+        $ditchdetail = $DitchModel::detail($param['ditch_id']);
+        // dump($ditchdetail);die;
+        if($ditchdetail['ditch_no']==10004){
+            $orderInvoiceParam = [];
+            $orderVolumeParam = [];
+            $i = 0;
+            $j = 0;
+            if(count($detail['packagelist'])>0){
+                foreach ($detail['packagelist'] as $key=>$value){
+                    if(count($value['category_attr'])>0){
+                        foreach ($value['category_attr'] as $k =>$v){
+                           $orderInvoiceParam[$i]['invoice_amount'] =  $v['all_price'];
+                           $orderInvoiceParam[$i]['invoice_pcs'] =  $v['product_num'];
+                           $orderInvoiceParam[$i]['invoice_title'] =  $v['class_name_en'];
+                            $i +=1;
+                        }
+                    }
+                }
+            }
+
+
+            if(count($detail['packageitems'])>0){
+                foreach ($detail['packageitems'] as $key=>$value){
+                   $orderVolumeParam[$j]['volume_height'] = $value['height'];
+                   $orderVolumeParam[$j]['volume_length'] = $value['length'];
+                   $orderVolumeParam[$j]['volume_width'] = $value['width'];
+                   $orderVolumeParam[$j]['volume_weight'] = $value['weight'];
+                   $j +=1;
+                }
+            }else{
+                $orderVolumeParam[$j]['volume_height'] =  $detail['height'];
+                $orderVolumeParam[$j]['volume_length'] =  $detail['length'];
+                $orderVolumeParam[$j]['volume_width'] =  $detail['width'];
+                $orderVolumeParam[$j]['volume_weight'] =  $detail['cale_weight'];
+            }
+
+            $data = [
+                "buyerid"=>"",
+                "order_piece"=> 1,//件数，小包默认1，快递需真实填写
+                "consignee_mobile"=>$detail['address']['phone'],
+                "order_returnsign"=>"N",
+                "trade_type"=>"ZYXT",
+                // "duty_type"=>"DDU",//DDU或DDP
+                // "battery_type"=>"",//电池类型代码，联系货代提供
+                "consignee_name"=> $detail['address']['name'],
+                "consignee_companyname"=>"",//收件公司名,如有最好填写
+                "consignee_address"=>$detail['address']['detail'],
+                "consignee_telephone"=>$detail['address']['phone'],
+                "country"=>"CA",//收件国家二字代码，必填
+                "consignee_state"=>$detail['address']['province'],
+                "consignee_city"=>$detail['address']['city'],
+                "consignee_suburb"=>$detail['address']['region'],
+                "consignee_postcode"=>$detail['address']['code'],
+                // "consignee_passportno"=>"",//收件护照号，选填
+                // "consignee_email"=>"",//产品销售地址
+                // "consignee_taxno"=>"",//收件人税号
+                // "consignee_taxnotype"=>"",//收件人税号类型
+                "consignee_streetno"=>$detail['address']['street'],
+                "consignee_doorno"=>$detail['address']['door'],
+                "customer_id"=>$ditchdetail['app_key'],
+                "customer_userid"=>$ditchdetail['app_key'],
+                "shipper_taxnocountry"=>'CA',
+                "order_customerinvoicecode"=>$detail['order_sn'],
+                "product_id"=>$param['product_id'],
+                "weight"=>$detail['cale_weight'],
+                // "product_imagepath"=>"",//图片地址，多图片地址用分号隔开
+                // "order_transactionurl"=>"",//产品销售地址
+                // "order_cargoamount"=>"",//选填；用于DHL/FEDEX运费；或用于白关申报（订单实际金额，特殊渠道使用）；或其他用途
+                "order_insurance"=>$detail['insure_free'],
+                "cargo_type"=>"P",
+                // "order_customnote"=>"",//自定义信息
+                "orderInvoiceParam"=>$orderInvoiceParam,
+                // "orderVolumeParam"=>$orderVolumeParam
+            ];
+
+            $Hualei =  new Hualei(['key'=>$ditchdetail['app_key'],'token'=>$ditchdetail['app_token'],'apiurl'=>$ditchdetail['api_url']]);
+            $result = $Hualei->createOrderApi($data);
+        }
+        dump($result);die;
+        return $this->renderSuccess('获取成功','',$result);
     }
     
     public function package($id){
@@ -2233,7 +2348,7 @@ class TrOrder extends Controller
 	.printdata{
 	    width:550px;
 	    height:530px;
-	    margin:20px 20px 40px 20px;
+	    margin:40px 20px 20px 20px;
 	    border:2px solid #000;
 	}
 	.printdata:last-child{

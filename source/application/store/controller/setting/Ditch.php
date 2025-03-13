@@ -129,13 +129,13 @@ class Ditch extends Controller
         // 模板详情
         $DitchNumberModel = new DitchNumberModel();
         $list = $DitchNumberModel->getList();
-        // dump($list);die;
         return $this->fetch('ditchnumber',compact("list"));
     }
     
     public function getdicthNumberList(){
+        $post = $this->request->param();
         $DitchNumberModel = new DitchNumberModel();
-        $list = $DitchNumberModel->getAlllist();
+        $list = $DitchNumberModel->where('status',0)->where('ditch_id',$post['ditch_no'])->select();
         return $this->renderSuccess('更新成功','',$list);
     }
  

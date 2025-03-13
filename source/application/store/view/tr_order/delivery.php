@@ -54,10 +54,21 @@
                                                 <option value="<?= $item['ditch_id'] ?>"><?= $item['ditch_name'] ?>-<?= $item['ditch_no'] ?></option>
                                             <?php endforeach; endif; ?>
                                      </select>
-                                     <select name="delivery[t_order_sn]" id="selectnumber" onchange="selectNumberS(this)"  data-am-selected="{searchBox: 1,maxHeight:300}">
+                                     <select name="delivery[t_order_sn]" id="selectnumber"  onchange="selectNumberS(this)"  data-am-selected="{searchBox: 1,maxHeight:300}">
                                          <option value="">选择单号</option>
                                      </select>
+                                     
                                 </div>
+                            </div>
+                            <div class="am-form-group" id="product" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 选择渠道 </label>
+                                <div class="am-u-sm-4 am-u-end">
+                                    <select id="ProductList"   data-am-selected="{searchBox: 1,maxHeight:300}">
+                                         <option value="">选择渠道</option>
+                                     </select>
+                                     <button type="button" class="am-btn am-btn-success"><span onclick="tuiClick()">推送至渠道系统</span></button>
+                                </div>
+                                
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 转运单 </label>
@@ -108,21 +119,51 @@
         $.ajax({
                type:'post',
                url:"<?= url('store/setting.ditch/getdicthNumberList') ?>",
-               data:selectditch,
+               data:{ditch_no:selectditch},
                dataType:'json',
                success:function (res) {
                    if (res.code==1){
-                        for (var i=0;i<res.data.length;i++){
-                            $selectNum.append('<option value="' + res.data[i]['ditch_number'] +'">' + res.data[i]['ditch_number'] + '</option>');
+                        if(res.data.length==0){
+                            console.log($selectNum,999)
+                            $selectNum[0].innerHTML = '';
+                            $selectNum[0].style.display='none';
+                        }else{
+                            for (var i=0;i<res.data.length;i++){
+                                $selectNum.append('<option value="' + res.data[i]['ditch_number'] +'">' + res.data[i]['ditch_number'] + '</option>');
+                            }
                         }
-                       
                    }else{
                        that.data = res.msg;
                        that.render();
                    }
                }
            })
-        console.log(selectditch);
+           
+           
+            var ProductList = $('#ProductList');   
+            $.ajax({
+                   type:'post',
+                   url:"<?= url('store/tr_order/getProductList') ?>",
+                   data:{ditch_no:selectditch},
+                   dataType:'json',
+                   success:function (res) {
+                       if (res.code==1){
+                            if(res.data.length==0){
+                                console.log(ProductList,999)
+                                ProductList[0].innerHTML = '';
+                                $('#product').hide();
+                            }else{
+                                $('#product').show();
+                                for (var i=0;i<res.data.length;i++){
+                                    ProductList.append('<option value="' + res.data[i]['product_id'] +'">' + res.data[i]['product_shortname'] + '</option>');
+                                }
+                            }
+                       }else{
+                           ProductList[0].innerHTML = '';
+                           $('#product').hide();
+                       }
+                   }
+               })
     }
 
     function selectNumberS(){
@@ -130,12 +171,34 @@
         console.log(selectnumber);
         $('#t_order_sn').val(selectnumber);
     }
+
     
     function toClick(){
         var hedanurl = "<?= url('store/tr_order/createbatchname') ?>";
         layer.confirm('请确定是否生成单号', {title: '生成运单号'}
         , function (index) {
             $.post(hedanurl,{id:<?= $detail['id'] ?>}, function (result) {
+                if(result.code == 1){
+                    $("#t_order_sn").val(result.data);
+                }else{
+                   $.show_error(result.msg); 
+                }
+            });
+            layer.close(index);
+        });        
+    }
+    
+    function tuiClick(){
+        var hedanurl = "<?= url('store/tr_order/sendtoqudaoshang') ?>";
+        var selectditch = $('#selectditch option:selected').val();
+        var product_id = $('#ProductList option:selected').val();
+        layer.confirm('请确定是否将订单推送至渠道商系统', {title: '推送订单至渠道商系统'}
+        , function (index) {
+            $.post(hedanurl,{
+                id:<?= $detail['id'] ?>,
+                'ditch_id':selectditch,
+                'product_id':product_id
+            }, function (result) {
                 if(result.code == 1){
                     $("#t_order_sn").val(result.data);
                 }else{
@@ -161,7 +224,6 @@
     function onChange(tab){
        $('.c').hide();
        $('#'+tab).show();
-       console.log($('.c1'));
     }
     function getkey(e){
        console.log(e); 

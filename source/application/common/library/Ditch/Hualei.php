@@ -1,6 +1,7 @@
 <?php
 namespace app\common\library\Ditch;
 
+
 class Hualei{
     
     private $config;
@@ -29,16 +30,12 @@ class Hualei{
         $baseurl = $this->config['apiurl'].$express_no;
         // 参数设置
         $result = $this->curlRequest($baseurl, '');
-          
-        //  dump($baseurl);die;    
-         
         if ($result['state']==0) {
             $this->error = isset($express['cnmessage']) ? $express['cnmessage'] : '查询失败';
             return [];
         }  
         $express = json_decode($result['result'],true);
         $loglist = [];
-        //  dump($express);die;    
         if($express['0']['ack']=='true'){
             foreach ($express[0]['data'][0]['trackDetails'] as $v){
                 $loglist[] = [
@@ -52,6 +49,61 @@ class Hualei{
         // 记录错误信息
         return $loglist;
     }
+    
+    /**
+     * 添加订单
+     * @param $express_code
+     * @param $express_no
+     * @return bool
+     */
+    public function getProductList(){
+        $baseurl = $this->config['apiurl'].'/getProductList.htm?param=';
+        $result = $this->curlRequest($baseurl, '');
+        $res = [];
+        if($result['state']==1){
+            $res = json_decode($result['result'],true);
+        }
+        return $res;
+    }
+    
+    /**
+     * 获取用户信息
+     * @param $express_code
+     * @param $express_no
+     * @return bool
+     */
+     public function selectAuth(){
+        $baseurl = $this->config['apiurl'].'/selectAuth.htm';
+        $result = $this->curlRequest($baseurl, "username=".$this->config['key']."&password=".$this->config['token']);
+        $reData = json_decode(str_replace("'", "\"", $result['result']));
+        $customer_id = $reData->customer_id;
+        $customer_userid = $reData->customer_userid;
+        return $reData;
+    }
+   
+    
+    /**
+     * 添加订单
+     * @param $express_code
+     * @param $express_no
+     * @return bool
+     */
+    public function createOrderApi($params){
+        $baseurl = $this->config['apiurl'].'/createOrderApi.htm?param=';
+        $reData = $this->selectAuth();
+        $params['customer_id'] = $reData->customer_id;
+        $params['customer_userid']=$reData->customer_userid;
+      
+        $result = $this->curlRequest($baseurl, json_encode($params));
+           dump($result);die;
+        if($result['ack']==true){
+           
+        }
+        
+    }
+    
+    
+    
     
     function curlRequest($url, $data = '') {
 	$return = array('state' => 0, 'message' => '', 'result' => '', 'errNo' => 0);
