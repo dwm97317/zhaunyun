@@ -54,11 +54,18 @@
                                                 <option value="<?= $item['ditch_id'] ?>"><?= $item['ditch_name'] ?>-<?= $item['ditch_no'] ?></option>
                                             <?php endforeach; endif; ?>
                                      </select>
-                                     <select name="delivery[t_order_sn]" id="selectnumber"  onchange="selectNumberS(this)"  data-am-selected="{searchBox: 1,maxHeight:300}">
-                                         <option value="">选择单号</option>
-                                     </select>
+                                     
                                      
                                 </div>
+                            </div>
+                            <div class="am-form-group" id="choosenumber" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 选择单号 </label>
+                                <div class="am-u-sm-4 am-u-end">
+                                    <select style="display:none;" name="delivery[t_order_sn]" id="selectnumber"  onchange="selectNumberS(this)"  data-am-selected="{searchBox: 1,maxHeight:300}">
+                                         <option value="">选择单号</option>
+                                     </select>
+                                </div>
+                                
                             </div>
                             <div class="am-form-group" id="product" style="display:none;">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 选择渠道 </label>
@@ -126,8 +133,9 @@
                         if(res.data.length==0){
                             console.log($selectNum,999)
                             $selectNum[0].innerHTML = '';
-                            $selectNum[0].style.display='none';
+                            $('#choosenumber').hide();
                         }else{
+                            $('#choosenumber').show();
                             for (var i=0;i<res.data.length;i++){
                                 $selectNum.append('<option value="' + res.data[i]['ditch_number'] +'">' + res.data[i]['ditch_number'] + '</option>');
                             }
@@ -135,6 +143,7 @@
                    }else{
                        that.data = res.msg;
                        that.render();
+                       $('#choosenumber').hide();
                    }
                }
            })
