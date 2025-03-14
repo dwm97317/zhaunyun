@@ -89,12 +89,12 @@ class Hualei{
      * @return bool
      */
     public function createOrderApi($params){
-        $baseurl = $this->config['apiurl'].'/createOrderApi.htm?param=';
+        $baseurl = $this->config['apiurl'].'/createOrderApi.htm';
         $reData = $this->selectAuth();
         $params['customer_id'] = $reData->customer_id;
         $params['customer_userid']=$reData->customer_userid;
-      
-        $result = $this->curlRequest($baseurl, json_encode($params));
+    //  dump($params);die;
+        $result = $this->curlRequest($baseurl,"param=".json_encode($params));
            dump($result);die;
         if($result['ack']==true){
            

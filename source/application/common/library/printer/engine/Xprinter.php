@@ -38,8 +38,6 @@ class Xprinter extends Basics
     
     public function http_post_json($url, $jsonStr)
     {
-//        print($jsonStr.'<br/>');
-
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_POST, 1);// 发送一个常规的Post请求
         curl_setopt($ch, CURLOPT_URL, $url);// 要访问的地址

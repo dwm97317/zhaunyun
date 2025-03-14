@@ -40,6 +40,8 @@ use app\common\library\AITool\BaiduTextTran;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use app\common\library\Ditch\Hualei;
+use app\store\model\Countries;
+
 /**
  * 订单管理
  * Class Order
@@ -348,7 +350,7 @@ class TrOrder extends Controller
         $shopname = ShopModel::detail($detail['storage_id']);
         $address = (new UserAddress())->where(['address_id'=>$detail['address_id']])->find();
         $ditchdetail = $DitchModel::detail($param['ditch_id']);
-        // dump($ditchdetail);die;
+        $countrydetail = (new Countries())->where('id',$detail['address']['country_id'])->find();
         if($ditchdetail['ditch_no']==10004){
             $orderInvoiceParam = [];
             $orderVolumeParam = [];
@@ -358,9 +360,9 @@ class TrOrder extends Controller
                 foreach ($detail['packagelist'] as $key=>$value){
                     if(count($value['category_attr'])>0){
                         foreach ($value['category_attr'] as $k =>$v){
-                           $orderInvoiceParam[$i]['invoice_amount'] =  $v['all_price'];
-                           $orderInvoiceParam[$i]['invoice_pcs'] =  $v['product_num'];
-                           $orderInvoiceParam[$i]['invoice_title'] =  $v['class_name_en'];
+                          $orderInvoiceParam[$i]['invoice_amount'] =  $v['all_price'];
+                          $orderInvoiceParam[$i]['invoice_pcs'] =  $v['product_num'];
+                          $orderInvoiceParam[$i]['invoice_title'] =  $v['class_name_en'];
                             $i +=1;
                         }
                     }
@@ -370,11 +372,11 @@ class TrOrder extends Controller
 
             if(count($detail['packageitems'])>0){
                 foreach ($detail['packageitems'] as $key=>$value){
-                   $orderVolumeParam[$j]['volume_height'] = $value['height'];
-                   $orderVolumeParam[$j]['volume_length'] = $value['length'];
-                   $orderVolumeParam[$j]['volume_width'] = $value['width'];
-                   $orderVolumeParam[$j]['volume_weight'] = $value['weight'];
-                   $j +=1;
+                  $orderVolumeParam[$j]['volume_height'] = $value['height'];
+                  $orderVolumeParam[$j]['volume_length'] = $value['length'];
+                  $orderVolumeParam[$j]['volume_width'] = $value['width'];
+                  $orderVolumeParam[$j]['volume_weight'] = $value['weight'];
+                  $j +=1;
                 }
             }else{
                 $orderVolumeParam[$j]['volume_height'] =  $detail['height'];
@@ -387,40 +389,28 @@ class TrOrder extends Controller
                 "buyerid"=>"",
                 "order_piece"=> 1,//件数，小包默认1，快递需真实填写
                 "consignee_mobile"=>$detail['address']['phone'],
-                "order_returnsign"=>"N",
                 "trade_type"=>"ZYXT",
-                // "duty_type"=>"DDU",//DDU或DDP
-                // "battery_type"=>"",//电池类型代码，联系货代提供
                 "consignee_name"=> $detail['address']['name'],
-                "consignee_companyname"=>"",//收件公司名,如有最好填写
                 "consignee_address"=>$detail['address']['detail'],
                 "consignee_telephone"=>$detail['address']['phone'],
-                "country"=>"CA",//收件国家二字代码，必填
+                "country"=>$countrydetail['code'],//收件国家二字代码，必填
                 "consignee_state"=>$detail['address']['province'],
                 "consignee_city"=>$detail['address']['city'],
                 "consignee_suburb"=>$detail['address']['region'],
                 "consignee_postcode"=>$detail['address']['code'],
-                // "consignee_passportno"=>"",//收件护照号，选填
-                // "consignee_email"=>"",//产品销售地址
-                // "consignee_taxno"=>"",//收件人税号
-                // "consignee_taxnotype"=>"",//收件人税号类型
                 "consignee_streetno"=>$detail['address']['street'],
                 "consignee_doorno"=>$detail['address']['door'],
                 "customer_id"=>$ditchdetail['app_key'],
                 "customer_userid"=>$ditchdetail['app_key'],
-                "shipper_taxnocountry"=>'CA',
                 "order_customerinvoicecode"=>$detail['order_sn'],
                 "product_id"=>$param['product_id'],
                 "weight"=>$detail['cale_weight'],
-                // "product_imagepath"=>"",//图片地址，多图片地址用分号隔开
-                // "order_transactionurl"=>"",//产品销售地址
-                // "order_cargoamount"=>"",//选填；用于DHL/FEDEX运费；或用于白关申报（订单实际金额，特殊渠道使用）；或其他用途
                 "order_insurance"=>$detail['insure_free'],
                 "cargo_type"=>"P",
-                // "order_customnote"=>"",//自定义信息
                 "orderInvoiceParam"=>$orderInvoiceParam,
-                // "orderVolumeParam"=>$orderVolumeParam
             ];
+
+
 
             $Hualei =  new Hualei(['key'=>$ditchdetail['app_key'],'token'=>$ditchdetail['app_token'],'apiurl'=>$ditchdetail['api_url']]);
             $result = $Hualei->createOrderApi($data);
@@ -1859,6 +1849,7 @@ class TrOrder extends Controller
         $data['total_free'] = $data['free'] + $data['pack_free'] + $data['insure_free']+$data['other_free'];
         $line_type_unit = [10=>'g',20=>'kg',30=>'lbs',40=>'cbm'];
         $data['line_type_unit'] = $line_type_unit[$data['line']['line_type_unit']];
+        $dompdf = new Dompdf();
         if(count($data['packageitems'])==0){
             switch ($adminstyle['delivertempalte']['labelface']) {
                case '10':
@@ -1885,7 +1876,7 @@ class TrOrder extends Controller
                        echo $this->label20($data);
                        break;
                    case '30':
-                       echo $this->label30($data);
+                        echo $this->label30($data);
                        break;
                    default:
                         echo $this->label10($data);
@@ -2344,17 +2335,18 @@ class TrOrder extends Controller
 	.p-l-20{
 	    padding-left:20px;
 	}
-	.printdata:nth-child(1) {
-	    margin-top:100px !important;
+	.printdata:first-child{
+	    margin-top:30px !important;
 	}
 	.printdata{
 	    width:550px;
 	    height:550px;
-	    margin:20px 20px 20px 20px;
+	    margin:30px 20px 20px 20px;
 	    border:2px solid #000;
 	}
 	
 </style>
+<div style="padding:10px;">
 <div class="printdata">
 <table class="container" style="height:180px;">
 	<tr>
@@ -2471,6 +2463,7 @@ class TrOrder extends Controller
 		</td>
 	</tr>
 </table>
+</div>
 </div>
 ';
 }
