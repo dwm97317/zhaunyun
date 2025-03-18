@@ -1426,7 +1426,7 @@ class Package extends Controller
            'all' =>[1,2,3,4,5,6,7,8],
            'verify' => [1],     
            'nopay' => [2,3,4,5,6,7,8],
-           'no_send' => [3,4,5],
+           'no_send' => [2,3,4,5],
            'send' => [6],
            'reach' => [7],
            'complete' => [8]
@@ -1976,7 +1976,8 @@ class Package extends Controller
          $couponId = $this->postData('coupon_id')[0]; //优惠券id
          $paytype = $this->postData('paytype')[0];  //支付类型
          $client = $this->postData('client')[0];  //支付所在客户端 client:"MP-WEIXIN"
-         $pack = (new Inpack())->field('id,insure_free,status,pack_ids,free,order_sn,pack_free,other_free,remark,storage_id,is_pay,pay_order,wxapp_id')->find($id);
+         $pack = (new Inpack())
+                ->field('id,insure_free,status,pack_ids,free,order_sn,pack_free,other_free,remark,storage_id,is_pay,pay_order,wxapp_id')->find($id);
          //生成支付订单号
          $payorderSn = createOrderSn();
          (new Inpack())->where('id',$pack['id'])->update(['pay_order'=>$payorderSn]);
@@ -2112,11 +2113,15 @@ class Package extends Controller
                     $payres = (new Inpack())->where('id',$pack['id'])->update([
                         'is_pay_type' => 6,
                         'cert_image'=>$params['image'][0],
-                        'is_pay' => 2
+                        'is_pay' => 3,
+                        'real_payment'=>$amount,
                         ]);
                     if(!$payres){
                           Db::rollback();
                           return $this->renderError('支付失败,请重试');
+                    }
+                    if(!empty($coupon['user_coupon_id'])){
+                        (new UserCoupon())->where('user_coupon_id',$coupon['user_coupon_id'])->update(['is_use'=>1]);
                     }
                     $clerk = (new Clerk())->where('shop_id',$pack['storage_id'])->where('mes_status',0)->where('is_delete',0)->select();
                     // dump($clerk);die;

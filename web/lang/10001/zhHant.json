@@ -230,6 +230,7 @@
 		"copy_tracking_number": "復製單號",
 		"to_pay": "去支付",
 		"to_comment": "去評論",
+		"支付待审核": "支付待審核",
 		"confirm_receipt": "確認簽收",
 		"no_order_yet": "暫無訂單"
 	},

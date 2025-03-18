@@ -237,6 +237,7 @@
 		"copy_tracking_number": "复制单号",
 		"to_pay": "去支付",
 		"to_comment": "去评论",
+		"支付待审核": "支付待审核",
 		"confirm_receipt": "确认签收",
 		"no_order_yet": "暂无订单"
 	},

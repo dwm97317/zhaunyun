@@ -2157,7 +2157,7 @@ class Useropration extends Controller
        
         $packModel = (new Package());
         $userlist = [];
-        $data = $packModel->where('status','in',[2,3])->where('is_take',2)->where($map)->field('member_id')->select()->toArray();
+        $data = $packModel->with(['shelfunititem.shelfunit.shelf'])->where('status','in',[2,3])->where('is_take',2)->where($map)->field('member_id')->select()->toArray();
         foreach($data as $key=>$value){
             $userlist[$key]=$value['member_id'];
         }
@@ -2166,7 +2166,7 @@ class Useropration extends Controller
         
         foreach ($usernewArr as $k => $v){
             $list[$k]['member']= $UserModel::detail($v);
-            $list[$k]['package'] = $packModel->where('member_id',$v)->where('is_take',2)->where('status','in',[2,3])->select();
+            $list[$k]['package'] = $packModel->with(['shelfunititem.shelfunit.shelf'])->where('member_id',$v)->where('is_take',2)->where('status','in',[2,3])->select();
             $list[$k]['total'] = $packModel->where('member_id',$v)->where('is_take',2)->where('status','in',[2,3])->SUM('weight');
         }
         // dump($usernewArr);die;   

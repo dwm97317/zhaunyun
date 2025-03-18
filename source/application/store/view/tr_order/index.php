@@ -406,7 +406,7 @@
                                         
                                         费用合计:<span style="color:#ff6666;cursor:pointer" text="<?= $item['free'] + $item['pack_free'] + $item['other_free'] + $item['insure_free']  ?>" onclick="copyUrl2(this)"><?= $item['free'] + $item['pack_free'] + $item['other_free'] + $item['insure_free'] ?></span></br>
                                         
-                                        <?php if ($item['is_pay']==1): ?>
+                                        <?php if ($item['is_pay']==1 || $item['is_pay']==3): ?>
                                         实际支付：<span style="color:#ff6666;cursor:pointer" text="<?= $item['real_payment'] ?>" onclick="copyUrl2(this)"><?= $item['real_payment']; ?></span></br></br>
                                         <?php endif ;?>
                                         

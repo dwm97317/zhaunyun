@@ -257,6 +257,6 @@ class Package extends PackageModel
     }
     
     public function getpackageDetails($id){
-         return $this->with(['member','country','storage','packageimage.filepackage','packitem','inpack'])->find($id);
+         return $this->with(['member','country','storage','packageimage.filepackage','packitem','inpack','shelfunititem.shelfunit.shelf'])->find($id);
     }
 }
