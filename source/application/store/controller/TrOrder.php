@@ -1864,7 +1864,7 @@ class TrOrder extends Controller
                    echo $this->label30($data);
                    break;
                case '40':
-                   echo $this->label40($data);
+                   return $this->label40($data);
                    break;
                default:
                     echo $this->label10($data);
