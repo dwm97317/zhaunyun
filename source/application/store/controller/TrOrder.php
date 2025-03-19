@@ -2074,7 +2074,6 @@ class TrOrder extends Controller
         $DitchModel = new DitchModel();
         if(!empty($data['t_number'])){
             $ditchdetail = $DitchModel::detail($data['t_number']);
-     
             if($ditchdetail['ditch_no']==10004){
                 $Hualei =  new Hualei([
                     'key'=>$ditchdetail['app_key'],
@@ -2083,7 +2082,6 @@ class TrOrder extends Controller
                     'printurl'=>$ditchdetail['print_url']
                 ]);
                 $url = $Hualei->printlabel($data['t_order_id']);
-                // dump($url);die;
                 return $this->renderSuccess('获取成功',$url); 
             }
         }

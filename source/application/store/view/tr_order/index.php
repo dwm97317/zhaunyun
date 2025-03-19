@@ -1713,7 +1713,7 @@
                        return; 
                     }
                     
-                    if(e==40){
+                    if(e==40 && result.code ===1){
                        console.log(result,9999)
                        window.open(result.url, '_blank');
                        return;  
