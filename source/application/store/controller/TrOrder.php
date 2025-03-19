@@ -408,6 +408,7 @@ class TrOrder extends Controller
                 "order_insurance"=>$detail['insure_free'],
                 "cargo_type"=>"P",
                 "orderInvoiceParam"=>$orderInvoiceParam,
+                "orderVolumeParam"=>$orderVolumeParam
             ];
 
 
@@ -415,7 +416,7 @@ class TrOrder extends Controller
             $Hualei =  new Hualei(['key'=>$ditchdetail['app_key'],'token'=>$ditchdetail['app_token'],'apiurl'=>$ditchdetail['api_url']]);
             $result = $Hualei->createOrderApi($data);
         }
-        dump($result);die;
+        // dump($result);die;
         return $this->renderSuccess('获取成功','',$result);
     }
     
@@ -1819,6 +1820,7 @@ class TrOrder extends Controller
      // 打印标签
     public function expressLabel(){
        $id = $this->request->param('id');    
+       $label = $this->request->param('label');    
        $inpack = (new Inpack());
        $data = $inpack->getExpressData($id);
        if(!$data['order_sn']){
@@ -1851,7 +1853,7 @@ class TrOrder extends Controller
         $data['line_type_unit'] = $line_type_unit[$data['line']['line_type_unit']];
         $dompdf = new Dompdf();
         if(count($data['packageitems'])==0){
-            switch ($adminstyle['delivertempalte']['labelface']) {
+            switch ($label) {
                case '10':
                    echo $this->label10($data);
                    break;
@@ -1861,6 +1863,9 @@ class TrOrder extends Controller
                case '30':
                    echo $this->label30($data);
                    break;
+               case '40':
+                   echo $this->label40($data);
+                   break;
                default:
                     echo $this->label10($data);
                    break;
@@ -1868,7 +1873,7 @@ class TrOrder extends Controller
         }else{
             for ($i = 0; $i < count($data['packageitems']); $i++) {
                $data['index'] = $i;
-               switch ($adminstyle['delivertempalte']['labelface']) {
+               switch ($label) {
                    case '10':
                        echo $this->label10($data);
                        break;
@@ -1877,6 +1882,9 @@ class TrOrder extends Controller
                        break;
                    case '30':
                         echo $this->label30($data);
+                       break;
+                   case '40':
+                        return  $this->label40($data);
                        break;
                    default:
                         echo $this->label10($data);
@@ -2058,6 +2066,29 @@ class TrOrder extends Controller
 	</tr>
 </table>';
 } 
+
+
+ 
+    // 渲染标签模板B
+    public function label40($data){
+        $DitchModel = new DitchModel();
+        if(!empty($data['t_number'])){
+            $ditchdetail = $DitchModel::detail($data['t_number']);
+     
+            if($ditchdetail['ditch_no']==10004){
+                $Hualei =  new Hualei([
+                    'key'=>$ditchdetail['app_key'],
+                    'token'=>$ditchdetail['app_token'],
+                    'apiurl'=>$ditchdetail['api_url'],
+                    'printurl'=>$ditchdetail['print_url']
+                ]);
+                $url = $Hualei->printlabel($data['t_order_id']);
+                // dump($url);die;
+                return $this->renderSuccess('获取成功',$url); 
+            }
+        }
+        return $this->renderError("暂未开通");
+    }
     
     
     // 渲染标签模板A

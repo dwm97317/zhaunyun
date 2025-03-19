@@ -67,6 +67,22 @@ class Hualei{
     }
     
     /**
+     * 打印订单
+     * @param $express_code
+     * @param $express_no
+     * @return bool
+     */
+    public function printlabel($id){
+        $baseurl = $this->config['apiurl'].'/selectLabelType.htm';
+        $result = $this->curlRequest($baseurl, '');
+        $res = json_decode($result['result'],true);
+        $printType  = 'lab10_10';   //打印类型
+        $format = '';  //打印类型
+        $url = $this->config['printurl']."/order/FastRpt/PDF_NEW.aspx?Format=" . $format . "&PrintType=" . $printType . "&order_id=" . $id;
+        return $url;
+    }
+    
+    /**
      * 获取用户信息
      * @param $express_code
      * @param $express_no
@@ -95,11 +111,11 @@ class Hualei{
         $params['customer_userid']=$reData->customer_userid;
     //  dump($params);die;
         $result = $this->curlRequest($baseurl,"param=".json_encode($params));
-           dump($result);die;
-        if($result['ack']==true){
-           
+        if($result['state']!=1){
+            return false;
         }
-        
+        $result = json_decode($result['result'],true);
+        return $result;
     }
     
     

@@ -51,15 +51,21 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 渠道公司官网</label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 渠道公司官网</label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <input id="website" type="text" class="tpl-form-input" name="ditch[website]" value="" required>
+                                    <input id="website" type="text" class="tpl-form-input" name="ditch[website]" value="">
                                 </div>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 渠道公司API地址</label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input id="api_url" type="text" class="tpl-form-input" name="ditch[api_url]" value="" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 渠道打印地址</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input id="print_url" type="text" class="tpl-form-input" name="ditch[print_url]" value="">
                                 </div>
                             </div>
                             <div class="am-form-group">

@@ -209,9 +209,14 @@
                 'product_id':product_id
             }, function (result) {
                 if(result.code == 1){
-                    $("#t_order_sn").val(result.data);
+                    if(result.data.ack==true){
+                        $("#t_order_sn").val(result.data.tracking_number);
+                    }else{
+                        $.show_error(result.data.message); 
+                    }
+                    
                 }else{
-                   $.show_error(result.msg); 
+                   $.show_error(result.data.message); 
                 }
             });
             layer.close(index);

@@ -966,6 +966,21 @@
         </form>
     </div>
 </script>
+
+<script id="tpl-label" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <button onclick="printlabel(10,{{ inpack_id }})"   style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-primary ">标签模板1</button>
+                    <button onclick="printlabel(20,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-secondary ">标签模板2</button>
+                    <button onclick="printlabel(30,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-success ">标签模板3</button>
+                    <button onclick="printlabel(40,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-warning ">渠道 标 签</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
 <script>
     var _render = false;
     var getSelectData = function(_this){
@@ -1486,36 +1501,22 @@
         
         //打印标签
          $(".j-label").on('click',function(){
-           var data = $(this).data();
-        //   console.log(6543578)
-           $.ajax({
-               url:'<?= url('store/trOrder/expressLabel') ?>',
-               type:"get",
-               data:{id:data['id']},
-               success:function(result){
-                   console.log(result);
+          var data = $(this).data();
+           $.showModal({
+                title: '批量更新订单动态'
+                , area: '460px'
+                , content: template('tpl-label',{inpack_id:data.id})
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    
+                }
+            });
+        });
+        
 
-                    if(result.code ===0){
-                       layer.alert(result.msg, {icon: 5});
-                       return; 
-                    }
-                   
-                   $.showModal({
-                        title: '标签打印预览'
-                        , area: '600px,700px'
-                        , content: result
-                        , success: function ($content) {
-                            console.log($content)
-                             
-                        }
-                        , yes: function ($content) {
-                            PrintDiv(result)
-                        }
-                    });
-               }
-               
-           })
-        }); 
+        
  
         
         function PrintDiv(content) {
@@ -1699,6 +1700,38 @@
       
     });
     
-     
+        function printlabel(e,s){
+            var $tabs, data = $(this).data();
+            console.log(s,999999);
+            $.ajax({
+               url:'<?= url('store/trOrder/expressLabel') ?>',
+               type:"get",
+               data:{id:s,label:e},
+               success:function(result){
+                    if(result.code ===0){
+                       layer.alert(result.msg, {icon: 5});
+                       return; 
+                    }
+                    
+                    if(e==40){
+                       console.log(result,9999)
+                       window.open(result.url, '_blank');
+                       return;  
+                    }
+                   $.showModal({
+                        title: '标签打印预览'
+                        , area: '600px,700px'
+                        , content: result
+                        , success: function ($content) {
+                            console.log($content)
+                        }
+                        , yes: function ($content) {
+                            PrintDiv(result)
+                        }
+                    });
+               }
+               
+           })
+        }
 </script>
 
