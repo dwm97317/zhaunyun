@@ -20,6 +20,9 @@ class OrderType extends EnumBasics
     
     // TRAN集运订单 
     const TRAN = 30;
+    
+    //VIP订单 
+    const GRADE = 40;
 
     /**
      * 获取订单类型值
@@ -43,6 +46,10 @@ class OrderType extends EnumBasics
             self::RECHARGE => [
                 'name' => '余额充值',
                 'value' => self::RECHARGE,
+            ],
+            self::GRADE => [
+                'name' => 'VIP订单',
+                'value' => self::GRADE,
             ],
         ];
     }

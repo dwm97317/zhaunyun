@@ -90,11 +90,11 @@
                                                 <div class="dealer-item am-fl am-margin-right-xl">
                                                     <p>
                                                         <span class="am-text-right">一级分销商：</span>
-                                                        <?php if($set['usercode_mode']['is_show']!=1) :?>
+                                                        <?php if($set['usercode_mode']['is_show']==0) :?>
                                                             <span><?= $order['dealer_first']['user']['nickName'] ?>(ID: <?= $order['dealer_first']['user_id'] ?>)</span>
                                                         <?php endif;?>
                                                         
-                                                        <?php if($set['usercode_mode']['is_show']!=0) :?>
+                                                        <?php if($set['usercode_mode']['is_show']==1) :?>
                                                             <span><?= $order['dealer_first']['user']['nickName'] ?>(code: <?= $order['dealer_first']['user']['user_code'] ?>)</span>
                                                         <?php endif;?>
                                                         

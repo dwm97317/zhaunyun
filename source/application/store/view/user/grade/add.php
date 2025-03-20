@@ -44,6 +44,17 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 有效天数 </label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <div class="am-input-group">
+                                        <input type="number" name="grade[effective_time]"
+                                               class="am-form-field" min="0.01" required>
+                                        <span class="widget-dealer__unit am-input-group-label am-input-group-label__right">天</span>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 升级条件 </label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
                                     <div class="am-input-group">

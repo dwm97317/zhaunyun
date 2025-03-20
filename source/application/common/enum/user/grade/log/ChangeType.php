@@ -16,5 +16,8 @@ class ChangeType extends EnumBasics
 
     // 自动升级
     const AUTO_UPGRADE = 20;
+    
+    // 付费升级
+    const PAY_UPGRADE = 30;
 
 }

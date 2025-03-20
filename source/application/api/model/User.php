@@ -448,6 +448,16 @@ class User extends UserModel
             'freeze_income' => $this['freeze_income'] + $money,
         ]);
     }
+    
+    /**
+     * 显示会员到期时间
+     * @param $value
+     * @return mixed
+     */
+    public function getGradeTimeAttr($value)
+    {
+        return date("Y-m-d H:i:s",$value);
+    }
    
     /**
      * 个人中心菜单列表

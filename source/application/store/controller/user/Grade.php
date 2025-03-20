@@ -5,7 +5,7 @@ namespace app\store\controller\user;
 use app\store\controller\Controller;
 use app\store\model\user\Grade as GradeModel;
 use app\store\model\Setting as SettingModel;
-
+use app\store\model\user\UserGradeOrder as UserGradeOrderModel;
 /**
  * 会员等级
  * Class Grade
@@ -13,6 +13,9 @@ use app\store\model\Setting as SettingModel;
  */
 class Grade extends Controller
 {
+    
+    
+    
     /**
      * 会员等级列表
      * @return mixed
@@ -23,6 +26,20 @@ class Grade extends Controller
         $model = new GradeModel;
         $list = $model->getList();
         return $this->fetch('index', compact('list'));
+    }
+    
+    
+    /**
+     * 会员订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function order()
+    {
+        $model = new UserGradeOrderModel;
+        $list = $model->getList();
+        $storesetting = SettingModel::getItem('store');
+        return $this->fetch('order', compact('list','storesetting'));
     }
     
     

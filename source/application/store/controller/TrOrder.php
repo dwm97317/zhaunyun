@@ -660,7 +660,7 @@ class TrOrder extends Controller
        $user =  new UserModel;
        $inpackdata = $model::details($data['id']);
        $userdata = User::detail($data['user_id']);
-       $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free'] + $inpackdata['insure_free'];
+       $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free'] + $inpackdata['insure_free'] - $inpackdata['user_coupon_money'];
        return  $this->renderSuccess('操作成功','',$result=['price' =>  $payprice ,'balance' =>$userdata['balance']]);
     }
     

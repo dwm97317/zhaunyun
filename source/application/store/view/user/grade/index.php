@@ -26,6 +26,7 @@
                             <tr>
                                 <th>等级ID</th>
                                 <th>等级名称</th>
+                                <th>有效天数</th>
                                 <th>等级权重</th>
                                 <th>升级条件</th>
                                 <th>等级权益</th>
@@ -39,6 +40,7 @@
                                 <tr>
                                     <td class="am-text-middle"><?= $item['grade_id'] ?></td>
                                     <td class="am-text-middle"><?= $item['name'] ?></td>
+                                    <td class="am-text-middle"><?= $item['effective_time'] ?></td>
                                     <td class="am-text-middle"><?= $item['weight'] ?></td>
                                     <td class="am-text-middle">
                                         <span>消费满<?= $item['upgrade']['expend_money'] ?>元</span>

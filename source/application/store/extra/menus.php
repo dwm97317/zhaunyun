@@ -192,6 +192,10 @@ return [
                         ]
                     ],
                     [
+                        'name' => '会员订单',
+                        'index' => 'user.grade/order',
+                    ],
+                    [
                         'name' => '等级设置',
                         'index' => 'user.grade/setting',
                     ],
