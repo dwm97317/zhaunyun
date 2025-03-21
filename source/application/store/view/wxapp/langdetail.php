@@ -20,7 +20,7 @@
                                         <div class="am-u-sm-8">
                                             <input type="text" class="tpl-form-input"
                                                    name="lang[<?= $key ?>][<?= $k ?>]"
-                                                   value="<?= $lang[$key][$k] ?>"
+                                                   value="<?= $lang[$key]?$lang[$key][$k]:'' ?>"
                                                    required>
                                         </div>
                                         
