@@ -128,6 +128,53 @@
                         </table>
                     </div>
                     
+                    
+                    <!-- 箱品明细信息 -->
+                    <div class="widget-head am-cf">
+                        <div class="widget-title am-fl">海关申报信息</div>
+                        <div class="am-fr tpl-table-black-operation">
+                            <a id="j-detailinpack" href="javascript:void(0)">
+                                <i class="am-icon-pencil"></i> 新增申报
+                            </a>
+                        </div>
+                    </div>
+                    <div class="am-scrollable-horizontal">
+                        <table width="100%" class="regional-table am-table am-table-bordered am-table-centered
+                            am-text-nowrap am-margin-bottom-xs">
+                            <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>中文品名</th>
+                                <th>英文品名</th>
+                                <th>单个商品重量(kg)</th>
+                                <th>产品数量</th>
+                                <th>总金额USD</th>
+                                <th>出口海关编码</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php  foreach ($detail['inpackdetail'] as $key=>$item): ?>
+                                <tr>
+                                    <td class="am-text-middle"><?= $key + 1 ?></td>
+                                    <td class="am-text-middle"><?= $item['goods_name'] ?></td>
+                                    <td class="am-text-middle"><?= $item['goods_name_en'] ?></td>
+                                    <td class="am-text-middle"><?= $item['unit_weight'] ?></td>
+                                    <td class="am-text-middle"><?= $item['unit_num'] ?></td>
+                                    <td class="am-text-middle"><?= $item['total_free'] ?></td>
+                                    <td class="am-text-middle"><?= $item['customs_code'] ?></td>
+                                    <td class="am-text-middle">
+                                        <div class="tpl-table-black-operation">
+                                            <a href="javascript:void(0);" class="editinpackdetial" data-id="<?= $item['detail_id'] ?>" > <i class="am-icon-pencil"></i> 编辑</a>
+                                            <a href="javascript:void(0);" class="item-deletedetail tpl-table-black-operation-del" data-id="<?= $item['detail_id'] ?>" ><i class="am-icon-trash"></i> 删除</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach?>
+                            </tbody>
+                        </table>
+                    </div>
+                    
                     <!-- 打包服务项目 -->
                     <div class="widget-head am-cf">
                         <div class="widget-title am-fl">打包服务项目</div>
@@ -411,7 +458,119 @@
         </form>
     </div>
 </script>
-
+<script id="tpl-detailinpack" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <input type="hidden" name="inpack[inpack_id]" value="<?= $detail['id'] ?>"/>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label">中文品名</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input" name="inpack[goods_name]"
+                           value="" placeholder="请输入中文品名" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">英文品名</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input" name="inpack[goods_name_en]"
+                           value="" placeholder="请输入英文品名" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label">配货</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="inpack[distribution]"
+                           value="" placeholder="请输入配货" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">单重</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input" name="inpack[unit_weight]"
+                           value="" placeholder="请输入单重" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">数量</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input" name="data[unit_num]"
+                           value="" placeholder="请输入数量" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">总金额USD</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="inpack[total_free]"
+                           value="" placeholder="请输入配货" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label">出口海关编码</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="inpack[customs_code]"
+                           value="" placeholder="请输入出口海关编码" required> 
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-editdetailinpack" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <input type="hidden" name="inpack[inpack_id]" value="<?= $detail['id'] ?>"/>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label">中文品名</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="inpack[goods_name]"
+                           value="{{ goods_name }}" placeholder="请输入中文品名" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">英文品名</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="inpack[goods_name_en]"
+                           value="{{ goods_name_en }}" placeholder="请输入英文品名" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label">配货</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="inpack[distribution]"
+                           value="{{ distribution }}" placeholder="请输入配货" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">单重</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="inpack[unit_weight]"
+                           value="{{ unit_weight }}" placeholder="请输入单重" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">数量</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="data[unit_num]"
+                           value="{{ unit_num }}" placeholder="请输入数量" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">总金额USD</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="inpack[total_free]"
+                           value="{{ total_free }}" placeholder="请输入配货" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label">出口海关编码</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="inpack[customs_code]"
+                           value="{{ customs_code }}" placeholder="请输入出口海关编码" required> 
+                </div>
+            </div>
+            <input type="hidden" class="tpl-form-input" style="width:60px;border: 1px solid #c2cad8;" name="inpack[id]" value="{{detail_id}}">
+        </form>
+    </div>
+</script>
 <script>
     function getweightvol(num){
         console.log(num,6767);
@@ -471,8 +630,61 @@
                 }
             });
         });
+        
+        
+        $('.editinpackdetial').on('click', function () {
+            var $tabs, data = $(this).data();
+            $.post('store/tr_Order/Inpackdetaildetail',{id:data.id}, function (result) {
+                if(result.code == 1 ){
+                    $.showModal({
+                        title: '编辑申报信息'
+                        , area: '800px'
+                        , content: template('tpl-editdetailinpack', result.data.detail)
+                        , uCheck: true
+                        , success: function ($content) {
+                        }
+                        , yes: function ($content) {
+                            $content.find('form').myAjaxSubmit({
+                                url: '<?= url('store/TrOrder/editInpackDetail') ?>',
+                                data: {
+                                   
+                                }
+                            });
+                        }
+                    });
+                }else{
+                  $.show_error(result.msg);   
+                }
+            });
+        });
      
      
+     /**
+         * 新增子订单
+         */
+        $('#j-detailinpack').on('click', function () {
+            var $tabs, data = $(this).data();
+            $.showModal({
+                title: '新增申报'
+                , area: '800px'
+                , content: template('tpl-detailinpack', data)
+                , uCheck: true
+                , success: function ($content) {
+                    $tabs = $content.find('.j-tabs');
+                    $tabs.tabs({noSwipe: 1});
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('store/TrOrder/addInpackDetail') ?>',
+                        data: {
+                            service_id:data.selectId,
+                        }
+                    });
+                    return true;
+                }
+            });
+        });
+
          /**
          * 新增子订单
          */
@@ -536,5 +748,10 @@
         // 删除元素
         var urll = "<?= url('store/TrOrder/deleteInpackItem') ?>";
         $('.item-deletetitem').delete('id', urll);
+        
+        var urlll = "<?= url('store/TrOrder/deleteInpackDetail') ?>";
+        $('.item-deletedetail').delete('id', urlll);
+        
+        
  });
 </script>

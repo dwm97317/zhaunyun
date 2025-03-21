@@ -857,7 +857,7 @@ class Inpack extends InpackModel
     
     //获取集运单的相关信息->with(['line','storage','inpackimage.file'])
     public static function details($id){
-        return self::get($id, ['inpackimage.file','line','address','certimage','packagelist.categoryAttr','packageitems']);
+        return self::get($id, ['inpackimage.file','line','address','certimage','packagelist.categoryAttr','packageitems','inpackdetail']);
     }
 
 

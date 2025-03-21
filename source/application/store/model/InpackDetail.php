@@ -1,27 +1,27 @@
 <?php
 namespace app\store\model;
 
-use app\common\model\InpackItem as InpackItemModel;
+use app\common\model\InpackDetail as InpackDetailModel;
 
 /**
- * 集运子订单模型
+ * 集运申报模型
  * Class GoodsImage
  * @package app\store\model
  */
-class InpackItem extends InpackItemModel
+class InpackDetail extends InpackDetailModel
 {
     
      /**
      * 关联表
      * @return \think\model\relation\BelongsTo
      */
-    public function inpackitem()
+    public function inpackdetail()
     {
-        return $this->belongsTo('InpackItemModel','inpack_id','id');
+        return $this->belongsTo('InpackDetailModel','inpack_id','id');
     }
     
     
-    //新增子项目
+    //新增申报
     public function addItem($data){
         $data['wxapp_id'] = self::$wxapp_id;
         $data['create_time'] = time();
@@ -39,7 +39,7 @@ class InpackItem extends InpackItemModel
     }
     
         
-    //编辑子项目
+    //编辑申报
     public function editItem($data){
         $detail = $this->find($data['id']);
         if(!empty($data['width']) && !empty($data['length']) && !empty($data['height'])){
@@ -56,7 +56,7 @@ class InpackItem extends InpackItemModel
     }
     
     
-    //删除
+    //删除申报
     public function deletes($id){
         return $this->find($id)->delete();
     }

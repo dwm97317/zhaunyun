@@ -310,6 +310,15 @@ class Inpack extends BaseModel
         return $this->hasMany('InpackItem','inpack_id','id');
     }
     
+    /**
+     * 关联订单申报
+     * @return \think\model\relation\HasMany
+     */
+    public function inpackdetail()
+    {
+        return $this->hasMany('InpackDetail','inpack_id','id');
+    }
+    
            
      /**
      * 关联服务项目表

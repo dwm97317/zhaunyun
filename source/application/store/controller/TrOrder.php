@@ -3,6 +3,7 @@ namespace app\store\controller;
 use app\api\model\Logistics;
 use app\store\model\Inpack;
 use app\store\model\InpackItem;
+use app\store\model\InpackDetail;
 use app\store\model\Package;
 use app\api\controller\Package as PackageModel;
 use app\store\model\PackageItem;
@@ -143,8 +144,9 @@ class TrOrder extends Controller
         return $this->renderError($InpackItem->getError() ?: '添加失败');
     }
     
+
     /**
-     * 添加子订单
+     * 查看子订单详情
      * @return mixed
      * @throws \think\exception\DbException
      */
@@ -156,7 +158,7 @@ class TrOrder extends Controller
     }
     
     /**
-     * 添加子订单
+     * 修改子订单
      * @return mixed
      * @throws \think\exception\DbException
      */
@@ -186,6 +188,66 @@ class TrOrder extends Controller
         return $this->renderSuccess('删除成功');
     }
     
+    
+            
+    /**
+     * 添加订单申报
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function addInpackDetail(){
+        $param = $this->request->param();
+        $InpackDetail = new InpackDetail();
+        if($InpackDetail->addItem($param['inpack'])){
+            return $this->renderSuccess('添加成功');
+        }
+        return $this->renderError($InpackDetail->getError() ?: '添加失败');
+    }
+    
+    /**
+     * 查看订单申报详情
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function Inpackdetaildetail(){
+        $param = $this->request->param();
+        $InpackDetail = new InpackDetail();
+        $detail = $InpackDetail::detail($param['id']);
+        return $this->renderSuccess('添加成功','',compact('detail'));
+    }
+    
+    
+    /**
+     * 修改订单申报
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function editInpackDetail(){
+        $param = $this->request->param();
+        $InpackDetail = new InpackDetail();
+        if($InpackDetail->editItem($param['inpack'])){
+            return $this->renderSuccess('修改成功');
+        }
+        return $this->renderError($InpackDetail->getError() ?: '修改失败');
+    }
+    
+    
+    /**
+     * 删除订单申报
+     * @param $delivery_id
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     * @throws \think\exception\PDOException
+     */
+    public function deleteInpackDetail($id)
+    {
+        $model = new InpackDetail();
+        if (!$model->deletes($id)) {
+            return $this->renderError($model->getError() ?: '删除失败');
+        }
+        return $this->renderSuccess('删除成功');
+    }
     
     /**
      * 订单列表
