@@ -86,6 +86,13 @@
                                            value="<?= $model['app_token'] ?>" required>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 渠道产品 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <textarea type="textarea" class="tpl-form-input" name="express[product_json]"
+                                           value=""><?= $model['product_json'] ?></textarea>
+                                </div>
+                            </div>
                              <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否启用 </label>
                                 <div class="am-u-sm-9 am-u-end">

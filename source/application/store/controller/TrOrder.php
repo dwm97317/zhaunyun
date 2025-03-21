@@ -327,12 +327,23 @@ class TrOrder extends Controller
         $param = $this->request->param();
         $DitchModel = new DitchModel();
         $ditchdetail = $DitchModel::detail($param['ditch_no']);
+        
         if($ditchdetail['ditch_no']==10004){
+            if(!empty($ditchdetail['product_json'])){
+                // 1. 将 &quot; 替换为双引号
+                $data_str = html_entity_decode($ditchdetail['product_json']);
+                // 3. 将字符串转换为 PHP 数组或对象
+                $data_array = json_decode($data_str,true); // true 表示转换为数组，false 表示转换为对象
+                return $this->renderSuccess('获取成功','', $data_array); 
+            }else if(getFileData('ditch/hualei.json')){
+                return $this->renderSuccess('获取成功','', getFileData('ditch/hualei.json')); 
+            }
             $Hualei =  new Hualei(['key'=>$ditchdetail['app_key'],'token'=>$ditchdetail['app_token'],'apiurl'=>$ditchdetail['api_url']]);
             return $this->renderSuccess('获取成功','', $Hualei->getProductList()); 
         }
         return $this->renderError("获取失败");
     }
+    
 
 
     /**
@@ -673,7 +684,7 @@ class TrOrder extends Controller
         $inpackdata = $model::details($data['id']);
         $userdata = User::detail($data['user_id']);
  
-        $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free']  + $inpackdata['insure_free'];
+        $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free']  + $inpackdata['insure_free'] - $inpackdata['user_coupon_money'];
         if($payprice==0){
             return $this->renderError('订单金额为0，请先设置订单金额');
         }
