@@ -427,16 +427,16 @@ class TrOrder extends Controller
             $orderVolumeParam = [];
             $i = 0;
             $j = 0;
-            if(count($detail['packagelist'])>0){
-                foreach ($detail['packagelist'] as $key=>$value){
-                    if(count($value['category_attr'])>0){
-                        foreach ($value['category_attr'] as $k =>$v){
-                          $orderInvoiceParam[$i]['invoice_amount'] =  $v['all_price'];
-                          $orderInvoiceParam[$i]['invoice_pcs'] =  $v['product_num'];
-                          $orderInvoiceParam[$i]['invoice_title'] =  $v['class_name_en'];
-                            $i +=1;
-                        }
-                    }
+            if(count($detail['inpackdetail'])>0){
+                foreach ($detail['inpackdetail'] as $key=>$value){
+                    $orderInvoiceParam[$i]['invoice_amount'] =  $value['total_free'];
+                    $orderInvoiceParam[$i]['invoice_pcs'] =  $value['unit_num'];
+                    $orderInvoiceParam[$i]['invoice_title'] =  $value['goods_name_en'];
+                    $orderInvoiceParam[$i]['sku'] =  $value['goods_name'];
+                    $orderInvoiceParam[$i]['sku_code'] =  $value['distribution'];
+                    $orderInvoiceParam[$i]['hs_code'] =  $value['customs_code'];
+                    $orderInvoiceParam[$i]['invoice_weight'] =  $value['unit_weight'];
+                    $i +=1;
                 }
             }
 
@@ -481,13 +481,10 @@ class TrOrder extends Controller
                 "orderInvoiceParam"=>$orderInvoiceParam,
                 "orderVolumeParam"=>$orderVolumeParam
             ];
-
-
-
             $Hualei =  new Hualei(['key'=>$ditchdetail['app_key'],'token'=>$ditchdetail['app_token'],'apiurl'=>$ditchdetail['api_url']]);
             $result = $Hualei->createOrderApi($data);
         }
-        // dump($result);die;
+       
         return $this->renderSuccess('获取成功','',$result);
     }
     
