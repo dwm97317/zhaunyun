@@ -59,6 +59,7 @@ class Hualei{
     public function getProductList(){
         $baseurl = $this->config['apiurl'].'/getProductList.htm?param=';
         $result = $this->curlRequest($baseurl, '');
+        // dump($result['result']);die;
         $res = [];
         if($result['state']==1){
             $res = json_decode($result['result'],true);

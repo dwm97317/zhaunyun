@@ -212,11 +212,11 @@
                     if(result.data.ack==true){
                         $("#t_order_sn").val(result.data.tracking_number);
                     }else{
-                        $.show_error(result.data.message); 
+                        $.show_error(decodeURIComponent(result.data.message)); 
                     }
                     
                 }else{
-                   $.show_error(result.data.message); 
+                   $.show_error(decodeURIComponent(result.data.message)); 
                 }
             });
             layer.close(index);
