@@ -161,8 +161,9 @@
                                              CODE: <span><?= $item['user_code'] ?></span><br>
                                         <?php endif;?>
                                         性别：<?= $item['gender']['text'] ?><br>
-                                        <?php if($item['grade']['name']) :?>
-                                                    <?= $item['grade']['name'];?><br>
+                                              <?php if($item['grade']['name']) :?>
+                                                    <span style="color:red;"><?= $item['grade']['name'];?></span><br>
+                                                    到期时间：<?= date("Y-m-d",$item['grade_time']);?><br>
                                               <?php else:?>
                                                普通会员<br>
                                               <?php endif;?>

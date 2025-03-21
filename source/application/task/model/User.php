@@ -46,10 +46,59 @@ class User extends UserModel
                 $query->where('user.grade_id', '=', 0);
                 $query->whereOr('grade.weight', '<', $upgradeGrade['weight']);
             })
-            // ->where('user.expend_money', '>=', $upgradeGrade['upgrade']['expend_money'])
             ->where('user.expend_money', '>=', $upgradeGrade['upgrade']['expend_money'])
             ->where('user.is_delete', '=', 0)
             ->select();
+    }
+    
+    /**
+     * 查询会员时间到期的用户列表
+     * @param $upgradeGrade
+     * @param array $excludedUserIds
+     * @return false|\PDOStatement|string|\think\Collection
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function getVipendTimeUserList()
+    {
+        return $this->alias('user')
+            ->field(['user.user_id', 'user.grade_id'])
+            ->where('user.grade_time', '<=', time())
+            ->where('user.is_delete', '=', 0)
+            ->select();
+    }
+    
+    /**
+     * 批量设置会员等级到期
+     * @param $data
+     * @return array|false
+     * @throws \Exception
+     */
+    public function setBatchVipGrade($data)
+    {
+        // 批量更新会员等级的数据
+        $userData = [];
+        // 批量更新会员等级变更记录的数据
+        $logData = [];
+        foreach ($data as $item) {
+            $userData[] = [
+                'user_id' => $item['user_id'],
+                'grade_id' => $item['new_grade_id'],
+                'grade_time'=>$item['grade_time'],
+            ];
+            $logData[] = [
+                'user_id' => $item['user_id'],
+                'old_grade_id' => $item['old_grade_id'],
+                'new_grade_id' => $item['new_grade_id'],
+                'change_type' => ChangeTypeEnum::AUTO_DOWNGRADE,
+            ];
+        }
+        // 批量更新会员等级
+        $status = $this->isUpdate()->saveAll($userData);
+        // 批量更新会员等级变更记录
+        (new GradeLogModel)->records($logData);
+        return $status;
     }
 
     /**

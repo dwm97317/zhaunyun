@@ -30,11 +30,38 @@ class Grade
         if (!Cache::has($cacheKey)) {
             // 设置用户的会员等级
             $this->setUserGrade();
-            
+            //将到期的会员设置为0,并清空会员时间
+            $this->setVipendTime();
             Cache::set($cacheKey, time(), 60 * 10);
         }
         return true;
     }
+    
+    /**
+     * 设置用户的会员等级
+     * @return array|bool|false
+     * @throws \Exception
+     */
+    private function setVipendTime()
+    {
+        // 用户模型
+        $UserModel = new UserModel;
+        $userList = $UserModel->getVipendTimeUserList();
+            foreach ($userList as $user) {
+                if (!isset($data[$user['user_id']])) {
+                    $data[$user['user_id']] = [
+                        'user_id' => $user['user_id'],
+                        'old_grade_id' => $user['grade_id'],
+                        'new_grade_id' => 0,
+                        'grade_time'=> 0
+                    ];
+                }
+            }
+        
+        // 批量修改会员的等级
+        return $UserModel->setBatchVipGrade($data);
+    }
+    
 
     /**
      * 设置用户的会员等级
