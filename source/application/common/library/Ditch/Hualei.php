@@ -1,6 +1,6 @@
 <?php
 namespace app\common\library\Ditch;
-
+use PHPMailer\PHPMailer\Exception;
 
 class Hualei{
     
@@ -27,14 +27,16 @@ class Hualei{
     public function query($express_no)
     {
         // 缓存索引
-        $baseurl = $this->config['apiurl'].$express_no;
+        $baseurl = $this->config['apiurl'].'/selectTrack.htm?documentCode='.$express_no;
         // 参数设置
         $result = $this->curlRequest($baseurl, '');
+        // dump($result);die;
         if ($result['state']==0) {
             $this->error = isset($express['cnmessage']) ? $express['cnmessage'] : '查询失败';
             return [];
         }  
         $express = json_decode($result['result'],true);
+        
         $loglist = [];
         if($express['0']['ack']=='true'){
             foreach ($express[0]['data'][0]['trackDetails'] as $v){

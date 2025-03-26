@@ -2,7 +2,13 @@
 namespace app\common\model;
 use app\store\model\Inpack;
 use app\common\model\LogisticsTrack;
-
+use app\common\library\Ditch\BaiShunDa\bsdexp;
+use app\common\library\Ditch\Jlfba\jlfba;
+use app\common\library\Ditch\kingtrans;
+use app\common\library\Ditch\Hualei;
+use app\common\library\Ditch\Xzhcms5;
+use app\common\library\Ditch\Aolian;
+use app\common\library\Ditch\Yidida;
 /**
  * 包裹日志模型
  * Class OrderAddress
@@ -256,5 +262,54 @@ class Logistics extends BaseModel
     public function details($id){
         return $this->find($id);
     }
+    
+    /**
+     * 查询渠道商的物流轨迹
+     * @return int
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+    public static function searchLog($params,$express){
+        if($params['ditch_no']==10001){
+            $jlfba =  new jlfba(['key'=>$params['app_key'],'token'=>$params['app_token']]);
+            $result = $jlfba->query($express);
+        }
+        //百顺达
+        if($params['ditch_no']==10002){
+            $bsdexp =  new bsdexp(['key'=>$params['app_key'],'token'=>$params['app_token']]);
+            $result = $bsdexp->query($express);
+        }
+        //K5
+        if($params['ditch_no']==10003){
+            $kingtrans =  new kingtrans(['key'=>$params['app_key'],'token'=>$params['app_token'],'apiurl'=>$params['api_url']]);
+            $result = $kingtrans->query($express);
+        }
+        //华磊api
+        if($params['ditch_no']==10004){
+            $Hualei =  new Hualei(['key'=>$params['app_key'],'token'=>$params['app_token'],'apiurl'=>$params['api_url']]);
+            $result = $Hualei->query($express);
+        }
+        
+        //星泰api
+        if($params['ditch_no']==10005){
+            $Xzhcms5 =  new Xzhcms5(['key'=>$params['app_key'],'token'=>$params['app_token'],'apiurl'=>$params['api_url']]);
+            $result = $Xzhcms5->query($express);
+        }
+        
+        //澳联
+        if($params['ditch_no']==10006){
+            $Aolian =  new Aolian(['key'=>$params['app_key'],'token'=>$params['app_token'],'apiurl'=>$params['api_url']]);
+            $result = $Aolian->query($express);
+        }
+        
+        //易抵达
+        if($params['ditch_no']==10007){
+            $Yidida =  new Yidida(['key'=>$params['app_key'],'token'=>$params['app_token'],'apiurl'=>$params['api_url']]);
+            $result = $Yidida->query($express);
+        }
+        return $result;
+    }
+    
+    
 
 }

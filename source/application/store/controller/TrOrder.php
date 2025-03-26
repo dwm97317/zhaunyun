@@ -877,6 +877,7 @@ class TrOrder extends Controller
         $data = $this->request->param();
         $model = new Inpack();
         $user =  new UserModel;
+        $Package = new Package;
         $inpackdata = $model::details($data['id']);
         $userdata = User::detail($data['user_id']);
         
@@ -884,6 +885,10 @@ class TrOrder extends Controller
       
         if(($userdata['balance'] < $payprice) || $payprice==0){
             return $this->renderError('用户余额不足');
+        }
+        
+        if($inpackdata['is_pay']==1){
+            return $this->renderError('订单已支付，请勿重复支付');
         }
            
         //扣除余额，并产生一天用户的消费记录；减少用户余额；
@@ -894,7 +899,7 @@ class TrOrder extends Controller
       
         //累计消费金额
         $userdata->setIncPayMoney($payprice);
-        //修改集运单状态何支付状态
+        //修改集运单状态的支付状态
         $this->dealerData(['amount'=>$payprice,'order_id'=>$data['id']],$userdata);
         if($inpackdata['status']==2){
             $inpackdata->where('id',$data['id'])->update(['real_payment'=>$payprice,'status'=>3,'is_pay'=>1,'is_pay_type'=>0,'pay_time'=>date('Y-m-d H:i:s',time())]);
@@ -999,7 +1004,13 @@ class TrOrder extends Controller
         return $this->renderSuccess('物流更新成功');
     }
     
-
+    //查询包裹的物流信息
+    public function getlog(){
+        $Inpack = new Inpack();
+        $param = $this->request->param();
+        $data = $Inpack->getlog($param);
+        return $this->renderSuccess('操作成功','',compact('data'));
+    }
 
 
     /**

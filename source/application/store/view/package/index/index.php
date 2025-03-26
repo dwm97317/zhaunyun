@@ -657,7 +657,7 @@
                                 <tr class="am-success">
                                     <td>{{ value.created_time }}</td>
                                     <td>{{ value.logistics_describe }}</td>
-                                    <td>{{ value.clerk.real_name }}</td>
+                                    <td>{{ value.clerk?value.clerk.real_name:'' }}</td>
                                 </tr>
                             {{/each}}  
                         </tbody>

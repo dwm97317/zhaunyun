@@ -23,6 +23,7 @@ use app\common\service\Message;
 use app\common\model\DitchNumber;
 use app\store\model\Line;
 use app\store\model\InpackItem;
+
 /**
  * 打包模型
  * Class Delivery
@@ -919,6 +920,32 @@ class Inpack extends InpackModel
         }
         return $this;
     }
+    
+        
+    //查询物流轨迹
+    public function getlog($query=[]){
+        $Inpack = new Inpack();
+        $Logistics = new Logistics();
+        $DitchModel = new DitchModel();
+        $setting = SettingModel::detail("notice")['values'];
+        $detail = $Inpack::details($query['id']);
+        $logic = $Logistics->getList($detail['order_sn']); 
+        // dump($detail['transfer']);die;
+        //自有物流
+        if($detail['transfer']==0){
+            $ditchdatas = $DitchModel->where('ditch_id','=',$detail['t_number'])->find();
+            $logib = Logistics::searchLog($ditchdatas,$detail['t_order_sn']);
+        }
+        //17track物流
+        if($detail['transfer']==1){
+            if($setting['is_track_fahuo']['is_enable']==1){//如果预报推送物流，则查询出来
+                $logib = $Logistics->getZdList($detail['t_order_sn'],$detail['t_number'],$detail['wxapp_id']);
+            }
+        }
+        $logic = array_merge($logic,$logib);
+        return $logic;
+    }
+    
     
     // 获取面单相关数据
     public function getExpressData($id){

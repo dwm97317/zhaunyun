@@ -330,7 +330,7 @@
                                         承运商:
                                         <span style="cursor:pointer" text="<?= $item['t_name'] ?>" onclick="copyUrl2(this)"><?= $item['t_name'] ?></span></br>
                                         国际单号:
-                                        <span style="cursor:pointer" text="<?= $item['t_order_sn'] ?>" onclick="copyUrl2(this)"><?= $item['t_order_sn'] ?></span></br>
+                                        <span style="cursor:pointer" text="<?= $item['t_order_sn'] ?>" onclick="copyUrl2(this)"><?= $item['t_order_sn'] ?></span><a href="javascript:;" onclick="getlog(this)" value="<?= $item['id'] ?>" >[物流]</a></br>
                                         <?php endif ;?>
                                         <?php if (!empty($item['t2_order_sn'])): ?>
                                         转运商:
@@ -966,7 +966,36 @@
         </form>
     </div>
 </script>
-
+<script id="tpl-log" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <div class="am-u-sm-12">
+                    <table class="am-table">
+                        <thead>
+                            <tr class="am-primary">
+                                <th>操作时间</th>
+                                <th>轨迹内容</th>
+                                <th>操作人</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{each data value}}
+                                <tr class="am-success">
+                                    <td>{{ value.created_time }}</td>
+                                    <td>{{ value.logistics_describe }}</td>
+                                    <td>{{ value.clerk?value.clerk.real_name:'' }}</td>
+                                </tr>
+                            {{/each}}  
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
 <script id="tpl-label" type="text/template">
     <div class="am-padding-xs am-padding-top">
         <form class="am-form tpl-form-line-form">
@@ -1734,7 +1763,7 @@
            })
         }
         
-                function PrintDiv(content) {
+    function PrintDiv(content) {
             var win = window.open("");
             win.document.write('<html><head></head><body>'
                 + content + '</body>'
@@ -1752,6 +1781,30 @@
                 win.print();
                 win.close();
             }
-        }
+    }
+    
+    function getlog(_this){
+        var number = _this.getAttribute('value');
+        console.log(3434);
+        $.ajax({
+			type: 'post',
+			url: "<?= url('store/tr_order/getlog') ?>",
+			data: {id: number},
+			dataType: "json",
+			success: function(res) {
+				if (res.code == 1) {
+				    console.log(res.data,87);
+        				$.showModal({
+                         title: '物流信息'
+                        , area: '600px'
+                        , content: template('tpl-log', res.data)
+                        , uCheck: false
+                        , success: function (index) {}
+                        ,yes: function (index) {window.location.reload();}
+                    });
+				}
+			}
+		})
+    } 
 </script>
 
