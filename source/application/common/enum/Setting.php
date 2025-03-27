@@ -61,6 +61,8 @@ class Setting extends EnumBasics
     
     // 物流模板设置
     const NOTICE = 'notice';
+    // 盲盒计划设置
+    const BLINDBOX = 'blindbox';
 
     // 分类页模板
     const PAGE_CATEGORY_TEMPLATE = 'page_category_template';
@@ -75,6 +77,10 @@ class Setting extends EnumBasics
             self::STORE => [
                 'value' => self::STORE,
                 'describe' => '系统设置',
+            ],
+            self::BLINDBOX => [
+                'value' => self::BLINDBOX,
+                'describe' => '盲盒计划设置',
             ],
             self::GRADE => [
                 'value' => self::GRADE,

@@ -566,6 +566,23 @@ return [
                 ]
             ],
             [
+                'name' => '盲盒计划',
+                'submenu' => [
+                    [
+                        'name' => '盲盒设置',
+                        'index' => 'market.blindbox/setting'
+                    ],
+                    [
+                        'name' => '盲盒物品',
+                        'index' => 'market.blindbox/boxgoods'
+                    ],
+                    [
+                        'name' => '盲盒分享墙',
+                        'index' => 'market.blindbox/blindboxwall'
+                    ],
+                ]
+            ],
+            [
                 'name' => '消息推送',
                 'submenu' => [
                     [

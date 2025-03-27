@@ -47,16 +47,20 @@ class Grade
         // 用户模型
         $UserModel = new UserModel;
         $userList = $UserModel->getVipendTimeUserList();
-            foreach ($userList as $user) {
-                if (!isset($data[$user['user_id']])) {
-                    $data[$user['user_id']] = [
-                        'user_id' => $user['user_id'],
-                        'old_grade_id' => $user['grade_id'],
-                        'new_grade_id' => 0,
-                        'grade_time'=> 0
-                    ];
-                }
+        if ($userList->isEmpty()) {
+            return false;
+        }
+        $data = [];
+        foreach ($userList as $user) {
+            if (!isset($data[$user['user_id']])) {
+                $data[$user['user_id']] = [
+                    'user_id' => $user['user_id'],
+                    'old_grade_id' => $user['grade_id'],
+                    'new_grade_id' => 0,
+                    'grade_time'=> 0
+                ];
             }
+        }
         
         // 批量修改会员的等级
         return $UserModel->setBatchVipGrade($data);

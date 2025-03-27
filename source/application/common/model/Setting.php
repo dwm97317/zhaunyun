@@ -1084,6 +1084,24 @@ class Setting extends BaseModel
                         "d) 买家在完成该笔交易(订单状态为“已完成”)后才能得到此笔交易的相应积分",
                 ],
             ],
+            // 盲盒计划
+            SettingEnum::BLINDBOX => [
+                'key' => SettingEnum::BLINDBOX,
+                'describe' => SettingEnum::data()[SettingEnum::BLINDBOX]['describe'],
+                'values' => [
+                    'is_open' => '0',         // 盲盒计划是否开启
+                    'points_name' => '盲盒计划',         // 盲盒计划名称自定义
+                    'is_logistics_gift'=>'0',       // 是否开启集运送抽盲盒
+                    'logistics_gift_ratio' => '100',// 是否开启集运送抽盲盒次数 
+                    'is_shopping_gift' => '0',      // 是否开启邀新人送抽盲盒次数 
+                    'gift_ratio' => '100',            // 是否开启购物送抽盲盒次数 
+                    // 盲盒计划说明
+                    'describe' => "a) 抽盲盒次数不可兑现、不可转让,仅可在本平台;\n" .
+                        "b) 您在本平台参加特定活动也可使用积分,详细使用规则以具体活动时的规则为准;\n" .
+                        "c) 积分的数值精确到个位(小数点后全部舍弃,不进行四舍五入)\n" .
+                        "d) 买家在完成该笔交易(订单状态为“已完成”)后才能得到此笔交易的相应积分",
+                ],
+            ],
             // 订阅消息设置
             SettingEnum::SUBMSG => [
                 'key' => SettingEnum::SUBMSG,
