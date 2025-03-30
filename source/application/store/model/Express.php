@@ -4,6 +4,8 @@ namespace app\store\model;
 
 use app\common\model\Express as ExpressModel;
 use think\Db;
+use app\store\model\Inpack;
+
 class Express extends ExpressModel
 {
 
@@ -19,11 +21,14 @@ class Express extends ExpressModel
     }
     
     public function copy(){
-        $data = Db::name('express')->where('wxapp_id','=',10001)->select();
+        $data = getFileData('ditch/china.all.json');
         $express=[];
         foreach ($data as $key =>$value) {
-            $express[$key] = $value;
-            unset($express[$key]['express_id']);
+            $express[$key]['express_name'] = $value['_name_zh-cn'];
+            $express[$key]['express_code'] = $value['key'];
+            $express[$key]['type'] = 0;
+            $express[$key]['create_time'] = time();
+            $express[$key]['update_time'] = time();
             $express[$key]['wxapp_id'] =self::$wxapp_id;
         }
         if ($this->insertAll($express)) {
@@ -49,8 +54,8 @@ class Express extends ExpressModel
     public function remove()
     {
         // 判断当前物流公司是否已被订单使用
-        $Order = new Order;
-        if ($orderCount = $Order->where(['express_id' => $this['express_id']])->count()) {
+        $Order = new Inpack;
+        if ($orderCount = $Order->where(['t_number' => $this['express_id'],'is_delete'=>0])->count()) {
             $this->error = '当前物流公司已被' . $orderCount . '个订单使用，不允许删除';
             return false;
         }

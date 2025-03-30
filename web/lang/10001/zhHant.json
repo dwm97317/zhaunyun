@@ -693,6 +693,7 @@
 		"make_door": "預約上門取件",
 		"add_address": "添加寄件地址",
 		"change_address": "更換上門地址",
+		"saddress": "更換收件地址",
 		"send_country": "寄往國家",
 		"bulk_warehouse": "集運倉庫",
 		"item_category": "物品品類",

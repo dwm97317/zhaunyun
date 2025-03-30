@@ -116,7 +116,6 @@ class Page extends Controller
     public function getBatchlist(){
         $Batch = new BatchModel;
         $list = $Batch->getList();
-        // dump($Batch->getLastsql());die;
         return $this->renderSuccess(compact('list'));
     }
     

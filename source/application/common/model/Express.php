@@ -31,7 +31,7 @@ class Express extends BaseModel
      */
     public function getList()
     {
-        return $this->order(['sort' => 'asc'])
+        return $this->order(['express_code'=>'desc','sort' => 'asc'])
             ->paginate(15, false, [
                 'query' => Request::instance()->request()
             ]);

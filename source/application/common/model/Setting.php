@@ -442,10 +442,10 @@ class Setting extends BaseModel
                         'is_single'=>1,
                         'is_more'=>1,
                         'is_country' => 1,
+                        'is_country_force' => 1,
                         'is_expressnum'=>1,
                         'is_expressnum_force'=>1,
                         'is_expressnum_enter'=>1, //快速预报的是否直接入库
-                        'is_country_force' => 1,
                         'is_shop' => 1,
                         'is_shop_force' => 1,
                         'is_expressname' => 1,
@@ -482,6 +482,22 @@ class Setting extends BaseModel
                                 
                             ] // 10 时间
                         ],
+                    ],
+                    'visitdoor' => [
+                        'is_country' => 1,
+                        'is_country_force' => 1,
+                        'is_shop' => 1,
+                        'is_shop_force' => 1,
+                        'is_category' => 1,
+                        'is_category_force' => 1,
+                        'is_price' => 1,
+                        'is_price_force' => 1,
+                        'is_remark' => 1,
+                        'is_remark_force' => 1,
+                        'is_images' => 1,
+                        'is_images_force' => 1,
+                        'is_xieyi' => 1,
+                        'is_xieyi_force' => 1
                     ],
                     'officialaccount'=>[
                         'is_index_open'=>1,//默认开启  0=不开启  首页
@@ -1090,16 +1106,19 @@ class Setting extends BaseModel
                 'describe' => SettingEnum::data()[SettingEnum::BLINDBOX]['describe'],
                 'values' => [
                     'is_open' => '0',         // 盲盒计划是否开启
-                    'points_name' => '盲盒计划',         // 盲盒计划名称自定义
+                    'is_wall_open' => '0',   // 盲盒分享墙是否开启
+                    'blindbox_name' => '盲盒计划',         // 盲盒计划名称自定义
                     'is_logistics_gift'=>'0',       // 是否开启集运送抽盲盒
-                    'logistics_gift_ratio' => '100',// 是否开启集运送抽盲盒次数 
+                    'logistics_gift_ratio' => '1',// 是否开启集运送抽盲盒次数 
                     'is_shopping_gift' => '0',      // 是否开启邀新人送抽盲盒次数 
-                    'gift_ratio' => '100',            // 是否开启购物送抽盲盒次数 
+                    'gift_ratio' => '1',            // 是否开启购物送抽盲盒次数 
+                    'is_wall_gift' => '0',      // 是否开启发布分享墙抽盲盒次数 
+                    'wall_gift_ratio' => '1',            // 是否开启发布分享墙送抽盲盒次数 
+                    'is_newuser_gift' => '0',      // 拉新人是否开启
+                    'newuser_num_ratio' => '3',
+                    'newuser_gift_ratio' => '1',
                     // 盲盒计划说明
-                    'describe' => "a) 抽盲盒次数不可兑现、不可转让,仅可在本平台;\n" .
-                        "b) 您在本平台参加特定活动也可使用积分,详细使用规则以具体活动时的规则为准;\n" .
-                        "c) 积分的数值精确到个位(小数点后全部舍弃,不进行四舍五入)\n" .
-                        "d) 买家在完成该笔交易(订单状态为“已完成”)后才能得到此笔交易的相应积分",
+                    'describe' => "a) 抽盲盒次数不可兑现、不可转让,仅可在本平台;\n"
                 ],
             ],
             // 订阅消息设置

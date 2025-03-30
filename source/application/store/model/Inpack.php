@@ -610,7 +610,7 @@ class Inpack extends InpackModel
             if (isset($data[$v]))
                $update[$v] = $data[$v];
         }
-      
+    //   dump($data);die;
         $update['updated_time'] = getTime();
 
         if (isset($data['pay_method'])){ 
@@ -733,7 +733,6 @@ class Inpack extends InpackModel
             ////注册发货单到17track,当是选择可以查询的物流时，自有物流不可查询
             if($data['transfer']==1 && $noticesetting['is_track_fahuo']['is_enable']==1){
                 $express = (new Express())->where('express_code',$data['tt_number'])->find();
-                // dump($express);die;
                 $trackd = (new TrackApi())
                 ->register([
                     'track_sn'=>$pack['t_order_sn'],
@@ -789,13 +788,13 @@ class Inpack extends InpackModel
         $update['sendout_time'] = getTime();
         $update['exceed_date'] = $linedetail['exceed_date']==0?0:(time()+$linedetail['exceed_date']*86400);
         if($data['type']=='change'){
-       
             $upd['t2_number'] = $update['t_number'];
             $upd['t2_name'] = $update['t_name'];
             $upd['t2_order_sn'] = $update['t_order_sn'];
             $upd['updated_time'] = $update['updated_time'];
             $upd['status'] = $update['status'];
             $update = $upd;
+           
             ////注册发货单到17track,当是选择可以查询的物流时，自有物流不可查询
             if($data['transfer']==1 && $noticesetting['is_track_zhuandan']['is_enable']==1){
                 $trackd = (new TrackApi())

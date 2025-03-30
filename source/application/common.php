@@ -1,7 +1,5 @@
 <?php
-
 // 应用公共函数库文件
-
 use think\Request;
 use think\Log;
 use think\Cache;
@@ -19,13 +17,11 @@ use app\store\model\user\UserLine;
 use app\store\model\LineService;
 
 
-    require (VENDOR_PATH.'phpmailer/phpmailer/src/PHPMailer.php');
-    require (VENDOR_PATH.'phpmailer/phpmailer/src/SMTP.php');
-    require (VENDOR_PATH.'phpmailer/phpmailer/src/POP3.php');
-    require (VENDOR_PATH.'phpmailer/phpmailer/src/Exception.php');
+require (VENDOR_PATH.'phpmailer/phpmailer/src/PHPMailer.php');
+require (VENDOR_PATH.'phpmailer/phpmailer/src/SMTP.php');
+require (VENDOR_PATH.'phpmailer/phpmailer/src/POP3.php');
+require (VENDOR_PATH.'phpmailer/phpmailer/src/Exception.php');
 
-// require 'PHPMailer/PHPMailer.php';
-// require 'PHPMailer/SMTP.php';
 
 function ifData($field,$data){
     return isset($data[$field])?$data[$field]:'';

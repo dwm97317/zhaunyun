@@ -574,7 +574,7 @@ return [
                     ],
                     [
                         'name' => '盲盒物品',
-                        'index' => 'market.blindbox/boxgoods'
+                        'index' => 'market.blindbox/index'
                     ],
                     [
                         'name' => '盲盒分享墙',

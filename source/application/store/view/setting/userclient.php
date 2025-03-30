@@ -331,6 +331,171 @@
                                     <!--</label>-->
                                 </div>
                             </div>
+                            
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">上门取件功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否需要预报国家
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_country]" value="1"
+                                               data-am-ucheck  <?= $values['visitdoor']['is_country'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_country]" value="0"
+                                               data-am-ucheck <?= $values['visitdoor']['is_country'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[visitdoor][is_country_force]" value="1" data-am-ucheck
+                                            <?= $values['visitdoor']['is_country_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否需要预报仓库
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_shop]" value="1"
+                                               data-am-ucheck  <?= $values['visitdoor']['is_shop'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_shop]" value="0"
+                                               data-am-ucheck <?= $values['visitdoor']['is_shop'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[visitdoor][is_shop_force]" value="1" data-am-ucheck
+                                            <?= $values['visitdoor']['is_shop_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                           
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否需要预报类目
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_category]" value="1"
+                                               data-am-ucheck  <?= $values['visitdoor']['is_category'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_category]" value="0"
+                                               data-am-ucheck <?= $values['visitdoor']['is_category'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[visitdoor][is_category_force]" value="1" data-am-ucheck
+                                            <?= $values['visitdoor']['is_category_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                      
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否需要填写物品总价值
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_price]" value="1"
+                                               data-am-ucheck  <?= $values['visitdoor']['is_price'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_price]" value="0"
+                                               data-am-ucheck <?= $values['visitdoor']['is_price'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[visitdoor][is_price_force]" value="1" data-am-ucheck
+                                            <?= $values['visitdoor']['is_price_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否需要填写备注
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_remark]" value="1"
+                                               data-am-ucheck  <?= $values['visitdoor']['is_remark'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_remark]" value="0"
+                                               data-am-ucheck <?= $values['visitdoor']['is_remark'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[visitdoor][is_remark_force]" value="1" data-am-ucheck
+                                            <?= $values['visitdoor']['is_remark_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否需要上传图片
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_images]" value="1"
+                                               data-am-ucheck  <?= $values['visitdoor']['is_images'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_images]" value="0"
+                                               data-am-ucheck <?= $values['visitdoor']['is_images'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[visitdoor][is_images_force]" value="1" data-am-ucheck
+                                            <?= $values['visitdoor']['is_images_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否需要确认阅读协议
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_xieyi]" value="1"
+                                               data-am-ucheck  <?= $values['visitdoor']['is_xieyi'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_xieyi]" value="0"
+                                               data-am-ucheck <?= $values['visitdoor']['is_xieyi'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[visitdoor][is_xieyi_force]" value="1" data-am-ucheck
+                                            <?= $values['visitdoor']['is_xieyi_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
+                         
+                            
+                            
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">物品信息设置</div>
                             </div>

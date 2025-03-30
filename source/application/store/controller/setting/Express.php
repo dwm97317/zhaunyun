@@ -21,6 +21,7 @@ class Express extends Controller
     {
         $model = new ExpressModel;
         $list = $model->getList();
+        // dump($list->toArray());die;
         return $this->fetch('index', compact('list'));
     }
     

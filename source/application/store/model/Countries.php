@@ -44,11 +44,15 @@ class Countries extends Country
     }
     
     public function copy(){
-        $data = Db::name('countries')->where('wxapp_id','=',10001)->select();
+        $data = getFileData('assets/countrylist.json');
         $country=[];
         foreach ($data as $key =>$value) {
-            $country[$key] = $value;
-            unset($country[$key]['id']);
+            $country[$key]['title'] = $value['title'];
+            $country[$key]['code'] = $value['code'];
+            $country[$key]['status'] = $value['status'];
+            $country[$key]['sort'] = $value['sort'];
+            $country[$key]['is_hot'] = $value['is_hot'];
+            $country[$key]['is_top'] = $value['is_top'];
             $country[$key]['wxapp_id'] =self::$wxapp_id;
         }
         if ($this->insertAll($country)) {
