@@ -515,6 +515,7 @@ class Index extends Controller
         $map2 = \request()->param();
         $map = array_merge($map1,$map2);
         $list = $packageModel->getYList($map);
+        // dump($list->toArray());die;
         $shopList = ShopModel::getAllList();
         return $this->fetch('appointment', compact('list','shopList'));
     }

@@ -641,7 +641,7 @@ class Package extends Controller
          }
          $user = (new User())->find($this->user['user_id']);
          $post = $this->postData();
-
+    
          if (!$post['country_id']){
               return $this->renderError('请选择国家');
          }
@@ -651,6 +651,12 @@ class Package extends Controller
          }
          if (!$post['storage_id']){
               return $this->renderError('请选择仓库');
+         }
+         if (!$post['address_id']){
+              return $this->renderError('请选择收件地址');
+         }
+         if (!$post['jaddress_id']){
+              return $this->renderError('请选择寄件地址');
          }
          $storage = (new Shop())->getValueById($post['storage_id'],'shop_name');
          if (!$storage){
@@ -687,11 +693,8 @@ class Package extends Controller
          $post['source'] = 7;
          $post['member_id'] = $this->user['user_id'];
          $post['member_name'] = $user['nickName'];
-            
-
          $post['order_sn'] = CreateSn();
          $post['is_take'] = 2;
-        //  dump($post);die;
          $res = $packModel->saveData($post);
         
          if (!$res){
@@ -708,6 +711,32 @@ class Package extends Controller
              }
          }         
          Logistics::add($res,'预约成功');
+         //如果是直邮包裹，需要同步创建集运订单
+         if($post['pack_type']==1){
+             $inpackOrder = [
+              'order_sn' => createSn(),
+              'storage_id' => $post['storage_id'],
+              'address_id'=>$post['address_id'],
+              'free' => 0,
+              'member_id'=>$this->user['user_id'],
+              'weight' =>0,
+              'length' =>0,
+              'width' =>0,
+              'height' =>0,
+              'cale_weight' =>0,
+              'volume' => 0, //体积重
+              'pack_free' => 0,
+              'other_free' =>0,
+              'insure_free'=>0,
+              'created_time' => getTime(),
+              'updated_time' => getTime(),
+              'status' => 1,
+              'source' => 4,
+              'wxapp_id' => $this->wxapp_id,
+              'line_id' => 0,
+            ];
+            (new Inpack())->insert($inpackOrder);
+         }
          Db::commit();
          return $this->renderSuccess('预约成功');
      }

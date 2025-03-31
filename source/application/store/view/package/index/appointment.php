@@ -74,7 +74,8 @@
                                 <th>包裹ID</th>
                                 <th>包裹预报单号/快递单号</th>
                                 <th>仓库</th>
-                                <th>收货信息</th>
+                                <th>寄件信息</th>
+                                <th>收件信息</th>
                                 <th>运往国家</th>
                                 <th>备注</th>
                                 <th>状态</th>
@@ -99,6 +100,21 @@
                                         <?php endforeach;endif; ?>
                                     </td>
                                     <td class="am-text-middle"><?= $item['shop_name'] ?></td>
+                                    <td class="am-text-middle">
+                                        寄件人姓名:<?= $item['jaddress']['name'] ?>
+                                        <span style="color:#ff6666;cursor:pointer" text="<?= $item['jaddress']['name'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        收件人电话:<?= $item['jaddress']['phone'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['jaddress']['phone'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        收件人地址:寄往国家：<?= $item['jaddress']['country'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['jaddress']['country'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        省/州：<?= $item['jaddress']['province'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['jaddress']['province'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        市：<?= $item['jaddress']['city'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['jaddress']['city'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        区：<?= $item['jaddress']['region']=='0'?'未填':$item['jaddress']['region']?></br>
+                                        街道：<?= $item['jaddress']['street']=='0'?'未填':$item['jaddress']['street']?><span style="color:#ff6666;cursor:pointer" text="<?= $item['jaddress']['street'];?>" onclick="copyUrl2(this)">[复制]</span>
+                                        门牌：<?= $item['jaddress']['door'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['jaddress']['door'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        详细地址：<?= $item['jaddress']['detail'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['jaddress']['detail'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        邮编：<?= $item['code']==0?'未填': $item['jaddress']['code']?><span style="color:#ff6666;cursor:pointer" text="<?= $item['jaddress']['code'];?>" onclick="copyUrl2(this)">[复制]</span>
+
+                                        邮箱：<?= $item['jaddress']['email']==0?'未填':$item['jaddress']['email'] ?>
+                                    </td>
                                     <td class="am-text-middle">
                                         收件人姓名:<?= $item['name'] ?>
                                         <span style="color:#ff6666;cursor:pointer" text="<?= $item['name'];?>" onclick="copyUrl2(this)">[复制]</span></br>

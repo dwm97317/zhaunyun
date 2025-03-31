@@ -698,7 +698,8 @@
 	},
 	"page_baoguoappointment": {
 		"make_door": "预约上门取件",
-		"add_address": "添加寄件地址",
+		"add_address": "添加收件地址",
+		"add_jaddress": "添加寄件地址",
 		"change_address": "更换上门地址",
 		"saddress": "更换收件地址",
 		"send_country": "寄往国家",
