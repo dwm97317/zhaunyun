@@ -87,8 +87,6 @@
                         </form>
                     </div>
                     <div class="page_toolbar am-margin-bottom-xs am-cf" style="margin-bottom:20px; margin-left:15px;">
-                        
-                        
                         <div class="am-btn-group am-btn-group-xs">
                             <a class="am-btn am-btn-default am-btn-success"
                                href="<?= url('user/addUSer') ?>">

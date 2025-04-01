@@ -483,6 +483,12 @@ class TrOrder extends Controller
             ];
             $Hualei =  new Hualei(['key'=>$ditchdetail['app_key'],'token'=>$ditchdetail['app_token'],'apiurl'=>$ditchdetail['api_url']]);
             $result = $Hualei->createOrderApi($data);
+            if($result['ack']==true){
+                $detail->save([
+                    't_order_sn'=>$result['tracking_number'],
+                    't_order_id'=>$result['order_id']
+                ]);
+            }
         }
        
         return $this->renderSuccess('获取成功','',$result);
@@ -1158,11 +1164,6 @@ class TrOrder extends Controller
         $batchlist = (new Batch())->getAllwaitList([]);
         $shopList = ShopModel::getAllList();
         $lineList = $Line->getListAll();
-        // foreach ($list as &$value) {
-        //     $value['num'] =  (new Package())->where(['inpack_id'=>$value['id'],'is_delete'=>0])->count();
-        //     $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
-        // }
-//   dump($pintuanlist->toArray());die;
         return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
     }
     
@@ -1211,6 +1212,23 @@ class TrOrder extends Controller
         }
 
         return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList'));
+    }
+    
+    /**
+     * 批量将集运订单加入到批次中
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function changeLine(){
+        $Inpack = new Inpack;
+        $Line = new Line();
+        $param = $this->request->param();
+        $arr = $param['selectId'];
+        foreach ($arr as $key =>$val){
+            $Inpack->where('id',$val)->update(['line_id'=>$param['line_id']]);
+        }
+        return $this->renderSuccess('修改路线成功');
     }
     
         /**

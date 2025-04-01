@@ -177,7 +177,6 @@
 
     function selectNumberS(){
         var selectnumber = $('#selectnumber option:selected').val();
-        console.log(selectnumber);
         $('#t_order_sn').val(selectnumber);
     }
 
@@ -209,14 +208,14 @@
                 'product_id':product_id
             }, function (result) {
                 if(result.code == 1){
-                    if(result.data.ack==true){
+                    if(result.data.ack=='true'){
                         $("#t_order_sn").val(result.data.tracking_number);
                     }else{
                         $.show_error(decodeURIComponent(result.data.message)); 
                     }
                     
                 }else{
-                   $.show_error(decodeURIComponent(result.data.message)); 
+                  $.show_error(decodeURIComponent(result.data.message)); 
                 }
             });
             layer.close(index);

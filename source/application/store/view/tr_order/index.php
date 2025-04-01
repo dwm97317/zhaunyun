@@ -271,6 +271,19 @@
                         <button type="button" id="j-clearance" class="am-btn am-btn-success am-radius"><i class="iconfont icon-daochujiesuan"></i>导出清关模板</button>
                         <?php endif;?>
                         <?php endif;?>
+                        <div class="j-opSelect operation-select am-dropdown">
+                            <button type="button" style="padding:7px 12px;color: #ffffff;background: #0d0fff;"
+                                    class="am-dropdown-toggle am-btn am-btn-sm am-btn-secondary">
+                                <span>批量操作</span>
+                                <span class="am-icon-caret-down"></span>
+                            </button>
+                            <ul class="am-dropdown-content">
+                                <li>
+                                    <a id="changeLine" class="am-dropdown-item" 
+                                       href="javascript:;">批量修改集运路线</a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="am-scrollable-horizontal am-u-sm-12">
                         <table width="100%" class="am-table am-table-compact am-table-striped
@@ -1010,6 +1023,38 @@
         </form>
     </div>
 </script>
+<script id="tpl-line" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择集运单数
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'> 共选中 {{ selectCount }} 订单</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择批次
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="line_id"
+                                data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}">
+                            <option value="">请选择</option>
+                            <?php if (isset($lineList) && !$lineList->isEmpty()):
+                                foreach ($lineList as $item): ?>
+                                    <option value="<?= $item['id'] ?>"><?= $item['name'] ?></option>
+                                <?php endforeach; endif; ?>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</script>
 <script>
     var _render = false;
     var getSelectData = function(_this){
@@ -1432,6 +1477,38 @@
 							}
 						}
 					})
+				});
+				
+				
+				/**
+				 * 导出集运清关文件
+				 */
+				$('#changeLine').on('click', function() {
+					var $tabs, data = $(this).data();
+					var selectIds = checker.getCheckSelect();
+				
+					if (selectIds.length == 0) {
+						layer.alert('请先选择集运订单', {
+							icon: 5
+						});
+						return;
+					}
+					$.showModal({
+                        title: '将包裹加入到批次中'
+                        , area: '460px'
+                        , content: template('tpl-line',data)
+                        , uCheck: true
+                        , success: function ($content) {}
+                        , yes: function ($content) {
+                            $content.find('form').myAjaxSubmit({
+                                url: "<?= url('store/trOrder/changeLine') ?>",
+                                data: {selectId:selectIds},
+                            });
+                            return true;
+            				
+                        }
+                    });
+					
 				});
         
         
