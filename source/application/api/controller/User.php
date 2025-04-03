@@ -168,7 +168,7 @@ class User extends Controller
     {
         // 当前用户信息
         $userInfo = $this->getUser();
-        // dump($userInfo);die;
+       
         $is_sharp_verify = (new SharingUser())->getVerify($userInfo['user_id']);
         if ($is_sharp_verify['status']==2){
             $userInfo['is_sharp'] = 3;

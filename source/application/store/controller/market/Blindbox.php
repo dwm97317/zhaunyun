@@ -5,7 +5,6 @@ namespace app\store\controller\market;
 use app\store\controller\Controller;
 use app\store\model\market\Blindbox as BlindboxModel;
 use app\store\model\market\BlindboxWall as BlindboxWallModel;
-use app\store\model\Coupon as CouponModel;
 use app\common\model\Setting;
 use app\store\model\Setting as SettingModel;
 /**
@@ -41,25 +40,6 @@ class Blindbox extends Controller
         $list = $this->model->getList();
         return $this->fetch('index', compact('list'));
     }
-
-    /**
-     * 添加盲盒
-     * @return array|mixed
-     */
-    public function add()
-    {
-        if (!$this->request->isAjax()) {
-            $model = new CouponModel;
-            $couponlist = $model->getList();
-            return $this->fetch('add',compact('couponlist'));
-        }
-        // 新增记录
-        if ($this->model->add($this->postData('blindbox'))) {
-            return $this->renderSuccess('添加成功', url('market.blindbox/index'));
-        }
-        return $this->renderError($this->model->getError() ?: '添加失败');
-    }
-    
         
     /**
      * 删除盲盒
@@ -92,29 +72,6 @@ class Blindbox extends Controller
     }
     
     
-
-    /**
-     * 更新盲盒
-     * @param $coupon_id
-     * @return array|mixed
-     * @throws \think\exception\DbException
-     */
-    public function edit($id)
-    {
-        // 盲盒详情
-        $model = $this->model::detail($id);
-        if (!$this->request->isAjax()) {
-            $CouponModel = new CouponModel;
-            $couponlist = $CouponModel->getList();
-            return $this->fetch('edit', compact('model','couponlist'));
-        }
-        // 更新记录
-        if ($model->edit($this->postData('blindbox'))) {
-            return $this->renderSuccess('更新成功', url('market.blindbox/index'));
-        }
-        return $this->renderError($model->getError() ?: '更新失败');
-    }
-
 
     /**
      * 发放设置

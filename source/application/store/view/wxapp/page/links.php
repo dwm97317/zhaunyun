@@ -9,6 +9,15 @@
                     <div class="link-list">
                         <ul class="" style='display: inline-block;'>
                             <li class="link-item">
+                                <div class="row page-name">盲盒计划活动页</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/pages/blindbox/blindbox</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
                                 <div class="row page-name">微信模板消息授权链接</div>
                                 <div class="row am-cf">
                                     <div class="am-fl">地址：</div>

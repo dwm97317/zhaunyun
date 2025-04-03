@@ -159,6 +159,7 @@ class Page extends Controller
         if(count($track)==0){
             $track = getFileDataForLang('lang/10001/'.$data['type'].'.json');
         }
+        $track['common'] = getFileDataForLang('lang/10001/new_zhHans.json');
         return $this->renderSuccess($track);
     }
     
@@ -301,6 +302,7 @@ class Page extends Controller
         $store['copyright']= WxappModel::detail(input('wxapp_id'));
         $store['paytype']= SettingModel::detail('paytype')['values'];
         $store['grade']= SettingModel::detail('grade')['values'];
+        $store['blindbox']= SettingModel::detail('blindbox')['values'];
         $store['keeper']= SettingModel::detail('keeper')['values'];
         $store['points']= SettingModel::detail('points')['values'];
         return $this->renderSuccess($store);

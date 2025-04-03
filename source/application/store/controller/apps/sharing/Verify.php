@@ -2,7 +2,7 @@
 namespace app\store\controller\apps\sharing;
 use app\store\controller\Controller;
 use app\store\model\sharing\SharingUser;
-
+use app\store\model\User as UserModel;
 class Verify extends Controller{
     
     public function index(){
@@ -14,6 +14,23 @@ class Verify extends Controller{
     public function list(){
         $list = (new SharingUser())->getListX();
         return $this->fetch('list',compact('list'));
+    }
+    
+    /**
+     * 删除团长
+     * @param $dealer_id
+     * @return array|bool
+     * @throws \think\exception\DbException
+     */
+    public function delete($id)
+    {
+        $model = SharingUser::detail($id);
+        if (!$model->setDelete()) {
+            return $this->renderError('删除失败');
+        }
+        $detail = UserModel::detail($model['user_id']);
+        $detail->save(['is_sharp'=>0]);
+        return $this->renderSuccess('删除成功');
     }
  
     public function update(){

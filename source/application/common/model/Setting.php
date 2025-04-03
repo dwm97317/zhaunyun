@@ -1108,6 +1108,9 @@ class Setting extends BaseModel
                     'is_open' => '0',         // 盲盒计划是否开启
                     'is_wall_open' => '0',   // 盲盒分享墙是否开启
                     'blindbox_name' => '盲盒计划',         // 盲盒计划名称自定义
+                    'blindbox_desc' => '盲盒计划是一个你寄货我“送货”的活动',         // 盲盒计划名称自定义
+                    'button_cj' => "抽盲盒",
+                    'button_my' => "我的盲盒",
                     'is_logistics_gift'=>'0',       // 是否开启集运送抽盲盒
                     'logistics_gift_ratio' => '1',// 是否开启集运送抽盲盒次数 
                     'is_shopping_gift' => '0',      // 是否开启邀新人送抽盲盒次数 

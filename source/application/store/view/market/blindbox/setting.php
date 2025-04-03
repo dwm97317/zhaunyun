@@ -45,6 +45,36 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 盲盒计划分享描述 </label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="blindbox[blindbox_desc]"
+                                           value="<?= $values['blindbox_desc'] ?>" required>
+                                    <div class="help-block">
+                                        <small>注：盲盒计划分享描述文案，在用户分享到微信时能看到</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 抽盲盒按钮别名 </label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="blindbox[button_cj]"
+                                           value="<?= $values['button_cj'] ?>" required>
+                                    <div class="help-block">
+                                        <small>注：自定义“抽盲盒”按钮的别名</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 我的盲盒按钮别名 </label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="blindbox[button_my]"
+                                           value="<?= $values['button_my'] ?>" required>
+                                    <div class="help-block">
+                                        <small>注：自定义“我的盲盒”按钮的别名</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3  am-u-lg-2 am-form-label form-require"> 盲盒计划说明 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <textarea rows="5" name="blindbox[describe]"

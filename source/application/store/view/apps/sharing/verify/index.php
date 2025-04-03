@@ -103,12 +103,12 @@
                                         <span class="am-badge am-badge-secondary"><?= $map[$item['status']]; ?></span>
                                     </td>
                                     <td class="am-text-middle">
-                                         <?php if (checkPrivilege('apps.sharing.verify/users')): ?>
-                                                    <a class="tpl-table-black-operation-default"
-                                                       href="javascript:void()" id="j-verify" data-id="<?= $item['id']; ?>">
-                                                        <i class="iconfont icon-shenhe"></i> 审核操作
-                                                    </a>
-                                                <?php endif; ?>
+                                        <?php if (checkPrivilege('apps.sharing.verify/users')): ?>
+                                            <a class="tpl-table-black-operation-default"
+                                               href="javascript:void()" id="j-verify" data-id="<?= $item['id']; ?>">
+                                                <i class="iconfont icon-shenhe"></i> 审核操作
+                                            </a>
+                                        <?php endif; ?>
                                     </td>
                                    
                                 </tr>

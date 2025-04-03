@@ -1667,6 +1667,7 @@ class Package extends Controller
             $where['usermark'] = $param['usermark'];
         }
         $data = (new PackageModel())->query($where,$field);
+        // dump($data);die;
         $data = $this->getPackItemList($data);
         return $this->renderSuccess($data);
      }
@@ -1708,6 +1709,7 @@ class Package extends Controller
             $where['usermark'] = $param['usermark'];
         }
         $data = [
+            'allcount' => $PackageModel->querycount($where,$status=0),
             'nocount' => $PackageModel->querycount($where,$status=1),
             'yescount' => $PackageModel->querycount($where,$status=2),
             'yetsend' => $PackageModel->querycount($where,$status=9),

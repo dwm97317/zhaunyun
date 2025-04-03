@@ -24,22 +24,6 @@
                                                value="<?= $request->get('end_time') ?>" placeholder="请选择截止日期"
                                                data-am-datepicker>
                                     </div>
-                                    
-                                    <div class="am-form-group am-fl">
-                                        <select name="state"
-                                                data-am-selected="{btnSize: 'sm', placeholder: '处理状态'}">
-                                            <option value=""></option>
-                                            <option value="0" <?= $request->get('state') === '0' ? 'selected' : '' ?>>
-                                                进行中
-                                            </option>
-                                            <option value="10" <?= $request->get('state') === '10' ? 'selected' : '' ?>>
-                                                已拒绝
-                                            </option>
-                                            <option value="20" <?= $request->get('state') === '20' ? 'selected' : '' ?>>
-                                                已完成
-                                            </option>
-                                        </select>
-                                    </div>
                                     <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             
@@ -74,9 +58,6 @@
                                     <td colspan="7"></td>
                                 </tr>
                                 <tr>
-                                 
-                                </tr>
-                                <tr>
                                      <td class="am-text-middle">
                                        <input name="checkIds" type="checkbox" value="<?= $item['id'] ?>"> 
                                     </td>
@@ -102,6 +83,13 @@
                                         <span class="am-badge am-badge-secondary"><?= $map[$item['status']]; ?></span>
                                     </td>
                                     <td class="am-text-middle">
+          
+                                        <?php if (checkPrivilege('apps.sharing.verify/delete')): ?>
+                                            <a class="j-delete tpl-table-black-operation-default"
+                                               href="javascript:void(0);" data-id="<?= $item['id'] ?>">
+                                                <i class="am-icon-trash"></i> 删除
+                                            </a>
+                                        <?php endif; ?>
                                     </td>
                                    
                                 </tr>
@@ -187,7 +175,9 @@
         /**
          * 审核操作状态
          */
-
+        // 删除元素
+        var url = "<?= url('apps.sharing.verify/delete') ?>";
+        $('.j-delete').delete('id', url);
        
     });
 </script>

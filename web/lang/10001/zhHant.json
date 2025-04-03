@@ -161,6 +161,7 @@
 	},
 	"page_indexs_dairuku": {
 		"my_package": "我的包裹",
+		"all_package": "全部包裹",
 		"not_in_storage": "未入庫",
 		"stocked": "已入庫",
 		"yessend": "已發貨",

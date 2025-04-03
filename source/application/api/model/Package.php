@@ -151,6 +151,10 @@ class Package extends PackageModel
     
     // 查询数据
     public function query($where,$field){
+        if(isset($where['status']) && $where['status']==0){
+            unset($where['status']);
+            $this->whereIn('status',[1,2,3,4,5,6,7,8,9,10,11]);
+        }
         if(isset($where['status']) && $where['status']==2){
             unset($where['status']);
             $this->whereIn('status',[2,3,4]);
@@ -170,12 +174,23 @@ class Package extends PackageModel
     
     // 查询数据
     public function querysearch($where,$field,$keyword){
-        if($where['status']==2){
+        if(isset($where['status']) && $where['status']==0){
+            unset($where['status']);
+            $this->whereIn('status',[1,2,3,4,5,6,7,8,9,10,11]);
+        }
+        if(isset($where['status']) && $where['status']==2){
             unset($where['status']);
             $this->whereIn('status',[2,3,4]);
-        }else if($where['status']==3){
+        }
+        //
+        if(isset($where['status']) && $where['status']==4){
             unset($where['status']);
-            $this->whereIn('status',[5,6,9,10,11]);
+            $this->whereIn('status',[2,3,4]);
+        }
+        
+        if(isset($where['status']) && $where['status']==10){
+            unset($where['status']);
+            $this->whereIn('status',[10,11]);
         }
         if(!empty($keyword)){
             return  $this->where($where)->where('express_num','like','%'.$keyword.'%')->with(['country','storage','packageimage.file'])->field($field)->Order('created_time DESC')->paginate(15);
@@ -212,6 +227,10 @@ class Package extends PackageModel
     
     // 统计数据
     public function querycount($where,$status){
+        if($status==0){
+            $this->whereIn('status',[1,2,3,4,5,6,7,8,9,10,11]);
+            return  $this->where($where)->Order('created_time DESC')->count();
+        }
         if($status==2){
             $this->whereIn('status',[2,3,4]);
             return  $this->where($where)->Order('created_time DESC')->count();
