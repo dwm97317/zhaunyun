@@ -165,6 +165,11 @@ class Package extends PackageModel
             $this->whereIn('status',[2,3,4]);
         }
         
+        if(isset($where['status']) && $where['status']==8){
+            unset($where['status']);
+            $this->whereIn('status',[6,8]);
+        }
+        
         if(isset($where['status']) && $where['status']==10){
             unset($where['status']);
             $this->whereIn('status',[10,11]);
@@ -186,6 +191,11 @@ class Package extends PackageModel
         if(isset($where['status']) && $where['status']==4){
             unset($where['status']);
             $this->whereIn('status',[2,3,4]);
+        }
+        
+        if(isset($where['status']) && $where['status']==8){
+            unset($where['status']);
+            $this->whereIn('status',[6,8]);
         }
         
         if(isset($where['status']) && $where['status']==10){
@@ -239,7 +249,10 @@ class Package extends PackageModel
             $this->whereIn('status',[2,3,4]);
             return  $this->where($where)->where('is_take',2)->Order('created_time DESC')->count();
         }
-        
+        if($status==8){
+            $this->whereIn('status',[6,8]);
+            return  $this->where($where)->Order('created_time DESC')->count();
+        }
         if($status==10){
             $this->whereIn('status',[10,11]);
             return  $this->where($where)->Order('created_time DESC')->count();
