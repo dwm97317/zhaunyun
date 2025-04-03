@@ -651,7 +651,7 @@ class TrOrder extends Controller
                  $dosend = $noticesetting['dosend']['describe'];
             }
            $status_remark = [
-               5=> "退回到待发货状态，修改发货单号",
+               5=> "待发货状态，修改发货单号",
                6 => $dosend,
                7 => $noticesetting['reach']['describe'],
                8 => $noticesetting['take']['describe'],
