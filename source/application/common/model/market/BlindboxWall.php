@@ -4,6 +4,7 @@ namespace app\common\model\market;
 
 use think\Db;
 use  app\common\model\BaseModel;
+use app\common\model\market\BlindboxWallImage;
 /**
  * 盲盒分享墙
  * Class BlindboxWall
@@ -46,7 +47,7 @@ class BlindboxWall extends BaseModel
      */
     public function image()
     {
-        return $this->hasMany('BlindboxWallImage')->order(['id' => 'asc']);
+        return $this->hasMany('BlindboxWallImage','wall_id','wall_id')->order(['id' => 'asc']);
     }
 
     /**
@@ -65,33 +66,46 @@ class BlindboxWall extends BaseModel
      * @param $data
      * @return bool
      */
-    public function edit($data)
+    public function addWall($data)
     {
         return $this->transaction(function () use ($data) {
+            $iamge = $data['uploaded'];
+            unset($data['uploaded']);
+            unset($data['token']);
+            $data['create_time'] = time(); 
+            $data['is_picture'] = isset($iamge)?1:0;
+            $wall_id = $this->insertGetId($data);
             // 删除分享墙图片
-            $this->image()->delete();
             // 添加分享墙图片
-            isset($data['images']) && $this->addCommentImages($data['images']);
+            isset($iamge) && $this->saveAllImages($wall_id,$iamge);
             // 是否为图片分享
-            $data['is_picture'] = !$this->image()->select()->isEmpty();
+            
             // 更新分享墙记录
-            return $this->allowField(true)->save($data);
+            return true;
         });
     }
 
     /**
-     * 添加分享墙图片
-     * @param $images
-     * @return int
+     * 记录分享图片
+     * @param $commentList
+     * @param $formData
+     * @return bool
+     * @throws \Exception
      */
-    private function addCommentImages($images)
+    private function saveAllImages($commentId, $formData)
     {
-        $data = array_map(function ($image_id) {
-            return [
-                'image_id' => $image_id,
+        // 生成评价图片数据
+        $imageData = [];
+        
+        foreach ($formData as $imageId) {
+            $imageData[] = [
+                'wall_id' => $commentId,
+                'image_id' => $imageId,
                 'wxapp_id' => self::$wxapp_id
             ];
-        }, $images);
-        return $this->image()->saveAll($data);
+        }
+       
+        $model = new BlindboxWallImage;
+        return !empty($imageData) && $model->saveAll($imageData);
     }
 }

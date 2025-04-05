@@ -19,8 +19,7 @@ class BlindboxWall extends BlindboxWallModel
      */
     public function getList()
     {
-        return $this->field(['article_content'], true)
-            ->with(['image'])
+        return $this->with(['image.file','user'])
             ->where('status', '=', 1)
             ->where('is_delete', '=', 0)
             ->order(['sort' => 'asc', 'create_time' => 'desc'])
@@ -28,4 +27,6 @@ class BlindboxWall extends BlindboxWallModel
                 'query' => \request()->request()
             ]);
     }
+    
+    
 }

@@ -493,8 +493,45 @@
                                     </label>
                                 </div>
                             </div>
-                         
-                            
+                            <div class="am-form-group" data-x-switch>
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启打包方式选择
+                                </label>
+                                  <div class="am-u-sm-9" >
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_package_type]" value="1"
+                                               data-switch-box="switch-package_type"
+                                               data-switch-item="package_type__1"
+                                               data-am-ucheck  
+                                               <?= $values['visitdoor']['is_package_type'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][is_package_type]" value="0"
+                                               data-switch-box="switch-package_type"
+                                               data-switch-item="package_type__0"
+                                               data-am-ucheck <?= $values['visitdoor']['is_package_type'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group switch-package_type package_type__0 <?= $values['visitdoor']['is_package_type'] == 0 ? '' : 'hide' ?>">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    默认打包方式
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][package_type]" value="1"
+                                               data-am-ucheck  <?= $values['visitdoor']['package_type'] == 1 ? 'checked' : '' ?>>
+                                        直邮
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[visitdoor][package_type]" value="0"
+                                               data-am-ucheck <?= $values['visitdoor']['package_type'] == 0 ? 'checked' : '' ?>>
+                                        拼邮
+                                    </label>
+                                </div>
+                            </div>
                             
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">物品信息设置</div>
@@ -856,6 +893,552 @@
                                     </label>
                                 </div>
                             </div>
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">发货地址功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启电话前缀
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_tel_code]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_tel_code'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_tel_code]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_tel_code'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启个人通关代码
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_clearancecode]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_clearancecode'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_clearancecode]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_clearancecode'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启身份证号
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_identitycard]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_identitycard'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_identitycard]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_identitycard'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启省/州
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_province]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_province'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_province]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_province'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启城市
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_city]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_city'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_city]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_city'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启区
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_region]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_region'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_region]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_region'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启街道
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_street]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_street'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_street]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_street'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启门牌号
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_door]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_door'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_door]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_door'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启详细地址
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_detail]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_detail'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_detail]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_detail'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启邮箱
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_email]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_email'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_email]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_email'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启邮编
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_code]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_code'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_code]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_code'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启备注
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_remark]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_remark'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_remark]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_remark'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启唛头
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_usermark]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_usermark'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][sendaddress_setting][is_usermark]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['sendaddress_setting']['is_usermark'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label">自定义备注</label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[address][sendaddress_setting][remark]"
+                                           value="<?= $values['address']['sendaddress_setting']['remark']??'' ?>">
+                                </div>
+                            </div>
+                            
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">收货地址功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启电话前缀
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_tel_code]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_tel_code'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_tel_code]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_tel_code'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启个人通关代码
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_clearancecode]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_clearancecode'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_clearancecode]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_clearancecode'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启身份证号
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_identitycard]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_identitycard'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_identitycard]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_identitycard'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启省/州
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_province]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_province'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_province]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_province'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启城市
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_city]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_city'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_city]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_city'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启区
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_region]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_region'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_region]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_region'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启街道
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_street]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_street'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_street]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_street'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启门牌号
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_door]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_door'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_door]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_door'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启详细地址
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_detail]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_detail'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_detail]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_detail'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启邮箱
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_email]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_email'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_email]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_email'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启邮编
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_code]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_code'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_code]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_code'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启备注
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_remark]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_remark'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_remark]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_remark'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启唛头
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_usermark]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_usermark'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[address][reciveaddress_setting][is_usermark]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['address']['reciveaddress_setting']['is_usermark'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label">自定义备注</label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="userclient[address][reciveaddress_setting][remark]"
+                                           value="<?= $values['address']['reciveaddress_setting']['remark']??'' ?>">
+                                </div>
+                            </div>
+                            
+                            
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">用户打包功能设置</div>
                             </div>
@@ -1541,7 +2124,7 @@
             name: 'userclient[officialaccount][official_pic]'
         });
         
-                // swith切换
+        // swith切换
         var $mySwitch = $('[data-x-switch]');
         $mySwitch.find('[data-switch-item]').click(function () {
             var $mySwitchBox = $('.' + $(this).data('switch-box'));

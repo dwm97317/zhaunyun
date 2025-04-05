@@ -656,7 +656,7 @@ class Package extends PackageModel
     public function getList($query = [])
     {
         $setting = SettingModel::detail("adminstyle")['values'];
-        $order = ['updated_time'=>'desc','express_num'=>'desc'];
+        $order = ['created_time'=>'desc','express_num'=>'desc'];
         if(isset($setting['packageorderby'])){
             $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
         }
@@ -686,7 +686,7 @@ class Package extends PackageModel
     public function getListSum($query = [])
     {
         $setting = SettingModel::detail("adminstyle")['values'];
-        $order = ['updated_time'=>'desc'];
+        $order = ['created_time'=>'desc'];
         if(isset($setting['packageorderby'])){
             $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
         }
@@ -825,7 +825,7 @@ class Package extends PackageModel
     public function getAllList($query = [])
     {
         $setting = SettingModel::detail("adminstyle")['values'];
-        $order = ['updated_time'=>'desc'];
+        $order = ['created_time'=>'desc'];
         if(isset($setting['packageorderby'])){
             $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
         }
@@ -857,7 +857,7 @@ class Package extends PackageModel
     public function getUnpackList($query = [])
     {
         $setting = SettingModel::detail("adminstyle")['values'];
-        $order = ['updated_time'=>'desc'];
+        $order = ['created_time'=>'desc'];
         if(isset($setting['packageorderby'])){
             $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
         }
@@ -885,7 +885,7 @@ class Package extends PackageModel
     public function getYList($query = [])
     {
         $setting = SettingModel::detail("adminstyle")['values'];
-        $order = ['updated_time'=>'desc'];
+        $order = ['created_time'=>'desc'];
         if(isset($setting['packageorderby'])){
             $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
         }
@@ -912,7 +912,7 @@ class Package extends PackageModel
     public function getdeleteList($query = [])
     {
         $setting = SettingModel::detail("adminstyle")['values'];
-        $order = ['updated_time'=>'desc'];
+        $order = ['created_time'=>'desc'];
         if(isset($setting['packageorderby'])){
             $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
         }

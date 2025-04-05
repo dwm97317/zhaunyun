@@ -27,6 +27,20 @@ class Blindbox extends Controller
         return $this->renderSuccess(compact('list'));
     }
     
+    /**
+     * 发布分享
+     * @param
+     * @return array|mixed
+     * @throws \think\exception\DbException
+     */
+    public function createblindboxwall()
+    {
+        $params = $this->request->param();
+        $params['user_id'] = $this->getUser()->user_id;
+        $Model = new BlindboxWallModel();
+        // dump($params);die;
+        return $this->renderSuccess($Model->addWall($params));
+    }
 
     /**
      * 发放设置

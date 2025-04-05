@@ -32,6 +32,20 @@ class UserAddress extends UserAddressModel
     }
     
     /**
+     * @param $user_id
+     * @return false|static[]
+     * @throws \think\exception\DbException
+     */
+    public function getSendList($user_id,$addressty)
+    {
+        return $this
+            ->where('address_type',0)
+            ->where('user_id',$user_id)
+            ->where('addressty',$addressty)
+            ->select(); 
+    }
+    
+    /**
      * 获取列表记录
      * @return \think\Paginator
      * @throws \think\exception\DbException
@@ -92,6 +106,7 @@ class UserAddress extends UserAddressModel
                 'code' => isset($data['code'])?$data['code']:'',
                 'detail' => isset($data['detail'])?$data['detail']:'',
                 'user_id' => $user['user_id'],
+                'addressty'=>isset($data['addressty'])?$data['addressty']:0,
                 'street' => isset($data['userstree'])?$data['userstree']:'',
                 'usermark' => isset($data['usermark'])?$data['usermark']:'',
                 'wxapp_id' => self::$wxapp_id

@@ -26,6 +26,41 @@ class Address extends Controller
         ]);
     }
     
+    
+    /**
+     * 发货地址列表
+     * @return array
+     * @throws \app\common\exception\BaseException
+     * @throws \think\exception\DbException
+     */
+    public function getSendAddresslist()
+    {
+        $user = $this->getUser();
+        $model = new UserAddress;
+        $list = $model->getSendList($user['user_id'],$addressty=1);
+        return $this->renderSuccess([
+            'list' => $list,
+            'default_id' => $user['address_id'],
+        ]);
+    }
+    
+    /**
+     * 收货地址列表
+     * @return array
+     * @throws \app\common\exception\BaseException
+     * @throws \think\exception\DbException
+     */
+    public function getRecivelists()
+    {
+        $user = $this->getUser();
+        $model = new UserAddress;
+        $list = $model->getSendList($user['user_id'],$addressty=0);
+        return $this->renderSuccess([
+            'list' => $list,
+            'default_id' => $user['address_id'],
+        ]);
+    }
+    
     /**
      * 根据用户id，code，手机号检索地址
      * @return array

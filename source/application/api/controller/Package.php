@@ -641,27 +641,34 @@ class Package extends Controller
          }
          $user = (new User())->find($this->user['user_id']);
          $post = $this->postData();
-    
-         if (!$post['country_id']){
+         $userclientsetting = SettingModel::getItem('userclient');   
+        //  dump($userclientsetting);die;
+         if (!$post['country_id'] && $userclientsetting['visitdoor']['is_country']==1 && $userclientsetting['visitdoor']['is_country_force']==1){
               return $this->renderError('请选择国家');
          }
-         $country = (new Country())->getValueById($post['country_id'],'title');
-         if (!$country){
-             return $this->renderError('国家信息错误');
+         if($post['country_id']){
+            $country = (new Country())->getValueById($post['country_id'],'title');
+             if (!$country){
+                 return $this->renderError('国家信息错误');
+             } 
          }
-         if (!$post['storage_id']){
+         
+         if (!$post['storage_id'] && $userclientsetting['visitdoor']['is_shop']==1 && $userclientsetting['visitdoor']['is_shop_force']==1){
               return $this->renderError('请选择仓库');
          }
+         $storage = (new Shop())->getValueById($post['storage_id'],'shop_name');
+         if (!$storage){
+             return $this->renderError('仓库信息错误');
+         }
+         
+         
          if (!$post['address_id']){
               return $this->renderError('请选择收件地址');
          }
          if (!$post['jaddress_id']){
               return $this->renderError('请选择寄件地址');
          }
-         $storage = (new Shop())->getValueById($post['storage_id'],'shop_name');
-         if (!$storage){
-             return $this->renderError('仓库信息错误');
-         }
+         
          //生成预约单号
          $express = createYysn();
          $class_ids = $post['class_ids'];
@@ -688,29 +695,6 @@ class Package extends Controller
          // 开启事务
          Db::startTrans();
        
-         $post['express_name'] = '预约取件';
-         $post['express_num'] = $express;
-         $post['source'] = 7;
-         $post['member_id'] = $this->user['user_id'];
-         $post['member_name'] = $user['nickName'];
-         $post['order_sn'] = CreateSn();
-         $post['is_take'] = 2;
-         $res = $packModel->saveData($post);
-        
-         if (!$res){
-             return $this->renderError('预约失败');
-         }
-         //图片id
-         $this->inImages($res,$post['imageIds'],$this->wxapp_id);
-
-         if ($classItem){
-             $packItemRes = $packItemModel->saveAllData($classItem,$res);
-             if (!$packItemRes){
-                Db::rollback();
-                return $this->renderError('预约失败');
-             }
-         }         
-         Logistics::add($res,'预约成功');
          //如果是直邮包裹，需要同步创建集运订单
          if($post['pack_type']==1){
              $inpackOrder = [
@@ -735,8 +719,35 @@ class Package extends Controller
               'wxapp_id' => $this->wxapp_id,
               'line_id' => 0,
             ];
-            (new Inpack())->insert($inpackOrder);
+           $inpack_id =  (new Inpack())->insertGetId($inpackOrder);
          }
+       
+       
+         $post['express_name'] = '预约取件';
+         $post['express_num'] = $express;
+         $post['source'] = 7;
+         $post['member_id'] = $this->user['user_id'];
+         $post['member_name'] = $user['nickName'];
+         $post['order_sn'] = CreateSn();
+         $post['is_take'] = 2;
+         $post['inpack_id'] = $inpack_id;
+         $res = $packModel->saveData($post);
+        
+         if (!$res){
+             return $this->renderError('预约失败');
+         }
+         //图片id
+         $this->inImages($res,$post['imageIds'],$this->wxapp_id);
+
+         if ($classItem){
+             $packItemRes = $packItemModel->saveAllData($classItem,$res);
+             if (!$packItemRes){
+                Db::rollback();
+                return $this->renderError('预约失败');
+             }
+         }         
+         Logistics::add($res,'预约成功');
+         
          Db::commit();
          return $this->renderSuccess('预约成功');
      }

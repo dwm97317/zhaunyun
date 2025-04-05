@@ -45,7 +45,8 @@ class Package extends PackageModel
        'jaddress_id',
        'usermark',
        'shelf_id',
-       'pack_type'
+       'pack_type',
+       'inpack_id'
     ];
     
     // 预报包裹保存

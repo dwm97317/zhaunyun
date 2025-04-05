@@ -497,7 +497,9 @@ class Setting extends BaseModel
                         'is_images' => 1,
                         'is_images_force' => 1,
                         'is_xieyi' => 1,
-                        'is_xieyi_force' => 1
+                        'is_xieyi_force' => 1,
+                        'is_package_type' => 1,
+                        'package_type' => 0 // 拼邮，直邮
                     ],
                     'officialaccount'=>[
                         'is_index_open'=>1,//默认开启  0=不开启  首页
@@ -593,7 +595,42 @@ class Setting extends BaseModel
                         
                         'is_depth'=>0, //长度   
                         'is_depth_force'=>0, //长度  
-                    ]
+                    ],
+                    'address'=>[
+                        'sendaddress_setting'=>[
+                            'is_tel_code'=>1, 
+                            'is_province'=>1,
+                            'is_city'=>1,
+                            'is_clearancecode'=> 0,
+                            'is_identitycard'=>0,
+                            'is_region'=>1,
+                            'is_detail'=>1,
+                            'is_email'=>1,
+                            'is_code'=>1,
+                            'is_street'=>1,
+                            'is_usermark'=>1,
+                            'is_door'=>1,
+                            'is_remark'=>1,
+                            'remark'=>'',
+                        ],
+                        'reciveaddress_setting'=>[
+                            'is_tel_code'=>1, 
+                            'is_province'=>1,
+                            'is_city'=>1,
+                            'is_clearancecode'=> 0,
+                            'is_identitycard'=>0,
+                            'is_region'=>1,
+                            'is_detail'=>1,
+                            'is_email'=>1,
+                            'is_code'=>1,
+                            'is_street'=>1,
+                            'is_usermark'=>1,
+                            'is_door'=>1,
+                            'is_remark'=>1,
+                            'remark'=>'',
+                        ]
+                    ],
+                    
                 ]
             ],
             // 交易设置
