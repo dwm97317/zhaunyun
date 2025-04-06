@@ -2066,6 +2066,7 @@ class Package extends Controller
                         'is_pay' => 1,
                         'pay_time' => getTime(),
                         'status' =>3,
+                        'real_payment'=>$amount,
                     ]);
                     if(!$payres){
                           Db::rollback();

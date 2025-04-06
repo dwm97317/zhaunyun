@@ -50,6 +50,16 @@
                                          <?= $model['nav_linktype'] == 2 ? 'checked' : '' ?>>
                                         外部链接
                                     </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="nav[nav_linktype]" value="3" data-am-ucheck
+                                         <?= $model['nav_linktype'] == 3 ? 'checked' : '' ?>>
+                                        微信客服
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="nav[nav_linktype]" value="4" data-am-ucheck
+                                         <?= $model['nav_linktype'] == 4 ? 'checked' : '' ?>>
+                                        手机号
+                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group">

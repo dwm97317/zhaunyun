@@ -1,4 +1,4 @@
-<?php $linktype = [ 1=>'小程序内部链接',2=>'外部链接'] ; ?>
+<?php $linktype = [ 1=>'小程序内部链接',2=>'外部链接',3=>'微信客服',4=>'手机号'] ; ?>
 <?php $usetype = [ 0=>'显示',1=>'隐藏'] ; ?>
 <div class="row-content am-cf">
     <div class="row">
