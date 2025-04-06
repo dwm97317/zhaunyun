@@ -277,7 +277,7 @@ class User extends UserModel
             }
             //发送优惠券
             if($couponsetting['is_register']==1){
-                (new UserCoupon())->receive($model,$couponsetting['register_coupon']);
+                (new UserCoupon())->newUserReceive($model,$couponsetting['register_coupon']);
             }
             $this->commit();
         } catch (\Exception $e) {
@@ -347,7 +347,7 @@ class User extends UserModel
             }
             //发送优惠券
             if($couponsetting['is_register']==1){
-                (new UserCoupon())->receive($model,$couponsetting['register_coupon']);
+                (new UserCoupon())->newUserReceive($model,$couponsetting['register_coupon']);
             }
             $this->commit();
         } catch (\Exception $e) {

@@ -73,6 +73,50 @@ class UserCoupon extends UserCouponModel
         // 添加领取记录
         return $this->add($user, $coupon);
     }
+    
+    /**
+     * 新用户发放优惠券
+     * @param $user
+     * @param $coupon_id
+     * @return bool|false|int
+     * @throws \think\exception\DbException
+     */
+    public function newUserReceive($user, $coupon_id)
+    {
+        // 获取优惠券信息
+        $coupon = Coupon::detail($coupon_id);
+        // 验证优惠券是否可领取
+        if (!$this->newcheckReceive($user, $coupon)) {
+            return false;
+        }
+        // 添加领取记录
+        return $this->add($user, $coupon);
+    }
+    
+    /**
+     * 验证优惠券是否可领取
+     * @param $user
+     * @param Coupon $coupon
+     * @return bool
+     */
+    private function newcheckReceive($user, $coupon)
+    {
+        if (!$coupon) {
+            $this->error = '优惠券不存在';
+            return false;
+        }
+        if (!$coupon->checkReceive()) {
+            $this->error = $coupon->getError();
+            return false;
+        }
+        // 验证是否已领取
+        $userCouponIds = $this->getUserCouponIds($user['user_id']);
+        if (in_array($coupon['coupon_id'], $userCouponIds)) {
+            $this->error = '该优惠券已领取';
+            return false;
+        }
+        return true;
+    }
 
     /**
      * 获取用户优惠券ID集
