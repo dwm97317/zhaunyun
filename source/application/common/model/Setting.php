@@ -539,6 +539,15 @@ class Setting extends BaseModel
                         'is_wxopen'=>0, //是否开启了微信开放平台
                         'is_merge_user'=>0, //默认不合并用户的
                     ],
+                    'line'=>[
+                        'is_line_show'=>1,  //运费查询后是否展示所有路线
+                        'is_categorysearch'=>0, //是否开启分类查询
+                        'sort_mode'=>10, //运费查询排序方式
+                        'is_discount'=>1, //是否开启路线折扣
+                        'is_service' => 0, //查询运费时是否启用增值服务项目
+                        'is_chargeunit'=>1, //是否显示计费单位
+                        'is_shippingfee'=>1,//是否显示运输方式
+                    ],
                     'newuserprocess'=>[
                         'first_title'=>"第一步：复制仓库地址",
                         'first_remark'=>"复制仓库地址后前往购物平台下单，将仓库地址粘贴到购物平台收货地址中。",

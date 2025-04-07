@@ -1648,7 +1648,151 @@
                                     </div>
                                 </div>
                             </div>
-                            
+                            <!--运费查询功能设置-->
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">运费查询功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    运费查询后是否展示所有路线
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_line_show]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_line_show'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_line_show]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_line_show'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    运费查询是否关联物品类目
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_categorysearch]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_categorysearch'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_categorysearch]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_categorysearch'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否显示计费单位
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_chargeunit]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_chargeunit'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_chargeunit]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_chargeunit'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否显示运输方式
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_shippingfee]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_shippingfee'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_shippingfee]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_shippingfee'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启路线折扣
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_discount]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_discount'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_discount]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_discount'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                    <div class="help-block">
+                                        <small>路线折扣开启后，所有的用户运费查询，运费计算的运费将在标准价格基础上乘以折扣比例</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    运费查询界面是否开启增值服务
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_service]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_service'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[line][is_service]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['line']['is_service'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                    <div class="help-block">
+                                        <small>开启增值服务后，用户选择增值服务，能够查询到更加接近真实运费的结果</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label form-require"> 运费查询排序方式 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="userclient[line][sort_mode]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="10" <?= $values['line']['sort_mode'] == 10 ? 'selected' : '' ?>>按价格排序</option>
+                                            <option value="20" <?= $values['line']['sort_mode'] == 20 ? 'selected' : '' ?>>按路线sort排序</option>
+                                            <option value="30" <?= $values['line']['sort_mode'] == 30 ? 'selected' : '' ?>>按路线ID自然排序</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">用户端下单流程功能设置</div>
                             </div>

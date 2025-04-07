@@ -2721,11 +2721,14 @@ class Package extends Controller
              $where['usermark'] = $param['usermark'];
          }   
          $return = [
+           'all'=>$model->whereIn('status',[1,2,3,4,5,6,7,8])->where($where)->count(),
+           'nopay' => $model->whereIn('status',[2,3,4,5,6,7,8])->where($where)->where('is_pay',2)->count(),
            'no_pay' => $model->whereIn('status',[2,3,4,5,6,7,8])->where($where)->where('is_pay',2)->count(),
            'verify' => $model->whereIn('status',[1])->where($where)->count(),
-           'no_send' => $model->whereIn('status',[3,4,5])->where($where)->count(),
-           'send' => $model->whereIn('status',[6,7])->where($where)->count(),
+           'no_send' => $model->whereIn('status',[2,3,4,5])->where($where)->count(),
+           'send' => $model->whereIn('status',[6])->where($where)->count(),
            'complete' => $model->whereIn('status',[8])->where($where)->count(),
+           'reach'=>$model->whereIn('status',[7])->where($where)->count(),
          ];
          return $this->renderSuccess($return);
      }
