@@ -731,6 +731,7 @@ class Package extends Controller
          $post['order_sn'] = CreateSn();
          $post['is_take'] = 2;
          $post['inpack_id'] = $inpack_id;
+         $post['visit_data_time'] = $post['pickup_date'].' '.$post['pickup_time']  ;
          $res = $packModel->saveData($post);
         
          if (!$res){

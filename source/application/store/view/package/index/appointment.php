@@ -76,6 +76,7 @@
                                 <th>仓库</th>
                                 <th>寄件信息</th>
                                 <th>收件信息</th>
+                                <th>上门取件时间</th>
                                 <th>运往国家</th>
                                 <th>备注</th>
                                 <th>状态</th>
@@ -130,6 +131,7 @@
 
                                         邮箱：<?= $item['email']==0?'未填':$item['email'] ?>
                                     </td>
+                                    <td class="am-text-middle"><?= $item['visit_data_time'] ?></td>
                                     <td class="am-text-middle"><?= $item['title'] ?></td>
                                     <td class="am-text-middle"><?= $item['remark'] ?></td>
                                     <td class="am-text-middle">包裹状态:<?= $status[$item['a_status']];?></br>认领状态:<?= $taker_status[$item['is_take']];?></td>

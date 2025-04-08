@@ -891,7 +891,7 @@ class Package extends PackageModel
         }
         return $this->setListQueryWhere($query)
             ->alias('a')->with(['jaddress'])
-            ->field('a.pack_type,a.jaddress_id,a.id,a.num,a.batch_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,ad.*,a.scan_time')
+            ->field('a.pack_type,a.visit_data_time,a.jaddress_id,a.id,a.num,a.batch_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,ad.*,a.scan_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")

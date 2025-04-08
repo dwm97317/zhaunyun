@@ -499,6 +499,8 @@ class Setting extends BaseModel
                         'is_xieyi' => 1,
                         'is_xieyi_force' => 1,
                         'is_package_type' => 1,
+                        'is_pickup_time'=>1,
+                        'is_pickup_time_force'=>1,
                         'package_type' => 0 // 拼邮，直邮
                     ],
                     'officialaccount'=>[
