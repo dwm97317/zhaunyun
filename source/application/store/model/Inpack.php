@@ -315,7 +315,6 @@ class Inpack extends InpackModel
      * @param $data []
      */
     public function edit($data){
-      
         //修改保存集运图片
         $imgres = true;
         if(isset($data['images'])){
@@ -358,11 +357,14 @@ class Inpack extends InpackModel
         
         
         unset($data['verify']);
+        $inpackitem = $data['item'];
+        unset($data['item']);
+        // dump();die;
         $rers =  $this->where('id',$data['id'])->update($data);
-        if(!empty($data['length']) && !empty($data['width']) && !empty($data['height'])){
-            $data['inpack_id'] = $data['id'];
+        if(!empty($inpackitem['length']) && !empty($inpackitem['width']) && !empty($inpackitem['height'])){
+            $inpackitem['inpack_id'] = $data['id'];
             unset($data['id']);
-            (new InpackItem())->addItem($data);
+            (new InpackItem())->addItem($inpackitem);
         }
         $tplmsgsetting = SettingModel::getItem('tplMsg');
             if($tplmsgsetting['is_oldtps']==1){

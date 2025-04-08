@@ -202,16 +202,9 @@
                                                          
                                                  </div>
                                              </div>
-                                            
                                         </div>
-                                        
                                     </div>
-                                    <!--<div class="am-form-group">-->
-                                    <!--    <label class="am-u-sm-5 am-u-lg-3 am-form-label">总价值</label>-->
-                                    <!--    <div class="am-u-sm-7 am-u-end">-->
-                                    <!--        <input type="text" class="tpl-form-input" name="data[price]" value="" placeholder="请输入价格">-->
-                                    <!--    </div>-->
-                                    <!--</div>-->
+                               
                                     <input type="hidden" class="tpl-form-input" name="data[package_image_id]" value="">
                                     <?php if(!empty($data) && $data['source']==7): ?>
                                     <div class="am-form-group">
@@ -710,8 +703,6 @@
         if(length !='' && width !='' && height !=''){
             $(".volume").val(length * width * height / wvop);
         }
-        console.log(length);
-        
     }
 
     function addfreeRule(){

@@ -104,7 +104,9 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                             查看批次包裹
                                             </a>
                                             <?php endif; ?>
-                                            
+                                             <a class='tpl-table-black-operation-green j-package' href="javascript:void(0);" data-id="<?= $item['batch_id'] ?>">
+                                                <i class="iconfont icon-daochu"></i> 导出包裹明细
+                                            </a>
                                             <!--<a class='tpl-table-black-operation-green j-clearance' href="javascript:void(0);" data-id="<?= $item['batch_id'] ?>">-->
                                             <!--    <i class="iconfont icon-daochu"></i> 导出清关模板-->
                                             <!--</a>-->
@@ -188,6 +190,31 @@ use app\common\enum\BatchType as BatchTypeEnum;
 			url: "<?= url('store/trOrder/batchinvoice') ?>",
 			data: {
 				id: data.id,
+			},
+			dataType: "json",
+			success: function(res) {
+				if (res.code == 1) {
+					console.log(res.url.file_name);
+					var a = document.createElement('a');
+					document.body.appendChild(a);
+					a.href = res.url.file_name;
+					a.click();
+				}
+			}
+		})
+	});
+	
+		
+	/**
+	 * 导出包裹明细
+	 */
+	$('.j-package').on('click', function() {
+		var $tabs, data = $(this).data();
+		$.ajax({
+			type: 'post',
+			url: "<?= url('store/trOrder/exportBatchInpackpackage') ?>",
+			data: {
+			    id: data.id,
 			},
 			dataType: "json",
 			success: function(res) {

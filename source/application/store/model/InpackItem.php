@@ -23,17 +23,25 @@ class InpackItem extends InpackItemModel
     
     //新增子项目
     public function addItem($data){
-        $data['wxapp_id'] = self::$wxapp_id;
-        $data['create_time'] = time();
-        if(!empty($data['width']) && !empty($data['length']) && !empty($data['height'])){
-            $data['volume'] = $data['width']*$data['length']*$data['height']/1000000;
-        }
-        if(!empty($data['weight']) && !empty($data['volume_weight'])){
-            $data['cale_weight'] = $data['weight'] > $data['volume_weight']?$data['weight']:$data['volume_weight'];
-        }
-        if(!$this->allowField(true)->save($data)){
-            $this->error = "保存失败";
-            return false;
+        $result['wxapp_id'] = self::$wxapp_id;
+        $result['create_time'] = time();
+        $result['inpack_id'] = $data['inpack_id'];
+       
+        foreach ($data['width'] as $key =>$val){
+            for ($i = 0; $i < $data['num'][$key]; $i++) {
+                if(!empty($data['width'][$key]) && !empty($data['length'][$key]) && !empty($data['height'][$key])){
+                    $result['width'] = $data['width'][$key];
+                    $result['length'] = $data['length'][$key];
+                    $result['height'] = $data['height'][$key];
+                    $result['volume'] = $data['width'][$key]*$data['length'][$key]*$data['height'][$key]/1000000;
+                }
+                if(!empty($data['weight'][$key]) && !empty($data['volume_weight'][$key])){
+                    $result['weight'] = $data['weight'][$key];
+                    $result['volume_weight'] = $data['volume_weight'][$key];
+                    $result['cale_weight'] = $data['weight'][$key] > $data['volume_weight'][$key]?$data['weight'][$key]:$data['volume_weight'][$key];
+                }
+                $this->insert($result);
+            }
         }
         return true;
     }
