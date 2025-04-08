@@ -1228,7 +1228,6 @@ class Index extends Controller
     * /store/package.index/edit
     */
     public function save($data){
-        // dump(!empty($data['user_id']));die;
         $list = [
             "id" => $data['id'],
             "storage_id" => $data['store_id'],
@@ -1241,7 +1240,6 @@ class Index extends Controller
             'width' => $data['width'],
             'member_id'=>isset($data['user_id'])?$data['user_id']:0,
             'height' => $data['height'],
-            "image" =>  isset($data['images'])?$data['images']:[],
             "admin_remark" => $data['admin_remark'],
             'visit_free' => isset($data['visit_free'])?$data['visit_free']:0,
             'is_take' =>!empty($data['user_id'])?2:1,

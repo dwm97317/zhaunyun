@@ -739,7 +739,30 @@ class Package extends Controller
          }
          //图片id
          $this->inImages($res,$post['imageIds'],$this->wxapp_id);
-
+         $clerk = (new Clerk())->where('visit_status',0)->where('is_delete',0)->select();
+         
+         $address = (new UserAddress())->find($post['address_id']); //获取地址信息
+          //循环通知员工打包消息 
+          foreach ($clerk as $key => $val){
+              $data['member_id'] = $val['user_id'];
+              $data['express_num'] = $express;
+              $data['phone'] = $address['phone'];
+              $data['id'] = $res;
+              $data['wxapp_id'] = $this->wxapp_id;
+              $data['userName'] = $address['name'];
+              $data['visit_data_time'] = $post['pickup_date'].' '.$post['pickup_time'];
+              Message::send('package.Reservationconfirmed',$data);   
+          }
+         //通知用户自己
+         $jaddress = (new UserAddress())->find($post['jaddress_id']); //获取地址信息
+         $userNotice['member_id'] = $this->user['user_id'];
+         $userNotice['express_num'] = $express;
+         $userNotice['userName'] = $jaddress['name'];
+         $userNotice['addressdetail'] = $jaddress['detail'];
+         $userNotice['wxapp_id'] = $this->wxapp_id;
+         $userNotice['id'] = $res;
+         $userNotice['time'] = date("Y-m-d H:i:s",time());
+         Message::send('package.VisitOrdersuccess',$userNotice);   
          if ($classItem){
              $packItemRes = $packItemModel->saveAllData($classItem,$res);
              if (!$packItemRes){

@@ -64,6 +64,7 @@ class Wxapp extends BaseModel
     {
         // 小程序id
         is_null($wxappId) && $wxappId = static::$wxapp_id;
+        // dump($wxappId);die;
         if (!$data = Cache::get("wxapp_{$wxappId}")) {
             // 获取小程序详情, 解除hidden属性
             $detail = self::detail($wxappId)->hidden([], true);

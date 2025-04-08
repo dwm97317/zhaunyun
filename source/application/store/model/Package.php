@@ -171,7 +171,6 @@ class Package extends PackageModel
             'remark' => (isset($data['remark']) && !empty($data['remark']))?$data['remark']:$result['remark'],
             'express_id' => isset($data['express_id'])?$data['express_id']:$result['express_id'],
             'shelf_id' => isset($data['shelf_id'])?$data['shelf_id']:$result['shelf_id'],
-            'image' => json_encode($image),
             'price' => isset($data['price'])?$data['price']:$result['price'],
             'num'=>isset($data['num'])?$data['num']:$result['num'],
             'usermark'=> isset($data['mark'])?$data['mark']:$result['usermark'],

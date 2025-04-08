@@ -599,6 +599,80 @@
                                     <small>模板编号55117，关键词 (訂單編號,提交人,提交時間)</small>
                                 </div>
                             </div>
+                            
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">预约成功通知(新类目模板)-通知员工</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否启用
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="tplMsg[Reservationconfirmed][is_enable]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['Reservationconfirmed']['is_enable'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="tplMsg[Reservationconfirmed][is_enable]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['Reservationconfirmed']['is_enable'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    模板消息ID
+                                    <span class="tpl-form-line-small-title">Template ID</span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="tplMsg[Reservationconfirmed][template_id]"
+                                           value="<?= $values['Reservationconfirmed']['template_id'] ?>">
+                                    <small>模板编号46591，关键词 (预约单号,姓名,联系电话,取件时间)</small>
+                                </div>
+                            </div>
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">下单成功通知(新类目模板)-通知用户</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否启用
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="tplMsg[VisitOrdersuccess][is_enable]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['VisitOrdersuccess']['is_enable'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="tplMsg[VisitOrdersuccess][is_enable]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['VisitOrdersuccess']['is_enable'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    模板消息ID
+                                    <span class="tpl-form-line-small-title">Template ID</span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="tplMsg[VisitOrdersuccess][template_id]"
+                                           value="<?= $values['VisitOrdersuccess']['template_id'] ?>">
+                                    <small>模板编号50716，关键词 (订单号,收件人,收件地址,下单时间)</small>
+                                </div>
+                            </div>
+                            
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交

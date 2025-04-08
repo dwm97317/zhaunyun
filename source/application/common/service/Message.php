@@ -53,6 +53,10 @@ class Message extends Basics
         'package.balancepay'=>'app\common\service\message\package\Balancepay',
          //订单待审核提醒
         'package.orderreview'=>'app\common\service\message\package\Orderreview',
+        //预约成功通知
+        'package.Reservationconfirmed'=>'app\common\service\message\package\Reservationconfirmed',
+        //下单成功通知
+        'package.VisitOrdersuccess'=>'app\common\service\message\package\VisitOrdersuccess',
     ];
 
     /**
