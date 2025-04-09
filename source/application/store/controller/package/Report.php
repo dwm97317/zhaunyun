@@ -171,7 +171,7 @@ class Report extends Controller
         //获取到仓库信息
         $detail['storage'] = (new ShopModel())->where('shop_id',$detail['storage_id'])->find();
         //获取仓库日志
-        $detail['log'] = (new Logistics())->where('order_sn',$detail['order_sn'])->select();
+        $detail['log'] = (new Logistics())->where('express_num',$detail['express_num'])->select();
         //获取集运信息
         $set = Setting::detail('store')['values'];
         $list = $model->getList($map);

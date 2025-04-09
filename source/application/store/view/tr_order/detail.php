@@ -515,7 +515,8 @@ function freeRuleDel(btn) {
        $.ajax({
           type:"POST",
           url:"<?= url('store/trOrder/caleAmount')?>",
-          data:{pid:newdata['data[id]'],line_id:newdata['data[line_id]'],length:newdata['data[length]'],width:newdata['data[width]'],height:newdata['data[height]'],weight:newdata['data[weight]']},
+          data:{pid:newdata['data[id]'],line_id:newdata['data[line_id]'],
+          weight:newdata['data[cale_weight]']},
           dataType:'json',
           success:function(res){
              if (res.code==1){

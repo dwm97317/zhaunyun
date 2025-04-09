@@ -741,20 +741,20 @@ class Package extends Controller
          $this->inImages($res,$post['imageIds'],$this->wxapp_id);
          $clerk = (new Clerk())->where('visit_status',0)->where('is_delete',0)->select();
          
-         $address = (new UserAddress())->find($post['address_id']); //获取地址信息
+         $jaddress = (new UserAddress())->find($post['jaddress_id']); //获取地址信息
           //循环通知员工打包消息 
           foreach ($clerk as $key => $val){
               $data['member_id'] = $val['user_id'];
               $data['express_num'] = $express;
-              $data['phone'] = $address['phone'];
+              $data['phone'] = $jaddress['phone'];
               $data['id'] = $res;
               $data['wxapp_id'] = $this->wxapp_id;
-              $data['userName'] = $address['name'];
+              $data['userName'] = $jaddress['name'];
               $data['visit_data_time'] = $post['pickup_date'].' '.$post['pickup_time'];
               Message::send('package.Reservationconfirmed',$data);   
           }
          //通知用户自己
-         $jaddress = (new UserAddress())->find($post['jaddress_id']); //获取地址信息
+         
          $userNotice['member_id'] = $this->user['user_id'];
          $userNotice['express_num'] = $express;
          $userNotice['userName'] = $jaddress['name'];
@@ -837,7 +837,6 @@ class Package extends Controller
        
         $where[] = ['is_delete','=',0];
         $where[] = ['is_take','=',2];
-        // $where[] = ['inpack_id','=',null];
         $where[] = ['member_id','=',$this->user['user_id']];
         $where[] = ['status','in',[2,3,4,7]];
         $param = $this->request->param();
@@ -2634,19 +2633,19 @@ class Package extends Controller
         $setting = SettingModel::detail("notice")['values'];
         //查询出来这个单号是包裹单号、国际单号、转单号|
         $packData = $PackageModel->where(['express_num'=>$express,'is_delete' => 0])->find();
-         
+       
         $inpackData = $Inpack->where('t_order_sn|order_sn|t2_order_sn',$express)->where(['is_delete' => 0])->find(); //国际单号
         // $inpackData2 = $Inpack->where(['t2_order_sn'=>$express,'is_delete' => 0])->find();  //转单号
         // $inpackData4 = $Inpack->where(['order_sn'=>$express,'is_delete' => 0])->find();
         //如果是包裹单号，可以反查下处于哪个集运单；
-        //   dump($inpackData);die;
-        //   dump($inpackData);die;
+     
+              
         if(!empty($packData)){
             //查出的系统内部物流信息
             $logic = $Logistics->getList($express);
-                // dump($logic);die;
+ 
             if(count($logic)>0){
-                // dump($inpackData);die;
+              
                 $logia = $Logistics->getorderno($logic[0]['order_sn']);
             }
             $express_code = $Express->getValueById($packData['express_id'],'express_code');
@@ -2655,7 +2654,6 @@ class Package extends Controller
                 $logib = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
             }
             $logicv = array_merge($logia,$logib,$logic);
-          
             if(!empty($packData['inpack_id'])){
                 $inpackData = $Inpack->where('id',$packData['inpack_id'])->where(['is_delete' => 0])->find(); //国际单号
             }
@@ -2663,7 +2661,7 @@ class Package extends Controller
        
 
         if(!empty($inpackData) ){
-           
+            
             if($inpackData['transfer']==0){
                 $ditchdatas = $DitchModel->where('ditch_id','=',$inpackData['t_number'])->find();
                 
@@ -2707,7 +2705,9 @@ class Package extends Controller
                     $Yidida =  new Yidida(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
                     $result = $Yidida->query($express);
                 }
-                $logic = $result;
+                is_array($result)  && $logic = $result;
+               
+                
             }else{
                 if(!empty($inpackData['t_order_sn'])){
                      $logicddd = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
@@ -2728,6 +2728,7 @@ class Package extends Controller
             }
             $logici = array_merge($logicv,$logictik);
         }
+           
         $logic = array_merge($logic,$logici,$logicv);
         return $this->renderSuccess(compact('logic'));
      }
