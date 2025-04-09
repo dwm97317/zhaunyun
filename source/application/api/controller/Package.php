@@ -720,6 +720,7 @@ class Package extends Controller
               'line_id' => 0,
             ];
            $inpack_id =  (new Inpack())->insertGetId($inpackOrder);
+           $post['inpack_id'] = $inpack_id;
          }
        
        
@@ -730,7 +731,6 @@ class Package extends Controller
          $post['member_name'] = $user['nickName'];
          $post['order_sn'] = CreateSn();
          $post['is_take'] = 2;
-         $post['inpack_id'] = $inpack_id;
          $post['visit_data_time'] = $post['pickup_date'].' '.$post['pickup_time']  ;
          $res = $packModel->saveData($post);
         

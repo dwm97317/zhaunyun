@@ -113,6 +113,11 @@ class Payorder extends Basics
         return User::where(['user_id'=>$user_id])->value('gzh_openid');
     }
     
+    public function getMinidByUserId($user_id){
+        return User::where(['user_id'=>$user_id])->value('wxapp_id');
+    }
+    
+    
     public function getUnionidByUserId($user_id){
         return User::where(['user_id'=>$user_id])->value('union_id');
     }

@@ -358,15 +358,19 @@ class Inpack extends InpackModel
         
         
         unset($data['verify']);
-        $inpackitem = $data['item'];
+        if(isset($data['item'])){
+            $inpackitem = $data['item'];
+            if(!empty($inpackitem['length']) && !empty($inpackitem['width']) && !empty($inpackitem['height'])){
+                $inpackitem['inpack_id'] = $data['id'];
+                unset($data['id']);
+                (new InpackItem())->addItem($inpackitem);
+            }
+        }
+        
         unset($data['item']);
        
         $rers =  $this->where('id',$data['id'])->update($data);
-        if(!empty($inpackitem['length']) && !empty($inpackitem['width']) && !empty($inpackitem['height'])){
-            $inpackitem['inpack_id'] = $data['id'];
-            unset($data['id']);
-            (new InpackItem())->addItem($inpackitem);
-        }
+        
         $tplmsgsetting = SettingModel::getItem('tplMsg');
             if($tplmsgsetting['is_oldtps']==1){
                   //发送旧版本订阅消息以及模板消息

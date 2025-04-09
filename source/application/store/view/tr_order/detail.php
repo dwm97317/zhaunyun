@@ -431,10 +431,10 @@ function addfreeRule(btn) {
             <input class="volume_weight tpl-form-input" type="text" style="width:80px;border: 1px solid #c2cad8;" name="data[item][volume_weight][]" placeholder="体积重<?= $set['size_mode']['unit'] ?>" readonly>
         </div>
         <div class="span">
-            <input type="text" onblur="calculateTotalWeight()" class="tpl-form-input weight" style="width:60px;border: 1px solid #c2cad8;" name="data[item][weight][]" placeholder="重量<?= $set['weight_mode']['unit'] ?>">
+            <input type="text" class="tpl-form-input weight" style="width:60px;border: 1px solid #c2cad8;" name="data[item][weight][]" placeholder="重量<?= $set['weight_mode']['unit'] ?>">
         </div>
         <div class="span">
-            <input type="text" onblur="calculateTotalWeight()" class="tpl-form-input num" style="width:50px;border: 1px solid #c2cad8;" name="data[item][num][]" value="1" placeholder="数量">
+            <input type="text"  class="tpl-form-input num" style="width:50px;border: 1px solid #c2cad8;" name="data[item][num][]" value="1" placeholder="数量">
         </div>
         <div class="span jiahao">
             <span class="cursor" onclick="addfreeRule(this)">+</span>

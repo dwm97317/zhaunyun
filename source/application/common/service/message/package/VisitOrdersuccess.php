@@ -82,7 +82,7 @@ class VisitOrdersuccess extends Basics
             'data' => [
                 $template['keywords'][0] => ['value' => $orderInfo['express_num']],
                 $template['keywords'][1] => ['value' => $orderInfo['userName']],
-                $template['keywords'][2] => ['value' => $orderInfo['addressdetail']],
+                $template['keywords'][2] => ['value' => mb_substr($orderInfo['addressdetail'], -10, 10, 'UTF-8')],
                 $template['keywords'][3] => ['value' => $orderInfo['time']],
             ]
         ]);
@@ -98,7 +98,7 @@ class VisitOrdersuccess extends Basics
             'data' => [
                 $template['keywords'][0] => ['value' => $orderInfo['express_num']],
                 $template['keywords'][1] => ['value' => $orderInfo['userName']],
-                $template['keywords'][2] => ['value' => $orderInfo['addressdetail']],
+                $template['keywords'][2] => ['value' => mb_substr($orderInfo['addressdetail'], -10, 10, 'UTF-8')],
                 $template['keywords'][3] => ['value' => $orderInfo['time']],
             ]
             ]);
