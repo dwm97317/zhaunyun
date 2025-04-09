@@ -10,18 +10,37 @@
                                 <div class="widget-title am-fl">编辑订单</div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 集运线路 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="data[line_id]" id="line_select" 
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" onchange="caleAmount()" >
+                                        <option value=""></option>
+                                        <?php if (isset($line) && !$line->isEmpty()):
+                                            foreach ($line as $item): ?>
+                                                <option value="<?= $item['id'] ?>"
+                                                data-vol-ratio="<?= $item['volumeweight'] ?>"  
+                                                <?= $detail['line_id'] == $item['id'] ? 'selected' : '' ?>><?= $item['name'] ?></option>
+                                            <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block">
+                                        <small style="color:#ff6666;">切换路线即可自动计算出对应运费</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-5 am-u-lg-2 am-form-label">分箱/子订单</label>
                                 <div class="am-u-sm-9 am-u-end" style="position: relative">
                                      <div class="step_mode">
+                                         <?php if (count($detail['packageitems'])>0): foreach ($detail['packageitems'] as $item): ?>
                                          <div>
                                              <div class="span">
-                                                <input type="text" class="vlength tpl-form-input" onblur="getweightvol(this)" style="width:60px;border: 1px solid #c2cad8;" name="data[item][length][]" value="" placeholder="长<?= $set['size_mode']['unit'] ?>">
+                                                <input type="text" class="vlength tpl-form-input" onblur="getweightvol(this)" style="width:60px;border: 1px solid #c2cad8;" name="data[item][length][]" value="<?= $item['length'] ?>" placeholder="长<?= $set['size_mode']['unit'] ?>">
                                              </div>
                                              <div class="span">
-                                                <input type="text" class="vwidth tpl-form-input"  onblur="getweightvol(this)" style="width:60px;border: 1px solid #c2cad8;" name="data[item][width][]" value="" placeholder="宽<?= $set['size_mode']['unit'] ?>">
+                                                <input type="text" class="vwidth tpl-form-input"  onblur="getweightvol(this)" style="width:60px;border: 1px solid #c2cad8;" name="data[item][width][]" value="<?= $item['width'] ?>" placeholder="宽<?= $set['size_mode']['unit'] ?>">
                                              </div>
                                              <div class="span">
-                                                 <input type="text" class="vheight tpl-form-input" onblur="getweightvol(this)" style="width:60px;border: 1px solid #c2cad8;" name="data[item][height][]" value="" placeholder="高<?= $set['size_mode']['unit'] ?>">
+                                                 <input type="text" class="vheight tpl-form-input" onblur="getweightvol(this)" style="width:60px;border: 1px solid #c2cad8;" name="data[item][height][]" value="<?= $item['height'] ?>" placeholder="高<?= $set['size_mode']['unit'] ?>">
                                              </div>
                                              <div class="span">
                                                  <select class="wvop" onchange="getweightvol(this)" style="width:60px;border: 1px solid #c2cad8;" >
@@ -36,19 +55,29 @@
                                                  </select>
                                              </div>
                                              <div class="span">
-                                                 <input class="volume_weight tpl-form-input" type="text" style="width:80px;border: 1px solid #c2cad8;" name="data[item][volume_weight][]" value="" placeholder="体积重<?= $set['size_mode']['unit'] ?>">
+                                                 <input class="volume_weight tpl-form-input" type="text" style="width:80px;border: 1px solid #c2cad8;" name="data[item][volume_weight][]" value="<?= $item['volume_weight'] ?>" placeholder="体积重<?= $set['size_mode']['unit'] ?>">
                                              </div>
                                              <div class="span">
-                                                 <input type="text"  onblur="calculateTotalWeight()"  class="tpl-form-input weight" style="width:60px;border: 1px solid #c2cad8;" name="data[item][weight][]" value="" placeholder="重量<?= $set['weight_mode']['unit'] ?>">
+                                                 <input type="text"  class="tpl-form-input weight" style="width:60px;border: 1px solid #c2cad8;" name="data[item][weight][]" value="<?= $item['weight'] ?>" placeholder="重量<?= $set['weight_mode']['unit'] ?>">
                                              </div>
                                              <div class="span">
-                                                 <input type="text" onblur="calculateTotalWeight()"  class="tpl-form-input num"style="width:50px;border: 1px solid #c2cad8;" name="data[item][num][]"
+                                                 <input type="text"   class="tpl-form-input num"style="width:50px;border: 1px solid #c2cad8;" name="data[item][num][]"
                                                    value="1" placeholder="数量<?= $set['weight_mode']['unit'] ?>">
+                                             </div>
+                                             <div class="span">
+                                                 <input type="hidden" class="tpl-form-input" style="width:60px;border: 1px solid #c2cad8;" name="data[item][id][]" value="<?= $item['id'] ?>">
                                              </div>
                                             <div class="span jiahao">
                                                  <span class="cursor" onclick="addfreeRule(this)">+</span>
+                                                 <span class="cursor" onclick="freeRuleDel(this)" style="margin-left:5px;">-</span>
                                             </div>
                                          </div>
+                                         <?php endforeach; else: ?>
+                                         <div>
+                                            <button type="button" onclick="addfreeRule(this)" class="j-submit am-btn am-btn-secondary">添加分箱
+                                            </button>
+                                         </div>
+                                         <?php endif; ?>
                                      </div>
                                 </div>
                             </div>
@@ -56,24 +85,17 @@
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">订单总重量(<?= $set['weight_mode']['unit'] ?>) </label>
                                 <div class="am-u-sm-9 am-u-end" style="position: relative">
                                      <div class="span">
-                                         <input type="text"  <?= $detail['is_pay']==1?'disabled=true':'' ;?>  class="tpl-form-input" style="width:80px"  onblur="caleAmount()" oninput="caleAmount()" name="data[weight]"
+                                         <input type="text"  <?= $detail['is_pay']==1?'disabled=true':'' ;?>  class="tpl-form-input" style="width:80px;color:red"  onblur="caleAmount()" oninput="caleAmount()" name="data[weight]"
                                            value="<?= $detail['weight']??'' ;?>" placeholder="请输入重量">
                                      </div>
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 集运线路 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">体积重</label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <select name="data[line_id]"
-                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" onchange="caleAmount()" >
-                                        <option value=""></option>
-                                        <?php if (isset($line) && !$line->isEmpty()):
-                                            foreach ($line as $item): ?>
-                                                <option value="<?= $item['id'] ?>"  <?= $detail['line_id'] == $item['id'] ? 'selected' : '' ?>><?= $item['name'] ?></option>
-                                            <?php endforeach; endif; ?>
-                                    </select>
-                                    <div class="help-block">
-                                        <small style="color:#ff6666;">切换路线即可自动计算出对应运费</small>
+                                    <div class="span">
+                                        <input style="width:80px;color:red;" type="text" class="tpl-form-input" id="weigthV" name="data[volume]"
+                                           value="<?= $detail['volume']??'' ;?>" placeholder="请输入价格">
                                     </div>
                                 </div>
                             </div>
@@ -84,13 +106,9 @@
                                            value="<?= $detail['cale_weight']??'' ;?>" placeholder="请输入价格">
                                 </div>
                             </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">体积重</label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <input type="text" class="tpl-form-input" id="weigthV" name="data[volume]"
-                                           value="<?= $detail['volume']??'' ;?>" placeholder="请输入价格">
-                                </div>
-                            </div>
+                            
+                            
+                            
                             <?php if (checkPrivilege('tr_order/freelist')): ?>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">集运路线费用</label>
@@ -230,22 +248,78 @@
 
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
+
+
     $(function () {
         // 选择图片
         $('.upload-file').selectImages({
             name: 'data[images][]' , multiple: true
         }); 
-
+       
         /**
          * 表单验证提交
          * @type {*}
          */
         $('#my-form').superForm();
+        
+        // 使用事件委托处理动态元素
+        $(document).on('input change', '.step_mode .vlength, .step_mode .vwidth, .step_mode .vheight, .step_mode .wvop', function() {
+            const row = $(this).closest('.step_mode > div');
+            const volWeight = calculateSingleVolWeight(row);
+            row.find('.volume_weight').val(volWeight.toFixed(2));
+            updateAllWeights();
+        });
+        
+        $(document).on('input change', '.step_mode .weight, .step_mode .num', function() {
+            updateAllWeights();
+        });
+        // 设置初始体积重系数
+        const initialRatio = $('#line_select option:selected').data('vol-ratio');
+        if(initialRatio) currentVolRatio = parseFloat(initialRatio);
+        
+        console.log('初始体积重系数:', currentVolRatio);
+    
+        
+        // 初始计算
+        updateAllWeights();
     });
+
+// 全局变量存储当前体积重系数
+let currentVolRatio = 5000; // 默认值
+
+// 切换路线时获取体积重系数
+$('#line_select').change(function() {
+    const selectedOption = $(this).find('option:selected');
+    currentVolRatio = parseFloat(selectedOption.data('vol-ratio')) || 5000;
+    console.log('切换路线，新体积重系数:', currentVolRatio);
+    
+    // 重新计算所有分箱体积重
+    updateAllVolWeights();
+    caleAmount();
+});
+
+// 更新所有分箱的体积重（使用新系数）
+function updateAllVolWeights() {
+    $('.step_mode > div').each(function() {
+        const $row = $(this);
+        const length = parseFloat($row.find('.vlength').val()) || 0;
+        const width = parseFloat($row.find('.vwidth').val()) || 0;
+        const height = parseFloat($row.find('.vheight').val()) || 0;
+        
+        if(length > 0 && width > 0 && height > 0) {
+            const volWeight = (length * width * height / currentVolRatio).toFixed(2);
+            $row.find('.volume_weight').val(volWeight);
+            $row.find('.wvop').val(currentVolRatio); // 同时更新下拉框值
+        }
+    });
+    
+    // 更新汇总数据
+    updateAllWeights();
+}
     
 function getweightvol(element) {
        // 更可靠的容器定位方式
-    var container = $(element).closest('.step_mode');
+    var container = $(element).closest('.step_mode > div');
     
     // 调试：检查容器查找是否正确
     console.log('Container length:', container.length);
@@ -275,26 +349,58 @@ function getweightvol(element) {
         container.find('.volume_weight').val(volumeWeight);
         
         console.log('计算结果:', volumeWeight); // 调试用
-        
-        // 自动计算总重量
-        calculateTotalWeight();
     } else {
         console.log('尺寸输入不完整，无法计算'); // 调试用
     }
 }
 
-// 计算所有分箱的总重量
-function calculateTotalWeight() {
-    var totalWeight = 0;
+// 修改计算单个体积重的函数
+function calculateSingleVolWeight(row) {
+    const length = parseFloat(row.find('.vlength').val()) || 0;
+    const width = parseFloat(row.find('.vwidth').val()) || 0;
+    const height = parseFloat(row.find('.vheight').val()) || 0;
+    
+    if(length > 0 && width > 0 && height > 0) {
+        return (length * width * height / currentVolRatio);
+    }
+    return 0;
+}
+
+// 实时更新所有重量数据
+function updateAllWeights() {
+    let totalActualWeight = 0;
+    let totalVolWeight = 0;
+    
     $('.step_mode > div').each(function() {
-        var weight = parseFloat($(this).find('.weight').val()) || 0;
-        var num = parseFloat($(this).find('.num').val()) || 1;
-        totalWeight += weight * num;
+        // 确保获取最新重量值
+        const weight = parseFloat($(this).find('.weight').val()) || 0;
+        const quantity = parseFloat($(this).find('.num').val()) || 1;
+        totalActualWeight += weight * quantity;
+        
+        // 计算当前分箱体积重（使用最新尺寸值）
+        const volWeight = calculateSingleVolWeight($(this));
+        $(this).find('.volume_weight').val(volWeight.toFixed(2));
+        totalVolWeight += volWeight;
     });
     
-    $('input[name="data[weight]"]').val(totalWeight.toFixed(2));
-}
+    // 更新显示
+    $('input[name="data[weight]"]').val(totalActualWeight.toFixed(2));
+    $('#weigthV').val(totalVolWeight.toFixed(2));
     
+    // 计费重量取较大值
+    const chargeableWeight = Math.max(totalActualWeight, totalVolWeight);
+    $('#oWei').val(chargeableWeight.toFixed(2));
+    
+    console.log('最终计算结果:', { // 调试用
+        totalActualWeight,
+        totalVolWeight,
+        chargeableWeight
+    });
+    
+    // 自动计算运费
+    caleAmount();
+}
+
     
     // 添加新分箱行
 function addfreeRule(btn) {
@@ -335,29 +441,49 @@ function addfreeRule(btn) {
             <span class="cursor" onclick="freeRuleDel(this)" style="margin-left:5px;">-</span>
         </div>
     `);
-    
+    // 绑定事件
+    newRow.find('input, select').on('change blur', function() {
+        updateAllWeights();
+    });
     container.append(newRow);
 }
 
-// 删除分箱行
+// 删除分箱功能（增强版）
 function freeRuleDel(btn) {
-    if($('.step_mode > div').length > 1) {
-        $(btn).closest('div > div').remove();
-        calculateTotalWeight();
-    } else {
-        alert('至少需要保留一个分箱');
-    }
-}
- 
+    if(!confirm('确定要删除这个分箱吗？')) return;
     
-    // function addfreeRule(){
-    //     var amformItem = document.getElementsByClassName('step_mode')[0];
-    //     var Item = document.createElement('div');
-      
-    //     var _html = '<div class="span"><input class="vlength" onblur="getweightvol(this)" type="text" class="tpl-form-input" style="width:60px;border: 1px solid #c2cad8;margin-right: 5px;" name="data[item][length][]" value="" placeholder="长<?= $set['size_mode']['unit'] ?>"></div><div class="span"><input type="text" class="tpl-form-input" style="width:60px;border: 1px solid #c2cad8;margin-right: 5px;" name="data[item][width][]"value="" onblur="getweightvol(this)" class="vwidth" placeholder="宽<?= $set['size_mode']['unit'] ?>"></div><div class="span"><input type="text" class="tpl-form-input" style="margin-right: 5px;width:60px;border: 1px solid #c2cad8;" name="data[item][height][]"value="" onblur="getweightvol(this)" class="vheight" placeholder="高<?= $set['size_mode']['unit'] ?>"></div><div class="span"><select onchange="getweightvol(this)"  style="margin-right: 5px;width:60px;border: 1px solid #c2cad8;" ><option value="5000">5000</option><option value="6000">6000</option><option value="7000">7000</option><option value="8000">8000</option><option value="9000">9000</option><option value="10000">10000</option><option value="139">139</option><option value="166">166</option></select></div><div class="span"><input type="text" class="tpl-form-input" style="margin-right: 5px;width:80px;border: 1px solid #c2cad8;" name="data[item][volume_weight][]"value="" class="wvop" placeholder="体积重<?= $set['size_mode']['unit'] ?>"></div><div class="span"><input type="text" id="weight" class="tpl-form-input" style="margin-right: 5px;width:60px;border: 1px solid #c2cad8;" name="data[item][weight][]"value="<?= $data['weigth']??'' ;?>" placeholder="重量<?= $set['weight_mode']['unit'] ?>"></div><div class="span"><input type="text" id="weight" class="tpl-form-input" style="width:50px;border: 1px solid #c2cad8;margin-right: 5px;" name="data[item][num][]"value="1" placeholder="数量<?= $set['weight_mode']['unit'] ?>"></div><div class="span jiafa"><span class="cursor" onclick="addfreeRule(this)" style="display: inline-block; padding:0 5px; font-size:14px; background:#3bb4f2; margin-right:5px; color:#fff;">+</span></div><div class="span jiafa"><span class="cursor" onclick="freeRuleDel(this)" style="display: inline-block; padding:0 5px; font-size:14px; background:#3bb4f2; margin-right:5px; color:#fff;">-</span></div>';
-    //     Item.innerHTML = _html;
-    //     amformItem.appendChild(Item);
-    // }
+    const container = $(btn).closest('.step_mode > div');
+    const itemId = container.find('input[name="data[item][id][]"]').val();
+    
+    // 显示加载状态
+    const $btn = $(btn);
+    $btn.prop('disabled', true).html('<i class="am-icon-spinner am-icon-spin"></i>');
+    
+    // 如果有ID则请求后端删除
+    const deletePromise = itemId ? 
+        $.post("<?= url('store/trOrder/deleteInpackItem') ?>", {id: itemId}) : 
+        Promise.resolve({code: 1});
+    
+    deletePromise.then(res => {
+        if(res.code !== 1) throw new Error(res.msg || '删除失败');
+        
+        // 从DOM移除
+        container.remove();
+        
+        // 如果删光了最后一个，添加空分箱
+        if($('.step_mode > div').length === 0) {
+            $('.step_mode').html('<div><button type="button" onclick="addfreeRule(this)" class="j-submit am-btn am-btn-secondary">添加分箱</button></div>');
+        }
+        
+        // 更新重量
+        updateAllWeights();
+    }).catch(err => {
+        alert(err.message);
+        console.error('删除失败:', err);
+    }).finally(() => {
+        $btn.prop('disabled', false).html('-');
+    });
+}
     
     function MathFree(){
         // var price = $('#price')[0].value;
@@ -394,8 +520,6 @@ function freeRuleDel(btn) {
           success:function(res){
              if (res.code==1){
                  $('#price').val(res.msg.price);
-                 $('#oWei').val(res.msg.oWeigth);
-                 $('#weigthV').val(res.msg.weightV);
                  $('#pack_free').val(res.msg.packfree);
                  $('#insure_free').val(res.msg.insure_free);
                  var other_free = $('#other_free').val();

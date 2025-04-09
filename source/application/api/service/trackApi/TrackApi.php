@@ -18,7 +18,7 @@ Class TrackApi {
       // 封装header 头部数据
       private function header(){
           $setting = Setting::getItem("store",$this->wxappid);
-  
+
           if ($setting['track17']['key']){
                 $this->secret = $setting['track17']['key'];
           }
@@ -58,10 +58,7 @@ Class TrackApi {
               'lang'=> $this->lang
               ]];
           $api = '/register';
-        //   $body[0]['auto_detection'] = false;
-        //   $body[0]['tag'] = 'myId';
-        //   $body[0]['param'] = !empty($data['phone'])?$data['phone']:'';
-           
+  
           $data = json_encode($body);
             
           $res = $this->curl_post($api,$data);

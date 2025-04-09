@@ -317,6 +317,7 @@ class Inpack extends InpackModel
     public function edit($data){
         //修改保存集运图片
         $imgres = true;
+        //   dump($data);die;
         if(isset($data['images'])){
            $inpackImg = new  InpackImage;
            $inpackImg->where('inpack_id',$data['id'])->delete();
@@ -359,7 +360,7 @@ class Inpack extends InpackModel
         unset($data['verify']);
         $inpackitem = $data['item'];
         unset($data['item']);
-        // dump();die;
+       
         $rers =  $this->where('id',$data['id'])->update($data);
         if(!empty($inpackitem['length']) && !empty($inpackitem['width']) && !empty($inpackitem['height'])){
             $inpackitem['inpack_id'] = $data['id'];

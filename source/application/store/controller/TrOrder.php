@@ -711,7 +711,6 @@ class TrOrder extends Controller
         if($set['is_auto_free']==1){
             $is_auto_free = 1;
         }
-        // dump($detail->toArray());die;
         return $this->fetch('detail', compact('detail','line','set','is_auto_free'));
     }
     
@@ -723,7 +722,7 @@ class TrOrder extends Controller
     public function modify_save(){
        $model = (new Inpack());
        if ($model->edit($this->postData('data'))){
-             return $this->renderSuccess('操作成功','javascript:history.back(1)');
+             return $this->renderSuccess('操作成功', 'javascript:window.location.href = document.referrer');
        } 
        return $this->renderError($model->getError() ?: '操作失败');
     }
@@ -1417,7 +1416,7 @@ class TrOrder extends Controller
           
         !isset($data['weight']) && $data['weight']=0;   
         // 计算体检重
-        $weigthV = round(($data['length']*$data['width']*$data['height'])/$line['volumeweight'],2);
+        $weigthV = $pakdata['volume'];
         if(!empty($data['length']) && !empty($data['width']) && !empty($data['height']) && $line['volumeweight_type']==20){
             $weigthV = round(($data['weight'] + (($data['length']*$data['width']*$data['height'])/$line['volumeweight'] - $data['weight'])*$line['bubble_weight']/100),2);
         }
@@ -1428,9 +1427,9 @@ class TrOrder extends Controller
         }
         //关税和增值服务费用
         // $otherfree = $line['service_route'];
-        $long = max($data['length'],$data['width'],$data['height']);
-        $otherfree = getServiceFree($line['services_require'],$oWeigth,$long);
-        // dump($otherfree);die;
+        // $long = max($data['length'],$data['width'],$data['height']);
+        // $otherfree = getServiceFree($line['services_require'],$oWeigth,$long);
+        $otherfree = 0;
         $insure_free = $pakdata['insure_free'];
         $reprice=0;
          //单位转化

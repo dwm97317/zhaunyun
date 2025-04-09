@@ -40,7 +40,11 @@ class InpackItem extends InpackItemModel
                     $result['volume_weight'] = $data['volume_weight'][$key];
                     $result['cale_weight'] = $data['weight'][$key] > $data['volume_weight'][$key]?$data['weight'][$key]:$data['volume_weight'][$key];
                 }
-                $this->insert($result);
+                if(!empty($data['id'][$key]) && $i==0){
+                    $this->where('id',$data['id'][$key])->update($result);
+                }else{
+                    $this->insert($result);
+                }
             }
         }
         return true;

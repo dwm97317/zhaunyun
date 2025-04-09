@@ -373,7 +373,6 @@ class Package extends PackageModel
             'weight' => $data['weigth'],
             'remark' => $data['remark'],
             'num'=>$data['num'],
-            'image' => json_encode($image),
             'price' => $data['price'],
             'member_name' => isset($this->userName)?$this->userName:'',
             'wxapp_id' =>self::$wxapp_id,

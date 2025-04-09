@@ -1507,7 +1507,7 @@ class Package extends Controller
          }
          $list = (new Inpack())->getList($query);
          foreach ($list as &$value) {
-            $value['num'] = (new PackageModel())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
+            $value['num'] = count($value['packageitems'])>0?count($value['packageitems']):1;
             $value['weight_unit'] = [10=>'g',20=>'kg',30=>'lbs',40=>'cbm'];
             $value['total_free'] = round($value['free'] + $value['pack_free'] + $value['other_free'] + $value['insure_free'],2);
          }
