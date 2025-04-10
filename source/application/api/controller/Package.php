@@ -751,6 +751,7 @@ class Package extends Controller
               $data['wxapp_id'] = $this->wxapp_id;
               $data['userName'] = $jaddress['name'];
               $data['visit_data_time'] = $post['pickup_date'].' '.$post['pickup_time'];
+              $data['addressdetail'] = $jaddress['country'].$jaddress['province'].$jaddress['city'].$jaddress['detail'];
               Message::send('package.Reservationconfirmed',$data);   
           }
          //通知用户自己

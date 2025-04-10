@@ -633,7 +633,7 @@
                                 <div class="am-u-sm-9">
                                     <input type="text" class="tpl-form-input" name="tplMsg[Reservationconfirmed][template_id]"
                                            value="<?= $values['Reservationconfirmed']['template_id'] ?>">
-                                    <small>模板编号46591，关键词 (预约单号,姓名,联系电话,取件时间)</small>
+                                    <small>模板编号46591，关键词 (预约单号,姓名,联系电话,取件时间,取件地址)</small>
                                 </div>
                             </div>
                             

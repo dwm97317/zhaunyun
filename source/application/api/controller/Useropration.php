@@ -2344,7 +2344,7 @@ class Useropration extends Controller
           $packModel = (new Package());
           $id = $this->postData('id')?$this->postData('id')[0]:1;
         //   dump( $this->postData('id'));die;
-          $data = $packModel ->with(['member','country','packageimage.file'])->find($id);//->with('packageimage.file')
+          $data = $packModel ->with(['member','country','packageimage.file','jaddress','address'])->find($id);//->with('packageimage.file')
           // 获取物品详情
           $packItem = (new PackageItemModel())->where(['order_id'=>$data['id']])->field('class_name,id,class_id,order_id')->select();
           $data['shop'] = '';
@@ -2434,7 +2434,7 @@ class Useropration extends Controller
         }
         $status = $this->postData('status')[0]?$this->postData('status')[0]:1;
         $keyword = $this->postData('keyword')[0];
-        $map = ['is_take'=>2,'source'=>7,'status'=>$status,'keyword'=>$keyword,'storage_id'=>$clerk['shop_id']];
+        $map = ['is_take'=>2,'source'=>7,'status'=>$status,'keyword'=>$keyword];
         $packModel = (new Package());
         $data = $packModel->getYList($map);
         return $this->renderSuccess($data);
@@ -2506,8 +2506,8 @@ class Useropration extends Controller
         }
         $packModel = (new Package());
         $res = [
-           'no' => $packModel ->where(['status'=>1,'is_take'=>2,'source'=>7,'storage_id'=>$clerk['shop_id']])->count(),
-           'in' => $packModel -> where(['status'=>2,'is_take'=>2,'source'=>7,'storage_id'=>$clerk['shop_id']])->count()
+           'no' => $packModel ->where(['status'=>1,'is_take'=>2,'source'=>7])->count(),
+           'in' => $packModel -> where(['status'=>2,'is_take'=>2,'source'=>7])->count()
         ];
         return $this->renderSuccess($res);
     }

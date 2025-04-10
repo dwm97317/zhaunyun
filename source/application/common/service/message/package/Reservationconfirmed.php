@@ -84,6 +84,7 @@ class Reservationconfirmed extends Basics
                 $template['keywords'][1] => ['value' => $orderInfo['userName']],
                 $template['keywords'][2] => ['value' => $orderInfo['phone']],
                 $template['keywords'][3] => ['value' => $orderInfo['visit_data_time']],
+                $template['keywords'][4] => ['value' => mb_substr($orderInfo['addressdetail'], -10, 20, 'UTF-8')],
             ]
         ]);
         }else{
@@ -100,6 +101,7 @@ class Reservationconfirmed extends Basics
                 $template['keywords'][1] => ['value' => $orderInfo['userName']],
                 $template['keywords'][2] => ['value' => $orderInfo['phone']],
                 $template['keywords'][3] => ['value' => $orderInfo['visit_data_time']],
+                $template['keywords'][4] => ['value' => mb_substr($orderInfo['addressdetail'], -10, 20, 'UTF-8')],
             ]
             ]);
         }

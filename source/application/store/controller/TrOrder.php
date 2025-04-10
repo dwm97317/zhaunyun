@@ -1157,13 +1157,18 @@ class TrOrder extends Controller
             $params['limitnum'] = isset($adminstyle['pageno'])?$adminstyle['pageno']['inpack']:15;
         }
         $list = $model->getList($dataType, $params);
-        // dump($list->toArray());die;
+        
         $tracklist = $Track->getAllList();
         $servicelist = $Clerk->where('clerk_authority','like','%is_myuser%')->where('clerk_authority','like','%is_myuserpackage%')->where('is_delete',0)->select();
         $pintuanlist = (new SharingOrder())->getAllList();
         $batchlist = (new Batch())->getAllwaitList([]);
         $shopList = ShopModel::getAllList();
         $lineList = $Line->getListAll();
+        if(isset($adminstyle['pageno']['inpacktype']) && $adminstyle['pageno']['inpacktype']==20){
+            // dump($params);die;
+          return $this->fetch('newindex', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));  
+        }
+        //   dump($params);die;
         return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
     }
     

@@ -94,7 +94,7 @@ class Package extends PackageModel
     public function getYList($query = [])
     {
         return $this->setListQueryWhere($query)
-            ->with(['Member','country','storage','address'])
+            ->with(['Member','country','storage','address','jaddress'])
             ->where('is_delete',0)
             ->order('updated_time DESC')
             ->paginate(10,false,[
@@ -274,6 +274,10 @@ class Package extends PackageModel
     
     public function address(){
         return $this->belongsTo('UserAddress','address_id');
+    }
+    
+    public function jaddress(){
+        return $this->belongsTo('UserAddress','jaddress_id');
     }
 
     public function storage(){

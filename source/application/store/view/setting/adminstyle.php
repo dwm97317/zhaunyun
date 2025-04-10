@@ -36,6 +36,18 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    集运订单页面样式
+                                </label>
+                                <div class="am-u-sm-9">
+                                   <select name="adminstyle[pageno][inpacktype]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="10" <?= $values['pageno']['inpacktype'] == '10' ? 'selected' : '' ?>>内容详细版</option>
+                                            <option value="20" <?= $values['pageno']['inpacktype'] == '20' ? 'selected' : '' ?>>密密麻麻版</option>
+                                    </select>
+                                </div>
+                            </div>
                          
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">包裹入库功能设置</div>

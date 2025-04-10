@@ -382,6 +382,21 @@ function createOrderSn(){
 
 }
 
+// 生成盲盒包裹号
+function createMhsn(){
+
+    $order_id_main =  'MH'.time(). rand(100,999);
+    $order_id_len = strlen($order_id_main);
+    $order_id_sum = 0;
+    for($i=0; $i<$order_id_len; $i++){
+
+        $order_id_sum += (int)(substr($order_id_main,$i,1));
+
+    }
+    $osn = $order_id_main . str_pad((100 - $order_id_sum % 100) % 100,2,'0',STR_PAD_LEFT);
+    return $osn;
+}
+
 // 生成订单号
 function createYysn(){
 

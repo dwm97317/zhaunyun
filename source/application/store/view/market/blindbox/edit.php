@@ -92,6 +92,13 @@
                                     </label>
                                 </div>
                             </div>
+                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">库存 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="number" min="0" class="tpl-form-input" name="blindbox[goods_inventory]" value="<?= $model['goods_inventory'] ?>"
+                                           required>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">排序 </label>
                                 <div class="am-u-sm-9 am-u-end">

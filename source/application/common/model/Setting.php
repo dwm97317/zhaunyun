@@ -430,6 +430,7 @@ class Setting extends BaseModel
                     'pageno'=>[
                         'package'=> 15, //默认分页数量
                         'inpack'=>15,  // 默认分页数量
+                        'inpacktype'=>10, //订单列表风格
                     ]
                 ]
             ],
@@ -955,7 +956,7 @@ class Setting extends BaseModel
                         'Reservationconfirmed' => [
                             'is_enable' => '0',
                             'template_id' => '',
-                            'keywords' => ['character_string9', 'thing18','phone_number19','time35'],
+                            'keywords' => ['character_string9', 'thing18','phone_number19','time35','thing36'],
                         ],
                         //下单成功通知 √
                         'VisitOrdersuccess' => [

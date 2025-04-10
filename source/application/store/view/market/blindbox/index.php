@@ -34,6 +34,7 @@
                                 <th>盲盒类型</th>
                                 <th>名称</th>
                                 <th>价值</th>
+                                <th>库存</th>
                                 <th>描述</th>
                                 <th>概率</th>
                                 <th>是否参与</th>
@@ -50,6 +51,7 @@
                                         <td class="am-text-middle"><?= $item['type']==10?"优惠券":"实物" ?></td>
                                         <td class="am-text-middle"><?= $item['type']==10?$item['coupon']['name']:$item['goods_name'] ?></td>
                                         <td class="am-text-middle"><?= $item['type']==10?$item['coupon']['reduce_price']:$item['goods_price'] ?></td>
+                                        <td class="am-text-middle"><?= $item['goods_inventory'] ?></td>
                                         <td class="am-text-middle"><?= $item['goods_desc'] ?></td>
                                         <td class="am-text-middle"><?= $item['probability'] ?></td>
                                         <td class="am-text-middle"><?= $item['status']==0?"参与":"不参与" ?></td>
