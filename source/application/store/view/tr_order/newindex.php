@@ -1,8 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>订单管理系统 - Layui风格</title>
   <link rel="stylesheet" href="//unpkg.com/layui@2.6.8/dist/css/layui.css">
   <style>
     .layui-card {
@@ -64,7 +59,7 @@
       <!-- 主内容区 -->
       <div class="layui-col-md12">
         <!-- 搜索卡片 -->
-<div class="layui-card">
+<div class="layui-card" style="margin-top:10px;">
   <div class="layui-card-header">
     <div class="layui-row">
       <div class="layui-col-md6">
@@ -81,10 +76,11 @@
     <form class="layui-form" action="">
       <div class="layui-row layui-col-space10">
         <!-- 第一行筛选条件 -->
-        <div class="layui-col-md4">
+        <div class="layui-col-md2">
           <div class="layui-form-item">
             <label class="layui-form-label" style="width: 100px;">订单状态</label>
             <div class="layui-input-block">
+              <?php $extractStatus = $request->get('status'); ?>
               <select name="status" lay-search>
                 <option value="">全部状态</option>
                 <option value="1">待查验</option>
@@ -101,29 +97,82 @@
           </div>
         </div>
         
-        <div class="layui-col-md4">
+        <div class="layui-col-md2">
           <div class="layui-form-item">
             <label class="layui-form-label" style="width: 100px;">仓库名称</label>
             <div class="layui-input-block">
+                <?php $extractShopId = $request->get('extract_shop_id'); ?>
               <select name="extract_shop_id" lay-search>
                 <option value="">全部仓库</option>
-                <option value="1">上海仓库</option>
-                <option value="2">广州仓库</option>
-                <option value="3">北京仓库</option>
+                <?php if (isset($shopList)): foreach ($shopList as $item): ?>
+                    <option value="<?= $item['shop_id'] ?>"
+                        <?= $item['shop_id'] == $extractShopId ? 'selected' : '' ?>><?= $item['shop_name'] ?>
+                    </option>
+                <?php endforeach; endif; ?>
               </select>
             </div>
           </div>
         </div>
         
-        <div class="layui-col-md4">
+        <div class="layui-col-md2">
           <div class="layui-form-item">
             <label class="layui-form-label" style="width: 100px;">路线名称</label>
             <div class="layui-input-block">
+                <?php $extractlineid = $request->get('line_id'); ?>
               <select name="line_id" lay-search>
                 <option value="">全部路线</option>
-                <option value="1">美国专线</option>
-                <option value="2">欧洲专线</option>
-                <option value="3">日本专线</option>
+                <?php if (isset($lineList)): foreach ($lineList as $item): ?>
+                    <option value="<?= $item['id'] ?>"
+                        <?= $item['id'] == $extractlineid ? 'selected' : '' ?>><?= $item['name'] ?>
+                    </option>
+                <?php endforeach; endif; ?>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="layui-col-md2">
+          <div class="layui-form-item">
+            <label class="layui-form-label" style="width: 100px;">排序参数</label>
+            <div class="layui-input-block">
+              <?php $orderparam = $request->get('orderparam'); ?>
+              <select name="orderparam" lay-search>
+                <option value=""></option>
+                <option value="created_time" <?= $orderparam == 'created_time' ? 'selected' : '' ?>>提交打包时间排序</option>
+                <option value="pay_time" <?= $orderparam == 'pay_time' ? 'selected' : '' ?>>支付完成时间排序</option>
+                <option value="pick_time" <?= $orderparam == 'pick_time' ? 'selected' : '' ?>>打包完成时间排序</option>
+                <option value="settle_time" <?= $orderparam == 'settle_time' ? 'selected' : '' ?>>佣金结算时间排序</option>
+                <option value="sendout_time" <?= $orderparam == 'sendout_time' ? 'selected' : '' ?>>订单发货时间排序</option>
+                <option value="receipt_time" <?= $orderparam == 'receipt_time' ? 'selected' : '' ?>>用户签收时间排序</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="layui-col-md2">
+          <div class="layui-form-item">
+            <label class="layui-form-label" style="width: 100px;">排序方式</label>
+            <div class="layui-input-block">
+              <?php $descparam = $request->get('descparam'); ?>
+              <select name="descparam" lay-search>
+                <option value=""></option>
+                <option value="desc" <?= $descparam == 'desc' ? 'selected' : '' ?>>降序排序(大到小，新到旧)</option>
+                <option value="asc" <?= $descparam == 'asc' ? 'selected' : '' ?>>升序排序(小到大，旧到新)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="layui-col-md2">
+          <div class="layui-form-item">
+            <label class="layui-form-label" style="width: 100px;">时间类型</label>
+            <div class="layui-input-block">
+              <?php $extracttimetype = $request->get('time_type'); ?>
+              <select name="time_type" lay-search>
+                <option value="created_time" <?= $extracttimetype == 'created_time' ? 'selected' : '' ?>>提交打包时间</option>
+                <option value="pay_time" <?= $extracttimetype == 'pay_time' ? 'selected' : '' ?>>支付完成时间</option>
+                <option value="pick_time" <?= $extracttimetype == 'pick_time' ? 'selected' : '' ?>>打包完成时间</option>
+                <option value="settle_time" <?= $extracttimetype == 'settle_time' ? 'selected' : '' ?>>佣金结算时间</option>
+                <option value="sendout_time" <?= $extracttimetype == 'sendout_time' ? 'selected' : '' ?>>订单发货时间</option>
+                <option value="receipt_time" <?= $extracttimetype == 'receipt_time' ? 'selected' : '' ?>>用户签收时间</option>
               </select>
             </div>
           </div>
@@ -132,48 +181,78 @@
       
       <!-- 第二行筛选条件 -->
       <div class="layui-row layui-col-space10">
-        <div class="layui-col-md6">
+        <div class="layui-col-md2">
           <div class="layui-form-item">
             <label class="layui-form-label" style="width: 100px;">起始日期</label>
             <div class="layui-input-block">
-              <input type="text" name="start_time" class="layui-input" id="start-time" placeholder="请选择起始日期" autocomplete="off">
+              <input type="text" name="start_time" class="layui-input" id="start-time" placeholder="请选择起始日期" value="<?= $request->get('start_time') ?>" autocomplete="off">
             </div>
           </div>
         </div>
         
-        <div class="layui-col-md6">
+        <div class="layui-col-md2">
           <div class="layui-form-item">
             <label class="layui-form-label" style="width: 100px;">截止日期</label>
             <div class="layui-input-block">
-              <input type="text" name="end_time" class="layui-input" id="end-time" placeholder="请选择截止日期" autocomplete="off">
+              <input type="text" name="end_time" class="layui-input" id="end-time" placeholder="请选择截止日期" value="<?= $request->get('end_time') ?>" autocomplete="off">
             </div>
           </div>
         </div>
-      </div>
-      
-      <!-- 第三行筛选条件 -->
-      <div class="layui-row layui-col-space10">
-        <div class="layui-col-md12">
+        <div class="layui-col-md3">
+          <div class="layui-form-item">
+            <label class="layui-form-label" style="width: 100px;">运单号</label>
+            <div class="layui-input-block">
+              <input type="text" name="batch_no" value="<?= $request->get('batch_no') ?>" class="layui-input" placeholder="请输入平台订单号或转运单号">
+            </div>
+          </div>
+        </div>
+        <div class="layui-col-md3">
           <div class="layui-form-item">
             <label class="layui-form-label" style="width: 100px;">订单号</label>
             <div class="layui-input-block">
-              <input type="text" name="order_sn" class="layui-input" placeholder="请输入平台订单号或转运单号">
+              <input type="text" name="order_sn" value="<?= $request->get('order_sn') ?>"  class="layui-input" placeholder="请输入平台订单号或转运单号">
             </div>
           </div>
         </div>
+        
       </div>
-      
-      <!-- 操作按钮 -->
-      <div class="layui-form-item">
-        <div class="layui-input-block" style="margin-left: 110px;">
-          <button class="layui-btn layui-btn-normal" lay-submit lay-filter="search">
-            <i class="layui-icon layui-icon-search"></i> 搜索
-          </button>
-          <button type="reset" class="layui-btn layui-btn-primary">
-            <i class="layui-icon layui-icon-refresh"></i> 重置
-          </button>
-        </div>
+      <!-- 第三行筛选条件 -->
+<div class="layui-row layui-col-space10">
+  <div class="layui-col-md2">
+    <div class="layui-form-item">
+      <label class="layui-form-label" style="width: 100px;">模糊查询</label>
+      <div class="layui-input-block">
+        <?php $extracttimetype = $request->get('search_type'); ?>
+        <select name="search_type" lay-search>
+          <option value="all" <?= $extracttimetype == 'all' ? 'selected' : '' ?>>模糊查询</option>
+          <option value="member_id" <?= $extracttimetype == 'member_id' ? 'selected' : '' ?>>用户ID</option>
+          <option value="user_code" <?= $extracttimetype == 'user_code' ? 'selected' : '' ?>>用户CODE</option>
+          <option value="user_mark" <?= $extracttimetype == 'user_mark' ? 'selected' : '' ?>>用户唛头</option>
+          <option value="nickName" <?= $extracttimetype == 'nickName' ? 'selected' : '' ?>>用户昵称</option>
+          <option value="mobile" <?= $extracttimetype == 'mobile' ? 'selected' : '' ?>>手机号</option>
+        </select>
       </div>
+    </div>
+  </div>
+  <div class="layui-col-md3">
+    <div class="layui-form-item">
+      <label class="layui-form-label" style="width: 100px;">用户搜索</label>
+      <div class="layui-input-block">
+        <input type="text" name="search" value="<?= $request->get('search') ?>" class="layui-input" placeholder="请输入用户昵称或ID或用户编号">
+      </div>
+    </div>
+  </div>
+  <div class="layui-col-md3">
+    <div class="layui-form-item" style="text-align: left; padding-right: 20px;">
+      <button class="layui-btn layui-btn-normal" lay-submit lay-filter="search">
+        <i class="layui-icon layui-icon-search"></i> 搜索
+      </button>
+      <button type="reset" class="layui-btn layui-btn-primary">
+        <i class="layui-icon layui-icon-refresh"></i> 重置
+      </button>
+    </div>
+  </div>
+</div>
     </form>
   </div>
 </div>
@@ -217,10 +296,30 @@ layui.use(['form', 'laydate', 'jquery'], function(){
     }
   });
   
-  // 如果有筛选条件，默认展开
-//   if(window.location.search.length > 0) {
-//     $('#toggle-filter').click();
-//   }
+// 更精确的判断是否有筛选条件
+function hasSearchParams() {
+  var search = window.location.search;
+  if (!search) return false;
+  
+  // 排除基本参数
+  var basicParams = ['page', 'limitnum', 's'];
+  var params = new URLSearchParams(search);
+  
+  for (var key of params.keys()) {
+    if (!basicParams.includes(key)) {
+      return true; // 存在非基本参数，说明有筛选条件
+    }
+  }
+  
+  return false;
+}
+
+// 使用更精确的判断
+if (hasSearchParams()) {
+  $('#toggle-filter').click();
+}
+
+
 });
 </script>
         <?php $status = [1=>'待查验',2=>'待发货',3=>'待发货','4'=>'待发货','5'=>'待发货','6'=>'已发货','7'=>'已到货','8'=>'已完成','-1'=>'问题件']; ?>
@@ -228,9 +327,6 @@ layui.use(['form', 'laydate', 'jquery'], function(){
         <!-- 批量操作工具栏 -->
         <div class="batch-operations">
           <div class="layui-btn-group">
-            <button class="layui-btn layui-btn-sm layui-btn-primary" id="check-all">
-              <i class="layui-icon layui-icon-ok"></i> 全选
-            </button>
             <button class="layui-btn layui-btn-sm" id="change-user">
               <i class="layui-icon layui-icon-user"></i> 修改用户
             </button>
@@ -293,30 +389,7 @@ layui.use(['form', 'laydate', 'jquery'], function(){
             <span>订单列表</span>
           </div>
           <div class="layui-card-body">
-            <table class="layui-table" lay-size="sm" lay-filter="order-table" id="order-table">
-              <thead>
-                <tr>
-                  <th lay-data="{type:'checkbox', fixed:'left'}"></th>
-                  <th lay-data="{field:'order_sn', width:180, title:'系统单号'}">系统单号</th>
-                  <th lay-data="{field:'inpack_type', width:80, title:'订单类型'}">订单类型</th>
-                  <th lay-data="{field:'status', width:80, title:'状态'}">状态</th>
-                  <th lay-data="{field:'member_id', width:180, title:'会员信息'}">会员信息</th>
-                  <th lay-data="{field:'name', width:180, title:'渠道'}">渠道</th>
-                  <th lay-data="{field:'usermark', width:100, title:'唛头'}">唛头</th>
-                  <th lay-data="{field:'trans_info', width:80, title:'总件数'}">总件数</th>
-                  <th lay-data="{field:'receive_info', width:60, title:'体积'}">体积</th>
-                  <th lay-data="{field:'weight', width:60, title:'实重'}">实重</th>
-                  <th lay-data="{field:'weight', width:100, title:'计费重量'}">计费重量</th>
-                  <th lay-data="{field:'batch_name', width:100, title:'批次号'}">批次号</th>
-                  <th lay-data="{field:'t_name', width:100, title:'承运商'}">承运商</th>
-                  <th lay-data="{field:'t_order_sn', width:180, title:'国际单号'}">国际单号</th>
-                  <th lay-data="{field:'actions', width:150, title:'操作', fixed:'right'}">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr></tr>
-              </tbody>
-            </table>
+            <table class="layui-table" lay-size="sm" lay-filter="order-table" id="order-table"></table>
             <div id="pagination" style="text-align: right;"></div>
           </div>
         </div>
@@ -355,7 +428,7 @@ layui.use(['form', 'laydate', 'jquery'], function(){
         </form>
     </div>
 </script>
-  <script>
+<script>
   var statusText = {
   '1': '待查验',
   '2': '待发货',
@@ -386,8 +459,8 @@ layui.use(['form', 'table', 'laydate', 'layer', 'laypage', 'jquery'], function()
     });
     
   // 初始化表格
-
-table.render({
+// 在表格初始化时保存实例
+var orderTable = table.render({
   elem: '#order-table',
   id: 'order-table',
   cols: [[
@@ -425,11 +498,11 @@ table.render({
     {field: 'actions', width: 150, title: '操作', fixed: 'right', templet: function(d){
       return '<div class="action-btn-group">'+
         (<?= checkPrivilege('tr_order/edit') ? 'true' : 'false' ?> ? 
-          '<a href="<?= url("store/trOrder/edit") ?>?id='+d.id+'">'+
+          '<a href="<?= url("store/trOrder/edit") ?>/id/'+d.id+'">'+
             '<button class="layui-btn layui-btn-xs layui-btn-normal">编辑</button>'+
           '</a>' : '')+
         (<?= checkPrivilege('tr_order/orderdetail') ? 'true' : 'false' ?> ? 
-          '<a href="<?= url("store/trOrder/orderdetail") ?>?id='+d.id+'">'+
+          '<a href="<?= url("store/trOrder/orderdetail") ?>/id/'+d.id+'">'+
             '<button class="layui-btn layui-btn-xs">详情</button>'+
           '</a>' : '')+
         (<?= checkPrivilege('tr_order/orderdelete') ? 'true' : 'false' ?> ? 
@@ -472,8 +545,8 @@ laypage.render({
 });
   
   
-  // 更新URL参数的辅助函数
-  function updateQueryStringParameter(uri, key, value) {
+// 更新URL参数的辅助函数
+function updateQueryStringParameter(uri, key, value) {
     var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
     var separator = uri.indexOf('?') !== -1 ? "&" : "?";
     if (uri.match(re)) {
@@ -481,77 +554,87 @@ laypage.render({
     } else {
       return uri + separator + key + "=" + value;
     }
-  }
-  
-  // 更新选中数量显示
-function updateSelectedCount() {
-  var checkStatus = table.checkStatus('order-table');
-  var selectedCount = checkStatus.data.length;
-  $('#selected-count').text('已选' + selectedCount + '项');
-  
-  var total = table.cache['order-table'].length;
-  if(selectedCount === total && total > 0) {
-    $('#check-all').removeClass('layui-btn-primary').addClass('layui-btn-normal')
-      .html('<i class="layui-icon layui-icon-ok"></i> 取消全选');
-  } else if(selectedCount === 0) {
-    $('#check-all').removeClass('layui-btn-normal').addClass('layui-btn-primary')
-      .html('<i class="layui-icon layui-icon-ok"></i> 全选');
-  } else {
-    $('#check-all').removeClass('layui-btn-primary layui-btn-normal')
-      .html('<i class="layui-icon layui-icon-ok"></i> 部分选中');
-  }
 }
-    
-
-    
-    // 全选/取消全选
-    $('#check-all').click(function(){
-      var isAllChecked = $(this).hasClass('layui-btn-primary');
-      var checkboxes = $('input[name="id"]');
   
-      if(isAllChecked){
-        // 全选
-        checkboxes.prop('checked', true);
-        $(this).removeClass('layui-btn-primary').addClass('layui-btn-normal')
-          .html('<i class="layui-icon layui-icon-ok"></i> 取消全选');
-      } else {
-        // 取消全选
-        checkboxes.prop('checked', false);
-        $(this).removeClass('layui-btn-normal').addClass('layui-btn-primary')
-          .html('<i class="layui-icon layui-icon-ok"></i> 全选');
-      }
-      
-      // 更新选中数量
-      updateSelectedCount();
-      form.render('checkbox');
-    });
+  
+  
+// 更新选中数量显示
+function updateSelectedCount() {
+    var checkStatus = table.checkStatus('order-table');
+    var selectedCount = checkStatus.data.length;
+    var total = table.cache['order-table'].length;
     
-    // 单个复选框选中状态变化时
-    $(document).on('change', 'input[name="id"]', function() {
-      var totalCheckboxes = $('input[name="id"]').length;
-      var checkedCount = $('input[name="id"]:checked').length;
-      
-      // 更新全选按钮状态
-      if(checkedCount === totalCheckboxes) {
+    $('#selected-count').text('已选' + selectedCount + '项');
+    
+    if(selectedCount === total && total > 0) {
         $('#check-all').removeClass('layui-btn-primary').addClass('layui-btn-normal')
-          .html('<i class="layui-icon layui-icon-ok"></i> 取消全选');
-      } else if(checkedCount === 0) {
+            .html('<i class="layui-icon layui-icon-ok"></i> 取消全选');
+    } else if(selectedCount === 0) {
         $('#check-all').removeClass('layui-btn-normal').addClass('layui-btn-primary')
-          .html('<i class="layui-icon layui-icon-ok"></i> 全选');
-      } else {
+            .html('<i class="layui-icon layui-icon-ok"></i> 全选');
+    } else {
         $('#check-all').removeClass('layui-btn-primary layui-btn-normal')
-          .html('<i class="layui-icon layui-icon-ok"></i> 部分选中');
-      }
-      
-      // 更新选中数量
-      updateSelectedCount();
-    });
+            .html('<i class="layui-icon layui-icon-ok"></i> 部分选中');
+    }
+}
+
+
+
+// 监听表格复选框变化
+table.on('checkbox(order-table)', function(obj){
+    updateSelectedCount();
+});
     
-    // 搜索表单提交
-    form.on('submit(search)', function(data){
-      console.log(data.field);
-      return false;
-    });
+// 搜索表单提交
+form.on('submit(search)', function(data){
+  // 获取当前URL的基础部分（去掉已有参数）
+  var baseUrl = window.location.pathname + '?s=' + window.location.search.match(/s=([^&]*)/)[1];
+  
+  // 构建参数对象
+  var params = {
+    page: 1, // 搜索时重置到第一页
+    limitnum: <?= $list->listRows() ?> // 保持当前每页数量
+  };
+  
+  // 添加搜索参数（只添加有值的参数）
+  if(data.field.status) params.status = data.field.status;
+  if(data.field.extract_shop_id) params.extract_shop_id = data.field.extract_shop_id;
+  if(data.field.line_id) params.line_id = data.field.line_id;
+  if(data.field.orderparam) params.orderparam = data.field.orderparam;
+  if(data.field.descparam) params.descparam = data.field.descparam;
+  if(data.field.time_type) params.time_type = data.field.time_type;
+  if(data.field.start_time) params.start_time = data.field.start_time;
+  if(data.field.end_time) params.end_time = data.field.end_time;
+  if(data.field.batch_no) params.batch_no = data.field.batch_no;
+  if(data.field.order_sn) params.order_sn = data.field.order_sn;
+  if(data.field.search_type) params.search_type = data.field.search_type;
+  if(data.field.search) params.search = data.field.search;
+  
+  // 构建查询字符串（以&开头）
+  var queryString = '';
+  for(var key in params) {
+    queryString += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+  }
+  
+  // 跳转到新URL
+  window.location.href = baseUrl + queryString;
+  
+  return false; // 阻止表单默认提交
+});
+
+// 重置按钮
+$('button[type="reset"]').click(function(){
+    window.location.href = getBaseUrl() + '&page=1&limitnum=15';
+    return false;
+});
+  
+// 获取基础URL
+function getBaseUrl() {
+    var path = window.location.pathname;
+    var search = window.location.search;
+    var sParam = search.match(/s=([^&]*)/);
+    return path + (sParam ? '?s=' + sParam[1] : '');
+}
     
     // 修改用户按钮事件
     $('#change-user').click(function(){
@@ -593,11 +676,8 @@ function updateSelectedCount() {
  * 修改入库状态 - 兼容Layui的实现
  */
 $('#j-upstatus').on('click', function(){
-   var selectIds = [];
-    $('input[name="id"]:checked').each(function(){
-        selectIds.push($(this).val());
-    });
-    
+    var checkStatus = table.checkStatus('order-table');
+    var selectIds = checkStatus.data.map(function(item){ return item.id; });
     if (selectIds.length === 0){
         layer.msg('请先选择集运单', {icon: 5});
         return;
@@ -639,11 +719,32 @@ $('#j-upstatus').on('click', function(){
                     if(res.code === 1){
                         layer.msg(res.msg, {icon: 1}, function(){
                             // 刷新表格数据
-                            table.reload('order-table');
+                          window.location.reload();
+                        //   var currentPage = 1; // 默认回到第一页
+                        //     if(orderTable && orderTable.config){
+                        //         currentPage = orderTable.config.page.curr;
+                        //     }
+                        //     // 重新加载表格数据
+                        //     table.reload('order-table', {
+                        //         url: '<?= url("store/trOrder/getTroderList") ?>', // 新增数据接口
+                        //         where: {
+                        //             status: $('select[name="status"]').val(),
+                        //             extract_shop_id: $('select[name="extract_shop_id"]').val(),
+                        //             line_id: $('select[name="line_id"]').val(),
+                        //             start_time: $('#start-time').val(),
+                        //             end_time: $('#end-time').val(),
+                        //             order_sn: $('input[name="order_sn"]').val()
+                        //         },
+                        //         page: {
+                        //             curr: currentPage // 保持当前页
+                        //         }
+                        //     });
+                            
                         });
                     }else{
                         layer.msg(res.msg || '操作失败', {icon: 2});
                     }
+                    layer.close(index)
                 },
                 error: function(xhr, status, error){
                     layer.close(loadIndex);
@@ -661,7 +762,8 @@ $('#j-upstatus').on('click', function(){
     });
 });   
     
-    
+ 
+
 // 复制功能
 $('.copy-btn').click(function(){
   var text = $(this).prev().text().trim();
@@ -694,5 +796,3 @@ $('.item-delete').click(function(){
 updateSelectedCount();
   });
   </script>
-</body>
-</html>

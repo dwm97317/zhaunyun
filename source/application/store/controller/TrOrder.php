@@ -701,6 +701,29 @@ class TrOrder extends Controller
         return $this->getList('全部订单列表', "all");
     }
     
+    /**
+     * 全部订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function getTroderList()
+    {
+        $params = $this->request->param();
+        $dataType = 'all';
+        $model = (new Inpack());
+        $adminstyle = Setting::detail('adminstyle')['values'];
+        if(!isset($params['limitnum'])){
+            $params['limitnum'] = isset($adminstyle['pageno'])?$adminstyle['pageno']['inpack']:15;
+        }
+        $list = $model->getList($dataType, $params);
+        return json([
+        'code' => 0,
+        'msg' => '',
+        'count' => count($list),
+        'data' => $list
+    ]);
+    }
+    
     public function edit($id){
         $line = (new Line())->getListAll([]);
         // 订单详情
