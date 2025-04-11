@@ -521,8 +521,8 @@ function freeRuleDel(btn) {
           success:function(res){
              if (res.code==1){
                  $('#price').val(res.msg.price);
-                 $('#pack_free').val(res.msg.packfree);
-                 $('#insure_free').val(res.msg.insure_free);
+                //  $('#pack_free').val(res.msg.packfree);
+                //  $('#insure_free').val(res.msg.insure_free);
                  var other_free = $('#other_free').val();
                  var pack_free = $('#pack_free').val();
                  var insure_free = $('#insure_free').val();

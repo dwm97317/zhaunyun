@@ -8,6 +8,9 @@
     .layui-card-header {
       border-bottom: 1px solid #f6f6f6;
     }
+    .layui-form-label {
+        width: 100px;
+    }
     .search-form .layui-form-item {
       margin-bottom: 15px;
     }
@@ -36,6 +39,10 @@
       cursor: pointer;
       margin-left: 5px;
     }
+    .action-btn-group{
+        display: flex;
+        justify-content: space-between;
+    }
     .action-btn-group .layui-btn {
       margin-bottom: 5px;
     }
@@ -50,6 +57,14 @@
       margin-left: 10px;
       color: #FF5722;
       font-weight: bold;
+    }
+    .copyable-text:hover {
+        opacity: 0.8;
+        text-decoration: underline;
+    }
+    .layui-icon-copy {
+        margin-left: 3px;
+        vertical-align: middle;
     }
   </style>
 </head>
@@ -259,9 +274,10 @@
 
 <script src="//unpkg.com/layui@2.6.8/dist/layui.js"></script>
 <script>
-layui.use(['form', 'laydate', 'jquery'], function(){
+layui.use(['form', 'laydate', 'jquery','table'], function(){
   var form = layui.form;
   var laydate = layui.laydate;
+  var table = layui.table;
   var $ = layui.jquery;
   
   // 初始化日期选择器
@@ -319,6 +335,145 @@ if (hasSearchParams()) {
   $('#toggle-filter').click();
 }
 
+// 导出选择监听
+form.on('select(export-select)', function(data){
+    var value = data.value;
+    if (!value) return;
+
+    // 获取表格选中行
+    var checkStatus = table.checkStatus('order-table');
+    var selectIds = checkStatus.data.map(function(item) {
+        return item.id;
+    }).filter(Boolean);
+   console.log($('#j-exportInpack').length); // 应该输出 1
+    switch(value) {
+        case '1': // 订单数据
+            loaddingoutexcel();
+            break;
+        case '2': // 分成清单
+            exportInpack(selectIds);
+             // 触发现有分成清单导出
+            break;
+        case '3': // 清关模板
+            exportClearanceTemplate(selectIds);
+            break;
+    }
+    
+    // 重置选择框
+    $('[name="export-option"]').val('');
+    form.render('select');
+});
+
+
+/**
+ * 导出集运结算单 (Layui兼容版)
+ */
+function exportInpack(selectIds){
+    // 1. 获取选中订单（兼容Layui表格）
+    var checkStatus = table.checkStatus('order-table');
+    var selectIds = checkStatus.data.map(function(item) {
+        return item.id;
+    }).filter(Boolean); // 过滤无效ID
+
+    // 2. 获取搜索表单数据（兼容Layui表单）
+    var serializeObj = {};
+    $(".layui-form").serializeArray().forEach(function(item) {
+        if (item.name !== 's' && item.value) { // 过滤空值和s参数
+            serializeObj[item.name] = item.value;
+        }
+    });
+
+    // 3. 验证导出条件
+    if (Object.keys(serializeObj).length === 0 && selectIds.length === 0) {
+        layer.msg('请先选择订单或者设置搜索条件', {icon: 5});
+        return;
+    }
+
+    // 4. 显示加载提示
+    var loadIndex = layer.load(1, {shade: 0.3});
+
+    // 5. 发送导出请求
+    $.ajax({
+        type: 'POST',
+        url: "<?= url('store/trOrder/exportInpack') ?>",
+        data: {
+            selectIds: selectIds,  // 改为数组格式
+            search: serializeObj  // 修正参数名 seach -> search
+        },
+        dataType: "json",
+        success: function(res) {
+            layer.close(loadIndex);
+            
+            if (res && res.code == 1 && res.url && res.url.file_name) {
+                // 创建隐藏链接下载文件
+                var a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = res.url.file_name;
+                a.download = '集运结算单_' + new Date().toLocaleDateString() + '.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function() {
+                    document.body.removeChild(a);
+                    layer.msg('导出成功', {icon: 1});
+                }, 100);
+            } else {
+                layer.msg(res.msg || '导出文件生成失败', {icon: 2});
+            }
+        },
+        error: function(xhr) {
+            layer.close(loadIndex);
+            var errorMsg = xhr.responseJSON && xhr.responseJSON.msg 
+                         ? xhr.responseJSON.msg 
+                         : '导出失败，状态码: ' + xhr.status;
+            layer.msg(errorMsg, {icon: 2});
+        }
+    });
+}
+
+// 通用文件下载函数
+function downloadFile(url, fileName) {
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = fileName || 'export_' + new Date().getTime() + '.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+        document.body.removeChild(a);
+        layer.msg('文件下载已开始', {icon: 1});
+    }, 100);
+}
+
+// 订单数据导出函数
+function loaddingoutexcel() {
+    var loadIndex = layer.load(1);
+    var checkStatus = table.checkStatus('order-table');
+    var selectIds = checkStatus.data.map(function(item) {
+        return item.id;
+    }).filter(Boolean); // 过滤无效ID
+    
+    $.ajax({
+        url: '<?= url("store/trOrder/loaddingoutexcel") ?>',
+        type: 'POST',
+        data: { selectId: selectIds },
+        dataType: 'json',
+        success: function(res) {
+            layer.close(loadIndex);
+            if(res.code == 1 && res.url) {
+                downloadFile(res.url.file_name, '订单数据_'+getCurrentDate()+'.xlsx');
+            } else {
+                layer.msg(res.msg || '导出失败', {icon: 2});
+            }
+        }
+    });
+}
+
+// 获取当前日期字符串
+function getCurrentDate() {
+    var date = new Date();
+    return date.getFullYear() + '-' + 
+           (date.getMonth()+1).toString().padStart(2, '0') + '-' + 
+           date.getDate().toString().padStart(2, '0');
+}
 
 });
 </script>
@@ -327,58 +482,58 @@ if (hasSearchParams()) {
         <!-- 批量操作工具栏 -->
         <div class="batch-operations">
           <div class="layui-btn-group">
-            <button class="layui-btn layui-btn-sm" id="change-user">
-              <i class="layui-icon layui-icon-user"></i> 修改用户
-            </button>
+            <?php if (checkPrivilege('package.index/changeuser')): ?>
+                <button class="layui-btn layui-btn-sm" id="j-upuser">
+                  <i class="layui-icon layui-icon-user"></i> 修改用户
+                </button>
+            <?php endif;?>
             <button class="layui-btn layui-btn-sm" id="j-upstatus">
               <i class="layui-icon layui-icon-form"></i> 状态变更
             </button>
-            <button class="layui-btn layui-btn-sm layui-btn-warm" id="merge-order">
+            <button class="layui-btn layui-btn-sm layui-btn-warm" id="j-hedan">
               <i class="layui-icon layui-icon-link"></i> 合并订单
             </button>
-            <button class="layui-btn layui-btn-sm layui-btn-danger" id="update-logistics">
+            <button class="layui-btn layui-btn-sm layui-btn-danger" id="j-wuliu">
               <i class="layui-icon layui-icon-location"></i> 更新物流
             </button>
-            <button class="layui-btn layui-btn-sm" id="print-label">
+            <button class="layui-btn layui-btn-sm" id="j-batch-print">
               <i class="layui-icon layui-icon-print"></i> 打印面单
             </button>
-            <button class="layui-btn layui-btn-sm layui-btn-warm" id="join-group">
+            <button class="layui-btn layui-btn-sm layui-btn-warm" id="j-pintuan">
               <i class="layui-icon layui-icon-group"></i> 加入拼团
             </button>
-            <button class="layui-btn layui-btn-sm" id="join-batch">
+            <button class="layui-btn layui-btn-sm" id="j-batch">
               <i class="layui-icon layui-icon-list"></i> 加入批次
             </button>
-            <button class="layui-btn layui-btn-sm layui-btn-primary" id="batch-export">
-              <i class="layui-icon layui-icon-export"></i> 导出
-            </button>
+            <!--<button class="layui-btn layui-btn-sm layui-btn-primary" id="j-export">-->
+            <!--  <i class="layui-icon layui-icon-export"></i> 导出-->
+            <!--</button>-->
             <span class="selected-count" id="selected-count">已选0项</span>
           </div>
           
           <div class="layui-form layui-form-pane" style="display: inline-block; margin-left: 15px;">
             <div class="layui-form-item" style="margin-bottom: 0;">
               <div class="layui-inline">
-                <label class="layui-form-label">快捷筛选</label>
-                <div class="layui-input-inline">
-                  <select name="quick-filter">
-                    <option value="">全部状态</option>
-                    <option value="1">待查验</option>
-                    <option value="2">待支付</option>
-                    <option value="3">已支付</option>
-                    <option value="6">已发货</option>
-                  </select>
-                </div>
-              </div>
-              <div class="layui-inline">
                 <label class="layui-form-label">导出</label>
                 <div class="layui-input-inline">
-                  <select name="export-option">
-                    <option value="">选择类型</option>
-                    <option value="1">订单数据</option>
-                    <option value="2">分成清单</option>
-                    <option value="3">清关模板</option>
-                  </select>
+                    <select name="export-option" lay-filter="export-select">
+                        <option value="">选择类型</option>
+                        <?php if (checkPrivilege('tr_order/loaddingoutexcel')): ?>
+                        <option value="1">订单数据</option>
+                        <?php endif; ?>
+                        <?php if (checkPrivilege('tr_order/exportinpack')): ?>
+                        <?php if($dataType=='complete'): ?>
+                        <option value="2">分成清单</option>
+                        <?php endif; ?>
+                        <?php endif; ?>
+                        <?php if (checkPrivilege('tr_order/clearance')): ?>
+                        <?php if($dataType=='sending'): ?>
+                        <option value="3">清关模板</option>
+                        <?php endif; ?>
+                        <?php endif; ?>
+                    </select>
                 </div>
-              </div>
+                </div>
             </div>
           </div>
         </div>
@@ -396,6 +551,99 @@ if (hasSearchParams()) {
       </div>
     </div>
   </div>
+<script id="tpl-grade" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包裹数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'> 共选中 {{ selectCount }} 包裹</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择用户
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                         <div class="widget-become-goods am-form-file am-margin-top-xs">
+                            <button type="button" class="j-selectUser upload-file am-btn am-btn-secondary am-radius" data-action="selectUser">
+                            <i class="am-icon-cloud-upload"></i> 选择用户
+                            </button>
+                            <div class="user-list uploader-list am-cf">
+                            </div>
+                            <div class="am-block">
+                                <small>选择后不可更改</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-wuliu" type="text/template">
+<div class="layui-form" style="padding: 15px;">
+    <form class="layui-form" lay-filter="wuliu-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">选择数量</label>
+            <div class="layui-input-block">
+                <div class="layui-input" style="border: none; line-height: 38px;">
+                    共选中 {{ selectCount }} 包裹
+                </div>
+            </div>
+        </div>
+        
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="layui-form-required">*</span>轨迹模板</label>
+            <div class="layui-input-block">
+                <select name="track_id" lay-search lay-verify="required">
+                    <option value="">选择模板</option>
+                    <?php if (isset($tracklist)): 
+                        foreach ($tracklist as $item): ?>
+                        <option value="<?= $item['track_id'] ?>"><?= $item['track_name'] ?></option>
+                    <?php endforeach; endif; ?>
+                </select>
+                <div class="layui-form-mid layui-word-aux">
+                    注：你可以在下方自定义轨迹，或者选择预设好的轨迹
+                </div>
+            </div>
+        </div>
+        
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="layui-form-required">*</span>物流状态</label>
+            <div class="layui-input-block">
+                <input type="text" name="logistics_describe" 
+                       lay-verify="required" placeholder="请输入物流状态" 
+                       class="layui-input">
+            </div>
+        </div>
+        
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="layui-form-required">*</span>物流时间</label>
+            <div class="layui-input-block">
+                <input type="text" name="created_time" id="datetimepicker" 
+                       lay-verify="required" placeholder="请选择时间" 
+                       value="<?= date("Y-m-d H:i:s",time()) ?>" 
+                       class="layui-input">
+            </div>
+        </div>
+    </form>
+</div>
+</script>
+<script id="tpl-user-item" type="text/template">
+    {{ each $data }}
+    <div class="file-item">
+        <a href="{{ $value.avatarUrl }}" title="{{ $value.nickName }} (ID:{{ $value.user_id }})" target="_blank">
+            <img src="{{ $value.avatarUrl }}">
+        </a>
+        <input type="hidden" name="user_id" value="{{ $value.user_id }}">
+    </div>
+    {{ /each }}
+</script>
 <script id="tpl-status" type="text/template">
     <div class="am-padding-xs am-padding-top">
         <form class="am-form tpl-form-line-form" method="post" action="">
@@ -424,6 +672,70 @@ if (hasSearchParams()) {
                     </div>
                 </div>
                 
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-tuan" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择集运单数
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'> 共选中 {{ selectCount }} 订单</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择拼团
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="pintuan_id"
+                                data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}">
+                            <option value="">请选择</option>
+                            <?php if (isset($pintuanlist) && !$pintuanlist->isEmpty()):
+                                foreach ($pintuanlist as $item): ?>
+                                    <option value="<?= $item['order_id'] ?>"><?= $item['title'] ?> - <?= $item['user']['nickName'] ?></option>
+                                <?php endforeach; endif; ?>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-batch" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择集运单数
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'> 共选中 {{ selectCount }} 订单</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择批次
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="batch_id"
+                                data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}">
+                            <option value="">请选择</option>
+                            <?php if (isset($batchlist) && !$batchlist->isEmpty()):
+                                foreach ($batchlist as $item): ?>
+                                    <option value="<?= $item['batch_id'] ?>"><?= $item['batch_name'] ?> - <?= $item['batch_no'] ?></option>
+                                <?php endforeach; endif; ?>
+                        </select>
+                    </div>
+                </div>
+
             </div>
         </form>
     </div>
@@ -465,20 +777,35 @@ var orderTable = table.render({
   id: 'order-table',
   cols: [[
     {type: 'checkbox', fixed: 'left'},
-    {field: 'order_sn', width: 180, title: '系统单号'},
-    {field: 'inpack_type', width: 80, title: '订单类型', templet: function(d){
+    {field: 'inpack_type', width: 100, title: '订单类型', templet: function(d){
       var html = '';
+      if(d.inpack_type == 0) html += '<span class="am-badge am-badge-success">拼邮订单</span>';
       if(d.inpack_type == 1) html += '<span class="am-badge am-badge-secondary">拼团订单</span>';
-      if(d.inpack_type == 2) html += '<span class="am-badge am-badge-secondary">直邮订单</span>';
+      if(d.inpack_type == 2) html += '<span class="am-badge am-badge-danger">直邮订单</span>';
       if(d.inpack_type == 3) html += '<span class="am-badge am-badge-success">拼邮订单</span>';
       if(d.is_exceed == 1) html += '<span class="am-badge am-badge-danger">超时订单</span>';
       return html;
     }},
+    {field: 'order_sn', width: 180, title: '系统单号'},
     {field: 'status', width: 80, title: '状态', templet: function(d){
       return statusText[d.status] || '';
     }},
     {field: 'user', width: 180, title: '会员信息', templet: function(d){
-      return d.user?d.user.nickName:'' ;
+        var html = d.user ? d.user.nickName : '无主订单';
+        // 用户Code（根据PHP条件动态显示）
+        <?php if($set['usercode_mode']['is_show'] == 0): ?>
+        if (d.user && d.user.user_id) {
+            html += '(' + d.user.user_id + ')'+
+                   '<span class="copyable-text" data-text="'+d.user.user_id+'" style="cursor:pointer;color:#1E9FFF">';
+        }
+        <?php endif; ?>
+        <?php if($set['usercode_mode']['is_show'] == 1): ?>
+        if (d.user && d.user.user_code) {
+            html += '(' + d.user.user_code + ')'+
+                   '<span class="copyable-text" data-text="'+d.user.user_code+'" style="cursor:pointer;color:#1E9FFF">';
+        }
+        <?php endif; ?>
+        return html;
     }},
     {field: 'line', width: 180, title: '渠道', templet: function(d){
       return d.line?d.line.name:'';
@@ -543,7 +870,32 @@ laypage.render({
     }
   }
 });
-  
+ 
+// 点击复制功能
+$(document).on('click', '.copyable-text', function(){
+    var text = $(this).data('text');
+    copyToClipboard(text);
+});
+
+// 复制到剪贴板函数
+function copyToClipboard(text) {
+    var $temp = $('<input>');
+    $('body').append($temp);
+    $temp.val(text).select();
+    
+    try {
+        var successful = document.execCommand('copy');
+        if(successful) {
+            layer.msg('已复制: ' + text, {icon: 1, time: 1500});
+        } else {
+            layer.msg('复制失败，请手动复制', {icon: 2});
+        }
+    } catch (err) {
+        layer.msg('浏览器不支持自动复制', {icon: 2});
+    }
+    
+    $temp.remove();
+} 
   
 // 更新URL参数的辅助函数
 function updateQueryStringParameter(uri, key, value) {
@@ -556,7 +908,19 @@ function updateQueryStringParameter(uri, key, value) {
     }
 }
   
-  
+function doSelectUser(){
+   var $userList = $('.user-list');
+    $.selectData({
+        title: '选择用户',
+        uri: 'user/lists',
+        dataIndex: 'user_id',
+        done: function (data) {
+            var user = [data[0]];
+            console.log(user,98999);
+            $userList.html(template('tpl-user-item', user));
+        }
+    });
+}  
   
 // 更新选中数量显示
 function updateSelectedCount() {
@@ -792,7 +1156,439 @@ $('.item-delete').click(function(){
       layer.close(index);
     });
 });
+
+$('#j-upuser').on('click', function () {
+    var checkStatus = table.checkStatus('order-table');
+    var selectIds = checkStatus.data.map(function(item){ return item.id; });
+    if (selectIds.length === 0){
+        layer.msg('请先选择集运单', {icon: 5});
+        return;
+    }
+    
+    var data = {};
+    data.selectId = selectIds.join(',');
+    data.selectCount = selectIds.length;
+    
+    layer.open({
+        type: 1,
+        title: '修改会员',
+        area: '460px',
+        content: template('tpl-grade', data),
+        btn: ['确定', '取消'],
+        yes: function(index, layero) {
+            var $content = $(layero).find('.layui-layer-content');
+            $content.find('form').myAjaxSubmit({
+                url: '<?= url('/store/tr_Order/changeUser') ?>',
+                data: {selectIds: data.selectId},
+                success: function() {
+                    layer.close(index);
+                }
+            });
+        },
+        success: function(layero, index) {
+            // 使用事件委托代替直接 onclick
+            $(layero).on('click', '[data-action="selectUser"]', function() {
+                var $userList = $(layero).find('.user-list');
+                $.selectData({
+                    title: '选择用户',
+                    uri: 'user/lists',
+                    dataIndex: 'user_id',
+                    done: function (data) {
+                        var user = [data[0]];
+                        $userList.html(template('tpl-user-item', user));
+                    }
+                });
+            });
+        }
+    });
+});
+
+/**
+ * 合并订单 (Layui兼容版)
+ */
+$('#j-hedan').on('click', function () {
+    // 使用Layui表格的选中状态
+    var checkStatus = table.checkStatus('order-table'); // 获取表格选中数据
+    var selectIds = checkStatus.data.map(function(item) { 
+        return item.id; // 获取选中行的ID数组
+    });
+    
+    if (selectIds.length === 0) {
+        layer.msg('请先选择集运单', {icon: 5});
+        return;
+    }
+    
+    // 检查是否同一用户（可选）
+    var userIds = [];
+    checkStatus.data.forEach(function(item) {
+        if(item.user && item.user.user_id) {
+            userIds.push(item.user.user_id);
+        }
+    });
+    
+    // 如果有用户信息且用户不一致
+    if(userIds.length > 0 && new Set(userIds).size > 1) {
+        layer.alert('请选择同一用户的订单进行合并！不同用户敬请期待拼邮功能开发(*^_^*)', {
+            title: '提示',
+            icon: 5,
+            closeBtn: 0
+        });
+        return;
+    }
+    
+    layer.confirm('确定合并选中的 ' + selectIds.length + ' 个订单吗？<br>合并后订单将无法拆分！', {
+        title: '合并订单确认',
+        icon: 3,
+        btn: ['确定合并', '取消']
+    }, function(index) {
+        // 显示加载中
+        var loadIndex = layer.load(1);
+        
+        // 发送请求
+        $.ajax({
+            url: "<?= url('store/trOrder/hedan') ?>",
+            type: "POST",
+            data: { 
+                ids: selectIds.join(',') 
+            },
+            dataType: "json",
+            success: function(result) {
+                layer.close(loadIndex);
+                if(result.code === 1) {
+                    // 成功提示
+                    layer.msg(result.msg, {
+                        icon: 1,
+                        time: 1500
+                    }, function() {
+                        // 刷新页面或表格
+                        if(result.url) {
+                            window.location.href = result.url;
+                        } else {
+                            table.reload('order-table'); // 重新加载表格
+                        }
+                    });
+                } else {
+                    // 错误提示
+                    layer.msg(result.msg || '操作失败', {
+                        icon: 2,
+                        time: 2000
+                    });
+                }
+            },
+            error: function() {
+                layer.close(loadIndex);
+                layer.msg('请求失败，请稍后重试', {icon: 2});
+            }
+        });
+        
+        layer.close(index);
+    });
+});
+
+$('#j-wuliu').on('click', function() {
+    var checkStatus = table.checkStatus('order-table');
+    var selectIds = checkStatus.data.map(function(item) { return item.id; });
+    
+    if (selectIds.length === 0) {
+        layer.msg('请先选择集运单', {icon: 5});
+        return;
+    }
+    
+    var data = {
+        selectId: selectIds.join(','),
+        selectCount: selectIds.length
+    };
+    
+    layer.open({
+        type: 1,
+        title: '批量更新物流信息',
+        area: ['500px', 'auto'],
+        content: template('tpl-wuliu', data),
+        btn: ['确认提交', '取消'],
+        success: function(layero, index) {
+            // 初始化表单
+            form.render();
+            
+            // 初始化日期时间选择器
+            laydate.render({
+                elem: '#datetimepicker',
+                type: 'datetime',
+                value: new Date(),
+                format: 'yyyy-MM-dd HH:mm:ss',
+                trigger: 'click'
+            });
+        },
+        yes: function(index, layero) {
+            // 表单验证
+            form.on('submit(wuliu-form)', function(data){
+                data.field.selectIds = selectIds.join(',');
+                
+                // 显示加载中
+                var loadIndex = layer.load(1);
+                
+                $.ajax({
+                    url: '<?= url('store/trOrder/alllogistics') ?>',
+                    type: 'POST',
+                    data: data.field,
+                    dataType: 'json',
+                    success: function(res) {
+                        layer.close(loadIndex);
+                        if(res.code === 1) {
+                            layer.msg(res.msg, {icon: 1}, function() {
+                                layer.close(index);
+                                table.reload('order-table');
+                            });
+                        } else {
+                            layer.msg(res.msg || '更新失败', {icon: 2});
+                        }
+                    },
+                    error: function() {
+                        layer.close(loadIndex);
+                        layer.msg('请求失败，请检查网络', {icon: 2});
+                    }
+                });
+                return false;
+            });
+            
+            // 触发表单提交
+            $(layero).find('form').submit();
+        }
+    });
+});
+
+/**
+ * 加入批次 (Layui兼容版)
+ */
+$('#j-batch').on('click', function() {
+    // 获取表格选中行
+    var checkStatus = table.checkStatus('order-table');
+    var selectIds = checkStatus.data.map(function(item) {
+        return item.id;
+    });
+    
+    if (selectIds.length === 0) {
+        layer.msg('请先选择集运单', {icon: 5});
+        return;
+    }
+    
+    var data = {
+        selectId: selectIds.join(','),
+        selectCount: selectIds.length
+    };
+    
+    // 使用Layui弹窗
+    layer.open({
+        type: 1,
+        title: '将订单加入到批次中',
+        area: ['460px', 'auto'],
+        content: template('tpl-batch', data),
+        btn: ['确认加入', '取消'],
+        success: function(layero, index) {
+            // 初始化表单元素
+            form.render();
+            
+            // 如果需要初始化其他组件可以在这里添加
+        },
+        yes: function(index, layero) {
+            // 获取表单数据
+            var formData = {
+                selectIds: data.selectId,
+                batch_id: $(layero).find('select[name="batch_id"]').val()
+            };
+            
+            // 显示加载中
+            var loadIndex = layer.load(1);
+            
+            // 发送请求
+            $.ajax({
+                url: '<?= url('store/batch/addtobatch') ?>',
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                success: function(res) {
+                    layer.close(loadIndex);
+                    if(res.code === 1) {
+                        layer.msg(res.msg, {icon: 1}, function() {
+                            layer.close(index); // 关闭弹窗
+                            table.reload('order-table'); // 刷新表格
+                        });
+                    } else {
+                        layer.msg(res.msg || '操作失败', {icon: 2});
+                    }
+                },
+                error: function() {
+                    layer.close(loadIndex);
+                    layer.msg('请求失败，请检查网络', {icon: 2});
+                }
+            });
+        }
+    });
+});
+
+/**
+ * 批量打印面单 (优化版-处理PDF路径)
+ */
+$('#j-batch-print').on('click', function() {
+    // 1. 获取选中订单
+    var checkStatus = table.checkStatus('order-table');
+    var selectIds = checkStatus.data.map(function(item) {
+        return item && item.id ? item.id : null;
+    }).filter(Boolean); // 过滤无效ID
+    
+    if (selectIds.length === 0) {
+        layer.msg('请先选择要打印的集运单', {icon: 5, time: 1500});
+        return;
+    }
+
+    // 2. 显示加载中
+    var loadIndex = layer.load(1, { 
+        shade: [0.3, '#000'],
+        content: '正在生成面单...'
+    });
+
+    // 3. 发送请求
+    $.ajax({
+        type: "POST",
+        url: '<?= url('store/trOrder/expressBillbatch') ?>',
+        data: { 
+            selectIds: selectIds.join(',') // 数组转字符串
+        },
+        dataType: "json",
+        success: function(res) {
+            layer.close(loadIndex);
+            
+            // 3.1 处理成功响应
+            if (res && (res.url || typeof res === 'string')) {
+                // 统一处理URL格式（修复双斜杠问题）
+                var pdfUrl = typeof res === 'string' ? res : res.url;
+                pdfUrl = pdfUrl.replace(/([^:]\/)\/+/g, '$1'); // 移除多余斜杠
+                
+                // 3.2 安全打开新窗口
+                try {
+                    var printWindow = window.open('', '_blank');
+                    if (printWindow) {
+                        printWindow.location.href = pdfUrl;
+                    } else {
+                        layer.msg('请允许弹出窗口以查看面单', {icon: 2});
+                    }
+                } catch (e) {
+                    layer.msg('打开打印页面失败: ' + e.message, {icon: 2});
+                }
+                
+            } 
+            // 3.3 处理错误响应
+            else {
+                var errorMsg = res && res.msg ? res.msg : '无效的响应格式';
+                layer.msg('生成失败: ' + errorMsg, {icon: 2});
+            }
+        },
+        error: function(xhr) {
+            layer.close(loadIndex);
+            var errorMsg = xhr.responseJSON ? 
+                         xhr.responseJSON.msg || '服务器错误' : 
+                         '网络连接失败 (状态码: ' + xhr.status + ')';
+            layer.msg(errorMsg, {icon: 2, time: 3000});
+        }
+    });
+});
+
+
+/**
+ * 加入拼团 (Layui兼容版)
+ */
+$('#j-pintuan').on('click', function() {
+    try {
+        // 1. 安全获取选中行
+        var checkStatus = table.checkStatus('order-table');
+        if (!checkStatus || !checkStatus.data) {
+            layer.msg('获取表格数据失败，请刷新重试', {icon: 5});
+            return;
+        }
+
+        // 2. 安全处理选中ID
+        var selectIds = checkStatus.data.reduce(function(acc, item) {
+            if (item && item.id) acc.push(item.id);
+            return acc;
+        }, []);
+
+        if (selectIds.length === 0) {
+            layer.msg('请先选择有效的集运单', {icon: 5, time: 2000});
+            return;
+        }
+
+        // 3. 准备数据
+        var data = {
+            selectId: selectIds.join(','),
+            selectCount: selectIds.length
+        };
+
+        // 4. 安全渲染模板
+        var templateHtml = '';
+        try {
+            templateHtml = template('tpl-tuan', data);
+        } catch (e) {
+            console.error('模板渲染错误:', e);
+            layer.msg('界面加载失败', {icon: 5});
+            return;
+        }
+
+        // 5. 显示弹窗
+        layer.open({
+            type: 1,
+            title: '加入拼团',
+            area: ['460px', 'auto'],
+            content: templateHtml,
+            btn: ['确认加入', '取消'],
+            success: function(layero, index) {
+                form.render();
+                
+                form.on('submit(pintuan-form)', function(formData){
+                    formData.field.selectIds = data.selectId;
+                    
+                    var loadIndex = layer.load(1, {shade: 0.3});
+                    
+                    $.ajax({
+                        url: '<?= url('store/trOrder/pintuan') ?>',
+                        type: 'POST',
+                        data: formData.field,
+                        dataType: 'json',
+                        success: function(res) {
+                            layer.close(loadIndex);
+                            if(res && res.code === 1) {
+                                layer.msg(res.msg, {icon: 1}, function() {
+                                    layer.close(index);
+                                    table.reload('order-table');
+                                });
+                            } else {
+                                layer.msg((res && res.msg) || '操作失败', {icon: 2});
+                            }
+                        },
+                        error: function(xhr) {
+                            layer.close(loadIndex);
+                            layer.msg('请求失败: ' + (xhr.responseJSON?.msg || xhr.statusText), {icon: 2});
+                        }
+                    });
+                    return false;
+                });
+            },
+            yes: function(index, layero) {
+                $(layero).find('form').submit();
+            }
+        });
+
+    } catch (e) {
+        console.error('加入拼团出错:', e);
+        layer.msg('系统错误: ' + e.message, {icon: 5});
+    }
+});
+
+
+
+
+
+
 // 初始化选中数量显示
 updateSelectedCount();
   });
   </script>
+<script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>

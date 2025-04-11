@@ -377,6 +377,7 @@ class Inpack extends InpackModel
         }
         
         unset($data['item']);
+        // dump($data);die;
         $rers =  $this->where('id',$data['id'])->update($data);
         
        if($rers || $imgres){return true;}

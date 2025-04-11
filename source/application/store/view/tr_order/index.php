@@ -1735,7 +1735,7 @@
         
         
          /**
-         * 修改包裹位置
+         * 加入拼团
          */
         $('#j-pintuan').on('click', function () {
             var $tabs, data = $(this).data();

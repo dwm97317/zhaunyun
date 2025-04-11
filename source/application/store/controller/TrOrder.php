@@ -3475,7 +3475,6 @@ public function expressBillbatch() {
         //1 待入库 2 已入库 3 已分拣上架  4 待打包  5 待支付  6 已支付 7 已分拣下架  8 已打包  9 已发货 10 已收货 11 已完成
         $map =[-1=>'问题件',1=>'待入库',2=>'已入库',3=>'已分拣上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
         $status = [1=>'待查验',2=>'待支付',3=>'已支付','4'=>'已拣货','5'=>'已打包','6'=>'已发货','7'=>'已收货','8'=>'已完成','-1'=>'已取消'];
-       
         if($ids){
            $data = (new Inpack())->with(['address','user'])->whereIn('id',$ids)->select()->each(function ($item, $key) use($map){
                     $item['t_name'] = (new Line())->where('id',$item['line_id'])->value('name');
@@ -3515,6 +3514,7 @@ public function expressBillbatch() {
                     return $item;
                 }); 
         }else{
+            $where = [];
             if(!empty($seach['search'])){
                  $where['member_id'] = $seach['search']; //用户id
             }
@@ -3543,7 +3543,6 @@ public function expressBillbatch() {
                                    
                     $item['discount_price'] = $item['discount'] * $item['free'];
                     $item['status_text'] = $map[$item['status']];
-                    // $item['address'] =(new UserAddress())->where('address_id',$item['address_id'])->find();
                     return $item;
                 });
         }
@@ -3641,8 +3640,8 @@ public function expressBillbatch() {
             $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+5),$data[$i]['address']['country']);//目的地
             $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+5),$data[$i]['cale_weight']?$data[$i]['cale_weight']:$data[$i]['weight']);//重量
             $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+5),$data[$i]['total_free']);//标准价
-            $objPHPExcel->getActiveSheet()->setCellValue('G'.($i+5),$data[$i]['packClass']);//快递类别  ***********
-            $objPHPExcel->getActiveSheet()->setCellValue('H'.($i+5),$data[$i]['packprice']);//标准价 ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('G'.($i+5),isset($data[$i]['packClass'])?$data[$i]['packClass']:'');//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('H'.($i+5),isset($data[$i]['packprice'])?$data[$i]['packprice']:0);//标准价 ***********
             $objPHPExcel->getActiveSheet()->setCellValue('I'.($i+5),$data[$i]['user']['user_id']);//用户id
             $objPHPExcel->getActiveSheet()->setCellValue('J'.($i+5),$data[$i]['address']['name']);//用户昵称
             $objPHPExcel->getActiveSheet()->setCellValue('K'.($i+5),$data[$i]['address']['phone']);//专属客服
