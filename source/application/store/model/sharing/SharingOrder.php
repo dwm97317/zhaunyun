@@ -19,6 +19,7 @@ class SharingOrder extends SharingOrderModel {
     public function getAllList(){
         return $this
             ->with(['country','User','storage','line','address'])
+            ->where('is_delete',0)
             ->order('create_time','desc')
             ->select();
     }

@@ -43,6 +43,9 @@
         display: flex;
         justify-content: space-between;
     }
+    .action-btn-group a{
+       margin：5px ;
+    }
     .action-btn-group .layui-btn {
       margin-bottom: 5px;
     }
@@ -66,6 +69,127 @@
         margin-left: 3px;
         vertical-align: middle;
     }
+
+
+.layui-dropdown-trigger {
+  padding-right: 25px !important; /* 扩大点击区域 */
+}
+.layui-table-grid-down{
+ z-index: 99;   
+}
+
+/* 显示下拉图标 */
+.layui-dropdown-trigger .layui-icon-down {
+  font-size: 12px !important; /* 显式控制图标大小 */
+  margin-left: 3px;
+}
+
+
+.layui-dropdown-menu.show {
+  display: block !important;
+}
+
+.layui-btn-container {
+  position: relative;
+  display: inline-block;
+}
+.layui-table-cell {
+  overflow: visible !important;
+  height: auto !important;
+  padding: 5px 15px !important;
+}
+.layui-table-body
+{
+    overflow: overlay; !important;
+  position: relative;
+}
+.layui-table-box{
+  overflow: visible !important;
+  position: relative;
+}
+/* 下拉菜单容器 - 增强版 */
+.layui-dropdown-menu {
+  position: absolute !important;
+  top: 100%;
+  left: 0;
+  min-width: 120px !important;
+  z-index: 999999 !important;
+  display: none;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 2px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+  padding: 5px 0;
+  margin-top: 5px;
+  margin-bottom: 0;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* 向上弹出时的样式 */
+.layui-dropdown-menu.upward {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+/* 菜单项样式 */
+.layui-dropdown-menu li {
+  position: relative;
+  line-height: 36px;
+}
+
+.layui-dropdown-menu li a {
+  display: block;
+  padding: 0 15px;
+  color: #333;
+  text-decoration: none;
+  transition: all 0.3s;
+  font-size: 13px;
+}
+
+/* 悬停效果 */
+.layui-dropdown-menu li a:hover {
+  background-color: #f2f2f2;
+  color: #009688;
+}
+
+/* 图标间距 */
+.layui-dropdown-menu .layui-icon {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+/* 分隔线 */
+.layui-dropdown-menu li.layui-menu-item-divider {
+  height: 1px;
+  margin: 5px 0;
+  background-color: #f0f0f0;
+  overflow: hidden;
+}
+
+/* 显示动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 激活状态 */
+.layui-dropdown-menu.show {
+  display: block !important;
+}
+
+/* 按钮容器定位 */
+.layui-btn-container {
+  position: relative;
+  display: inline-block;
+}
   </style>
 </head>
 <body>
@@ -644,6 +768,20 @@ function getCurrentDate() {
     </div>
     {{ /each }}
 </script>
+<script id="tpl-label" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <button onclick="printlabel(10,{{ inpack_id }})"   style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-primary ">标签模板1</button>
+                    <button onclick="printlabel(20,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-secondary ">标签模板2</button>
+                    <button onclick="printlabel(30,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-success ">标签模板3</button>
+                    <button onclick="printlabel(40,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-warning ">渠道 标 签</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
 <script id="tpl-status" type="text/template">
     <div class="am-padding-xs am-padding-top">
         <form class="am-form tpl-form-line-form" method="post" action="">
@@ -669,6 +807,56 @@ function getCurrentDate() {
                                <option value="8">已完成</option>
                                <option value="5">回退到待发货</option>
                         </select>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-xianjin" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-4 am-form-label form-require">
+                        用户信息
+                    </label>
+                    <div class="am-u-sm-8">
+                       <p class='am-form-static'>{{ name }}</p>
+                    </div>
+                </div>
+               <div class="am-form-group">
+                    <label class="am-u-sm-4 am-form-label form-require">
+                        订单信息
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'>订单金额：{{ price }}</p>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-errors" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-4 am-form-label form-require">
+                        用户信息
+                    </label>
+                    <div class="am-u-sm-8">
+                       <p class='am-form-static'>{{ name }}</p>
+                    </div>
+                </div>
+               <div class="am-form-group">
+                    <label class="am-u-sm-4 am-form-label form-require">
+                        订单信息
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'>用户余额：{{ balance }} / 订单金额：{{ price }}</p>
                     </div>
                 </div>
                 
@@ -752,14 +940,14 @@ function getCurrentDate() {
   '8': '已完成',
   '-1': '问题件'
 };
-layui.use(['form', 'table', 'laydate', 'layer', 'laypage', 'jquery'], function(){
+var paytime_status = {'1':'已支付','2':'未支付','3':'支付待审核'};
+layui.use(['form', 'table', 'laydate', 'layer', 'laypage', 'jquery','dropdown'], function(){
     var form = layui.form;
     var table = layui.table;
     var laydate = layui.laydate;
     var layer = layui.layer;
     var laypage = layui.laypage;
     var $ = layui.jquery;
-    
     // 初始化日期选择器
     laydate.render({
       elem: '#start-time',
@@ -790,6 +978,13 @@ var orderTable = table.render({
     {field: 'status', width: 80, title: '状态', templet: function(d){
       return statusText[d.status] || '';
     }},
+    {field: 'status', width: 80, title: '支付状态', templet: function(d){
+      var html = '';
+      if(d.is_pay == 1) html += '<span class="am-badge am-badge-success">' + paytime_status[d.is_pay] +'</span>';
+      if(d.is_pay == 2) html += '<span class="am-badge am-badge-secondary">' + paytime_status[d.is_pay] +'</span>';
+      if(d.is_pay == 3) html += '<span class="am-badge am-badge-danger">' + paytime_status[d.is_pay] +'</span>';
+      return html;
+    }},
     {field: 'user', width: 180, title: '会员信息', templet: function(d){
         var html = d.user ? d.user.nickName : '无主订单';
         // 用户Code（根据PHP条件动态显示）
@@ -810,6 +1005,9 @@ var orderTable = table.render({
     {field: 'line', width: 180, title: '渠道', templet: function(d){
       return d.line?d.line.name:'';
     }},
+    {field: 'free', width: 180, title: '基础线路费用', templet: function(d){
+      return d.free;
+    }},
     {field: 'usermark', width: 100, title: '唛头'},
     {field: 'packageitems', width: 80, title: '总件数', templet: function(d){
       return d.packageitems.length;
@@ -822,7 +1020,7 @@ var orderTable = table.render({
     }},
     {field: 't_name', width: 100, title: '承运商'},
     {field: 't_order_sn', width: 180, title: '国际单号'},
-    {field: 'actions', width: 150, title: '操作', fixed: 'right', templet: function(d){
+    {field: 'actions', width: 200, title: '操作', fixed: 'right', templet: function(d){
       return '<div class="action-btn-group">'+
         (<?= checkPrivilege('tr_order/edit') ? 'true' : 'false' ?> ? 
           '<a href="<?= url("store/trOrder/edit") ?>/id/'+d.id+'">'+
@@ -836,8 +1034,30 @@ var orderTable = table.render({
           '<a href="javascript:void(0);" class="item-delete" data-id="'+d.id+'">'+
             '<button class="layui-btn layui-btn-xs layui-btn-danger">删除</button>'+
           '</a>' : '')+
-      '</div>';
-    }}
+        '<div class="layui-btn-container">' +
+              '<button class="layui-btn layui-btn-xs" >'+
+                '更多 <i class="layui-icon layui-icon-down"></i>' +
+              '</button>' +
+              '<ul class="layui-dropdown-menu">' +
+                (<?= checkPrivilege('tr_order/deliverysave') ? 'true' : 'true' ?> ? 
+                  '<li><a href="<?= url("store/trOrder/delivery") ?>/id/'+d.id+'"><i class="layui-icon layui-icon-export"></i> 发货</a></li>' : '') +
+                (<?= checkPrivilege('tr_order/print') ? 'true' : 'false' ?> ? 
+                  '<li><a href="javascript:void(0);" class="j-express"  data-id="'+d.id+'"><i class="layui-icon layui-icon-print"></i> 打印面单</a></li>' : '') +
+                (<?= checkPrivilege('tr_order/expresslabel') ? 'true' : 'false' ?> ? 
+                  '<li><a href="javascript:void(0);" class="j-label"  data-id="'+d.id+'"><i class="layui-icon layui-icon-tabs"></i> 打印标签</a></li>' : '') +
+                (<?= checkPrivilege('tr_order/updateaddress') ? 'true' : 'false' ?> ? 
+                  '<li><a href="javascript:void(0);" class="j-changeaddress"  data-id="'+d.id+'" data-user="'+d.member_id+'"><i class="layui-icon layui-icon-location"></i> 变更地址</a></li>' : '') +
+                (<?= checkPrivilege('tr_order/payyue') ? 'true' : 'false' ?> ? 
+                  '<li><a class="j-payyue" data-id="'+d.id+'" data-name="'+d.nickName+'" data-user_id="'+d.member_id+'"><i class="layui-icon layui-icon-rmb"></i> 余额扣除</a></li>' : '') +
+                (<?= checkPrivilege('tr_order/cashforprice') ? 'true' : 'false' ?> ? 
+                  '<li><a class="j-payxianjin" data-id="'+d.id+'" data-name="'+d.nickName+'" data-user_id="'+d.member_id+'"><i class="layui-icon layui-icon-dollar"></i> 现金收款</a></li>' : '') +
+                (<?= checkPrivilege('tr_order/freelistlabel') ? 'true' : 'false' ?> ? 
+                  '<li><a class="j-freelist" data-id="'+d.id+'" href="javascript:void(0);"><i class="layui-icon layui-icon-form"></i> 打印账单</a></li>' : '') +
+                  '<li><a class="j-exportdetail" data-id="'+d.id+'" href="javascript:void(0);"><i class="layui-icon layui-icon-release"></i> 导出包裹</a></li>'
+              '</ul>' +
+            '</div>' +
+          '</div>';
+        }}
   ]],
   data: <?= json_encode($list->items()) ?>,
   page: false,
@@ -846,9 +1066,72 @@ var orderTable = table.render({
   even: true,
   skin: 'line',
   done: function(res, curr, count){
+
+     // 手动绑定点击事件（备用方案）
+$('.layui-btn-container button').off('click').on('click', function(e) {
+    e.stopPropagation();
+    var $menu = $(this).next('.layui-dropdown-menu');
+    var $button = $(this);
+    
+    // 隐藏其他所有下拉菜单
+    $('.layui-dropdown-menu').not($menu).hide();
+    
+    // 计算按钮和菜单的位置
+    var buttonRect = $button[0].getBoundingClientRect();
+    var menuHeight = $menu.outerHeight();
+    var windowHeight = window.innerHeight;
+    
+    // 判断是否有足够的空间在下方显示
+    if (buttonRect.bottom + menuHeight > windowHeight) {
+        // 空间不足，向上弹出
+        $menu.css({
+            'top': 'auto',
+            'bottom': '100%',
+            'margin-top': '0',
+            'margin-bottom': '5px'
+        });
+    } else {
+        // 空间足够，向下弹出（恢复默认）
+        $menu.css({
+            'top': '100%',
+            'bottom': 'auto',
+            'margin-top': '5px',
+            'margin-bottom': '0'
+        });
+    }
+    
+    // 计算水平位置，防止右侧溢出
+    var menuWidth = $menu.outerWidth();
+    if (buttonRect.left + menuWidth > window.innerWidth) {
+        $menu.css({
+            'left': 'auto',
+            'right': '0'
+        });
+    } else {
+        $menu.css({
+            'left': '0',
+            'right': 'auto'
+        });
+    }
+    
+    // 切换当前菜单的显示/隐藏
+    $menu.toggle();
+});
+  
+
     // 表格渲染完成后初始化选中数量
     updateSelectedCount();
   }
+});
+
+
+
+// 点击页面其他位置关闭下拉菜单
+$(document).on('click', function(e) {
+    if(!$(e.target).closest('.layui-dropdown-menu').length && 
+       !$(e.target).closest('.layui-btn-container').length) {
+        $('.layui-dropdown-menu').hide();
+    }
 });
 
     
@@ -1494,98 +1777,638 @@ $('#j-batch-print').on('click', function() {
 
 
 /**
- * 加入拼团 (Layui兼容版)
+ * 加入拼团（兼容 Layui）
  */
-$('#j-pintuan').on('click', function() {
-    try {
-        // 1. 安全获取选中行
-        var checkStatus = table.checkStatus('order-table');
-        if (!checkStatus || !checkStatus.data) {
-            layer.msg('获取表格数据失败，请刷新重试', {icon: 5});
-            return;
+$('#j-pintuan').on('click', function () {
+    var checkStatus = table.checkStatus('order-table');
+    var selectIds = checkStatus.data.map(function(item) {
+        return item && item.id ? item.id : null;
+    }).filter(Boolean);
+
+    // 1. 检查是否选中集运单
+    if (selectIds.length == 0) {
+        layer.alert('请先选择集运单', { icon: 5 });
+        return;
+    }
+
+    var data = {
+        selectId: selectIds.join(','),
+        selectCount: selectIds.length
+    };
+
+    // 2. 使用 Layui 弹层
+    layer.open({
+        type: 1,
+        title: '加入拼团',
+        area: '460px',
+        content: template('tpl-tuan', data),
+        btn: ['确认', '取消'],
+        yes: function(index, layero) {
+            // 3. 获取用户选择的 pintuan_id
+            var pintuanId = layero.find('select[name="pintuan_id"]').val();
+            
+            if (!pintuanId) {
+                layer.msg('请选择拼团', { icon: 5 });
+                return false; // 阻止关闭弹层
+            }
+
+            // 4. 提交数据（包含 selectIds 和 pintuan_id）
+            $.ajax({
+                url: '<?= url('store/trOrder/pintuan') ?>',
+                type: 'POST',
+                data: { 
+                    selectIds: data.selectId,
+                    pintuan_id: pintuanId  // 添加拼团ID
+                },
+                success: function(res) {
+                    layer.close(index);
+                    if (res.code === 0) {
+                        layer.msg('操作成功', { icon: 5 });
+                       
+                        // 可选：刷新页面或表格数据
+                        table.reload('order-table');
+                    } else {
+                        layer.alert(res.msg || '操作失败', { icon: 2 });
+                    }
+                    
+                    
+                    if(res.code === 1){
+                        layer.msg(res.msg, {icon: 1}, function(){
+                            // 刷新表格数据
+                          window.location.reload();
+                        });
+                    }else{
+                        layer.msg(res.msg || '操作失败', {icon: 2});
+                    }
+                    layer.close(index)
+                    
+                },
+                error: function() {
+                    layer.alert('网络错误', { icon: 2 });
+                }
+            });
         }
+    });
+});
 
-        // 2. 安全处理选中ID
-        var selectIds = checkStatus.data.reduce(function(acc, item) {
-            if (item && item.id) acc.push(item.id);
-            return acc;
-        }, []);
+$(".j-express").on('click', function(){
+    var data = $(this).data();
+    $.ajax({
+        url: '<?= url('store/trOrder/expressBill') ?>',
+        type: "get",
+        data: {id: data['id']},
+        success: function(result) {
+            console.log(result);
 
-        if (selectIds.length === 0) {
-            layer.msg('请先选择有效的集运单', {icon: 5, time: 2000});
-            return;
+            if(result.code === 0) {
+                layer.alert(result.msg, {icon: 5});
+                return; 
+            }
+            
+            layer.open({
+                type: 1,
+                title: '标签打印预览',
+                area: ['400px', '700px'],
+                content: result,
+                btn: ['打印', '取消'],
+                success: function(layero, index) {
+                    console.log(layero, index);
+                },
+                yes: function(index, layero) {
+                    PrintDiv(result);
+                    layer.close(index);
+                },
+                btn2: function(index, layero) {
+                    layer.close(index);
+                }
+            });
         }
+    });
+});
 
-        // 3. 准备数据
-        var data = {
-            selectId: selectIds.join(','),
-            selectCount: selectIds.length
-        };
-
-        // 4. 安全渲染模板
-        var templateHtml = '';
+/**
+ * 打印指定内容的兼容性函数（支持Layui环境）
+ * @param {string|jQueryObject} content 要打印的内容 
+ */
+function PrintDiv(content) {
+    // 确保Layui模块已加载
+    layui.use(['layer'], function(){
+        var layer = layui.layer;
+        
         try {
-            templateHtml = template('tpl-tuan', data);
-        } catch (e) {
-            console.error('模板渲染错误:', e);
-            layer.msg('界面加载失败', {icon: 5});
-            return;
-        }
+            // 创建打印窗口
+            var printWindow = window.open("", "_blank");
+            if (!printWindow) {
+                layer.msg('弹出窗口被阻止，请允许浏览器弹出窗口', {icon: 2});
+                return;
+            }
 
-        // 5. 显示弹窗
-        layer.open({
-            type: 1,
-            title: '加入拼团',
-            area: ['460px', 'auto'],
-            content: templateHtml,
-            btn: ['确认加入', '取消'],
-            success: function(layero, index) {
-                form.render();
-                
-                form.on('submit(pintuan-form)', function(formData){
-                    formData.field.selectIds = data.selectId;
-                    
-                    var loadIndex = layer.load(1, {shade: 0.3});
-                    
-                    $.ajax({
-                        url: '<?= url('store/trOrder/pintuan') ?>',
-                        type: 'POST',
-                        data: formData.field,
-                        dataType: 'json',
-                        success: function(res) {
-                            layer.close(loadIndex);
-                            if(res && res.code === 1) {
-                                layer.msg(res.msg, {icon: 1}, function() {
-                                    layer.close(index);
-                                    table.reload('order-table');
-                                });
-                            } else {
-                                layer.msg((res && res.msg) || '操作失败', {icon: 2});
-                            }
-                        },
-                        error: function(xhr) {
-                            layer.close(loadIndex);
-                            layer.msg('请求失败: ' + (xhr.responseJSON?.msg || xhr.statusText), {icon: 2});
+            // 构建打印文档结构
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>打印预览</title>
+                    <meta charset="UTF-8">
+                    <style>
+                        @media print {
+                            body { margin: 0; padding: 0; }
+                            .no-print { display: none !important; }
                         }
-                    });
-                    return false;
+                        @page { size: auto; margin: 0mm; }
+                    </style>
+                </head>
+                <body onload="window.focus();">
+                    ${typeof content === 'string' ? content : content.html()}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+
+            // 浏览器兼容性处理
+            if (navigator.userAgent.indexOf("Chrome") !== -1) {
+                // Chrome浏览器
+                printWindow.onload = function() {
+                    setTimeout(function() { // 确保内容完全加载
+                        printWindow.document.execCommand('print');
+                        printWindow.close();
+                    }, 300);
+                };
+            } else if (navigator.userAgent.indexOf("Firefox") !== -1) {
+                // Firefox浏览器
+                printWindow.onload = function() {
+                    printWindow.print();
+                    printWindow.close();
+                };
+            } else {
+                // 其他浏览器（IE/Edge等）
+                setTimeout(function() {
+                    printWindow.print();
+                    printWindow.close();
+                }, 500);
+            }
+            
+        } catch (e) {
+            layer.msg('打印出错: ' + e.message, {icon: 2});
+            console.error("打印错误:", e);
+        }
+    });
+}
+
+$(".j-changeaddress").on('click', function(){
+    var data = $(this).data();
+    layui.use(['layer', 'jquery'], function(){
+        var layer = layui.layer;
+        var $ = layui.jquery;
+        var id = data['id'];
+        var user_id = data['user'];
+        if(!user_id) {
+            // 调试输出
+            console.error("获取用户ID失败，当前元素data属性：", $(this).data());
+            layer.alert('用户信息有误', {icon: 5});
+            return false;
+        }
+        $.selectData({
+                title: '变更地址',
+                uri: 'Address/AddressList'+'/user_id/'+user_id,
+                dataIndex: 'address_id',
+                done: function (list) {
+                    var data = {};
+                    var select_ids = [];
+                    if (list.length>1){
+                        layer.alert('只能勾选一个', {icon: 5});
+                        return;
+                    }
+                    console.log(list);
+                    // 请求服务器修改地址
+                    $.ajax({
+                    type: "POST",
+                    url: '<?= url('store/trOrder/updateAddress') ?>',
+                    data: {
+                        id: id, 
+                        address_id: list[0].address_id
+                    },
+                    success: function(res){
+                        if(res.code === 1) {
+                            layer.msg('地址修改成功', {icon: 1});
+                            setTimeout(function(){ 
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            layer.alert(res.msg || '修改失败', {icon: 5});
+                        }
+                    },
+                    error: function() {
+                        layer.alert('网络请求失败', {icon: 5});
+                    }
                 });
+                }
+            });
+
+    });
+});
+
+// 打印标签（兼容Layui）
+$(".j-label").on('click', function() {
+    var data = $(this).data();
+    
+    // 使用layui的layer弹窗
+    layui.use('layer', function() {
+        var layer = layui.layer;
+        
+        layer.open({
+            type: 1,                     // 页面层类型
+            title: '批量更新订单动态',     // 标题
+            area: '460px',               // 弹窗宽度
+            content: template('tpl-label', { inpack_id: data.id }), // 使用模板引擎渲染内容
+            btn: ['确定', '取消'],        // 按钮组
+            success: function(layero, index) {
+                // 弹窗成功回调
+                console.log("弹窗渲染完成");
             },
             yes: function(index, layero) {
-                $(layero).find('form').submit();
+                // 点击"确定"按钮的回调
+                console.log("执行打印逻辑");
+                // 这里可以调用打印方法，例如：
+                // PrintDiv(layero.find('.layui-layer-content').html());
+                layer.close(index); // 关闭弹窗
+            },
+            btn2: function(index, layero) {
+                // 点击"取消"按钮的回调
+                layer.close(index); // 关闭弹窗
+            },
+            cancel: function() {
+                // 点击右上角关闭按钮的回调
+                // 可留空或添加额外逻辑
             }
         });
-
-    } catch (e) {
-        console.error('加入拼团出错:', e);
-        layer.msg('系统错误: ' + e.message, {icon: 5});
-    }
+    });
 });
 
 
 
 
+window.printlabel = function(e, s) {
+    layui.use(['layer', 'jquery'], function(){
+        var layer = layui.layer;
+        var $ = layui.jquery;
+        
+        /**
+ * 打印标签函数（兼容Layui）
+ * @param {number} e 标签类型 
+ * @param {number|string} s 订单ID
+ */
+function printlabel(e, s) {
+    var data = $(this).data();
+    console.log("标签参数:", s, e);
+    
+    layui.use(['layer', 'jquery'], function(){
+        var layer = layui.layer;
+        var $ = layui.jquery;
+        
+        $.ajax({
+            url: '<?= url('store/trOrder/expressLabel') ?>',
+            type: "GET",
+            data: {id: s, label: e},
+            success: function(result) {
+                // 错误处理
+                if(result.code === 0) {
+                    layer.alert(result.msg, {icon: 5});
+                    return; 
+                }
+                
+                // 特殊类型标签处理（直接下载）
+                if(e == 40 && result.code === 1) {
+                    console.log("下载标签结果:", result);
+                    window.open(result.url, '_blank');
+                    return;  
+                }
+                
+                // 正常标签打印预览
+                layer.open({
+                    type: 1,
+                    title: '标签打印预览',
+                    area: ['600px', '700px'],
+                    content: result,
+                    btn: ['打印', '取消'],
+                    success: function(layero, index) {
+                        console.log("弹窗DOM:", layero);
+                    },
+                    yes: function(index, layero) {
+                        PrintDiv(result);  // 调用打印函数
+                        layer.close(index);
+                    },
+                    btn2: function(index, layero) {
+                        layer.close(index);
+                    },
+                    cancel: function() {
+                        // 右上角关闭回调
+                    }
+                });
+            },
+            error: function(xhr, status, error) {
+                layer.alert('请求失败: ' + error, {icon: 2});
+            }
+        });
+    });
+}
+    });
+};
 
+// 余额抵扣集运（兼容Layui版本）
+$('.j-payyue').click(function(e) {
+    // 初始化Layui模块
+    var data = $(this).data();
+   
+    layui.use(['layer', 'jquery'], function() {
+        var layer = layui.layer;
+        var $ = layui.jquery;
+        
+        // 获取数据
+        console.log(data,99)
+        var user_id = data['user_id']; // 推荐明确使用data('user_id')
+        var id = data['id'];
+        
+        // 验证用户ID
+        if(!user_id) {
+            layer.alert('用户信息有误', {icon: 5});
+            return false;
+        }
+         
+        // 获取余额和价格信息
+        $.ajax({
+            url: 'store/tr_Order/balanceAndPrice',
+            type: 'POST',
+            data: {id: id, user_id: user_id},
+            dataType: 'json',
+            success: function(result) {
+                if(result.code == 1) {
+                    // 准备弹窗数据
+                    var modalData = {
+                        balance: result.data.balance,
+                        price: result.data.price,
+                        id: id,
+                        user_id: user_id,
+                        name:data.name
+                    };
+                    
+                    // 使用Layui弹窗替代$.showModal
+                    layer.open({
+                        type: 1,
+                        title: '余额抵扣',
+                        area: '460px',
+                        content: template('tpl-errors', modalData),
+                        btn: ['确认抵扣', '取消'],
+                        yes: function(index, layero) {
+                            // 执行抵扣操作
+                            $.ajax({
+                                url: 'store/tr_Order/payyue',
+                                type: 'POST',
+                                data: {id: id, user_id: user_id},
+                                dataType: 'json',
+                                success: function(result) {
+                                    if(result.code === 1) {
+                                        layer.msg(result.msg, {icon: 1}, function() {
+                                            if(result.url) {
+                                                window.location.href = result.url;
+                                            } else {
+                                                window.location.reload();
+                                            }
+                                        });
+                                    } else {
+                                        layer.msg(result.msg, {icon: 2});
+                                    }
+                                },
+                                error: function() {
+                                    layer.msg('请求失败，请重试', {icon: 2});
+                                }
+                            });
+                            layer.close(index);
+                        },
+                        btn2: function(index, layero) {
+                            // 取消按钮回调
+                            layer.close(index);
+                        },
+                        success: function(layero, index) {
+                            // 弹窗成功回调
+                            console.log('弹窗已打开');
+                        }
+                    });
+                } else {
+                    layer.msg(result.msg, {icon: 2});
+                }
+            },
+            error: function() {
+                layer.msg('获取余额信息失败', {icon: 2});
+            }
+        });
+    });
+});
+
+// 现金抵扣集运（兼容Layui版本）
+$('.j-payxianjin').click(function(e) {
+    // 初始化Layui模块
+    var data = $(this).data();
+    layui.use(['layer', 'jquery'], function() {
+        var layer = layui.layer;
+        var $ = layui.jquery;
+        
+        // 获取数据（推荐明确使用data()方法）
+        
+        var user_id = data['user_id'];
+        var id = data['id'];
+        
+        // 验证用户ID
+        if(!user_id) {
+            layer.alert('用户信息有误', {icon: 5});
+            return false;
+        }
+        
+        // 显示加载中
+        var loadIndex = layer.load(1, {shade: 0.3});
+        
+        // 获取金额信息
+        $.ajax({
+            url: 'store/tr_Order/balanceAndPrice',
+            type: 'POST',
+            data: {id: id, user_id: user_id},
+            dataType: 'json',
+            success: function(result) {
+                layer.close(loadIndex);
+                
+                if(result.code == 1) {
+                    // 准备弹窗数据
+                    var modalData = {
+                        balance: result.data.balance,
+                        price: result.data.price,
+                        id: id,
+                        user_id: user_id,
+                        name:data.name
+                    };
+                    
+                    // 使用Layui弹窗
+                    layer.open({
+                        type: 1,
+                        title: '现金收款',
+                        area: '460px',
+                        content: template('tpl-xianjin', modalData),
+                        btn: ['确认收款', '取消'],
+                        success: function(layero, index) {
+                            // 弹窗渲染完成后执行
+                            form.render(); // 如果表单中有Layui元素需要渲染
+                        },
+                        yes: function(index, layero) {
+                            // 提交现金收款
+                            var submitIndex = layer.load(2, {shade: 0.3});
+                            $.ajax({
+                                url: 'store/tr_Order/cashforPrice',
+                                type: 'POST',
+                                data: {id: id, user_id: user_id},
+                                dataType: 'json',
+                                success: function(result) {
+                                    layer.close(submitIndex);
+                                    if(result.code === 1) {
+                                        layer.msg(result.msg, {
+                                            icon: 1,
+                                            time: 1500
+                                        }, function() {
+                                            // 跳转或刷新
+                                            if(result.url) {
+                                                window.location.href = result.url;
+                                            } else {
+                                                window.location.reload();
+                                            }
+                                        });
+                                    } else {
+                                        layer.msg(result.msg, {icon: 2});
+                                    }
+                                },
+                                error: function() {
+                                    layer.close(submitIndex);
+                                    layer.msg('请求失败，请重试', {icon: 2});
+                                }
+                            });
+                            layer.close(index);
+                        },
+                        btn2: function(index, layero) {
+                            // 取消按钮回调
+                        }
+                    });
+                } else {
+                    layer.msg(result.msg, {icon: 2});
+                }
+            },
+            error: function() {
+                layer.close(loadIndex);
+                layer.msg('获取金额信息失败', {icon: 2});
+            }
+        });
+    });
+});
+
+// 打印账单（兼容Layui版本）
+$(".j-freelist").on('click', function() {
+    // 初始化Layui模块
+    layui.use(['layer', 'jquery'], function() {
+        var layer = layui.layer;
+        var $ = layui.jquery;
+        
+        var data = $(this).data();
+        
+        // 显示加载中
+        var loadIndex = layer.load(1, {shade: 0.3});
+        
+        $.ajax({
+            url: '<?= url('store/trOrder/freelistLabel') ?>',
+            type: "GET",
+            data: {id: data['id']},
+            success: function(result) {
+                layer.close(loadIndex);
+                
+                if(result.code === 0) {
+                    layer.alert(result.msg, {icon: 5});
+                    return;
+                }
+                
+                // 使用Layui弹窗
+                layer.open({
+                    type: 1,
+                    title: '账单打印预览',
+                    area: ['600px', '700px'],
+                    content: result,
+                    btn: ['打印', '取消'],
+                    success: function(layero, index) {
+                        // 弹窗成功回调
+                        console.log('弹窗内容:', layero.find('.layui-layer-content'));
+                    },
+                    yes: function(index, layero) {
+                        // 调用打印功能
+                        PrintDiv(result);
+                        layer.close(index);
+                    },
+                    btn2: function(index, layero) {
+                        // 取消按钮回调
+                        layer.close(index);
+                    },
+                    cancel: function() {
+                        // 右上角关闭回调
+                    }
+                });
+            },
+            error: function(xhr, status, error) {
+                layer.close(loadIndex);
+                layer.alert('请求失败: ' + error, {icon: 2});
+            }
+        });
+    });
+});
+
+/**
+ * 导出包裹（兼容Layui版本）
+ */
+$('.j-exportdetail').on('click', function() {
+    var data = $(this).data();
+    layui.use(['layer', 'jquery'], function() {
+        var layer = layui.layer;
+        var $ = layui.jquery;
+        // 显示加载中
+        var loadIndex = layer.load(1, {shade: 0.3});
+
+        $.ajax({
+            type: 'POST',
+            url: "<?= url('store/trOrder/exportInpackpackage') ?>",
+            data: {id: data.id},
+            dataType: "json",
+            success: function(res) {
+                layer.close(loadIndex);
+                
+                if (res.code == 1 && res.url && res.url.file_name) {
+                    // 创建隐藏链接下载文件
+                    var a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = res.url.file_name;
+                    a.download = '包裹数据_' + new Date().toLocaleDateString() + '.xlsx';
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    setTimeout(function() {
+                        document.body.removeChild(a);
+                        layer.msg('导出成功', {icon: 1});
+                    }, 100);
+                } else {
+                    layer.msg(res.msg || '导出文件生成失败', {icon: 2});
+                }
+            },
+            error: function(xhr) {
+                layer.close(loadIndex);
+                var errorMsg = xhr.responseJSON && xhr.responseJSON.msg 
+                             ? xhr.responseJSON.msg 
+                             : '导出失败，状态码: ' + xhr.status;
+                layer.msg(errorMsg, {icon: 2, time: 3000});
+            }
+        });
+    });
+});
 
 // 初始化选中数量显示
 updateSelectedCount();

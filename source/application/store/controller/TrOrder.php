@@ -1188,7 +1188,7 @@ class TrOrder extends Controller
         $shopList = ShopModel::getAllList();
         $lineList = $Line->getListAll();
         if(isset($adminstyle['pageno']['inpacktype']) && $adminstyle['pageno']['inpacktype']==20){
-            // dump($params);die;
+            // dump($pintuanlist);die;
           return $this->fetch('newindex', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));  
         }
         //   dump($params);die;
@@ -1454,6 +1454,8 @@ class TrOrder extends Controller
             $oWeigth = round(($data['length']*$data['width']*$data['height'])/$line['volumeweight'],2);
         }
         //关税和增值服务费用
+        //计算所有的箱子的超长超重费；
+        
         // $otherfree = $line['service_route'];
         // $long = max($data['length'],$data['width'],$data['height']);
         // $otherfree = getServiceFree($line['services_require'],$oWeigth,$long);
@@ -1714,7 +1716,7 @@ class TrOrder extends Controller
               }
           }
         }
-           
+        $formatted = 0;   
         if (preg_match('/^-?\d{1,3}(,\d{3})*(\.\d+)?$/', $lines['predict']['price'])) {
             $floatValue = floatval(str_replace(',', '', $lines['predict']['price']));
             $formatted = number_format($floatValue, 2);
