@@ -969,14 +969,43 @@ var orderTable = table.render({
       var html = '';
       if(d.inpack_type == 0) html += '<span class="am-badge am-badge-success">拼邮订单</span>';
       if(d.inpack_type == 1) html += '<span class="am-badge am-badge-secondary">拼团订单</span>';
-      if(d.inpack_type == 2) html += '<span class="am-badge am-badge-danger">直邮订单</span>';
+      if(d.inpack_type == 2) html += '<span class="am-badge am-badge-primary">直邮订单</span>';
       if(d.inpack_type == 3) html += '<span class="am-badge am-badge-success">拼邮订单</span>';
       if(d.is_exceed == 1) html += '<span class="am-badge am-badge-danger">超时订单</span>';
       return html;
     }},
     {field: 'order_sn', width: 180, title: '系统单号'},
     {field: 'status', width: 80, title: '状态', templet: function(d){
-      return statusText[d.status] || '';
+      var html = '';
+      if(d.status == 0) html += '<span class="am-badge layui-bg-red">' +  statusText[d.status] || '' +'</span>';
+      if(d.status == 1) html += '<span class="am-badge layui-bg-red">' +  statusText[d.status] || '' +'</span>';
+      if(d.status == 2) html += '<span class="am-badge layui-bg-blue">' +  statusText[d.status] || '' +'</span>';
+      if(d.status == 3) html += '<span class="am-badge am-badge-danger">' +  statusText[d.status] || '' +'</span>';
+      if(d.status == 4) html += '<span class="am-badge am-badge-secondary">' +  statusText[d.status] || '' +'</span>';
+      if(d.status == 5) html += '<span class="am-badge am-badge-success">' +  statusText[d.status] || ''+'</span>';
+      if(d.status == 6) html += '<span class="am-badge layui-bg-cyan">' +  statusText[d.status] || '' +'</span>';
+      if(d.status == 7) html += '<span class="am-badge layui-bg-blue">' +  statusText[d.status] || '' +'</span>';
+      if(d.status == 8) html += '<span class="am-badge am-badge-success">' +  statusText[d.status] || '' +'</span>';
+      if(d.status == -1) html += '<span class="am-badge am-badge-danger">' +  statusText[d.status] || '' +'</span>';
+      return html;
+    }},
+    {field: 'pay_type', width: 80, title: '支付类型', templet: function(d){
+      var html = '';
+      if(d.pay_type.value == 0) html += '<span class="am-badge am-badge-success">' + d.pay_type.text +'</span>';
+      if(d.pay_type.value == 1) html += '<span class="am-badge am-badge-danger">' + d.pay_type.text +'</span>';
+      if(d.pay_type.value == 2) html += '<span class="am-badge am-badge-primary">' + d.pay_type.text +'</span>';
+      return html;
+    }},
+    {field: 'is_pay_type', width: 80, title: '支付方式', templet: function(d){
+      var html = '';
+      if(d.is_pay_type.value == 0) html += '<span class="am-badge layui-bg-red">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 1) html += '<span class="am-badge layui-bg-green">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 2) html += '<span class="am-badge layui-bg-blue">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 3) html += '<span class="am-badge am-badge-danger">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 4) html += '<span class="am-badge am-badge-secondary">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 5) html += '<span class="am-badge am-badge-success">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 6) html += '<span class="am-badge layui-bg-cyan">' + d.is_pay_type.text +'</span>';
+      return html;
     }},
     {field: 'status', width: 80, title: '支付状态', templet: function(d){
       var html = '';
@@ -1002,24 +1031,74 @@ var orderTable = table.render({
         <?php endif; ?>
         return html;
     }},
+    {field: 'line', width: 180, title: '寄件仓库', templet: function(d){
+      return d.storage?d.storage.shop_name:'';
+    }},
+    {field: 'line', width: 180, title: '现处仓库', templet: function(d){
+      return d.shop?d.shop.shop_name:'';
+    }},
     {field: 'line', width: 180, title: '渠道', templet: function(d){
       return d.line?d.line.name:'';
     }},
-    {field: 'free', width: 180, title: '基础线路费用', templet: function(d){
-      return d.free;
+    {field: 'free', width: 100, title: '基础费用', templet: function(d){
+      return d.free?d.free:0;
+    }},
+    {field: 'pack_free', width: 80, title: '包装费', templet: function(d){
+      return d.pack_free?d.pack_free:0;
+    }},
+    {field: 'insure_free', width: 80, title: '保险费', templet: function(d){
+      return d.insure_free?d.insure_free:0;
+    }},
+    {field: 'other_free', width: 80, title: '其他费用', templet: function(d){
+      return d.other_free?d.other_free:0;
+    }},
+    {field: 'user_coupon_money', width: 80, title: '优惠券', templet: function(d){
+      return d.usercoupon?d.usercoupon.name:'';
+    }},
+    {field: 'user_coupon_money', width: 80, title: '优惠金额', templet: function(d){
+      return d.user_coupon_money?d.user_coupon_money:0;
+    }},
+    {
+      field: 'total_free', 
+      title: '费用合计', 
+      templet: function(d) {
+            const total = 
+            parseFloat(d.free || 0) + 
+            parseFloat(d.insure_free || 0) + 
+            parseFloat(d.pack_free || 0) + 
+            parseFloat(d.other_free || 0)
+          return isNaN(total) ? "0.00" : total.toFixed(2); // 处理意外NaN
+      }
+    },
+    {field: 'real_payment', width: 80, title: '实际支付', templet: function(d){
+      return d.real_payment; 
+    }},
+    {field: 'waitreceivedmoney', width: 80, title: '代收款', templet: function(d){
+      return d.waitreceivedmoney; 
     }},
     {field: 'usermark', width: 100, title: '唛头'},
-    {field: 'packageitems', width: 80, title: '总件数', templet: function(d){
+    {field: 'packagelist', width: 100, title: '包裹/快递', templet: function(d){
+      return '<a href="<?= url('store/trOrder/package') ?>/id/'+ d.id +'">'+ d.packagelist.length +'&nbsp;&nbsp;<span style="cursor:pointer;color:#1E9FFF">[查看清单]</span></a>';
+    }},
+    {field: 'packageitems', width: 80, title: '箱数/件数', templet: function(d){
       return d.packageitems.length;
     }},
     {field: 'volume', width: 60, title: '体积'},
     {field: 'weight', width: 60, title: '实重'},
     {field: 'cale_weight', width: 100, title: '计费重量'},
-    {field: 'batch', width: 100, title: '批次号', templet: function(d){
-      return d.batch?d.batch.batch_name:'';
-    }},
+    {field: 'batch_name', width: 180, align: 'center',title: '批次号'},
+    {field: 'batch_no', width: 180,align: 'center', title: '提单号/装箱号'},
     {field: 't_name', width: 100, title: '承运商'},
     {field: 't_order_sn', width: 180, title: '国际单号'},
+    {field: 't2_name', width: 100, title: '转运商'},
+    {field: 't2_order_sn', width: 180, title: '转单单号'},
+    {field: 'created_time', width: 180, title: '提交打包'},
+    {field: 'pick_time', width: 180, title: '打包完成'},
+    {field: 'pay_time', width: 180, title: '支付时间'},
+    {field: 'shoprk_time', width: 180, title: '到货时间'},
+    {field: 'receipt_time', width: 180, title: '签收时间'},
+    {field: 'settle_time', width: 180, title: '结算时间'},
+    {field: 'cancel_time', width: 180, title: '取消时间'},
     {field: 'actions', width: 200, title: '操作', fixed: 'right', templet: function(d){
       return '<div class="action-btn-group">'+
         (<?= checkPrivilege('tr_order/edit') ? 'true' : 'false' ?> ? 
