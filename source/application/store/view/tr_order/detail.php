@@ -281,6 +281,17 @@ $(function () {
         updateAllVolWeights();
         checkAndCalculate(); // 检查是否需要计算运费
     });
+    
+     // 选择图片
+        $('.upload-file').selectImages({
+            name: 'data[images][]' , multiple: true
+        }); 
+
+        /**
+         * 表单验证提交
+         * @type {*}
+         */
+        $('#my-form').superForm();
 });
 
 // 检查并计算运费

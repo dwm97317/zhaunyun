@@ -336,6 +336,7 @@ class Inpack extends InpackModel
         $userData = (new UserModel)->where('user_id',$pack['member_id'])->find();
         $pack['userName']=$userData['nickName'];
         //判断是否更新状态到已查验
+        // dump($data);die;
         if(isset($data['verify']) && ($data['verify'] ==1)){
             $data['status'] = 2;
             $data['pick_time'] = getTime();
@@ -377,7 +378,7 @@ class Inpack extends InpackModel
         }
         
         unset($data['item']);
-        // dump($data);die;
+       
         $rers =  $this->where('id',$data['id'])->update($data);
         
        if($rers || $imgres){return true;}
