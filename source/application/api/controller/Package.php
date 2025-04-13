@@ -2256,7 +2256,7 @@ class Package extends Controller
      public function details(){
         $field_group = [
            'edit' => [
-              'id,order_sn,storage_id,country_id,express_name,express_num,express_id,free,pack_free,price,address_id,status,line_id,remark,weight,usermark'
+              'id,order_sn,storage_id,country_id,express_name,express_num,express_id,free,pack_free,price,address_id,status,line_id,remark,weight,usermark,volume'
            ],
         ];
         $id = \request()->post('id');
