@@ -55,7 +55,7 @@ Class TrackApi {
               'number' => $data['track_sn'],
               'carrier' => $data['t_number'],
               'order_time'=>date("Y-m-d"),
-              'param'=>$data['phone'],
+              'param'=>!empty($data['phone'])?$data['phone']:'',
               'lang'=> $this->lang
               ]];
           $api = '/register';
