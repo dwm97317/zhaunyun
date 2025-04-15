@@ -581,7 +581,7 @@
                     </div>
                 </div>
                 <div class="am-form-group">
-                    <label class="am-u-sm-3 am-form-label form-require">
+                    <label class="am-u-sm-3 am-form-label">
                         选择货架
                     </label>
                     <div class="am-u-sm-8 am-u-end">
@@ -592,7 +592,7 @@
                     </div>
                 </div>
                 <div class="am-form-group">
-                    <label class="am-u-sm-3 am-form-label form-require">
+                    <label class="am-u-sm-3 am-form-label">
                         选择货位
                     </label>
                     <div class="am-u-sm-8 am-u-end">

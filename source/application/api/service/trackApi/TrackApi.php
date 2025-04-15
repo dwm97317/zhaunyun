@@ -55,6 +55,7 @@ Class TrackApi {
               'number' => $data['track_sn'],
               'carrier' => $data['t_number'],
               'order_time'=>date("Y-m-d"),
+              'param'=>$data['phone'],
               'lang'=> $this->lang
               ]];
           $api = '/register';
@@ -62,7 +63,7 @@ Class TrackApi {
           $data = json_encode($body);
             
           $res = $this->curl_post($api,$data);
-        //  dump($res);die;
+         
           if (!$res['code']){
               echo "请求出错";
               die;

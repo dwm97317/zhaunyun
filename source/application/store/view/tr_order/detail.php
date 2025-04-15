@@ -341,9 +341,9 @@ function calculateSingleVolWeight(row) {
 
 // 修改后的updateAllWeights函数
 function updateAllWeights() {
-    if(isCalculating) return;
-    isCalculating = true;
-    
+    // if(isCalculating) return;
+    // isCalculating = true;
+    // console.log(777);
     let totalActualWeight = 0;
     let totalVolWeight = 0;
     let hasValidInputs = false;

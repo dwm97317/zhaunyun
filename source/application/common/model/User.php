@@ -19,6 +19,22 @@ class User extends BaseModel
     // 性别
     private $gender = ['保密', '男', '女'];
     
+    // 新增方法
+    public function bindWechat($openid)
+    {
+        $wechat = new \app\common\library\wechat;
+        $userInfo = $wechat->getUserInfo($openid);
+        
+        $this->save([
+            'openid'  => $openid,
+            'unionid' => $userInfo['unionid'],
+            'avatar'  => $userInfo['avatar'] // 原有用户表字段
+        ]);
+        
+        return $this;
+    }
+    
+    
     // 余额不变更，只更新日志
     public function logUpdate($type,$member_id,$amount,$remark){
         $member = self::find($member_id);

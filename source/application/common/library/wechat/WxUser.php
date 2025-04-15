@@ -92,5 +92,26 @@ class WxUser extends WxBase
         }
         return $result;
     }
+    
+        // 获取用户信息（兼容BestShop用户表结构）
+    public function getUserInfo($openid)
+    {
+        $accessToken = $this->getAccessTokenForH5();
+        $url = "https://api.weixin.qq.com/cgi-bin/user/info?access_token={$accessToken}&openid={$openid}&lang=zh_CN";
+        $userInfo = json_decode(file_get_contents($url), true);
+        
+        if (isset($userInfo['errcode'])) {
+            throw new \Exception("微信接口错误: {$userInfo['errmsg']}");
+        }
+        
+        // 返回格式与BestShop用户表匹配
+        return [
+            'openid'   => $userInfo['openid'],
+            'unionid'  => $userInfo['unionid'] ?? '',
+            'nickname' => $userInfo['nickname'] ?? '',
+            'avatar'   => $userInfo['headimgurl'] ?? ''
+        ];
+    }
+
 
 }

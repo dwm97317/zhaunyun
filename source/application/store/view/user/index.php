@@ -170,9 +170,13 @@
                                           <?php endif;?>
                                     </td>
                                     <td class="am-text-middle">
+                                        
                                         开放平台ID:<?= $item['union_id'] ?> <br> 
                                         小程序ID:<?= $item['open_id'] ?> <br>
                                         公众号ID:<?= $item['gzh_openid'] ?> <br> 
+                                        <span class="am-badge <?= $item['is_subscribe']==1?'am-badge-success':'am-badge-secondary' ?>">
+                                            <?= $item['is_subscribe']==1?"已关注":"未关注"   ?>
+                                        </span>
                                     </td>
                                      <td class="am-text-middle"><?= $item['service']['real_name'] ?></td>
                                     <!--<?php $usource = [1=>'小程序',2=>'公众号',3=>'PC端',4=>'App'] ?>-->

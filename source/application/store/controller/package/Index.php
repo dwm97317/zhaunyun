@@ -953,35 +953,45 @@ class Index extends Controller
     public function changeShelf(){
         $ids = $this->postData('selectIds')[0];
         $shelf_unit_id = $this->postData('shelf')['shelf_unit'];
+        $shop_id = $this->postData('shelf')['shop_id'];
         $idsArr = explode(',',$ids);
         $pack = (new Package())->whereIn('id',$idsArr)->select();
-        $shelf = (new ShelfUnit())->find($shelf_unit_id);
-        // dump($shelf_unit_id);die;
-        if (!$shelf){
-            return $this->renderError('货架单元不存在');
-        }
-        foreach($pack as $v){
-            // 删除原有货物存储位
-            $shelfUnitItem =  (new ShelfUnitItem())->where(['pack_id'=>$v['id']])->find();
-            if ($shelfUnitItem){
-                if (!$shelfUnitItem){
-                    return $this->renderError('货位数据错误');
-                }
-                if ($shelfUnitItem['shelf_unit_id'] == $shelf_unit_id){
-                    return $this->renderError('无效转移');
-                }
-                (new ShelfUnitItem())->where(['pack_id'=>$v['id']])->delete();
+        if(!empty($shelf_unit_id)){
+            $shelf = (new ShelfUnit())->find($shelf_unit_id);
+            if (!$shelf){
+                return $this->renderError('货架单元不存在');
             }
-            $upShelf = [
-              'shelf_unit' => $shelf_unit_id,
-              'express_num' => $v['express_num'],
-              'user_id' => $v['member_id'],
-              'created_time' => getTime(),
-              'pack_id' => $v['id'],
-            ];
-            $res = (new ShelfUnitItem())->postplus($upShelf);
         }
-        return $this->renderSuccess('批量修改货架位置成功');
+        
+        //如果仓库id有改变，则进行批量更新归属仓库
+        if(!empty($shop_id)){
+            (new Package())->whereIn('id',$idsArr)->update(['storage_id'=>$shop_id]);
+        }
+        
+        foreach($pack as $v){
+            if(!empty($shelf_unit_id)){
+                // 删除原有货物存储位
+                $shelfUnitItem =  (new ShelfUnitItem())->where(['pack_id'=>$v['id']])->find();
+                if ($shelfUnitItem){
+                    if (!$shelfUnitItem){
+                        return $this->renderError('货位数据错误');
+                    }
+                    if ($shelfUnitItem['shelf_unit_id'] == $shelf_unit_id){
+                        return $this->renderError('无效转移');
+                    }
+                    (new ShelfUnitItem())->where(['pack_id'=>$v['id']])->delete();
+                }
+                $upShelf = [
+                  'shelf_unit' => $shelf_unit_id,
+                  'express_num' => $v['express_num'],
+                  'user_id' => $v['member_id'],
+                  'created_time' => getTime(),
+                  'pack_id' => $v['id'],
+                ];
+                $res = (new ShelfUnitItem())->postplus($upShelf);
+            }
+        }
+        return $this->renderSuccess('批量修改包裹位置成功');
     }
     
     

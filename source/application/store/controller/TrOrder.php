@@ -1978,7 +1978,7 @@ class TrOrder extends Controller
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
        $data['barcode'] = $generatorSVG->getBarcode($data['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
        $data['cover_id'] = UploadFile::detail($data['setting']['cover_id']);
-        // dump($data['address']->toArray());die;
+        // dump($data->toArray());die;
         $data['total_free'] = $data['free'] + $data['pack_free'] + $data['insure_free']+$data['other_free'];
         $line_type_unit = [10=>'g',20=>'kg',30=>'lbs',40=>'cbm'];
         $data['line_type_unit'] = $line_type_unit[$data['line']['line_type_unit']];
@@ -2384,6 +2384,7 @@ class TrOrder extends Controller
 		$jianshu = '<td class="font_m">件數：1/1</td>';
     }else{
         $hll = '<td class="font_m">重量：'.$data['packageitems'][$data['index']]['cale_weight'].$data['line_type_unit'].'</td>
+        <td class="font_m">計費总重量：'.$data['cale_weight'].$data['line_type_unit'].'</td>
 		            <td class="font_m">尺寸：'.$data['packageitems'][$data['index']]['length'].'*'.$data['packageitems'][$data['index']]['width'].'*'.$data['packageitems'][$data['index']]['height'].'</td>';
 		$jianshu = '<td class="font_m">件數：'.($data['index'] +1).'/'.count($data['packageitems']).'</td>';
     }

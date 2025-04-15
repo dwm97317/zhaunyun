@@ -49,6 +49,42 @@
                                 </div>
                             </div>
                             <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">服务器配置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    服务器地址(URL) <span class="tpl-form-line-small-title">(URL)</span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    
+                                           <small>默认主域名+ /index.php?s=/api/wechat/callback&wxapp_id=<?= $model['wxapp_id'] ?></small>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label">
+                                    公众号Token <span class="tpl-form-line-small-title">(Token)</span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[wechat_token]"
+                                           value="<?= $model['wechat_token'] ?>">
+                                           <small>登录微信公众平台，设置与开发 - 基本配置 - 开发接口管理，Token</small>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label">
+                                    公众号EncodingAESKey <span class="tpl-form-line-small-title">(EncodingAESKey)</span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[encodingAESKey]"
+                                           value="<?= $model['encodingAESKey'] ?>">
+                                           <small>登录微信公众平台，设置与开发 - 基本配置 - 开发接口管理，EncodingAESKey</small>
+                                </div>
+                            </div>
+                            
+                            
+                            
+                            
+                            <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">微信开放平台</div>
                             </div>
                             <div class="am-form-group">

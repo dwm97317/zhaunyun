@@ -126,6 +126,7 @@ class WxBase
      */
     protected function getAccessTokenForH5()
     {
+        log_write("获取access_token：".$this->appWxappid);
         $cacheKey = $this->appWxappid . '@access_token';
         if (!Cache::get($cacheKey)) {
             $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->appWxappid}&secret={$this->appwxsecret}";
@@ -180,6 +181,7 @@ class WxBase
         }
         return Cache::get($cacheKey);
     }
+    
     
 
     /**

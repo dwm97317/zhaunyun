@@ -21,20 +21,30 @@ class Logistics extends LogisticsModel
      }
      
      public function getorderno($sn){
-         $data =  $this->where('order_sn',$sn)->where('express_num',null)->order('created_time desc')->select()->toArray();
-        //  dump($this->getLastsql());die;
+         $data =  $this->where('order_sn',$sn)
+         ->where('express_num',null)
+         ->group('logistics_describe')
+         ->order('created_time desc')
+         ->select()->toArray();
          return $data;
      }
      
      public function getlogisticssn($sn){
-         $data =  $this->where('logistics_sn',$sn)->where('express_num',null)->order('created_time desc')->select()->toArray();
-        //  dump($this->getLastsql());die;
+         $data =  $this->where('logistics_sn',$sn)
+         ->where('express_num',null)
+         ->order('created_time desc')
+         ->group('logistics_describe')
+         ->select()->toArray();
          return $data;
      }
      
      // 获取系统内部信息
      public function getList($sn){
-        $data = $this->with(['clerk'])->where('express_num',$sn)->order('created_time desc')->select()->toArray();
+        $data = $this->with(['clerk'])
+        ->where('express_num',$sn)
+        ->order('created_time desc')
+        ->group('logistics_describe')
+        ->select()->toArray();
         return $data;
      }
      
@@ -46,7 +56,7 @@ class Logistics extends LogisticsModel
         //查询17track物流信息
         if (!empty($setting['track17']['key'])){
         $track = (new TrackApi())->track(['track_sn'=>$sn,'t_number'=>$number,'wxapp_id'=> $wxappId]);
-//   dump($sn);die;
+
         if(!empty($track)){
                 foreach ($track['tracking']['providers'][0]['events'] as $v){
                     $data[] = [

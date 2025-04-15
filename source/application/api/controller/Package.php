@@ -2662,7 +2662,7 @@ class Package extends Controller
        
 
         if(!empty($inpackData) ){
-            
+          
             if($inpackData['transfer']==0){
                 $ditchdatas = $DitchModel->where('ditch_id','=',$inpackData['t_number'])->find();
                 
@@ -2710,6 +2710,7 @@ class Package extends Controller
                
                 
             }else{
+               
                 if(!empty($inpackData['t_order_sn'])){
                      $logicddd = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
                 }
@@ -2722,6 +2723,7 @@ class Package extends Controller
             $packinck = $PackageModel->where(['inpack_id'=>$inpackData['id'],'is_delete' => 0])->find();
             if(!empty($packinck)){
                 $logictik = $Logistics->getorderno($inpackData['order_sn']);
+                // dump($logictik);die;
             }else{
                 if(!empty($packinck['express_num'])){
                     $logictik = $Logistics->getList($packinck['express_num']);
