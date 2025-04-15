@@ -1519,7 +1519,7 @@ class Package extends Controller
          $this->user = $this->getUser(); 
          $query = [];
          $query['status'] = [1,2,3,4,5];
-         $query['is_pay'] = 0;
+         $query['is_pay'] = 2;
          $query['inpack_type'] = 0;
          $query['member_id'] = $this->user['user_id']; 
          $list = (new Inpack())->getList($query);
