@@ -2384,7 +2384,7 @@ class TrOrder extends Controller
 		$jianshu = '<td class="font_m">件數：1/1</td>';
     }else{
         $hll = '<td class="font_m">重量：'.$data['packageitems'][$data['index']]['cale_weight'].$data['line_type_unit'].'</td>
-        <td class="font_m">計費总重量：'.$data['cale_weight'].$data['line_type_unit'].'</td>
+        <td class="font_m">計費總重量：'.$data['cale_weight'].$data['line_type_unit'].'</td>
 		            <td class="font_m">尺寸：'.$data['packageitems'][$data['index']]['length'].'*'.$data['packageitems'][$data['index']]['width'].'*'.$data['packageitems'][$data['index']]['height'].'</td>';
 		$jianshu = '<td class="font_m">件數：'.($data['index'] +1).'/'.count($data['packageitems']).'</td>';
     }
