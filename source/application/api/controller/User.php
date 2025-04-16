@@ -143,8 +143,21 @@ class User extends Controller
     }
     
     //通过code查询用户信息
+    public function getUserInfoByUserMark(){
+        $data = $this->request->param();
+        $UserMark = new UserMark;
+        $user_id = $UserMark->where('mark',$data['usermark'])->value('user_id');
+        return $this->renderSuccess([
+            'userinfo' => UserModel::detail($user_id),
+        ]);
+    }
+    
+    //通过code查询用户信息
     public function getUserInfoByCode(){
         $data = $this->request->param();
+        if(empty($data['user_id'])){
+            return $this->renderError("请输入用户编号");
+        }
         return $this->renderSuccess([
             'userinfo' => UserModel::detail(['user_code'=>$data['user_id']]),
         ]);
