@@ -10,10 +10,6 @@ Class TrackApi {
       public $lang = 'en';
       public $wxappid = '';
       
-      
-    //   public function __construct(){
-    //     //   dump($wxapp_id);die;
-    //   } 
 
       // 封装header 头部数据
       private function header(){
@@ -22,10 +18,6 @@ Class TrackApi {
           if ($setting['track17']['key']){
                 $this->secret = $setting['track17']['key'];
           }
-          if ($setting['track17']['lang']){
-                $this->lang = $setting['track17']['lang'];
-          }
-        
           return [
              '17token:'.$this->secret,
              'Content-Type:application/json'
@@ -50,20 +42,30 @@ Class TrackApi {
       }
       
       public function register($data){
-          $this->wxappid = $data['wxapp_id'] ;      
+          $this->wxappid = $data['wxapp_id'] ;  
+          $setting = Setting::getItem("store",$this->wxappid);
           $body = [[
               'number' => $data['track_sn'],
               'carrier' => $data['t_number'],
               'order_time'=>date("Y-m-d"),
               'param'=>!empty($data['phone'])?$data['phone']:'',
-              'lang'=> $this->lang
-              ]];
+              'lang'=> $setting['track17']['lang']
+          ]];
+          if($data['t_number'] == 100003){
+             $body = [[
+              'number' => $data['track_sn'],
+              'carrier' => $data['t_number'],
+              'order_time'=>date("Y-m-d"),
+              'param'=>date("Y/m/d",time()),
+              'lang'=> $setting['track17']['lang']
+             ]]; 
+          }
           $api = '/register';
-  
+
           $data = json_encode($body);
             
           $res = $this->curl_post($api,$data);
-         
+        //   dump($res);die;
           if (!$res['code']){
               echo "请求出错";
               die;
@@ -102,6 +104,7 @@ Class TrackApi {
               die;
           }
           $resJson = json_decode($res['data'],true);
+            //  dump($resJson);die;
           if($resJson['code']==401){
               return []; 
           }

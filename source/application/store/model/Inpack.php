@@ -617,102 +617,7 @@ class Inpack extends InpackModel
             if (isset($data[$v]))
                $update[$v] = $data[$v];
         }
-    //   dump($data);die;
         $update['updated_time'] = getTime();
-
-        // if (isset($data['pay_method'])){ 
-        //     $pack = $this->where(['id'=>$data['id']])->field('id,order_sn,weight,free,other_free,pack_free,member_id,created_time,wxapp_id,pack_ids')->find();
-        //     if ($data['pay_method']==1){
-            
-        //         $update['status'] = 5;
-        //         $update['pay_time'] = getTime();
-        //         $update['is_pay'] = 1;
-        //         // 立即扣款 
-        //         $allPrice = $data['free'] + $data['pack_free'] + $data['other_free'];
-        //         $user = (new User())->find($pack['member_id']);
-        //         Db::startTrans();
-        //         if ($user['balance']<$allPrice){
-        //             return $this->renderError('余额不足,请充值');
-        //         }
-        //         $memberUp = (new User())->where(['user_id'=>$user['user_id']])->update([
-        //           'balance'=>$user['balance']-$allPrice,
-        //           'pay_money' => $user['pay_money']+ $allPrice,
-        //         ]);
-        //          if (!$memberUp){
-        //              Db::rollback();
-        //              return $this->renderError('支付失败,请重试');
-        //          }
-        //           // 新增余额变动记录
-        //          BalanceLog::add(SceneEnum::CONSUME, [
-        //           'user_id' => $user['user_id'],
-        //           'money' => $allPrice,
-        //           'remark' => '包裹单号'.$pack['order_sn'].'的运费支付',
-        //           'sence_type' => 2,
-        //           'wxapp_id' => (new PackageModel())->getWxappId(),
-        //       ], [$user['nickName']]);
-        //     }else{
-        //         $update['status'] = 5;
-        //     }
-        // }
-        
-        // if (!isset($data['type'])){
-        //      // 更新查验物流信息
-        //         $pack = $this->where(['id'=>$data['id']])->find();
-        //         $userData = (new UserModel)->where('user_id',$pack['member_id'])->find();
-        //         if (isset($data['verify']) && $data['verify']==1){
-                 
-        //         $update['status'] = 2;
-        //         if ($pack['source']==2){
-        //             $update['status'] = 2;
-        //         }
-        //         unset($update['verify']);
-               
-        //         $pack['total_free'] = $pack['free']+$pack['other_free']+$pack['pack_free'];
-        //         $packageList = (new Package())->where('inpack_id',$data['id'])->select();
-
-        //         //判断是否需要添加物流信息
-        //         if($noticesetting['dosend']['is_enable']==1){
-        //             foreach ($packageList as $v){
-        //                 Logistics::add($v['id'],$noticesetting['dosend']['describe']);
-        //             } 
-        //         }
-                
-        //         //发送订阅消息以及模板消息
-        //         $pack['userName']=$userData['nickName'];
-        //         $pack['remark']= $noticesetting['dosend']['describe'];
-                
-        //         if($tplmsgsetting['is_oldtps']==1){
-        //             $res =$this->sendEnterMessage([$pack],'payment');
-        //         }else{
-        //             Message::send('package.sendpack',$pack);
-        //         }
-                
-        //         //发送邮件通知
-        //         $emailsetting = SettingModel::getItem('email');
-        //         if($emailsetting['is_enable']==1 && (isset($pack['member_id']) || !empty($pack['member_id']))){
-        //             $EmailUser = UserModel::detail($pack['member_id']);
-        //             $EmailData['code'] = $data['id'];
-        //             $EmailData['logistics_describe']=$noticesetting['dosend']['describe'];
-        //             (new Email())->sendemail($EmailUser,$EmailData,$type=1);
-        //         }  
-                
-        //     }
-        //     // if (isset($data['pay_status'])){
-        //     //     if (isset($update['status']) && $update['status']!=6){
-        //     //         $update['status'] = $data['pay_status'];
-        //     //     }
-        //     //     if($data['pay_status']){
-        //     //         $update['status'] = 3;
-        //     //         $update['pay_time'] = getTime();
-        //     //     }
-
-        //     //     // 更新查验物流信息
-        //     //     $pack = $this->where(['id'=>$data['id']])->field('id,order_sn,pack_ids')->find();
-        //     //     $packids = explode(',',$pack['pack_ids']);
-        //     //     (new Package())->where('id','in',$packids)->update(['status'=>6]);
-        //     //     unset($update['pay_status']);
-        //     // }
-        // }else{
             $update['status'] = '6';
             $update['sendout_time'] = getTime();
              // 更新查验物流信息
@@ -727,9 +632,9 @@ class Inpack extends InpackModel
             //   dump($update);die;
              //判断是否需要添加物流信息
             if($noticesetting['dosend']['is_enable']==1){
-                if(!empty($pack['t_order_sn'])){
-                   $noticesetting['dosend']['describe'] = $noticesetting['dosend']['describe'] .$pack['t_order_sn']; 
-                }
+                // if(!empty($pack['t_order_sn'])){
+                //   $noticesetting['dosend']['describe'] = $noticesetting['dosend']['describe'] .$pack['t_order_sn']; 
+                // }
                 if(strpos($noticesetting['dosend']['describe'],'code')){
                      $des = str_ireplace('{code}', $pack['t_order_sn'], $noticesetting['dosend']['describe']);
                      Logistics::addInpackLog($pack['order_sn'],$des,$pack['t_order_sn']);

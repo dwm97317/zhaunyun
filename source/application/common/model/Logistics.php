@@ -196,7 +196,6 @@ class Logistics extends BaseModel
         $model = new static;
         return $model->insert([
             'order_sn' => $Inpack['order_sn'],
-            // 'express_num' => $Inpack['t_order_sn'],
             'status' => $status,
             'status_cn' => $model->maps[$status],
             'logistics_describe' => $desc?$desc:'包裹状态更新',
