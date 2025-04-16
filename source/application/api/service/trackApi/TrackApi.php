@@ -102,7 +102,9 @@ Class TrackApi {
               die;
           }
           $resJson = json_decode($res['data'],true);
-        // dump($resJson);die;
+          if($resJson['code']==401){
+              return []; 
+          }
           if (isset($resJson['data']['rejected'][0]) && $resJson['data']['rejected'][0]['error']['code']){
               if ($resJson['data']['rejected'][0]['error']['code']==-18019902){
                   $this->track($data);

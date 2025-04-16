@@ -74,7 +74,7 @@
                                          </div>
                                          <?php endforeach; else: ?>
                                          <div>
-                                            <button type="button" onclick="addfreeRule(this)" class="j-submit am-btn am-btn-secondary">添加分箱
+                                            <button type="button" onclick="addfreeRule(this)" class="j-submit am-btn am-btn-secondary">添加箱子
                                             </button>
                                          </div>
                                          <?php endif; ?>
@@ -85,8 +85,9 @@
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">订单总重量(<?= $set['weight_mode']['unit'] ?>) </label>
                                 <div class="am-u-sm-9 am-u-end" style="position: relative">
                                      <div class="span">
-                                         <input type="text"  <?= $detail['is_pay']==1?'disabled=true':'' ;?>  class="tpl-form-input" style="width:80px;color:red"   name="data[weight]"
+                                         <input type="text" readonly <?= $detail['is_pay']==1?'disabled=true':'' ;?>  class="tpl-form-input" style="width:80px;color:red"   name="data[weight]"
                                            value="<?= $detail['weight']??'' ;?>" placeholder="请输入重量">
+                                           <small style="color:#ff6666;">添加箱子，输入长宽高和重量</small>
                                      </div>
                                 </div>
                             </div>
@@ -94,7 +95,7 @@
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">体积重</label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="span">
-                                        <input style="width:80px;color:red;" type="text" class="tpl-form-input" id="weigthV" name="data[volume]"
+                                        <input style="width:80px;color:red;" readonly type="text" class="tpl-form-input" id="weigthV" name="data[volume]"
                                            value="<?= $detail['volume']??'' ;?>" placeholder="请输入价格">
                                     </div>
                                 </div>
@@ -102,7 +103,7 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">计费重量</label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <input type="text" class="tpl-form-input" id="oWei" name="data[cale_weight]"
+                                    <input type="text" class="tpl-form-input" readonly id="oWei" name="data[cale_weight]"
                                            value="<?= $detail['cale_weight']??'' ;?>" placeholder="请输入价格">
                                 </div>
                             </div>

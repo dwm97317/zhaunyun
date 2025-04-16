@@ -831,6 +831,36 @@ class Package extends Controller
         return $this->renderSuccess($data);
      }
      
+     // 未打包列表-v2
+     public function getUnpackageList(){
+        $this->user = $this->getUser(); 
+        $field = 'id,country_id,order_sn,express_num,weight,storage_id,created_time,remark,source';
+       
+        $where[] = ['is_delete','=',0];
+        $where[] = ['is_take','=',2];
+        $where[] = ['member_id','=',$this->user['user_id']];
+        $where[] = ['status','in',[2,3,4,7]];
+        $param = $this->request->param();
+        if(isset($param['usermark'])){
+           $where[] = ['usermark','=',$param['usermark']];
+        }
+        if(isset($param['category_id'])){
+            $catelist = (new Category())->getSonCategoryAll($param['category_id']);
+            $paramwhere['category_id'] = $catelist;
+            $paramwhere['is_delete'] = 0;
+            $paramwhere['is_take'] = 2;
+            $paramwhere['member_id'] = $this->user['user_id'];
+            $paramwhere['status'] = [2,3,4,7];
+            $data = (new PackageModel())->searchPackageForCategory($paramwhere,$field);
+            $totalWeight = $data['totalWeight'];
+            unset($data['totalWeight']);
+            return $this->renderSuccess(compact('data','totalWeight'));
+        }
+        $data = (new PackageModel())->Dbquery300($where,$field);
+        return $this->renderSuccess(compact('data'));
+     }
+     
+     
      // 未打包列表
      public function unpack(){
         $this->user = $this->getUser(); 

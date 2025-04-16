@@ -216,6 +216,36 @@ class Package extends PackageModel
     }
     
      // 查询数据
+    public function searchPackageForCategory($where,$field){
+         // 先获取总重量
+        $totalWeight = $this->setSearchQuery($where)
+        ->alias('a')
+        ->join('package_item c', 'c.express_num = a.express_num',"LEFT")
+        ->sum('a.weight'); // 假设重量字段名为weight
+        
+        $result =  $this->setSearchQuery($where)
+          ->alias('a')
+          ->with(['country','storage','packageimage.file'])
+          ->field('a.*,c.express_num')
+          ->join('package_item c', 'c.express_num = a.express_num',"LEFT")
+          ->Order('a.created_time DESC')
+          ->paginate(300);
+        
+         $result['totalWeight'] = $totalWeight;
+         return $result;
+    }
+    
+    // 设置查询条件
+    public function setSearchQuery($param){
+        !empty($param['member_id']) && $this->where('a.member_id','=',$param['member_id']);
+        !empty($param['category_id']) && $this->where('c.class_id','in',$param['category_id']);
+        !empty($param['is_take']) && $this->where('is_take','=',$param['is_take']);
+        !empty($param['status']) && $this->where('a.status','in',$param['status']);
+        !empty($param['is_delete']) && $this->where('a.is_delete','=',$param['is_delete']);
+        return $this; 
+    }
+    
+    // 查询数据
     public function Dbquery300($where,$field){
       return $this->setQuery($where)
       ->with(['country','storage','packageimage.file'])

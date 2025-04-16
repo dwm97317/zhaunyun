@@ -25,5 +25,18 @@ class Category extends Controller
         $list = array_values(CategoryModel::getCacheTree());
         return $this->renderSuccess(compact('templet', 'list'));
     }
+    
+    
+    /**
+     * 获取主分类
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function getParentCategory()
+    {
+        // 商品分类列表
+        $list = (new CategoryModel())->getParentCategory();
+        return $this->renderSuccess(compact('list'));
+    }
 
 }
