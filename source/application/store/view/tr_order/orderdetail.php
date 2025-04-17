@@ -39,21 +39,18 @@
                                 <td class="">
                                     <div class="td__order-price am-text-left">
                                         <ul class="am-avg-sm-2">
-                                            <li class="am-text-right">长：</li>
-                                            <li class="am-text-right"><?= $detail['length'] ?> <?= $set['size_mode']['unit'] ?></li>
-                                        </ul>
-                                            <ul class="am-avg-sm-2">
-                                                <li class="am-text-right">宽：</li>
-                                                <li class="am-text-right"><?= $detail['width'] ?> <?= $set['size_mode']['unit'] ?></li>
-                                            </ul>
-                                            <ul class="am-avg-sm-2">
-                                                <li class="am-text-right">高：</li>
-                                                <li class="am-text-right"><?= $detail['height'] ?> <?= $set['size_mode']['unit'] ?></li>
-                                            </ul>
-                                        <ul class="am-avg-sm-2">
                                             <li class="am-text-right">重量：</li>
                                             <li class="am-text-right"><?= $detail['weight'] ?> <?= $set['weight_mode']['unit'] ?>(<?= $set['weight_mode']['unit_name'] ?>)</li>
                                         </ul>
+                                        <ul class="am-avg-sm-2">
+                                            <li class="am-text-right">体积重：</li>
+                                            <li class="am-text-right"><?= $detail['volume'] ?><?= $set['weight_mode']['unit'] ?></li>
+                                        </ul>
+                                        <ul class="am-avg-sm-2">
+                                            <li class="am-text-right">计费重量：</li>
+                                            <li class="am-text-right"><?= $detail['cale_weight'] ?> <?= $set['weight_mode']['unit'] ?></li>
+                                        </ul>  
+                                        
                                     </div>
                                 </td>
                                 <td>

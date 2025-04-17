@@ -66,6 +66,9 @@ class Setting extends EnumBasics
 
     // 分类页模板
     const PAGE_CATEGORY_TEMPLATE = 'page_category_template';
+    
+     // 微信公众号设置
+    const WECHAT = 'wechat';
 
     /**
      * 获取订单类型值
@@ -77,6 +80,10 @@ class Setting extends EnumBasics
             self::STORE => [
                 'value' => self::STORE,
                 'describe' => '系统设置',
+            ],
+            self::WECHAT => [
+                'value' => self::WECHAT,
+                'describe' => '微信公众号设置',
             ],
             self::BLINDBOX => [
                 'value' => self::BLINDBOX,

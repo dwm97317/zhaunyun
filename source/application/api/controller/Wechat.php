@@ -107,8 +107,17 @@ class Wechat
                 $event = trim($postObj->Event);
                 if ($event == 'subscribe') {
                     //根据公众号openid = $fromUser来获取uniacid，并根据是否已经有用户信息来决定是否注册用户;
-                    $this->getUserInfo($fromUser,$wxapp_id);
-                    return $this->responseText($fromUser, $toUser, "感谢关注！");
+                    $userResult = $this->getUserInfo($fromUser,$wxapp_id);
+                    $storesetting = Setting::getItem('store',$wxapp_id);
+                    $setting = Setting::getItem('wechat',$wxapp_id);
+                    if($storesetting['usercode_mode']['is_show']==0){
+                        $welcomeMessage = str_replace('{code}', "ID:".$userResult['user_id'], $setting['subscribe']);
+                    }else{
+                        $welcomeMessage = str_replace('{code}', "编号:".$userResult['user_code'], $setting['subscribe']);
+                    }
+                    
+                    log_write($welcomeMessage);
+                    return $this->responseText($fromUser, $toUser,$welcomeMessage);
                 }
                 if ($event == 'unsubscribe') {
                     // 如果用户取消关注，先查询用户信息，查到后设置用户已经取消关注
@@ -182,7 +191,7 @@ class Wechat
            ]);
         }
        
-        return $userInfo; // 包含 unionid（如果存在）
+        return $userResult; // 包含 unionid（如果存在）
     }
     
     private function checkUserCode($setting){

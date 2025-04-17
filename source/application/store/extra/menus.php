@@ -651,6 +651,21 @@ return [
                 'index' => 'wxapp/lang',
             ],
             [
+                'name' => '微信公众号',
+                'index' => 'wxapp/mp',
+                'active' => true,
+                'submenu' => [
+                    [
+                        'name' => '菜单管理',
+                        'index' => 'wxapp/mp',
+                    ],
+                    [
+                        'name' => '自动回复',
+                        'index' => 'wxapp/wechat'
+                    ],
+                ]
+            ],
+            [
                 'name' => '页面管理',
                 'active' => true,
                 'submenu' => [

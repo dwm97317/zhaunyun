@@ -3,7 +3,7 @@
 namespace app\store\service;
 
 use think\Config;
-
+use app\api\model\Wxapp as WxappModel;
 /**
  * 商家后台菜单业务
  * Class Menus

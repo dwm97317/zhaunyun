@@ -679,6 +679,15 @@ class Setting extends BaseModel
                     ]
                 ]
             ],
+            // 微信公众号设置
+            'wechat' => [
+                'key' => 'wechat',
+                'describe' => '公众号设置',
+                'values' => [
+                    'subscribe' => '感谢关注！', //被关注回复
+                    'autoreply' => '已通知管理员，请稍等', //收到消息回复
+                ]
+            ],
             // 支付设置
             'paytype' => [
                 'key' => 'paytype',

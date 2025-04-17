@@ -93,7 +93,7 @@ class WxUser extends WxBase
         return $result;
     }
     
-        // 获取用户信息（兼容BestShop用户表结构）
+    // 获取用户信息（兼容BestShop用户表结构）
     public function getUserInfo($openid)
     {
         $accessToken = $this->getAccessTokenForH5();
@@ -112,6 +112,10 @@ class WxUser extends WxBase
             'avatar'   => $userInfo['headimgurl'] ?? ''
         ];
     }
-
+    
+    //AccessToken
+    public function getAccessToken(){
+        return $this->getAccessTokenForH5();
+    }
 
 }

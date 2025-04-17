@@ -7,6 +7,8 @@ use app\store\model\Setting as SettingModel;
 use app\store\model\store\User;
 use think\Cache;
 use app\common\library\AITool\BaiduTextTran;
+use app\store\model\WechatMenu as WechatMenuModel;
+
 /**
  * 小程序管理
  * Class Wxapp
@@ -33,6 +35,26 @@ class Wxapp extends Controller
         return $this->renderError($model->getError() ?: '更新失败');
     }
 
+    /**
+     * 小程序设置
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function wechat()
+    {
+        if (!$this->request->isAjax()) {
+            $values = SettingModel::getItem('wechat');
+            // dump($values);die;
+            return $this->fetch('wechat', ['values' => $values]);
+        }
+        $model = new SettingModel;
+        if ($model->edit('wechat', $this->postData('wechat'))) {
+            return $this->renderSuccess('操作成功');
+        }
+        return $this->renderError($model->getError() ?: '操作失败');
+    }
+
+
     // web端设置    
     public function web(){
          // 当前小程序信息
@@ -46,6 +68,23 @@ class Wxapp extends Controller
             return $this->renderSuccess('更新成功');
         }
         return $this->renderError($model->getError() ?: '更新失败');
+    }
+
+    // 微信公众号端设置    
+    // 菜单列表
+    public function mp()
+    {
+        $mpmenus = WechatMenuModel::where('parent_id', 0)
+            ->order('sort', 'asc')
+            ->select()->toArray();
+            
+        foreach ($mpmenus as &$menu) {
+            $menu['subMenus'] = WechatMenuModel::where('parent_id', $menu['id'])
+                ->order('sort', 'asc')
+                ->select()->toArray();
+        }
+        $typeMap = WechatMenuModel::getTypeMap();
+        return $this->fetch('wechat_menu/index', compact('mpmenus', 'typeMap'));
     }
     
     public function h5(){
