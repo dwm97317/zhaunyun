@@ -22,6 +22,26 @@ class WechatMenu extends Controller
     }
     
     /**
+     * 获取微信消息模板
+     */
+     public function api_add_template(){
+         $param = $this->request->param();
+         $result = $this->menuService->wechattemplate($param['id'],$this->getWxappId()); 
+         return $this->renderSuccess('获取成功','',$result);
+     }
+    
+    /**
+     * 设置所属行业
+     */
+     public function api_set_industry(){
+         $result = $this->menuService->setindustry($this->getWxappId()); 
+         if($result==true){
+             return $this->renderSuccess('设置成功');
+         }
+         return $this->renderError('设置失败');
+     }
+    
+    /**
      * 获取微信素材列表
      */
     public function wechat_material()

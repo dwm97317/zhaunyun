@@ -8,6 +8,89 @@ use app\store\model\Wxapp as WxappModel;
 
 class WechatMenuService
 {
+    //设置所属行业
+    public function setindustry($wxapp_id){
+        $wxappDetail = WxappModel::detail($wxapp_id);
+        $WxUser = new WxUser($wxappDetail['app_id'], $wxappDetail['app_secret'],$wxappDetail['app_wxappid'],$wxappDetail['app_wxsecret'],$wxappDetail['wx_type']);
+        $accessToken = $WxUser->getAccessToken();
+        if (!$accessToken) {
+            return ['code' => 0, 'msg' => '获取AccessToken失败'];
+        }
+        $url = "https://api.weixin.qq.com/cgi-bin/template/api_set_industry?access_token={$accessToken}";
+        $data = [
+            'industry_id1' => 15,
+            'industry_id2' => 14,
+        ];
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            
+            $response = curl_exec($ch);
+            curl_close($ch);
+            
+            $result = json_decode($response, true);
+            if ($result['errcode'] == 0 && $result['errmsg'] =='ok') {
+                return true;
+            }
+        } catch (\Exception $e) {
+            return ['code' => 0, 'msg' => '拉取模板消息异常'];
+        }
+    }
+    
+    //拉取微信模板消息
+    public function wechattemplate($param,$wxapp_id){
+        $wxappDetail = WxappModel::detail($wxapp_id);
+        $WxUser = new WxUser($wxappDetail['app_id'], $wxappDetail['app_secret'],$wxappDetail['app_wxappid'],$wxappDetail['app_wxsecret'],$wxappDetail['wx_type']);
+        $accessToken = $WxUser->getAccessToken();
+        if (!$accessToken) {
+            return ['code' => 0, 'msg' => '获取AccessToken失败'];
+        }
+         $url = "https://api.weixin.qq.com/cgi-bin/template/api_add_template?access_token={$accessToken}";
+         $template = [
+            '50716'=> ["订单号","收件人","收件地址","下单时间"],   //订单号,收件人,收件地址,下单时间
+            '46591'=> ["预约单号","姓名","联系电话","取件时间","取件地址"],  //预约单号,姓名,联系电话,取件时间,取件地址
+            '55117'=> ["订单编号","提交人","提交时间"],  //订单编号,提交人,提交时间
+            '43369'=> ["支付单号","充值金额","充值时间"],  //支付单号,充值金额,充值时间
+            '45318'=> ["订单号","客户代号","重量","金额","时间"],  //订单号、客户代号、重量、金额、时间
+            '44375'=> ["订单号","运单号","发货量","承运商","发货时间"],  //订单号、运单号、发货量、承运商、发货时间
+            '48064'=> ["运单号","仓库","到仓时间"],  //运单号、仓库、到仓时间
+            '42835'=> ["单号","货主名称","数量","库房名称","时间"],  //单号、货主名称、数量、库房名称、时间
+            '50795'=> ["订单号","仓库名称","新包裹重量","新包裹体积"],  //订单号、仓库名称、新包裹重量、新包裹体积
+            '47030'=> ["订单号","支付金额","订单件数","订单重量"],  //订单号、支付金额、订单件数、订单重量
+            '47689'=> ["包裹单号","重量","仓库","包裹状态","出库时间"],  //包裹单号、重量、仓库、包裹状态、出库时间
+            '45458'=> ["入库仓库","快递单号","入库时间","入库重量","物品"],  //入库仓库、快递单号、入库时间、入库重量、物品
+         ];
+         
+         $data = [
+            'template_id_short' => $param,
+            'keyword_name_list' => $template[$param],
+         ];
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            
+            $response = curl_exec($ch);
+            curl_close($ch);
+            
+            $result = json_decode($response, true);
+            if ($result['errcode'] == 0 && $result['errmsg'] =='ok') {
+                return $result['template_id'];
+            }
+        } catch (\Exception $e) {
+            Log::error('拉取模板消息异常: ' . $e->getMessage());
+            return ['code' => 0, 'msg' => '拉取模板消息异常'];
+        }
+    }
+    
+    
     // 创建微信菜单
     public function createWechatMenu($menuData,$wxapp_id)
     {
