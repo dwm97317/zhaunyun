@@ -965,16 +965,16 @@ var orderTable = table.render({
   id: 'order-table',
   cols: [[
     {type: 'checkbox', fixed: 'left'},
-    {field: 'inpack_type', width: 100, title: '订单类型', templet: function(d){
+    {field: 'inpack_type', width: 40, title: '类型', templet: function(d){
       var html = '';
-      if(d.inpack_type == 0) html += '<span class="am-badge am-badge-success">拼邮订单</span>';
-      if(d.inpack_type == 1) html += '<span class="am-badge am-badge-secondary">拼团订单</span>';
-      if(d.inpack_type == 2) html += '<span class="am-badge am-badge-primary">直邮订单</span>';
-      if(d.inpack_type == 3) html += '<span class="am-badge am-badge-success">拼邮订单</span>';
-      if(d.is_exceed == 1) html += '<span class="am-badge am-badge-danger">超时订单</span>';
+      if(d.inpack_type == 0) html += '<span class="am-badge am-badge-success">拼邮</span>';
+      if(d.inpack_type == 1) html += '<span class="am-badge am-badge-secondary">拼团</span>';
+      if(d.inpack_type == 2) html += '<span class="am-badge am-badge-primary">直邮</span>';
+      if(d.inpack_type == 3) html += '<span class="am-badge am-badge-success">拼邮</span>';
+      if(d.is_exceed == 1) html += '<span class="am-badge am-badge-danger">超时</span>';
       return html;
     }},
-    {field: 'order_sn', width: 180, title: '系统单号'},
+    {field: 'order_sn', width: 120, title: '系统单号',style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'},
     {field: 'status', width: 80, title: '状态', templet: function(d){
       var html = '';
       if(d.status == 0) html += '<span class="am-badge layui-bg-red">' +  statusText[d.status] || '' +'</span>';
@@ -989,32 +989,8 @@ var orderTable = table.render({
       if(d.status == -1) html += '<span class="am-badge am-badge-danger">' +  statusText[d.status] || '' +'</span>';
       return html;
     }},
-    {field: 'pay_type', width: 80, title: '支付类型', templet: function(d){
-      var html = '';
-      if(d.pay_type.value == 0) html += '<span class="am-badge am-badge-success">' + d.pay_type.text +'</span>';
-      if(d.pay_type.value == 1) html += '<span class="am-badge am-badge-danger">' + d.pay_type.text +'</span>';
-      if(d.pay_type.value == 2) html += '<span class="am-badge am-badge-primary">' + d.pay_type.text +'</span>';
-      return html;
-    }},
-    {field: 'is_pay_type', width: 80, title: '支付方式', templet: function(d){
-      var html = '';
-      if(d.is_pay_type.value == 0) html += '<span class="am-badge layui-bg-red">' + d.is_pay_type.text +'</span>';
-      if(d.is_pay_type.value == 1) html += '<span class="am-badge layui-bg-green">' + d.is_pay_type.text +'</span>';
-      if(d.is_pay_type.value == 2) html += '<span class="am-badge layui-bg-blue">' + d.is_pay_type.text +'</span>';
-      if(d.is_pay_type.value == 3) html += '<span class="am-badge am-badge-danger">' + d.is_pay_type.text +'</span>';
-      if(d.is_pay_type.value == 4) html += '<span class="am-badge am-badge-secondary">' + d.is_pay_type.text +'</span>';
-      if(d.is_pay_type.value == 5) html += '<span class="am-badge am-badge-success">' + d.is_pay_type.text +'</span>';
-      if(d.is_pay_type.value == 6) html += '<span class="am-badge layui-bg-cyan">' + d.is_pay_type.text +'</span>';
-      return html;
-    }},
-    {field: 'status', width: 80, title: '支付状态', templet: function(d){
-      var html = '';
-      if(d.is_pay == 1) html += '<span class="am-badge am-badge-success">' + paytime_status[d.is_pay] +'</span>';
-      if(d.is_pay == 2) html += '<span class="am-badge am-badge-secondary">' + paytime_status[d.is_pay] +'</span>';
-      if(d.is_pay == 3) html += '<span class="am-badge am-badge-danger">' + paytime_status[d.is_pay] +'</span>';
-      return html;
-    }},
-    {field: 'user', width: 180, title: '会员信息', templet: function(d){
+   
+    {field: 'user', width: 120, title: '会员信息',style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;', templet: function(d){
         var html = d.user ? d.user.nickName : '无主订单';
         // 用户Code（根据PHP条件动态显示）
         <?php if($set['usercode_mode']['is_show'] == 0): ?>
@@ -1031,31 +1007,41 @@ var orderTable = table.render({
         <?php endif; ?>
         return html;
     }},
-    {field: 'line', width: 180, title: '寄件仓库', templet: function(d){
-      return d.storage?d.storage.shop_name:'';
+    {field: 'packagelist', width: 100, title: '包裹/快递', templet: function(d){
+      return '<a href="<?= url('store/trOrder/package') ?>/id/'+ d.id +'">'+ d.packagelist.length +'&nbsp;&nbsp;<span style="cursor:pointer;color:#1E9FFF">[查看清单]</span></a>';
     }},
-    {field: 'line', width: 180, title: '现处仓库', templet: function(d){
-      return d.shop?d.shop.shop_name:'';
+    {field: 'packageitems', width: 80, title: '箱数/件数', templet: function(d){
+      return d.packageitems.length;
     }},
-    {field: 'line', width: 180, title: '渠道', templet: function(d){
+    {field: 'line', width: 120, title: '渠道', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',templet: function(d){
       return d.line?d.line.name:'';
     }},
-    {field: 'free', width: 100, title: '基础费用', templet: function(d){
+    {field: 'line', width: 120, title: '寄件仓库',style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;', templet: function(d){
+      return d.storage?d.storage.shop_name:'';
+    }},
+    {field: 'line', width: 120, title: '现处仓库',style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;', templet: function(d){
+      return d.shop?d.shop.shop_name:'';
+    }},
+    
+    {field: 'volume', width: 60, title: '体积'},
+    {field: 'weight', width: 60, title: '实重'},
+    {field: 'cale_weight', width: 60, title: '计费重量'},
+    {field: 'free', width: 60, title: '基础费用', templet: function(d){
       return d.free?d.free:0;
     }},
-    {field: 'pack_free', width: 80, title: '包装费', templet: function(d){
+    {field: 'pack_free', width: 60, title: '包装费', templet: function(d){
       return d.pack_free?d.pack_free:0;
     }},
-    {field: 'insure_free', width: 80, title: '保险费', templet: function(d){
+    {field: 'insure_free', width: 60, title: '保险费', templet: function(d){
       return d.insure_free?d.insure_free:0;
     }},
-    {field: 'other_free', width: 80, title: '其他费用', templet: function(d){
+    {field: 'other_free', width: 60, title: '其他费用', templet: function(d){
       return d.other_free?d.other_free:0;
     }},
-    {field: 'user_coupon_money', width: 80, title: '优惠券', templet: function(d){
+    {field: 'user_coupon_money', width: 60, title: '优惠券', templet: function(d){
       return d.usercoupon?d.usercoupon.name:'';
     }},
-    {field: 'user_coupon_money', width: 80, title: '优惠金额', templet: function(d){
+    {field: 'user_coupon_money', width: 60, title: '优惠金额', templet: function(d){
       return d.user_coupon_money?d.user_coupon_money:0;
     }},
     {
@@ -1070,36 +1056,53 @@ var orderTable = table.render({
           return isNaN(total) ? "0.00" : total.toFixed(2); // 处理意外NaN
       }
     },
-    {field: 'real_payment', width: 80, title: '实际支付', templet: function(d){
+    {field: 'real_payment', width: 60, title: '实际支付', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;', templet: function(d){
       return d.real_payment; 
     }},
-    {field: 'waitreceivedmoney', width: 80, title: '代收款', templet: function(d){
+    {field: 'waitreceivedmoney', width: 60, title: '代收款', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;', templet: function(d){
       return d.waitreceivedmoney; 
     }},
-    {field: 'usermark', width: 100, title: '唛头'},
-    {field: 'packagelist', width: 100, title: '包裹/快递', templet: function(d){
-      return '<a href="<?= url('store/trOrder/package') ?>/id/'+ d.id +'">'+ d.packagelist.length +'&nbsp;&nbsp;<span style="cursor:pointer;color:#1E9FFF">[查看清单]</span></a>';
+    {field: 'status', width: 60, title: '支付状态',  style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',templet: function(d){
+      var html = '';
+      if(d.is_pay == 1) html += '<span class="am-badge am-badge-success">' + paytime_status[d.is_pay] +'</span>';
+      if(d.is_pay == 2) html += '<span class="am-badge am-badge-secondary">' + paytime_status[d.is_pay] +'</span>';
+      if(d.is_pay == 3) html += '<span class="am-badge am-badge-danger">' + paytime_status[d.is_pay] +'</span>';
+      return html;
     }},
-    {field: 'packageitems', width: 80, title: '箱数/件数', templet: function(d){
-      return d.packageitems.length;
+    {field: 'pay_type', width: 60, title: '支付类型', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;', templet: function(d){
+      var html = '';
+      if(d.pay_type.value == 0) html += '<span class="am-badge am-badge-success">' + d.pay_type.text +'</span>';
+      if(d.pay_type.value == 1) html += '<span class="am-badge am-badge-danger">' + d.pay_type.text +'</span>';
+      if(d.pay_type.value == 2) html += '<span class="am-badge am-badge-primary">' + d.pay_type.text +'</span>';
+      return html;
+    }}, 
+    {field: 'is_pay_type', width: 60, title: '支付方式', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;', templet: function(d){
+      var html = '';
+      if(d.is_pay_type.value == 0) html += '<span class="am-badge layui-bg-red">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 1) html += '<span class="am-badge layui-bg-green">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 2) html += '<span class="am-badge layui-bg-blue">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 3) html += '<span class="am-badge am-badge-danger">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 4) html += '<span class="am-badge am-badge-secondary">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 5) html += '<span class="am-badge am-badge-success">' + d.is_pay_type.text +'</span>';
+      if(d.is_pay_type.value == 6) html += '<span class="am-badge layui-bg-cyan">' + d.is_pay_type.text +'</span>';
+      return html;
     }},
-    {field: 'volume', width: 60, title: '体积'},
-    {field: 'weight', width: 60, title: '实重'},
-    {field: 'cale_weight', width: 100, title: '计费重量'},
-    {field: 'batch_name', width: 180, align: 'center',title: '批次号'},
-    {field: 'batch_no', width: 180,align: 'center', title: '提单号/装箱号'},
-    {field: 't_name', width: 100, title: '承运商'},
-    {field: 't_order_sn', width: 180, title: '国际单号'},
-    {field: 't2_name', width: 100, title: '转运商'},
-    {field: 't2_order_sn', width: 180, title: '转单单号'},
-    {field: 'created_time', width: 180, title: '提交打包'},
-    {field: 'pick_time', width: 180, title: '打包完成'},
-    {field: 'pay_time', width: 180, title: '支付时间'},
-    {field: 'shoprk_time', width: 180, title: '到货时间'},
-    {field: 'receipt_time', width: 180, title: '签收时间'},
-    {field: 'settle_time', width: 180, title: '结算时间'},
-    {field: 'cancel_time', width: 180, title: '取消时间'},
-    {field: 'actions', width: 200, title: '操作', fixed: 'right', templet: function(d){
+    
+    {field: 'usermark', width: 60, title: '唛头', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 'batch_name', width: 100, align: 'center',title: '批次号', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 'batch_no', width: 100,align: 'center', title: '提单号/装箱号', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 't_name', width: 100, title: '承运商', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 't_order_sn', width: 100, title: '国际单号', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 't2_name', width: 100, title: '转运商', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 't2_order_sn', width: 100, title: '转单单号', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 'created_time', width: 130, title: '提交打包', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 'pick_time', width: 130, title: '打包完成', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 'pay_time', width: 130, title: '支付时间', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 'shoprk_time', width: 130, title: '到货时间', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 'receipt_time', width: 130, title: '签收时间', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 'settle_time', width: 130, title: '结算时间', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 'cancel_time', width: 130, title: '取消时间', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 'actions', width: 220, title: '操作', fixed: 'right', templet: function(d){
       return '<div class="action-btn-group">'+
         (<?= checkPrivilege('tr_order/edit') ? 'true' : 'false' ?> ? 
           '<a href="<?= url("store/trOrder/edit") ?>/id/'+d.id+'">'+
