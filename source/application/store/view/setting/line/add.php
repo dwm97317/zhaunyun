@@ -87,11 +87,26 @@
                                         <input type="radio" name="line[weight_integer]" value="0" data-am-ucheck>
                                         按实际重量
                                     </label>
-                                    <div class="help-block"><small>当包裹重量带小数时，将会向上取整<，如9.01会以10来结算。/small></div>
+                                    <div class="help-block"><small>当包裹重量在参与计算前，当重量为6.2时候，按7计算。续重重量则为(7-1)/0.5=12，如此算下来的费用则为100+12*10=220元</small></div>
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否向上取整 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 体积重向上取整 </label>
+                                <div class="am-u-sm-9 am-u-end" >
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[weightvol_integer]"  value="1" data-am-ucheck
+                                               checked>
+                                        向上取整
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[weightvol_integer]"  value="0" data-am-ucheck>
+                                        按实际重量
+                                    </label>
+                                    <div class="help-block"><small>当根据长*宽*高/体积重系数，计算体积重时，是否将得到的体积重结果向上取整，比如20*30*9.9/6000=9.9,如向上取整则为10kg，如不向上取整则按9.9跟实际重量比较大小</small></div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 续重是否向上取整 </label>
                                 <div class="am-u-sm-9 am-u-end" >
                                     <label class="am-radio-inline">
                                         <input type="radio" name="line[is_integer]"  value="1" data-am-ucheck

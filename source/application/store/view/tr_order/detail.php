@@ -18,7 +18,8 @@
                                         <?php if (isset($line) && !$line->isEmpty()):
                                             foreach ($line as $item): ?>
                                                 <option value="<?= $item['id'] ?>"
-                                                data-vol-ratio="<?= $item['volumeweight'] ?>"  
+                                                data-vol-ratio="<?= $item['volumeweight'] ?>"
+                                                data-vol-integer="<?= $item['weightvol_integer'] ?>"  
                                                 <?= $detail['line_id'] == $item['id'] ? 'selected' : '' ?>><?= $item['name'] ?></option>
                                             <?php endforeach; endif; ?>
                                     </select>
@@ -253,11 +254,13 @@
 let currentVolRatio = 5000;
 let isCalculating = false;
 let lastLineId = <?= $detail['line_id'] ?>;
+let weightvol_integer = <?= $detail['line']['weightvol_integer'] ?>;
 let lastChargeableWeight = 0;
 $(function () {
     // 初始化
     const initialOption = $('#line_select option:selected');
     currentVolRatio = parseFloat(initialOption.data('vol-ratio')) || 5000;
+    weightvol_integer = initialOption.data('vol-integer');
     lastLineId = initialOption.val();
     lastChargeableWeight = parseFloat($('#oWei').val()) || 0;
     
@@ -278,6 +281,7 @@ $(function () {
     $('#line_select').change(function() {
         const selectedOption = $(this).find('option:selected');
         currentVolRatio = parseFloat(selectedOption.data('vol-ratio')) || 5000;
+        weightvol_integer = selectedOption.data('vol-integer');
         lastLineId = selectedOption.val();
         updateAllVolWeights();
         checkAndCalculate(); // 检查是否需要计算运费
@@ -317,7 +321,11 @@ function updateAllVolWeights() {
         const height = parseFloat($row.find('.vheight').val()) || 0;
         
         if(length > 0 && width > 0 && height > 0) {
-            const volWeight = (length * width * height / currentVolRatio).toFixed(2);
+            let volWeight = length * width * height / currentVolRatio; // 先计算数字
+            volWeight = parseFloat(volWeight.toFixed(2)); // 保留 2 位小数并转回数字
+            if (weightvol_integer == 1) {
+                volWeight = Math.ceil(volWeight); // 可以重新赋值，因为用 let
+            }
             $row.find('.volume_weight').val(volWeight);
             $row.find('.wvop').val(currentVolRatio); // 同时更新下拉框值
         }
@@ -329,16 +337,16 @@ function updateAllVolWeights() {
     
 
 // 修改计算单个体积重的函数
-function calculateSingleVolWeight(row) {
-    const length = parseFloat(row.find('.vlength').val()) || 0;
-    const width = parseFloat(row.find('.vwidth').val()) || 0;
-    const height = parseFloat(row.find('.vheight').val()) || 0;
+// function calculateSingleVolWeight(row) {
+//     const length = parseFloat(row.find('.vlength').val()) || 0;
+//     const width = parseFloat(row.find('.vwidth').val()) || 0;
+//     const height = parseFloat(row.find('.vheight').val()) || 0;
     
-    if(length > 0 && width > 0 && height > 0) {
-        return (length * width * height / currentVolRatio);
-    }
-    return 0;
-}
+//     if(length > 0 && width > 0 && height > 0) {
+//         return (length * width * height / currentVolRatio);
+//     }
+//     return 0;
+// }
 
 // 修改后的updateAllWeights函数
 function updateAllWeights() {
@@ -359,7 +367,10 @@ function updateAllWeights() {
         const quantity = parseFloat($row.find('.num').val()) || 1;
         
         if(length > 0 && width > 0 && height > 0) {
-            const volWeight = (length * width * height / currentVolRatio);
+            let volWeight = (length * width * height / currentVolRatio);
+            if (weightvol_integer == 1) {
+                volWeight = Math.ceil(volWeight); // 可以重新赋值，因为用 let
+            }
             $row.find('.volume_weight').val(volWeight.toFixed(2));
             totalVolWeight += volWeight;
             hasValidInputs = true;

@@ -1441,12 +1441,19 @@ class TrOrder extends Controller
         }else{
             $value['discount'] =1;
         }
-          
-        !isset($data['weight']) && $data['weight']=0;   
+        !isset($data['weight']) && $data['weight']=0;
+        //根据是否重量取整
+        if($line['weight_integer']==1){
+            $data['weight'] = ceil($data['weight']);
+        }
         // 计算体检重
         $weigthV = $pakdata['volume'];
         if(!empty($data['length']) && !empty($data['width']) && !empty($data['height']) && $line['volumeweight_type']==20){
             $weigthV = round(($data['weight'] + (($data['length']*$data['width']*$data['height'])/$line['volumeweight'] - $data['weight'])*$line['bubble_weight']/100),2);
+        }
+        //根据是否体积重取整
+        if($line['weightvol_integer']==1){
+            $weigthV = ceil($weigthV);
         }
         // 取两者中 较重者 
         $oWeigth = $weigthV>=$data['weight']*$line['volumeweight_weight'] ?$weigthV:$data['weight'];
@@ -1729,8 +1736,8 @@ class TrOrder extends Controller
         }
         
         //
-        
-         
+        // dump($lines);die;
+        //  
         return $this->renderSuccess(['oWeigth'=>$oWeigth,'price'=>str_replace(',','',$lines['predict']['price']),'weightV'=>$weigthV,'packfree'=>$pricethree,'insure_free'=>$insure_free]);
     }
     
