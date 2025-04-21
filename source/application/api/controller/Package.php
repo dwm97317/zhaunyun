@@ -1277,7 +1277,7 @@ class Package extends Controller
         //更新包裹的物流信息
         //物流模板设置
         $packnum =[];
-        $noticesetting = SettingModel::getItem('notice');
+        $noticesetting = SettingModel::getItem('notice',\request()->get('wxapp_id'));
         if($noticesetting['packageit']['is_enable']==1){
             foreach ($idsArr as $key => $val){
                 $packnum[$key] = (new PackageModel())->where('id',$val)->value('express_num');
@@ -1311,7 +1311,7 @@ class Package extends Controller
             'wxapp_id' => \request()->get('wxapp_id'),
             'remark' =>$remark,
           ];
-          $tplmsgsetting = SettingModel::getItem('tplMsg');
+          $tplmsgsetting = SettingModel::getItem('tplMsg',\request()->get('wxapp_id'));
         //   dump($tplmsgsetting);die;
           if($tplmsgsetting['is_oldtps']==1){
               //循环通知员工打包消息 
