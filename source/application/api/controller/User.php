@@ -62,6 +62,13 @@ class User extends Controller
         return $this->renderError("新增失败");
     }
     
+    //获取用户唛头
+    public function getusermarkList(){
+        $param = $this->request->param();
+        $UserMark = new UserMark;
+        $list = $UserMark->getUsermarkList($param);
+        return $this->renderSuccess($list);
+    }
     
     public function clerklogin()
     {
