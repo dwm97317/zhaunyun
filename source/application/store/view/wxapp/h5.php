@@ -88,6 +88,29 @@
                                 <div class="widget-title am-fl">微信开放平台</div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    开放平台是否申请
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                            <input type="radio" name="wxapp[wx_type]" value="1"
+                                                   data-am-ucheck
+                                                <?= $model['wx_type'] == '1' ? 'checked' : '' ?>
+                                                   required>
+                                            已申请
+                                        </label>
+                                        <label class="am-radio-inline">
+                                            <input type="radio" name="wxapp[wx_type]" value="0"
+                                                   data-am-ucheck
+                                                <?= $model['wx_type'] == '0' ? 'checked' : '' ?>>
+                                            未申请
+                                        </label>
+                                    <div class="help-block">
+                                        <small>注意：只要小程序公众号绑定了微信开放平台就需要选择已申请，如果需要接收微信模板消息，则必须申请，注册地址<a target="_blank" href="https://open.weixin.qq.com/">微信开放平台申请入口</a></small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label">
                                     微信开放平台AppID <span class="tpl-form-line-small-title">(AppID)</span>
                                 </label>
