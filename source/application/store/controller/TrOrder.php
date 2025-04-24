@@ -2665,224 +2665,106 @@ class TrOrder extends Controller
     public function label50($data){
         
     if(count($data['packageitems'])==0){
-		$jianshu = '<td class="font_xl">件數：1/1</td>';
+		$jianshu = '<td class="font_xxl left">件數：1/1</td>';
     }else{
-		$jianshu = '<td class="font_xl">件數：'.($data['index'] +1).'/'.count($data['packageitems']).'</td>';
+		$jianshu = '<td class="font_xxl left">件數：'.($data['index'] +1).'/'.count($data['packageitems']).'</td>';
     }
        
     return  $html = '<style>
-	* {
-		margin: 0;
-		padding: 0
-	}
-
-	table {
-		margin-top: -1px;
-		font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
-		border-collapse: collapse
-	}
-
-	table.container {
-	    width:527px;
-		border-bottom: 0
-	}
-	
-	.conta {
-            display: flex; /* 设置容器为flex布局 */
-            justify-content: center;
-            align-items: center;
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
     }
-
-	table td {
-	}
-
-	table.nob {
-	    width:500px;
-	}
-
-	table.nob td {
-		border: 0
-	}
-
-	table td.center {
-		text-align: center
-	}
-
-	table td.right {
-		text-align: right
-	}
-
-	table td.pl {
-		padding-left: 5px;
-		margin:4px 0;
-	}
-
-	table td.br {
-		border-right: 1px solid #000
-	}
-
-	table.nobt,
-	table td.nobt {
-		border-top: 0
-	}
-
-	table.nobb,
-	table td.nobb {
-		border-bottom: 0
-	}
-
-	.font_s {
-		font-size: 10px;
-		-webkit-transform: scale(0.84, 0.84);
-		*font-size: 10px
-	}
-
-	.font_m {
-		font-size: 14px;
-		padding-left:10px;
-	}
-
-	.font_l {
-		font-size: 16px;
-		font-weight: bold
-	}
-
-	.font_xl {
-		font-size: 18px;
-		font-weight: bold;
-		padding-left:10px;
-	}
-
-	.font_xxl {
-		font-size: 28px;
-		font-weight: bold
-	}
-
-	.font_xxxl {
-		font-size: 32px;
-		font-weight: bold
-	}
-	tbody tr:nth-child(2n){
-	    color:#000;
-	}
-	.country{
-    	font-size: 37px;
-        padding: 0px;
-        margin: 0px;
-        font-weight: bold;
-        width: 100px;
-	}
-	.barcode{text-align:center;}
-	.barcode svg{width:378px;}
-	.font_12{font-size: 12px;font-weight: bold;}
-	.p-l-20{
-	    padding-left:20px;
-	}
-	.printdata:first-child{
-	    margin-top:30px !important;
-	}
-	.printdata{
-	    width:550px;
-	    height:550px;
-	    margin:30px 20px 20px 20px;
-	    border:2px solid #000;
-	}
-	
+    
+    
+    .printdata {
+        width: 100mm;
+        height: 100mm;
+       
+        border: 1px solid #000; /* 调试时可保留 */
+        overflow: hidden; /* 防止内容溢出 */
+    }
+    
+    table {
+        width: 100%;
+        font: 10px "Microsoft YaHei", sans-serif;
+        border-collapse: collapse;
+        margin:2mm;
+    }
+    .center{text-align:center;}
+    .left{text-align:left;}
+    .font_xl { font-size: 12px; }
+    .font_xxl { font-size: 16px; }
+    .font_xxxl { font-size: 18px; }
+    
+    .barcode svg {
+        width: 80mm;
+        height: auto;
+    }
+    
+    .divider {
+        height: 1px;
+        border-top: 1px solid #000;
+        margin: 2mm 0;
+    }
 </style>
-<div style="padding:10px;">
 <div class="printdata">
-<table class="container" style="height:180px;">
-	<tr>
-		<td  class="center">
-			<table class="nob">
-				<tr>
-					<td class="barcode center">'.$data['barcodet_order_sn'].'</td>
-				</tr>
-				<tr>
-					<td class="center font_xxxl">'.$data['t_order_sn'].'</td>
-				</tr>
-			</table>
-		</td>
-	</tr>
-</table>
-
-<div style="height:1px;border-top:2px solid #000;margin:10px 0px 10px 0px;"></div>
-<table class="container" style="height:30px;">
-	<tr>
-		<td  height="55" class="font_xxxl conta">
-		    <table class="nob">
-		        <tr>
-		            <td class="font_xxl conta">目的地：'.$data['address']['country'].'</td>
-		            <td class="font_xxl p-l-20">会员唛头：'.$data['member_id'].'</td>
-		        </tr>
-		    </table>
-		</td>
-	</tr>
-</table>
-<div style="height:1px;border-top:2px solid #000;margin:10px 0px 10px 0px;"></div>
-<table class="container" style="height:30px;">
-	<tr>
-		<td  height="25" class="font_xl">
-		    <table class="nob">
-		        <tr>
-		            '. $jianshu.'
-		        </tr>
-		    </table>
-		</td>
-	</tr>
-	<tr>
-		<td  height="25" class="font_xl">
-		    <table class="nob">
-		        <tr>
-		            <td class="font_xl">路线渠道：'.$data['line']['name'].'</td>
-		        </tr>
-		    </table>
-		</td>
-	</tr>
-	
-</table>
-<div style="height:1px;border-top:2px solid #000;margin:10px 0px 10px 0px;"></div>
-<table class="container" style="height:150px;">
-	<tr>
-		<td  height="25" class="font_xl">
-		    <table class="nob">
-		        <tr>
-		            <td class="font_xl">送货地址：'.$data['address']['province'].$data['address']['city'].$data['address']['detail'].'</td>
-		        </tr>
-		    </table>
-		</td>
-	</tr>
-	<tr>
-		<td  height="25" class="font_xl">
-		    <table class="nob">
-		        <tr>
-		            <td class="font_xl">收件人：'.$data['address']['name'].'</td>
-		        </tr>
-		    </table>
-		</td>
-	</tr>
-	<tr>
-		<td  height="25" class="font_xl">
-		    <table class="nob">
-		        <tr>
-		            <td class="font_xl">电话：'.$data['address']['phone'].'</td>
-		        </tr>
-		    </table>
-		</td>
-	</tr>
-</table>
-
-<table style="height:30px;">
-	<tr>
-		<td  height="10" class="font_m" style="text-align:right">
-		    <table class="nob">
-		        <tr>
-		            <td class="font_m">打印時間：'.date("Y-m-d H:i:s",time()).'</td>
-		        </tr>
-		    </table>
-		</td>
-	</tr>
-</table>
+    <!-- 条码区 -->
+    <table>
+        <tr>
+            <td class="barcode center">'.$data['barcodet_order_sn'].'</td>
+        </tr>
+        <tr>
+            <td class="center font_xxxl">'.$data['t_order_sn'].'</td>
+        </tr>
+    </table>
+    
+    <div class="divider"></div>
+    
+    <!-- 目的地 -->
+    <table>
+        <tr>
+            <td class="font_xxl">目的地：'.$data['address']['country'].'</td>
+            <td class="font_xxl">会员唛头：'.$data['member_id'].'</td>
+        </tr>
+    </table>
+    
+    <div class="divider"></div>
+    
+    <!-- 件数/渠道 -->
+    <table>
+        <tr>
+            '.$jianshu.'
+        </tr>
+        <tr>
+            <td class="font_xxl">路线渠道:'.$data['line']['name'].'</td>
+        </tr>
+    </table>
+    
+    <div class="divider"></div>
+    
+    <!-- 地址信息 -->
+    <table>
+        <tr>
+            <td class="font_xxl">送货地址：'.$data['address']['province'].$data['address']['city'].$data['address']['detail'].'</td>
+        </tr>
+        <tr>
+            <td class="font_xxl">收件人：'.$data['address']['name'].'</td>
+        </tr>
+        <tr>
+            <td class="font_xxl">电话：'.$data['address']['phone'].'</td>
+        </tr>
+    </table>
+    
+    <!-- 打印时间 -->
+    <table>
+        <tr>
+            <td class="font_xl" style="text-align: left;">
+                打印时间：'.date("Y-m-d H:i:s").'
+            </td>
+        </tr>
+    </table>
 </div>
 ';
 }
