@@ -2683,7 +2683,7 @@ class TrOrder extends Controller
 	}
 
 	table.container {
-	    width:100%;
+	    width:527px;
 		border-bottom: 0
 	}
 	
@@ -2697,7 +2697,7 @@ class TrOrder extends Controller
 	}
 
 	table.nob {
-	    width:100%;
+	    width:500px;
 	}
 
 	table.nob td {
