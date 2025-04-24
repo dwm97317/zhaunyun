@@ -1984,8 +1984,8 @@ class TrOrder extends Controller
        }
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
        $data['barcode'] = $generatorSVG->getBarcode($data['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
-       //国际单号
-       $data['barcodet_order_sn'] = $generatorSVG->getBarcode($data['t_order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 80);
+       
+       
        $data['cover_id'] = UploadFile::detail($data['setting']['cover_id']);
         // dump($data->toArray());die;
         $data['total_free'] = $data['free'] + $data['pack_free'] + $data['insure_free']+$data['other_free'];
@@ -2007,6 +2007,12 @@ class TrOrder extends Controller
                    return $this->label40($data);
                    break;
                case '50':
+                   //国际单号
+                    if(!empty($data['t_order_sn'])){
+                      $data['barcodet_order_sn'] = $generatorSVG->getBarcode($data['t_order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 80); 
+                   }else{
+                        return $this->renderError('国际物流单号为空');
+                   }
                    return $this->label50($data);
                    break;
                default:
@@ -2030,6 +2036,12 @@ class TrOrder extends Controller
                         return  $this->label40($data);
                        break;
                    case '50':
+                       //国际单号
+                    if(!empty($data['t_order_sn'])){
+                      $data['barcodet_order_sn'] = $generatorSVG->getBarcode($data['t_order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 80); 
+                   }else{
+                        return $this->renderError('国际物流单号为空');
+                   }
                         echo $this->label50($data);
                         break;
                    default:
