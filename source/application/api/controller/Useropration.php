@@ -128,6 +128,18 @@ class Useropration extends Controller
         return $this->renderSuccess($data);
     }
     
+    //根据订单编号搜订单
+    public function searchInpack(){
+        $param = $this->request->param();
+        $inpack = (new Inpack());
+        $result = $inpack->where('order_sn',$param['code'])->where('is_delete',0)->find();
+        if(!empty($result)){
+            return $this->renderSuccess($result);
+        }
+        return $this->renderError('查不到订单');
+    }
+    
+    
     //保存集运单签收图片
     public function saveOrderImage(){
         $data = $this->postData();
@@ -2818,7 +2830,7 @@ class Useropration extends Controller
         $data['service'] = $InpackService->with('service')->where('inpack_id',$id)->select();
         $pack =  (new Package());
         $shelf = new ShelfUnitItem();
-        $data['packs']= $pack->where('inpack_id',$id)->with(['packageimage.file','packitem','shelfunititem.shelfunit.shelf'])->select();
+        $data['packs']= $pack->where('inpack_id',$id)->where('is_delete',0)->with(['packageimage.file','packitem','shelfunititem.shelfunit.shelf'])->select();
         $data['countpack'] =count($data['packs']);
         // 获取物品详情
         $data['shop'] = '';
@@ -2890,7 +2902,7 @@ class Useropration extends Controller
       if(empty($packageData)){
          return $this->renderError('集运单不存在');  
       }
-      $arrayPackid = explode(',',$packageData['pack_ids']);
+    //   $arrayPackid = explode(',',$packageData['pack_ids']);
       $packid = (new Package())->where('express_num',$code)->where('is_delete',0)->find();
       if (!$packid){
         return $this->renderError('未查询到此快递单');

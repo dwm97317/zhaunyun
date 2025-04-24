@@ -488,7 +488,7 @@
                                         </span>
                                     </td>
                                     <td class="am-text-middle"><?= $status[$item['status']] ?></td>
-                                    <td class="am-text-middle">
+                                    <td class="am-text-middle" style="width:200px;">
                                         <div class="tpl-table-black-operation">
                                             <!--编辑-->
                                             <?php if (checkPrivilege('tr_order/edit')): ?>
@@ -529,7 +529,7 @@
                                             <!--物流更新-->
                                             <?php if (checkPrivilege('tr_order/logistics')): ?>
                                             <?php if ($item['status']>=6): ?>
-                                            <a href="<?= url('store/trOrder/logistics', ['id' => $item['id']]) ?>">
+                                            <a  href="<?= url('store/trOrder/logistics', ['id' => $item['id']]) ?>">
                                                 <i class="iconfont icon-755danzi"></i> 物流更新
                                             </a>
                                             <?php endif ;endif;?>
@@ -541,6 +541,7 @@
                                                 <i class="am-icon-pencil"></i> 退货处理
                                             </a>
                                             <?php endif ;?>
+                                            
                                          </div>
                                          <div class="tpl-table-black-operation" style="margin-top:10px">
                                             <!--打印标签-->
@@ -550,10 +551,9 @@
                                             </a>
                                             <?php endif ;?>
                                             
-                                            <!--变更地址-->
-                                            <?php if (checkPrivilege('tr_order/updateaddress')): ?>
-                                             <a class='tpl-table-black-operation-green j-changeaddress' href="javascript:void(0);" data-user_id="<?= $item['member_id'] ?>" data-id="<?= $item['id'] ?>">
-                                                <i class="iconfont icon-dizhi"></i> 变更地址
+                                            <?php if (checkPrivilege('tr_order/printpacklist')): ?>
+                                            <a class='tpl-table-black-operation-del j-packlist' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
+                                                <i class="iconfont icon-biaoqian"></i> 打印拣货单
                                             </a>
                                             <?php endif ;?>
                                          </div>
@@ -594,6 +594,13 @@
                                             <?php endif ;?>
                                         </div>
                                         <div class="tpl-table-black-operation" style="margin-top:10px">
+                                            <!--变更地址-->
+                                            <?php if (checkPrivilege('tr_order/updateaddress')): ?>
+                                             <a class='tpl-table-black-operation-green j-changeaddress' href="javascript:void(0);" data-user_id="<?= $item['member_id'] ?>" data-id="<?= $item['id'] ?>">
+                                                <i class="iconfont icon-dizhi"></i> 变更地址
+                                            </a>
+                                            <?php endif ;?>
+                                            
                                             <a class='tpl-table-black-operation-green j-invoice' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
                                                 <i class="iconfont icon-daochu"></i> 导出INVOICE
                                             </a>
@@ -1017,7 +1024,9 @@
                     <button onclick="printlabel(10,{{ inpack_id }})"   style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-primary ">标签模板1</button>
                     <button onclick="printlabel(20,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-secondary ">标签模板2</button>
                     <button onclick="printlabel(30,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-success ">标签模板3</button>
+                    <button onclick="printlabel(50,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-success ">标签模板4</button>
                     <button onclick="printlabel(40,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-warning ">渠道 标 签</button>
+                    
                 </div>
             </div>
         </form>
@@ -1573,6 +1582,38 @@
                
            })
         }); 
+       
+        
+        //打印拣货单
+        $(".j-packlist").on('click',function(){
+           var data = $(this).data();
+           $.ajax({
+               url:'<?= url('store/trOrder/printpacklist') ?>',
+               type:"get",
+               data:{id:data['id']},
+               success:function(result){
+                   console.log(result);
+                    if(result.code ===0){
+                       layer.alert(result.msg, {icon: 5});
+                       return; 
+                    }
+                   
+                  $.showModal({
+                        title: '账单打印预览'
+                        , area: '600px,700px'
+                        , content: result
+                        , success: function ($content) {
+                            console.log($content)
+                             
+                        }
+                        , yes: function ($content) {
+                            PrintDiv(result)
+                        }
+                    });
+               }
+               
+           })
+        });
         
         //打印账单
         $(".j-freelist").on('click',function(){
@@ -1609,7 +1650,7 @@
          $(".j-label").on('click',function(){
           var data = $(this).data();
            $.showModal({
-                title: '批量更新订单动态'
+                title: '标签打印预览'
                 , area: '460px'
                 , content: template('tpl-label',{inpack_id:data.id})
                 , uCheck: true

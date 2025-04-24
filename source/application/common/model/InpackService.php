@@ -15,7 +15,7 @@ class InpackService extends BaseModel
     protected $updateTime = false;
     
     /**
-     * 关联用户表
+     * 关联增值服务表
      * @return \think\model\relation\BelongsTo
      */
     public function service()

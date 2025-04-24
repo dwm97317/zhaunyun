@@ -20,7 +20,7 @@
     .layui-table-view .layui-table td, .layui-table-view .layui-table th {
       padding: 9px 15px;
     }
-    .status-badge {
+    .status-badge {
       padding: 2px 5px;
       border-radius: 2px;
       font-size: 12px;

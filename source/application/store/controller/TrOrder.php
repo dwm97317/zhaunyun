@@ -1984,6 +1984,8 @@ class TrOrder extends Controller
        }
        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
        $data['barcode'] = $generatorSVG->getBarcode($data['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
+       //国际单号
+       $data['barcodet_order_sn'] = $generatorSVG->getBarcode($data['t_order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 80);
        $data['cover_id'] = UploadFile::detail($data['setting']['cover_id']);
         // dump($data->toArray());die;
         $data['total_free'] = $data['free'] + $data['pack_free'] + $data['insure_free']+$data['other_free'];
@@ -2003,6 +2005,9 @@ class TrOrder extends Controller
                    break;
                case '40':
                    return $this->label40($data);
+                   break;
+               case '50':
+                   return $this->label50($data);
                    break;
                default:
                     echo $this->label10($data);
@@ -2024,6 +2029,9 @@ class TrOrder extends Controller
                    case '40':
                         return  $this->label40($data);
                        break;
+                   case '50':
+                        echo $this->label50($data);
+                        break;
                    default:
                         echo $this->label10($data);
                        break;
@@ -2205,7 +2213,278 @@ class TrOrder extends Controller
 </table>';
 } 
 
+  // 拣货单
+    public function printpacklist(){
+    $id = $this->request->param('id');    
+       $label = $this->request->param('label');    
+       $inpack = (new Inpack());
+       $data = $inpack->getExpressData($id);
+       if(!$data['order_sn']){
+           return $this->renderError('转运单号为空');
+       }
+       $adminstyle = Setting::getItem('adminstyle',$data['wxapp_id']);
+    //   dump($data->toArray());die;
+       $data['setting'] = Setting::getItem('store',$data['wxapp_id']);
+       if(!empty($data['member_id'])){
+           $member  = UserModel::detail($data['member_id']);
+           $data['name'] = $member['nickName'];
+           if($data['setting']['usercode_mode']['is_show']==1){
+              $data['member_id'] = $member['user_code'];
+           }
+           if($data['setting']['usercode_mode']['is_show']==2){
+              $data['member_id'] = $data['usermark'];
+           }
+       } 
+       
+       if(!empty($data['address_id'])){
+           $result = (new UserAddress())->where('address_id',$data['address_id'])->where('address_type',2)->find();
+           empty($result) && $data['address_id']="未选自提点";
+       }
+       $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
+       $data['barcode'] = $generatorSVG->getBarcode($data['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
+       $data['cover_id'] = UploadFile::detail($data['setting']['cover_id']);
+        // dump($data->toArray());die;
+        $data['total_free'] = $data['free'] + $data['pack_free'] + $data['insure_free']+$data['other_free'];
+        $line_type_unit = [10=>'g',20=>'kg',30=>'lbs',40=>'cbm'];
+        $data['line_type_unit'] = $line_type_unit[$data['line']['line_type_unit']];
+        
+    if(count($data['packagelist'])==0){
+        $hll = '';
+    }else{
+        $hll = '';
+        foreach ($data['packagelist'] as $key=>$value){
+            $hll = $hll. '<tr><td class="font_m">'.($key + 1).'</td>
+                <td class="font_m">'.$value['shelfunititem']['shelfunit']['shelf_unit_code'].'</td>
+                <td class="font_m">'.$value['express_num'].'</td>
+                <td class="font_m">'.$value['remark'].'</td>
+                <td class="font_m">'.$value['num'].'</td>
+                <td class="font_m">'.$data['weight'].'</td>
+                <td class="font_m">'.$value['length'].'*'.$value['width'].'*'.$value['height'].'</td>
+                <td class="font_m">'.$value['entering_warehouse_time'].'</td></tr>';
+        }
+    }
+    $packservice = '';
+    if(count($data['inpackservice'])>0){
+        
+        foreach ($data['inpackservice'] as $key=>$value){
+            $packservice = $packservice.'  '. $value['service']['name'];
+        }
+    }
+       
+    echo $html = '<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
+
+
+    table {
+        font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    table.container {
+        width: 100%;
+        border-bottom: 0;
+    }
+    
+    .conta {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .printdata tr{
+        border: 1px solid #333;
+    }
+    
+    .printdata td{
+        border: 1px solid #333;
+    }
+
+    table td {
+        padding: 2px;
+    }
+
+    table.nob {
+        width: 100%;
+    }
+
+    table.nob td {
+        border: 0;
+    }
+
+    table td.center {
+        text-align: center;
+    }
+
+    table td.right {
+        text-align: right;
+    }
+
+    table td.pl {
+        padding-left: 5px;
+        margin: 4px 0;
+    }
+
+    table td.br {
+        border-right: 1px solid #333;
+    }
+
+    table.nobt,
+    table td.nobt {
+        border-top: 0;
+    }
+
+    table.nobb,
+    table td.nobb {
+        border-bottom: 0;
+    }
+
+    .font_s {
+        font-size: 10px;
+        -webkit-transform: scale(0.84, 0.84);
+        *font-size: 10px;
+    }
+
+    .font_m {
+        font-size: 14px;
+        padding-left: 10px;
+        text-align:center;
+    }
+
+    .font_l {
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .font_xl {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .font_xxl {
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .font_xxxl {
+        font-size: 32px;
+        font-weight: bold;
+    }
+
+    tbody tr:nth-child(2n){
+        color: #000;
+    }
+
+    .country {
+        font-size: 37px;
+        padding: 0px;
+        margin: 0px;
+        font-weight: bold;
+        width: 100px;
+    }
+
+    .barcode {
+        text-align: center;
+    }
+
+    .barcode svg {
+        width: 378px;
+    }
+
+    .font_12 {
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .p-l-20 {
+        padding-left: 20px;
+    }
+
+    .printdata {
+        width: 190mm; /* 210mm总宽度减去左右各10mm边距 */
+        height: auto;
+        margin: 0 auto;
+        border: 2px solid #000;
+        padding: 10px;
+        page-break-after: always;
+    }
+
+    .divider {
+        height: 2px;
+        background: #000;
+        margin: 10px 0;
+    }
+
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    @media print {
+        body {
+            width: 210mm;
+            height: 297mm;
+        }
+        .printdata {
+            border: none;
+        }
+    }
+</style>
+
+<div class="printdata">
+    <table class="container" style="height: 50mm;">
+        <tr>
+            <td height="30mm" class="center">
+                订单号
+            </td>
+            <td colspan="3" height="30mm" class="center">
+                '.$data['order_sn'].'
+            </td>
+            <td rowspan="2" colspan="4" class="center">
+               '.$data['barcode'].'
+            </td>
+        </tr>
+        <tr>
+            <td class="center">客户账号</td>
+            <td colspan="3" class="center">'.$data['user']['nickName'].'('.$data['member_id'].')'.'</td>
+        </tr>
+        <tr>
+            <td class="center">序号</td>
+            <td class="center">货架货位</td>
+            <td class="center">快递单号</td>
+            <td class="center">备注</td>
+            <td class="center">件数</td>
+            <td class="center">重量</td>
+            <td class="center">尺寸</td>
+            <td class="center">添加时间</td>
+        </tr>
+        '.$hll.'
+        <tr>
+            <td class="center">包裹个数</td>
+            <td colspan="3" class="center">'.count($data['packagelist']).'</td>
+            <td class="center">总重量</td>
+            <td colspan="3" class="center">'.count($data['packagelist']).'</td>
+        </tr>
+        <tr>
+            <td class="center">运送方式</td>
+            <td colspan="7" class="">'.$data['line']['name'].'</td>
+        </tr>
+        <tr>
+            <td class="center">增值服务</td>
+            <td colspan="7" class="">'.$packservice.'</td>
+        </tr>
+        <tr>
+            <td class="center">客户备注</td>
+            <td colspan="7" class="">'.$data['remark'].'</td>
+        </tr>
+    </table>
+</div>';
+}
+    
  
     // 渲染标签模板B
     public function label40($data){
@@ -2381,6 +2660,233 @@ class TrOrder extends Controller
 </table>
 ';
     }
+    
+    // 渲染标签模板B
+    public function label50($data){
+        
+    if(count($data['packageitems'])==0){
+		$jianshu = '<td class="font_xl">件數：1/1</td>';
+    }else{
+		$jianshu = '<td class="font_xl">件數：'.($data['index'] +1).'/'.count($data['packageitems']).'</td>';
+    }
+       
+    return  $html = '<style>
+	* {
+		margin: 0;
+		padding: 0
+	}
+
+	table {
+		margin-top: -1px;
+		font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
+		border-collapse: collapse
+	}
+
+	table.container {
+	    width:100%;
+		border-bottom: 0
+	}
+	
+	.conta {
+            display: flex; /* 设置容器为flex布局 */
+            justify-content: center;
+            align-items: center;
+    }
+
+	table td {
+	}
+
+	table.nob {
+	    width:100%;
+	}
+
+	table.nob td {
+		border: 0
+	}
+
+	table td.center {
+		text-align: center
+	}
+
+	table td.right {
+		text-align: right
+	}
+
+	table td.pl {
+		padding-left: 5px;
+		margin:4px 0;
+	}
+
+	table td.br {
+		border-right: 1px solid #000
+	}
+
+	table.nobt,
+	table td.nobt {
+		border-top: 0
+	}
+
+	table.nobb,
+	table td.nobb {
+		border-bottom: 0
+	}
+
+	.font_s {
+		font-size: 10px;
+		-webkit-transform: scale(0.84, 0.84);
+		*font-size: 10px
+	}
+
+	.font_m {
+		font-size: 14px;
+		padding-left:10px;
+	}
+
+	.font_l {
+		font-size: 16px;
+		font-weight: bold
+	}
+
+	.font_xl {
+		font-size: 18px;
+		font-weight: bold;
+		padding-left:10px;
+	}
+
+	.font_xxl {
+		font-size: 28px;
+		font-weight: bold
+	}
+
+	.font_xxxl {
+		font-size: 32px;
+		font-weight: bold
+	}
+	tbody tr:nth-child(2n){
+	    color:#000;
+	}
+	.country{
+    	font-size: 37px;
+        padding: 0px;
+        margin: 0px;
+        font-weight: bold;
+        width: 100px;
+	}
+	.barcode{text-align:center;}
+	.barcode svg{width:378px;}
+	.font_12{font-size: 12px;font-weight: bold;}
+	.p-l-20{
+	    padding-left:20px;
+	}
+	.printdata:first-child{
+	    margin-top:30px !important;
+	}
+	.printdata{
+	    width:550px;
+	    height:550px;
+	    margin:30px 20px 20px 20px;
+	    border:2px solid #000;
+	}
+	
+</style>
+<div style="padding:10px;">
+<div class="printdata">
+<table class="container" style="height:180px;">
+	<tr>
+		<td  class="center">
+			<table class="nob">
+				<tr>
+					<td class="barcode center">'.$data['barcodet_order_sn'].'</td>
+				</tr>
+				<tr>
+					<td class="center font_xxxl">'.$data['t_order_sn'].'</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+
+<div style="height:1px;border-top:2px solid #000;margin:10px 0px 10px 0px;"></div>
+<table class="container" style="height:30px;">
+	<tr>
+		<td  height="55" class="font_xxxl conta">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_xxl conta">目的地：'.$data['address']['country'].'</td>
+		            <td class="font_xxl p-l-20">会员唛头：'.$data['member_id'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+</table>
+<div style="height:1px;border-top:2px solid #000;margin:10px 0px 10px 0px;"></div>
+<table class="container" style="height:30px;">
+	<tr>
+		<td  height="25" class="font_xl">
+		    <table class="nob">
+		        <tr>
+		            '. $jianshu.'
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+	<tr>
+		<td  height="25" class="font_xl">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_xl">路线渠道：'.$data['line']['name'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+	
+</table>
+<div style="height:1px;border-top:2px solid #000;margin:10px 0px 10px 0px;"></div>
+<table class="container" style="height:150px;">
+	<tr>
+		<td  height="25" class="font_xl">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_xl">送货地址：'.$data['address']['province'].$data['address']['city'].$data['address']['detail'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+	<tr>
+		<td  height="25" class="font_xl">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_xl">收件人：'.$data['address']['name'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+	<tr>
+		<td  height="25" class="font_xl">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_xl">电话：'.$data['address']['phone'].'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+</table>
+
+<table style="height:30px;">
+	<tr>
+		<td  height="10" class="font_m" style="text-align:right">
+		    <table class="nob">
+		        <tr>
+		            <td class="font_m">打印時間：'.date("Y-m-d H:i:s",time()).'</td>
+		        </tr>
+		    </table>
+		</td>
+	</tr>
+</table>
+</div>
+';
+}
+    
     
     // 渲染标签模板B
     public function label30($data){
