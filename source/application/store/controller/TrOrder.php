@@ -2688,15 +2688,15 @@ class TrOrder extends Controller
     
     table {
         width: 100%;
-        font: 10px "Microsoft YaHei", sans-serif;
+        font: 12px "Microsoft YaHei", Verdana, arial, sans-serif;
         border-collapse: collapse;
         margin:2mm;
     }
     .center{text-align:center;}
     .left{text-align:left;}
     .font_xl { font-size: 12px; }
-    .font_xxl { font-size: 16px; }
-    .font_xxxl { font-size: 18px; }
+    .font_xxl { font-size: 14px; font-weight: 600;}
+    .font_xxxl { font-size: 20px;font-weight: bold }
     
     .barcode svg {
         width: 80mm;
@@ -2725,8 +2725,8 @@ class TrOrder extends Controller
     <!-- 目的地 -->
     <table>
         <tr>
-            <td class="font_xxl">目的地：'.$data['address']['country'].'</td>
-            <td class="font_xxl">会员唛头：'.$data['member_id'].'</td>
+            <td class="font_xxxl">目的地：'.$data['address']['country'].'</td>
+            <td class="font_xxxl">会员唛头：'.$data['member_id'].'</td>
         </tr>
     </table>
     
