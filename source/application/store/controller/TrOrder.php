@@ -1727,8 +1727,9 @@ class TrOrder extends Controller
         if (preg_match('/^-?\d{1,3}(,\d{3})*(\.\d+)?$/', $lines['predict']['price'])) {
             $floatValue = floatval(str_replace(',', '', $lines['predict']['price']));
             $formatted = number_format($floatValue, 2);
+            $lines['predict']['price'] = $formatted;
         } 
-        $lines['predict']['price'] = $formatted;
+        
         $settingdata  = SettingModel::getItem('store',$line['wxapp_id']);
         //不需要主动更新费用
         if($settingdata['is_auto_free']==0){
