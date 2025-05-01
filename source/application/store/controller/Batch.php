@@ -225,6 +225,7 @@ class Batch extends Controller
         }
         foreach ($arr as $key =>$val){
             $Inpack->where('id',$val)->update(['batch_id'=>$param['batch_id']]);
+            (new Package())->where('inpack_id',$val)->update(['batch_id'=>$param['batch_id']]);
         }
         return $this->renderSuccess('加入批次成功');
     }
@@ -395,9 +396,9 @@ class Batch extends Controller
              return $this->fetch('edit',compact('list','detail','set','track','ditchlist','templatelist'));
         }
         $param = $this->postData('batch');
-        // dump($batch_id);die;
+        // dump($detail);die;
         //将集运单和包裹都设置为已发货状态
-        if($detail['status']==1 && $param['status']==1){
+        if($param['status']==1){
             $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
             if(!empty($inpackdata)){
                 $Inpack->where('batch_id',$batch_id)->update(['status'=>6]);

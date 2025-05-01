@@ -263,13 +263,13 @@ class TrOrder extends Controller
         $set = Setting::detail('store')['values'];
         $list = $model->getQuicklypack($dataType, $this->request->param());
         foreach ($list as &$value) {
-            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['num'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
             $value['down_shelf'] = 0;
             $value['inpack'] = 0;
            if ($dataType=='payed'){
-                $value['down_shelf'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
-                $value['inpack'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',8)->count();
+                $value['down_shelf'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->where('status',7)->count();
+                $value['inpack'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->where('status',8)->count();
            }
         }
 
@@ -311,7 +311,7 @@ class TrOrder extends Controller
         $set = Setting::detail('store')['values'];
         $list = $model->getExceedList($dataType, $this->request->param());
         foreach ($list as &$value) {
-            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['num'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
             $value['down_shelf'] = 0;
             $value['inpack'] = 0;
@@ -559,23 +559,18 @@ class TrOrder extends Controller
         $line = (new Line())->getList([]);
         // 订单详情
         $detail = Inpack::details($id);
-        // dump($detail->toArray());die;
         if ($detail['status']>=2){
             $detail['total'] = $detail['free']+$detail['pack_free']+$detail['other_free'];
         }
-        // $packages = explode(",",$detail['pack_ids']);
          $packagelist= (new Package())->where("inpack_id",$detail['id'])->select();
-        //   dump($packagelist);die;
         foreach($packagelist as $key => $value){
           $packageItems[$key] = (new PackageItem())->where("order_id",$value['id'])->find();
           if(!empty($packageItems[$key])){
               $packageItem[$key] = $packageItems[$key];
           }
         }
-        //  dump($packageItem->toArray());die;
         $packageService = (new PackageService())->getList([]);
         $detail['service'] = (new InpackService())->with('service')->where('inpack_id',$id)->select();
-        // dump($PackageItem);die;
         //获取订单日志记录
         $detail['log'] = (new Logistics())->where('order_sn',$detail['order_sn'])->select();
         //获取到用户信息
@@ -623,7 +618,6 @@ class TrOrder extends Controller
        foreach ($idsArr as $v){
            $order =  $model->where(['id'=>$v])->find($v);
            $userData = (new User())->where('user_id',$order['member_id'])->find();
-           $pack_ids = explode(',',$order['pack_ids']);
            $_up = [
              'status' => $status
            ];
@@ -644,7 +638,7 @@ class TrOrder extends Controller
                $_up['receipt_time'] = getTime();
            }
            $model->where(['id'=>$v])->update($_up);
-           (new Package())->where('id','in',$pack_ids)->update(['status'=>$status_map[$status]]);
+           (new Package())->where('inpack_id',$order['id'])->update(['status'=>$status_map[$status]]);
            if(strpos($noticesetting['dosend']['describe'],'code')){
                  $dosend = str_ireplace('{code}', $order['t_order_sn'], $noticesetting['dosend']['describe']);
             }else{
@@ -1143,15 +1137,7 @@ class TrOrder extends Controller
     public function delete($id){
         $model = Inpack::details($id);
         //找到集运单所有的包裹单号，循环设置状态为2；
-        $package_ids = $model['pack_ids'];
-        $pack = explode(',',$package_ids);
-        if(!empty($pack)){
-          foreach ($pack as $key => $val){
-            (new Package())->where('id',$val)->update(['status' => 2,'inpack_id'=>null]);
-          }  
-        }else{
-            (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>null]);
-        }
+        (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>null]);
         if ($model->removedelete($id)) {
             return $this->renderSuccess('删除成功');
         }
@@ -1230,12 +1216,12 @@ class TrOrder extends Controller
         $pintuanlist = (new SharingOrder())->getList([]);
         $shopList = ShopModel::getAllList();
         foreach ($list as &$value) {
-            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['num'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['down_shelf'] = 0;
             $value['inpack'] = 0;
            if ($dataType=='payed'){
-                $value['down_shelf'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
-                $value['inpack'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',8)->count();
+                $value['down_shelf'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->where('status',7)->count();
+                $value['inpack'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->where('status',8)->count();
            }
         }
 
@@ -1277,12 +1263,12 @@ class TrOrder extends Controller
         $pintuanlist = (new SharingOrder())->getList([]);
         $shopList = ShopModel::getAllList();
         foreach ($list as &$value) {
-            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['num'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['down_shelf'] = 0;
             $value['inpack'] = 0;
            if ($dataType=='payed'){
-                $value['down_shelf'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
-                $value['inpack'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',8)->count();
+                $value['down_shelf'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->where('status',7)->count();
+                $value['inpack'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->where('status',8)->count();
            }
         }
 
@@ -1303,13 +1289,13 @@ class TrOrder extends Controller
         $set = Setting::detail('store')['values'];
         $list = $model->getNoPayList($dataType, $this->request->param());
         foreach ($list as &$value) {
-            $value['num'] = !empty($value['pack_ids'])?count(explode(',',$value['pack_ids'])):0;
+            $value['num'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
             $value['down_shelf'] = 0;
             $value['inpack'] = 0;
            if ($dataType=='payed'){
-                $value['down_shelf'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',7)->count();
-                $value['inpack'] = (new Package())->where('id','in',explode(',',$value['pack_ids']))->where('status',8)->count();
+                $value['down_shelf'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->where('status',7)->count();
+                $value['inpack'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->where('status',8)->count();
            }
         }
 
@@ -1326,18 +1312,9 @@ class TrOrder extends Controller
           $model = new Inpack();
           //单个移出集运单
           if(input('value') && input('id')){
-              $detail = $model->find(input('value'));
-              $package_ids = explode(',',$detail['pack_ids']);
-              $key = array_search(input('id'),$package_ids);
-              if ($key!==false){
-                  unset($package_ids[$key]);
-              }
               $update['status'] = 2;
               $update['inpack_id'] = null;
-             (new Package())->where('id',input('id'))->update($update);
-              $inpackUpdate['pack_ids'] = implode(',',$package_ids);
-              $res = $model->where(['id'=>input('value')])->update($inpackUpdate);
-          
+              $res =  (new Package())->where('id',input('id'))->update($update);
               if ($res){
                    return $this->renderSuccess('修改成功');
               }
@@ -1348,26 +1325,12 @@ class TrOrder extends Controller
           //批量移出集运单
           $ids= input("post.selectId/a");  //需要去除的包裹id；
           $item =input("post.selectItem"); // 集运单编号
-          $detail = $model->find($item);
-          $package_ids = explode(',',$detail['pack_ids']);
-          //移除数组
- 
-          $package_ids = array_diff($package_ids,$ids);
-          //循环更新包裹状态为已入库，可打包状态
           $update['status'] = 2;
           $update['inpack_id'] = null;
           foreach($ids as $key => $val){
              (new Package())->where('id',$val)->update($update);    
           } 
-          //更新集运单的包裹
-
-          $inpackUpdate['pack_ids'] = implode(',',$package_ids);
-          $res = $model->where(['id'=>$item])->update($inpackUpdate);
-          
-          if ($res){
-               return $this->renderSuccess('修改成功');
-          }
-          return $this->renderError($model->getError() ?: '修改失败');
+          return $this->renderSuccess('修改成功');
     }
     
     // 添加快递进入集运单 
@@ -1870,11 +1833,7 @@ class TrOrder extends Controller
           $resultid = $model->insertGetId($newpack);
              
           $resultpack = $Package->where('id','in',$ids)->update(['inpack_id'=>$resultid]);
-        //   foreach ($ids as $value) {
-        //       // code...
-        //   }
           if ($resultpack){
-            //   $PackageItem->where('order_id','in',$ids)->update(['order_id'=>]);
               return $this->renderSuccess('拆包合包成功');
           }
           return $this->renderError($Package->getError() ?: '拆包合包失败');
@@ -3896,21 +3855,10 @@ public function expressBillbatch() {
                     $item['total_free'] = $item['free']+ $item['pack_free'] +$item['other_free'] +$item['insure_free'];
                     
                     //集运单包裹中的物品分类和价格
-                    $packdata = explode(",",$item['pack_ids']);
+                    $packdata = (new Package())->where('inpack_id',$item['id'])->where('is_delete',0)->value('id');
                     $packClass = [];
                     $packprice = 0;
-             
-                    // foreach($packdata as $key => $vale){
-                    //     $expressnum = (new Package())->where('id',$vale)->find();
-                    //     $packitem = (new PackageItem())->where('express_num',$expressnum['express_num'])->select();
-                    //     $packClass[$key]="";
-                    //     $packprice=0;
-                    //     if(count($packitem)>0){
-                    //         $packClass[$key] = $packitem[0]['class_name'];
-                    //         $packprice += $packitem[0]['all_price'];
-                    //     } 
-                    // }
-                    
+
                     $item['packClass'] = implode($packClass);
                     $item['packprice'] = $packprice;
                     // dump($packClass);die;
@@ -4385,7 +4333,7 @@ public function expressBillbatch() {
                     
                     
                     //集运单包裹中的物品分类和价格
-                    $packdata = explode(",",$item['pack_ids']);
+                    $packdata = (new Package())->where('inpack_id',$item['id'])->where('is_delete',0)->value('id');
                     $packClass = [];
                     $packprice = 0;
              
