@@ -24,7 +24,6 @@ class User extends UserModel
         'open_id',
         'is_delete',
         'password',
-        'wxapp_id',
         'create_time',
         'update_time'
     ];

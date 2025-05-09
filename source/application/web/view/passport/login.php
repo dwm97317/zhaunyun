@@ -47,13 +47,13 @@
                                             <input id="agreement" name="agreement" type="checkbox">
                                             <label for="agreement">记住密码</label>
                                         </div>
-                                        <div class="pull-right">
-                                            <a href="">忘记密码</a>
-                                        </div>
+                                        <!--<div class="pull-right">-->
+                                        <!--    <a href="">忘记密码</a>-->
+                                        <!--</div>-->
                                         <div class="m-t-20 text-right">
                                             <button class="btn btn-gradient-success">登录</button>
                                         </div>
-                                        <small>没有账号请先点击注册 <a href="<?=urlCreate('/index.php/web/passport/register') ?>">立即注册</a></small>
+                                        <small>没有账号请先点击注册 <a href="<?= urlCreate('/web/passport/register') ?>">立即注册</a></small>
                                     </form>
                                 </div>
                             </div>
@@ -72,8 +72,7 @@
     
 </body>
 <script>
- var url = "<?php echo(urlCreate('/index.php/web/index')) ?>";
- console.log(url,54768);
+ var url = "<?php echo(urlCreate('/web/index/index')) ?>";
  $(".btn").click(res=>{
     
      var formData = $('#ajaxForm').serializeArray(); 
@@ -89,6 +88,7 @@
         success:function(res){
             if (res['code']==0){
                 swal(res.msg);
+                return false;
             }
             setTimeout((res)=>{
                 window.location.href = url;

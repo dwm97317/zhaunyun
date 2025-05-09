@@ -79,12 +79,12 @@ class User extends Controller
         ]);
     }
     
+    // 根据域名返回wxapp_id
     public function getSiteUrl(){
         // 
         $WxappModel = new WxappModel();
         $url = $_SERVER['HTTP_ORIGIN'];
         $wxappData  = WxappModel::useGlobalScope(false)->where('other_url','like','%'.$url.'%')->find();
-            // dump($wxappData);die;
         if(empty($wxappData)){
             return $this->renderSuccess([
             'other_url' => base_url(),

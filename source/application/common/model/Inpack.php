@@ -366,5 +366,20 @@ class Inpack extends BaseModel
             'value'=>$value
         ];
     }
+    
+    /**
+     * 是否打印拣货单print_status_jhd
+     * @param $value
+     * @return mixed
+     */
+    public function getPrintStatusJhdAttr($value)
+    {
+        //0=>'未拣货',1=>'已拣货'
+        $type = [0=>'未拣货',1=>'已拣货'];
+        return [
+            'text'=> $type[$value],
+            'value'=>$value
+        ];
+    }
 
 }

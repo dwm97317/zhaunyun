@@ -52,18 +52,27 @@ class Logistics extends LogisticsModel
      public function getZdList($sn,$number,$wxappId){
         $setting = Setting::getItem("store",$wxappId);
         $data = [];
-        // dump($setting);die;
+       
         //查询17track物流信息
         if (!empty($setting['track17']['key'])){
         $track = (new TrackApi())->track(['track_sn'=>$sn,'t_number'=>$number,'wxapp_id'=> $wxappId]);
-
+    //   dump($track);die;
         if(!empty($track)){
-                foreach ($track['tracking']['providers'][0]['events'] as $v){
-                    $data[] = [
-                      'logistics_describe' => $v['description'], 
-                      'status_cn' => $v['location'],
-                      'created_time' => str_replace(array('T','Z'),' ',$v['time_utc'])
-                    ];
+                foreach ($track['tracking']['providers'] as $k => $v){  //[0]['events'] as
+                if(count($v['events'])>0){
+                  
+                    foreach ($v['events'] as $l){
+                        //   dump($l);die;
+                        $data[] = [
+                          'logistics_describe' => $l['description'], 
+                          'status_cn' => $l['location'],
+                          'created_time' => str_replace(array('T','Z'),' ',$l['time_utc'])
+                        ];
+                    }
+                    // dump($v['events']);die;
+                    
+                }
+                    
                }
            }
         }

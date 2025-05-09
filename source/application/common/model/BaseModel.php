@@ -88,12 +88,13 @@ class BaseModel extends Model
     protected static function setWebWxappId()
     {
         $request = Request::instance();
-        if ($request->param('wxappid')){
-           $wxapp_id_en = str_replace(' ','+',$request->get('wxappid'));
-           self::$wxapp_id = encrypt($wxapp_id_en,'D');
-        } else{
-           self::$wxapp_id = $request->param('wxapp_id'); 
+        if(empty($request->param('wxappid'))){
+            $query = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+            $wxapp_id_en = substr($query, strpos($query, 'wxappid=') + 8);
+            self::$wxapp_id =  $wxapp_id_en;
+         
         }
+        self::$wxapp_id = $request->param('wxappid');
     }
 
     /**

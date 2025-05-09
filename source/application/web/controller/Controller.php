@@ -30,20 +30,39 @@ class Controller extends \think\Controller
     protected $allowAllAction = [
         // 登录页面
         'passport/login',
+        'passport/register',
         'track/search',
         'home/index',
-        'home/line'
+        'home/line',
     ];
     /* @var array $notLayoutAction 无需全局layout */
     protected $notLayoutAction = [
         // 登录页面
         'passport/login',
+        'passport/register',
         'track/search',
         'home/index',
         'index/index',
         'home/contact',
         'home/line',
         'home/track',
+        'home/home',
+        'home/bannerlist',
+        'home/menulist',
+        'page/goods_line',
+        'article/detail',
+        'article/categorylist',
+        'home/weblinklist',
+        'home/noticelist',
+        'home/protocol',
+        'article/getcategoryname',
+        'article/getnewscategory',
+        'article/getnewslist',
+        'article/getaboutusdetail',
+        'track/searchlog',
+        'package/getcountrylist',
+        'package/searchprice',
+        'user/getsiteurl'
     ];
     /**
      * API基类初始化
@@ -53,25 +72,33 @@ class Controller extends \think\Controller
     public function _initialize()
     {
         $this->user = Session::get('yoshop_user');
-        // 当前小程序id
-      
-        $wxapp_id_en = str_replace(' ','+',$this->request->get('wxappid'));
-        //  dump(encrypt($wxapp_id_en,'D'));die;
-        if (!$wxapp_id = encrypt($wxapp_id_en,'D')){
-             throw new BaseException(['msg' => '无效wxapp_id']);   
-        }
-        // dump($wxapp_id);die;
-        $this->wxapp_id = $wxapp_id;
+        
+        $this->wxapp_id = $this->request->get('wxappid');
+        
         $this->getRouteinfo();
         // 验证当前小程序状态
         $this->checkWxapp();
         // 判断当前控制器 是否是login
         $controller=request()->controller();
-        // dump($this->notLayoutAction);die;
         if (!in_array($this->routeUri, $this->notLayoutAction)){
            $this->checkLogin();
         }
         $this->layout();
+    }
+    
+    private function getExWxappId()
+    {
+        $wxapp_id_en = str_replace(' ','+',$this->request->param('wxappid'));
+         
+        if (empty($wxapp_id_en)) {
+            $query = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+            $wxapp_id_en = substr($query, strpos($query, 'wxappid=') + 8); // 获取 `?` 之后的内容
+        }
+       
+        if (!$wxapp_id = encrypt($wxapp_id_en,'D')){
+             throw new BaseException(['msg' => '无效wxapp_id']);   
+        }
+        return $wxapp_id;
     }
     
     /**
@@ -98,8 +125,8 @@ class Controller extends \think\Controller
      */
     private function getWxappId()
     {
-        if (!$wxapp_id = $this->request->param('wxapp_id')) {
-            throw new BaseException(['msg' => '缺少必要的参数：wxapp_id']);
+        if (!$wxapp_id = $this->request->param('wxappid')) {
+            throw new BaseException(['msg' => '缺少必要的参数：wxappid']);
         }
         return $wxapp_id;
     }
@@ -259,6 +286,16 @@ class Controller extends \think\Controller
     protected function renderSuccess($data = [], $msg = 'success')
     {
         return $this->renderJson(self::JSON_SUCCESS_STATUS, $msg, $data);
+    }
+    
+    // 在控制器基类中添加
+    protected function renderSuccessWeb($data = [], $code = 1, $msg = 'success')
+    {
+        return json([
+            'code' => $code,
+            'msg' => $msg,
+            'data' => $data
+        ]);
     }
 
     /**

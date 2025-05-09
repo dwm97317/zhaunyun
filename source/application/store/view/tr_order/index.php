@@ -487,7 +487,12 @@
                                             <?= $item['pay_type']['text'];?>
                                         </span>
                                     </td>
-                                    <td class="am-text-middle"><?= $status[$item['status']] ?></td>
+                                    <td class="am-text-middle">
+                                        <?= $status[$item['status']] ?>
+                                        <span class="am-badge <?= $item['print_status_jhd']['value']==1?'am-badge-success':'am-badge-danger'?>">
+                                            <?= $item['print_status_jhd']['text'];?>
+                                        </span><br>
+                                    </td>
                                     <td class="am-text-middle" style="width:200px;">
                                         <div class="tpl-table-black-operation">
                                             <!--编辑-->
@@ -1608,6 +1613,21 @@
                         }
                         , yes: function ($content) {
                             PrintDiv(result)
+                            $.ajax({
+                                url: '<?= url('store/trOrder/updatePrintStatus') ?>',
+                                type: "post",
+                                data: {id: data['id']},
+                                success: function(response) {
+                                    if (response.code === 1) {
+                                        layer.msg('打印状态已更新', {icon: 1});
+                                    } else {
+                                        layer.alert(response.msg, {icon: 5});
+                                    }
+                                },
+                                error: function() {
+                                    layer.alert('更新打印状态失败', {icon: 5});
+                                }
+                            });
                         }
                     });
                }

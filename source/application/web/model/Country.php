@@ -25,6 +25,7 @@ class Country extends CountryModel
     
     public function getListAll(){
            return $this
+           ->where('wxapp_id',self::$wxapp_id)
            ->order(["is_top desc","is_hot desc","sort"=>"desc"])
            ->paginate(300,false, [
                 'query' => \request()->request()

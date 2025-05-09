@@ -22,6 +22,17 @@ class Category extends Controller
         $list = $model->getAll();
         return $this->fetch('index', compact('list'));
     }
+    
+    /**
+     * 文章分类列表
+     * @return mixed
+     */
+    public function list()
+    {
+        $model = new CategoryModel;
+        $list = $model->getALLlist();
+        return $this->renderSuccess('','',compact('list'));
+    }
 
     /**
      * 添加文章分类

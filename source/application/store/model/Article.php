@@ -26,6 +26,20 @@ class Article extends ArticleModel
             ]);
 
     }
+    
+    /**
+     * 获取文章列表
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getAllList()
+    {
+        return $this->with(['image', 'category'])
+            ->where('is_delete', '=', 0)
+            ->order(['article_sort' => 'asc', 'create_time' => 'desc'])
+            ->select();
+
+    }
 
     /**
      * 新增记录

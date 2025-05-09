@@ -14,6 +14,8 @@ use app\web\model\recharge\Order as rechargeOrder;
 use app\web\model\user\Grade as GradeModel;
 use app\web\model\UserCoupon;
 use  app\web\model\Coupon;
+use app\web\model\Wxapp as WxappModel;
+
 /**
  * 用户管理
  * Class User
@@ -153,6 +155,24 @@ class User extends Controller
         // 当前用户信息
         $userInfo = $this->user();
         return $this->renderSuccess(compact('userInfo'));
+    }
+    
+    // 根据域名返回wxapp_id
+    public function getSiteUrl(){
+        $WxappModel = new WxappModel();
+        $url = $_SERVER['HTTP_ORIGIN'];
+        $wxappData  = WxappModel::useGlobalScope(false)->where('other_url','like','%'.$url.'%')->find();
+        if(empty($wxappData)){
+            return $this->renderSuccessWeb([
+            'other_url' => base_url(),
+            'wxapp_id' => 10001
+            ]);
+        }
+
+        return $this->renderSuccessWeb([
+            'other_url' => $wxappData['other_url'],
+            'wxapp_id' => $wxappData['wxapp_id']
+        ]);
     }
     
      /**

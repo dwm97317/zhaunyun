@@ -63,10 +63,10 @@
                                         <input type="radio" name="banner[banner_site]" value="40" data-am-ucheck>
                                         弹窗公告
                                     </label>
-                                    <!--<label class="am-radio-inline">-->
-                                    <!--    <input type="radio" name="banner[banner_site]" value="30" data-am-ucheck>-->
-                                    <!--    PC端(预留)-->
-                                    <!--</label>-->
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="banner[banner_site]" value="50" data-am-ucheck>
+                                        PC端
+                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -83,7 +83,7 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">分类排序 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">轮播排序 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="number" class="tpl-form-input" name="banner[sort]"
                                            value="100">
@@ -91,7 +91,7 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">轮播标题 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">是否启用 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">
                                         <input type="radio" name="banner[status]" value="1" data-am-ucheck

@@ -144,7 +144,69 @@
                                            <small>系统默认域名为https://zhuanyun10001.sllowly.cn,10001是动态变化的，根据商家的id自动变化。如果你需要配置自己的域名，请联系客服人员协助处理；</small>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    备案号 <span class="tpl-form-line-small-title"></span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[filing_number]"
+                                           value="<?= $model['filing_number'] ?>">
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    版权说明 <span class="tpl-form-line-small-title"></span>
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[copyrighttext]"
+                                           value="<?= $model['copyrighttext'] ?>">
+                                    <small>可以参考：©2017-2025 湖北思楼文化传媒有限公司</small>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label form-require">站点logo </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <button type="button"
+                                                class="upload-file am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择图片
+                                        </button>
+                                        <div class="uploader-list am-cf">
+                                                <div class="file-item">
+                                                    <a href="<?= isset($model['logos'])?$model['logos']['file_path']:"##" ?>"
+                                                       title="点击查看大图" target="_blank">
+                                                        <img src="<?= isset($model['logos'])?$model['logos']['file_path']:'' ?>">
+                                                    </a>
+                                                    <input type="hidden" name="wxapp[logo]"
+                                                           value="<?= $model['logo'] ?>">
+                                                    <i class="iconfont icon-shanchu file-item-delete"></i>
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label form-require">微信公众号 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <button type="button"
+                                                class="upload-wechat am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择图片
+                                        </button>
+                                        <div class="uploader-list am-cf">
+                                                <div class="file-item">
+                                                    <a href="<?= isset($model['wechatimgs'])?$model['wechatimgs']['file_path']:"##" ?>"
+                                                       title="点击查看大图" target="_blank">
+                                                        <img src="<?= isset($model['wechatimgs'])?$model['wechatimgs']['file_path']:'' ?>">
+                                                    </a>
+                                                    <input type="hidden" name="wxapp[wechatimg]"
+                                                           value="<?= $model['wechatimg'] ?>">
+                                                    <i class="iconfont icon-shanchu file-item-delete"></i>
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <?php if (checkPrivilege('wxapp.setting/h5')): ?>
@@ -159,6 +221,12 @@
         </div>
     </div>
 </div>
+<script src="/web/static/js/selectize.min.js"></script>
+<!-- 图片文件列表模板 -->
+{{include file="layouts/_template/tpl_file_item" /}}
+
+<!-- 文件库弹窗 -->
+{{include file="layouts/_template/file_library" /}}
 <script>
     $(function () {
 
@@ -167,6 +235,12 @@
          * @type {*}
          */
         $('#my-form').superForm();
-
+        // 选择图片
+        $('.upload-file').selectImages({
+            name: 'wxapp[logo]'
+        });
+        $('.upload-wechat').selectImages({
+            name: 'wxapp[wechatimg]'
+        });
     });
 </script>

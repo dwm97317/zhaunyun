@@ -27,7 +27,9 @@ class Line extends LineModel
     
     // 推荐路线
     public function goodsLine(){
-        return $this->where(['status'=>1,'is_recommend'=>1])->field('id,name,tariff,goods_limit,image_id,limitationofdelivery')->select();
+        return $this->with(['image'])
+        ->where(['status'=>1,'is_recommend'=>1])
+        ->field('id,name,tariff,goods_limit,image_id,limitationofdelivery')->select();
     }
     
      public function country(){

@@ -66,10 +66,11 @@
                                         <?= $model['banner_site'] == 40 ? 'checked' : '' ?>>
                                         弹窗公告
                                     </label>
-                                    <!--<label class="am-radio-inline">-->
-                                    <!--    <input type="radio" name="banner[banner_site]" value="30" data-am-ucheck>-->
-                                    <!--    PC端(预留)-->
-                                    <!--</label>-->
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="banner[banner_site]" value="50" data-am-ucheck
+                                        <?= $model['banner_site'] == 50 ? 'checked' : '' ?>>
+                                        PC端
+                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -95,7 +96,7 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">分类排序 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">轮播排序 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="number" class="tpl-form-input" name="banner[sort]"
                                            value="<?= $model['sort']; ?>" required>

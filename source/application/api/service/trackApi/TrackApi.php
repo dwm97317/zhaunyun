@@ -104,7 +104,7 @@ Class TrackApi {
               die;
           }
           $resJson = json_decode($res['data'],true);
-            //  dump($resJson);die;
+         
           if($resJson['code']==401){
               return []; 
           }
@@ -114,14 +114,14 @@ Class TrackApi {
               }
               return []; 
           }
-      
+        //   dump($resJson['data']['accepted']);die;
           return $this->renderTrackList($resJson['data']['accepted'][0]);
       }
       
       // 渲染轨迹列表信息
       public function renderTrackList($data){
          $info = $data['track_info'];
-       
+     
          $package_status = [
             '0' => '无法识别', 
             '1' => '正常查有信息',  

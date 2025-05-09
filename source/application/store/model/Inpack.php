@@ -629,7 +629,7 @@ class Inpack extends InpackModel
 
             $pack['t_order_sn'] = $data['t_order_sn'];
             
-            //   dump($update);die;
+            //   dump($data);die;
              //判断是否需要添加物流信息
             if($noticesetting['dosend']['is_enable']==1){
                 // if(!empty($pack['t_order_sn'])){

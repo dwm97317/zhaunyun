@@ -44,7 +44,9 @@ class Login extends Basics
         if (!$this->checkLogin($data)){
             return false;
         } 
+      
         $wxAppid = (new UserModel())->getWxappid();
+            //   dump($wxAppid);die;        
         if ($this->userInfo['wxapp_id']!=$wxAppid){
             $this->error = '账号不存在';
             return false; 
@@ -69,7 +71,7 @@ class Login extends Basics
     public function checkLogin($data){
         $UserModel = new UserModel();
         $result = $UserModel->where(['mobile'=>$data['account']])->whereOr(['email'=>$data['account']])->where('is_delete',0)->find();
-    //   dump($result);die;
+    //   dump($UserModel->getWxappid());die;
         if(!$result){
             $this->error = '用户名或密码错误';
             return false;  

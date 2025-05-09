@@ -71,7 +71,7 @@ class Article extends ArticleModel
      * @return \think\Paginator
      * @throws \think\exception\DbException
      */
-    public function getList($category_id = 0, $limit = 15)
+    public function getList($category_id = 0, $limit = 10)
     {
         $category_id > 0 && $this->where('category_id', '=', $category_id);
         return $this
@@ -83,5 +83,18 @@ class Article extends ArticleModel
                 'query' => \request()->request()
             ]);
     }
+    
+    
+    public function getNewsList($category_id = 0, $limit = 6)
+    {
+        $category_id > 0 && $this->where('category_id', '=', $category_id);
+        return $this
+            ->with(['image', 'category'])
+            ->where('article_status', '=', 1)
+            ->where('is_delete', '=', 0)
+            ->order(['article_sort' => 'asc', 'create_time' => 'desc'])
+            ->select();
+    }
+    
 
 }

@@ -164,6 +164,11 @@
                                         <?= isset($model['clerk_authority']['is_saomachuku']) && $model['clerk_authority']['is_saomachuku'] == 1 ? 'checked' : '' ?>>
                                         扫码出库
                                     </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="clerk[clerk_authority][is_fenjiandan]" value="1" data-am-ucheck
+                                        <?= isset($model['clerk_authority']['is_fenjiandan']) && $model['clerk_authority']['is_fenjiandan'] == 1 ? 'checked' : '' ?>>
+                                        扫分拣单
+                                    </label>
                                     <div class="help-block">
                                         <small>打包员负责包裹的快速扫码打包，出库，封箱操作</small>
                                     </div>

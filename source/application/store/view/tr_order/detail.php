@@ -93,7 +93,7 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">体积重</label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">总体积重</label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="span">
                                         <input style="width:80px;color:red;" readonly type="text" class="tpl-form-input" id="weigthV" name="data[volume]"
@@ -319,9 +319,10 @@ function updateAllVolWeights() {
         const length = parseFloat($row.find('.vlength').val()) || 0;
         const width = parseFloat($row.find('.vwidth').val()) || 0;
         const height = parseFloat($row.find('.vheight').val()) || 0;
+        const quantity = parseFloat($row.find('.num').val()) || 1;
         
         if(length > 0 && width > 0 && height > 0) {
-            let volWeight = length * width * height / currentVolRatio; // 先计算数字
+            let volWeight = length * width * height / currentVolRatio * quantity; // 先计算数字
             volWeight = parseFloat(volWeight.toFixed(2)); // 保留 2 位小数并转回数字
             if (weightvol_integer == 1) {
                 volWeight = Math.ceil(volWeight); // 可以重新赋值，因为用 let
@@ -367,7 +368,7 @@ function updateAllWeights() {
         const quantity = parseFloat($row.find('.num').val()) || 1;
         
         if(length > 0 && width > 0 && height > 0) {
-            let volWeight = (length * width * height / currentVolRatio);
+            let volWeight = (length * width * height / currentVolRatio) * quantity;
             if (weightvol_integer == 1) {
                 volWeight = Math.ceil(volWeight); // 可以重新赋值，因为用 let
             }

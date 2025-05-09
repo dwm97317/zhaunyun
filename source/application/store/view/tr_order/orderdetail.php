@@ -653,7 +653,7 @@
          */
         $('.editinpackitem').on('click', function () {
             var $tabs, data = $(this).data();
-            $.post('store/tr_Order/InpackItemdetail',{id:data.id}, function (result) {
+            $.post("<?= url('store/trOrder/InpackItemdetail') ?>",{id:data.id}, function (result) {
                 if(result.code == 1 ){
                     $.showModal({
                         title: '编辑子订单'
@@ -680,7 +680,7 @@
         
         $('.editinpackdetial').on('click', function () {
             var $tabs, data = $(this).data();
-            $.post('store/tr_Order/Inpackdetaildetail',{id:data.id}, function (result) {
+            $.post("<?= url('store/trOrder/Inpackdetaildetail') ?>",{id:data.id}, function (result) {
                 if(result.code == 1 ){
                     $.showModal({
                         title: '编辑申报信息'

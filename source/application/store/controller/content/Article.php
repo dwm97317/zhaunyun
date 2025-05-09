@@ -24,6 +24,18 @@ class Article extends Controller
         $list = $model->getList();
         return $this->fetch('index', compact('list'));
     }
+    
+    /**
+     * 文章列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function list()
+    {
+        $model = new ArticleModel;
+        $list = $model->getAllList();
+        return $this->renderSuccess('获取成功','',compact('list'));
+    }
 
     /**
      * 添加文章

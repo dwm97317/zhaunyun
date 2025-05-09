@@ -17,6 +17,13 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">文章简述 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="article[description]"
+                                           value="" placeholder="请输入简述" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">文章分类 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <select name="article[category_id]"
@@ -145,7 +152,7 @@
 
         // 富文本编辑器
         UM.getEditor('container', {
-            initialFrameWidth: 375 + 15,
+            initialFrameWidth: 675 + 15,
             initialFrameHeight: 600
         });
 

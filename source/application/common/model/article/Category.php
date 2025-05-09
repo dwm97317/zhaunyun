@@ -28,5 +28,15 @@ class Category extends BaseModel
         }
         return Cache::get('article_category_' . $model::$wxapp_id);
     }
+    
+    /**
+     * 所有分类
+     * @return mixed
+     */
+    public static function getALLlist()
+    {
+        $model = new static;
+        return $model->order(['sort' => 'asc', 'create_time' => 'asc'])->select();
+    }
 
 }

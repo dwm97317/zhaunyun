@@ -30,7 +30,7 @@ class Passport extends Controller
         // 执行登录
         $LoginService = new LoginService;
         $postData = array_merge($this->postData(),['wxapp_id'=>$this->wxapp_id]);
-        
+      
         if (!$LoginService->loginForm($postData)) {
             return $this->renderError($LoginService->getError());
         }

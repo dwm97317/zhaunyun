@@ -265,6 +265,37 @@ function base_url()
     return $baseUrl;
 }
 
+/**
+ * 将列表数据转换为树形结构
+ * @param array $list 原始数据
+ * @param string $pk 主键字段名
+ * @param string $pid 父级字段名
+ * @param string $child 子节点键名
+ * @param int $root 根节点ID
+ * @return array
+ */
+function list_to_tree($list, $pk = 'id', $pid = 'parent_id', $child = 'children', $root = 0) {
+    $tree = [];
+    $refer = [];
+    
+    foreach ($list as $key => $data) {
+        $refer[$data[$pk]] = &$list[$key];
+    }
+    
+    foreach ($list as $key => $data) {
+        $parentId = $data[$pid];
+        if ($root == $parentId) {
+            $tree[] = &$list[$key];
+        } else {
+            if (isset($refer[$parentId])) {
+                $parent = &$refer[$parentId];
+                $parent[$child][] = &$list[$key];
+            }
+        }
+    }
+    return $tree;
+}
+
 function makeTree($arr,$id='id',$parent_id='parent_id',$child='child'){
   $refer = array();
   $tree = array();
@@ -2134,14 +2165,10 @@ function urlCreate($path,$params=[]){
     $paramsstr = http_build_query($params);
     $wxappStr = $_SERVER['QUERY_STRING'];
     $wxappArr = [];
-    $wxappArr_temp = explode('&',$wxappStr);
-    foreach ($wxappArr_temp as $v){
-         $v1 = explode('=',$v);
-         $wxappArr[$v1[0]] = $v1[1];
-    }
-    $wxappId = encrypt($wxappArr['wxappid'],'D');
+    $wxappArr = substr($wxappStr, strpos($wxappStr, 'wxappid=') + 8); // 获取 `?` 之后的内容   
+    $wxappId = $wxappArr;
     
-    return $paramsstr?$path.'?'.$paramsstr.'&wxappid='.encrypt($wxappId,'E'):$path.'?wxappid='.encrypt($wxappId,'E');
+    return $paramsstr?$path.'?'.$paramsstr.'&wxappid='.$wxappId:$path.'?wxappid='.$wxappId;
     
 }
 

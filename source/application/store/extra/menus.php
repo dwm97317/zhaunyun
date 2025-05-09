@@ -639,16 +639,31 @@ return [
                 'index' => 'wxapp/setting',
             ],
             [
-                'name' => 'PC端设置',
-                'index' => 'wxapp/web',
-            ],
-            [
                 'name' => 'H5端设置',
                 'index' => 'wxapp/h5',
             ],
             [
                 'name' => '语言设置',
                 'index' => 'wxapp/lang',
+            ],
+            [
+                'name' => 'PC端设置',
+                'index' => 'wxapp/web',
+                'active' => true,
+                'submenu' => [
+                    [
+                        'name' => 'PC端管理',
+                        'index' => 'wxapp/web',
+                    ],
+                    [
+                        'name' => '网站菜单',
+                        'index' => 'wxapp/webmenu'
+                    ],
+                    [
+                        'name' => '友情链接',
+                        'index' => 'wxapp/weblink'
+                    ],
+                ]
             ],
             [
                 'name' => '微信公众号',

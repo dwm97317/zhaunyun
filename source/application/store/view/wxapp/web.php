@@ -10,21 +10,19 @@
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
-                                    访问入口URL
+                                    官网入口
                                 </label>
                                 <div class="am-u-sm-6 am-u-end" style="display:flex;">
-                                    <input type="text" id="url" class="tpl-form-input" name="h5['enter']" value="http://<?= $_SERVER['HTTP_HOST']; ?>/index.php?s=/web/index/index&wxappid=<?= $model['url_code']; ?>" readonly required> 
-                                    <button type="button" class="am-btn am-btn-secondary"><span onclick="toClick()">重置URL</span></button>
+                                    <input type="text" id="url" class="tpl-form-input" name="h5['enter']" value="<?= $model['other_url']; ?>home" readonly required> 
                                     <button style="margin-left:10px;" type="button" class="am-btn am-btn-secondary"><span onclick="toUrl()">访问URL</span></button>
                                 </div>
                             </div>
-                            <input id="code" type="hidden" name="h5[code]" value="">
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
                                     查询物流URL
                                 </label>
                                 <div class="am-u-sm-6 am-u-end" style="display:flex;">
-                                    <input type="text" id="logurl" class="tpl-form-input" value="http://<?= $_SERVER['HTTP_HOST']; ?>/index.php?s=/web/track/search&wxappid=<?= $model['url_code']; ?>" readonly required> 
+                                    <input type="text" id="logurl" class="tpl-form-input" value="<?= $model['other_url']; ?>/index.php?s=/web/track/search&wxappid=<?= $model['wxapp_id']; ?>" readonly required> 
                                     <button style="margin-left:10px;" type="button" class="am-btn am-btn-secondary"><span onclick="tologUrl()">访问URL</span></button>
                                 </div>
                             </div>
@@ -61,25 +59,6 @@
          */
         $('#my-form').superForm();
     });
-    
-    function toClick(){
-        $.showModal({
-            title: '确认重置URL'
-            , area: '460px'
-            , content: template('tpl-errors', {})
-            , uCheck: true
-            , success: function ($content) {
-            }
-            , yes: function ($content) {
-                // var password = $content.find('form')[0][0].value;
-                $content.find('form').myAjaxSubmit({
-                    url: '<?= url('store/wxapp/code') ?>',
-                    data: {}
-                });
-                return true;
-            }
-        });
-    };
     
     function toUrl(){
        var url =  $('#url')[0].getAttribute('value');

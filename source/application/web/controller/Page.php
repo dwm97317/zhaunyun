@@ -101,8 +101,7 @@ class Page extends Controller
        if (!$data->isEmpty()){
            $data = $this->withImageById($data,'image_id');
        }
-       $data = array_chunk($data->toArray(),2);
-       return $this->renderSuccess($data);
+       return $this->renderSuccessWeb(compact('data'));
     }
     
     public function lineDetails($id){

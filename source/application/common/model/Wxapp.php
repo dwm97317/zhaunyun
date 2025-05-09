@@ -4,6 +4,7 @@ namespace app\common\model;
 
 use think\Cache;
 use app\common\exception\BaseException;
+use app\common\model\UploadFile;
 
 /**
  * 微信小程序模型
@@ -32,6 +33,25 @@ class Wxapp extends BaseModel
         'create_time',
         'update_time'
     ];
+    
+    /**
+     * 关联LOGO
+     * @return \think\model\relation\belongsTo
+     */
+    public function logos()
+    {
+        return $this->belongsTo('app\\common\\model\\UploadFile', 'logo','file_id');
+    }
+    
+    /**
+     * 关联微信公众号
+     * @return \think\model\relation\belongsTo
+     */
+    public function wechatimgs()
+    {
+        return $this->belongsTo('app\\common\\model\\UploadFile', 'wechatimg','file_id');
+    }
+    
     /**
      * 小程序页面
      * @return \think\model\relation\HasOne
@@ -49,7 +69,7 @@ class Wxapp extends BaseModel
      */
     public static function detail($wxappId = null)
     {
-        return static::get($wxappId ?: []);
+        return static::get($wxappId ?: [],['logos','wechatimgs']);
     }
 
     /**

@@ -401,6 +401,19 @@ class TrOrder extends Controller
             $Hualei =  new Hualei(['key'=>$ditchdetail['app_key'],'token'=>$ditchdetail['app_token'],'apiurl'=>$ditchdetail['api_url']]);
             return $this->renderSuccess('获取成功','', $Hualei->getProductList()); 
         }
+        
+        if($ditchdetail['ditch_no']==10004){
+            if(!empty($ditchdetail['product_json'])){
+                // 1. 将 &quot; 替换为双引号
+                $data_str = html_entity_decode($ditchdetail['product_json']);
+                // 3. 将字符串转换为 PHP 数组或对象
+                $data_array = json_decode($data_str,true); // true 表示转换为数组，false 表示转换为对象
+                return $this->renderSuccess('获取成功','', $data_array); 
+            }
+            $Hualei =  new Hualei(['key'=>$ditchdetail['app_key'],'token'=>$ditchdetail['app_token'],'apiurl'=>$ditchdetail['api_url']]);
+            return $this->renderSuccess('获取成功','', $Hualei->getProductList()); 
+        }
+        
         return $this->renderError("获取失败");
     }
     
@@ -1123,6 +1136,23 @@ class TrOrder extends Controller
     }
     
     
+    /**
+     * 修改打印状态
+     * @param $id
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function updatePrintStatus($id)
+    {
+        $model = Inpack::detail($id);
+        if ($model->save(['print_status_jhd'=>1])) {
+            return $this->renderSuccess('修改成功');
+        }
+        return $this->renderError($model->getError() ?: '修改失败');
+    }
+    
+    
+    
     //问题件删除
     public function orderdelete($id){
         $model = Inpack::details($id);
@@ -1758,7 +1788,7 @@ class TrOrder extends Controller
        $ids = array_keys($ids);
        $idsArr = explode(',',$ids[0]);
        $arruser = [];
-
+        
        //判断所有包裹是否同一用户
       foreach($idsArr as $key =>$val ){
            $pack = $model->where('id',$val)->find();
@@ -1771,22 +1801,24 @@ class TrOrder extends Controller
        //将包裹的packids合并在一个集运单中，并将另外一个集运单状态设置为isdelete；
        //合并包裹思路一：将其他集运单状态改为删除，将快递单id添加到第一个集运单中；
        //合并包裹思路二：新创建新的集运单，之前的集运单全部改为删除状态；此方案可用于创建多用户拼邮；
-      
+ 
         //思路 随意找到集运单的一个基本信息，去除id即可使用基础数据，创建新的order_sn即可
-          foreach($idsArr as $key =>$val ){
-                  $res = $model->where('id',$val)->update(['is_delete' => 1 ]);
-                  if(!$res){
-                    return $this->renderError('合并失败');
-                  }
-            }     
-         
+        foreach($idsArr as $key =>$val ){
+            $res = $model->where('id',$val)->update(['is_delete' => 1,'updated_time'=>getTime()]);
+            if(!$res){
+                return $this->renderError('合并失败');
+            }
+        }     
+            
           $newpack = $model->find($idsArr[0])->toArray();
           unset($newpack['id']);
           $newpack['updated_time'] = getTime();
           $newpack['created_time'] = getTime();
           $newpack['is_delete'] = 0;
           $newpack['is_pay_type'] = $newpack['is_pay_type']['value'];
+          $newpack['print_status_jhd'] = $newpack['print_status_jhd']['value'];
           $newpack['pay_type'] = $newpack['pay_type']['value'];
+
           $result = $model->insertGetId($newpack);
           if (!$result){
               return $this->renderSuccess('合并失败');
@@ -1828,11 +1860,12 @@ class TrOrder extends Controller
           unset($newpack['pack_ids']);
           $newpack['order_sn'] = createSn();
           $newpack['is_pay_type'] = $detail['is_pay_type']['value'];
+          $newpack['print_status_jhd'] = $detail['print_status_jhd']['value'];
           $newpack['pay_type'] = $detail['pay_type']['value'];
           
           $resultid = $model->insertGetId($newpack);
              
-          $resultpack = $Package->where('id','in',$ids)->update(['inpack_id'=>$resultid]);
+          $resultpack = $Package->where('id','in',$ids)->update(['inpack_id'=>$resultid,'updated_time'=>getTime()]);
           if ($resultpack){
               return $this->renderSuccess('拆包合包成功');
           }

@@ -10,6 +10,7 @@ class Banner extends BaseModel
 {
     protected $name = 'Banner';
     protected $updateTime = false;
+    
     /**
      * 关联封面图
      * @return \think\model\relation\HasOne

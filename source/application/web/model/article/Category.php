@@ -12,6 +12,20 @@ use app\common\model\article\Category as CategoryModel;
  */
 class Category extends CategoryModel
 {
+    
+    
+    /**
+     * 分类详情
+     * @param $category_id
+     * @return Category|null
+     * @throws \think\exception\DbException
+     */
+    public function getNormalList()
+    {
+        return $this->where('belong',0)->order(['sort' => 'asc', 'create_time' => 'asc'])->select();
+    }
+    
+    
     /**
      * 分类详情
      * @param $category_id

@@ -8,7 +8,8 @@ use app\store\model\store\User;
 use think\Cache;
 use app\common\library\AITool\BaiduTextTran;
 use app\store\model\WechatMenu as WechatMenuModel;
-
+use app\store\model\WebMenu as WebMenuModel;
+use app\store\model\WebLink as WebLinkModel;
 /**
  * 小程序管理
  * Class Wxapp
@@ -36,7 +37,7 @@ class Wxapp extends Controller
     }
 
     /**
-     * 小程序设置
+     * 公众号设置
      * @return mixed
      * @throws \think\exception\DbException
      */
@@ -44,7 +45,6 @@ class Wxapp extends Controller
     {
         if (!$this->request->isAjax()) {
             $values = SettingModel::getItem('wechat');
-            // dump($values);die;
             return $this->fetch('wechat', ['values' => $values]);
         }
         $model = new SettingModel;
@@ -69,6 +69,37 @@ class Wxapp extends Controller
         }
         return $this->renderError($model->getError() ?: '更新失败');
     }
+    
+    
+    /**
+     * web端菜单
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function webmenu()
+    {
+        $model = new WebMenuModel;
+        $list = $model->getTree($this->getWxappId());
+        return $this->fetch('web_menu/index', [
+            'list' => $list,
+            'typeMap' => $model::getTypeOptions()
+        ]);
+    }
+    
+    /**
+     * 友情链接
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function weblink()
+    {
+        $query = $this->request->param();
+        $model = new WebLinkModel;
+        $list = $model->getList($query);
+        return $this->fetch('wxapp/web_link/index',compact('list'));
+    }
+    
+    
 
     // 微信公众号端设置    
     // 菜单列表
@@ -90,6 +121,7 @@ class Wxapp extends Controller
     public function h5(){
          // 当前小程序信息
         $model = WxappModel::detail();
+        // dump($model->toArray());die;
         if (!$this->request->isAjax()) {
             return $this->fetch('h5', compact('model'));
         }

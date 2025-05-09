@@ -62,9 +62,7 @@ class ApiPost extends Controller
      */
     public function Webhook17Track(){
         $param = $this->request->param();
-        log_write($param);
-        LogisticsTrack::addhookLog($param);
-        return true;
+        return LogisticsTrack::addhookLog($param);
     }
     
     /**

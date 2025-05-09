@@ -4,6 +4,14 @@ namespace app\web\controller;
 use app\web\model\Setting as SettingModel;
 use think\Db;
 use think\Session;
+use app\web\model\UploadFile;
+use app\web\model\Banner as BannerModel;
+use app\web\model\WebMenu as WebMenuModel;
+use app\web\model\WebLink as WebLinkModel;
+use app\web\model\Wxapp as WxappModel;
+use app\web\model\Article as ArticleModel;
+use app\web\model\article\Category as CategoryModel;
+
 /**
  * web
  * Class Home
@@ -16,6 +24,68 @@ class Home extends Controller
         $setting = SettingModel::getItem('store',$this->wxapp_id);
         $this->view->engine->layout(false);
        return $this->fetch('template/cargo/index',compact('setting'));
+    }
+    
+    // 站点首页
+    public function home()
+    {
+  
+        $setting = SettingModel::getItem('store', $this->wxapp_id);
+        return $this->renderSuccessWeb([
+            'setting' => $setting,
+            'wxapp' =>(new WxappModel())->with(['logos','wechatimgs'])
+                ->field('app_wxname,copyright_des,copyrighttext,filing_number,version,logo,wechatimg')
+                ->where('wxapp_id',$this->wxapp_id)
+                ->find()
+        ]);
+    }
+    
+    // 隐私协议
+     public function protocol(){
+        $category_id = (new CategoryModel())->where(['belong'=>4])->value("category_id");
+        $detail = ArticleModel::where(['category_id'=>$category_id])->find();
+        return $this->renderSuccessWeb(compact('detail'));
+     }
+    
+    //网站友情链接
+    public function weblinklist()
+    {
+        $WebLinkModel = new WebLinkModel();
+        $param = $this->request->param();
+        $data = $WebLinkModel->getList($param);
+        return $this->renderSuccessWeb([
+            'links' => $data,
+        ]);
+    }
+    
+    //网站轮播图
+    public function bannerlist()
+    {
+        $BannerModel = new BannerModel();
+        $data = $BannerModel->getList();
+        return $this->renderSuccessWeb([
+            'banner' => $data,
+        ]);
+    }
+    
+    //公告
+    public function noticelist(){
+        $bannerModel = (new BannerModel());
+        $data = $bannerModel->noticeBanner();
+        if(empty($data)){
+            return $this->renderError($data = []);
+        }
+        return $this->renderSuccessWeb(['notices'=>$data]);
+    }
+    
+    //菜单
+    public function menulist()
+    {
+        $model = new WebMenuModel;
+        $list = $model->getTree($this->wxapp_id);
+        return $this->renderSuccessWeb([
+            'menus' => $list,
+        ]);
     }
     
     // 联系我们

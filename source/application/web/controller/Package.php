@@ -20,7 +20,6 @@ use app\common\library\EmsService\Ems;
 use app\common\library\Pinyin; 
 use think\Db;
 use app\common\service\Message;
-use app\store\model\Countries;
 
 /**
  * web
@@ -41,7 +40,7 @@ class Package extends Controller
     }
     
     public function addAddress(){
-        $Countries = (new Countries());
+        $Countries = (new Country());
         $countryList =$Countries->getListAll();
         $setting = SettingModel::getItem('store');
         // dump($setting);die;
@@ -202,7 +201,7 @@ class Package extends Controller
 
     
     public function jaddAddress(){
-        $Countries = (new Countries());
+        $Countries = (new Country());
         $countryList =$Countries->getListAll();
         $setting = SettingModel::getItem('store');
          if(!$this->request->isAjax()){
@@ -225,7 +224,7 @@ class Package extends Controller
        $shopList = ShopModel::getAllList(); 
        $expresslist = Express::getAll();
        $line = (new Line())->getListAll([]);
-       $countryList = (new Countries())->getListAll();
+       $countryList = (new Country())->getListAll();
        $user = $this->user;
        $model = new UserAddress();
        $address = $model->getList($user['user']['user_id']);
@@ -348,7 +347,7 @@ class Package extends Controller
         // dump($result);die;
         $country = [];
         $category = [];
-        $country = (new Countries())->where('status','=',1)->select();
+        $country = (new Country())->where('status','=',1)->select();
         $category = (new Category())->where('parent_id','<>',0)->select();
         $countryId = array_column($country->toArray(),null,'id');
         $categoryId = array_column($category->toArray(),null,'category_id');
@@ -358,7 +357,7 @@ class Package extends Controller
         if ($data['countrys']){
             $modelCountryIds = explode(',',$data['countrys']);
             foreach ($modelCountryIds as $value) {
-                $cres = (new Countries())->where('id',$value)->where('status',1)->find();
+                $cres = (new Country())->where('id',$value)->where('status',1)->find();
                 if(!empty($cres)){
                     $country_text[] = $countryId[$value];
                 }
@@ -496,22 +495,46 @@ class Package extends Controller
         return $this->renderSuccess($list);
     }
     
+    //国家信息
+    public function getCountryList(){
+         $list = (new Country())->getListAll();
+         return $this->renderSuccessWeb(compact('list'));
+    }
+    
     //价格查询
     public function price(){
-        $countryList = (new Countries())->getListAll();
+        $countryList = (new Country())->getListAll();
         if(!$this->request->isAjax()){
           return $this->fetch('order/price',compact('countryList'));  
         }
         $data = $this->request->param();
         $free = getsearchfree($data);
         // dump($free);die;
-        // 1阶梯计费 2首续重 3 区间计费 4 重量区间计费)
-        $mode = [ 1=>'阶梯计费',2=>'首续重模式',3=>'范围区间计费',4=>'重量区间计费'];
+        // 计费模式(1阶梯计费 2首续重 3 区间计费 4 重量区间计费) 5混合模式
+        $mode = [ 1=>'阶梯计费',2=>'首续重模式',3=>'范围区间计费',4=>'重量区间计费',5=>'混合模式',6=>'阶梯首续重计费'];
         foreach ($free as $key=>$val){
             // dump($val['free_mode']);die;
             $free[$key]['free_mode'] = $mode[$val['free_mode']] ;
         }
        return $this->renderSuccess($free);
+    }
+    
+    //价格查询
+    public function searchPrice(){
+        $countryList = (new Country())->getListAll();
+        $data = $this->request->param();
+        $data['wxapp_id'] = $this->wxapp_id;
+        
+        $data['weigthV'] = 0;
+        $free = getsearchfree($data);
+        // dump($free);die;
+        $mode = [ 1=>'阶梯计费',2=>'首续重模式',3=>'范围区间计费',4=>'重量区间计费',5=>'5混合模式',6=>'阶梯首续重计费'];
+        
+        foreach ($free as $key=>$val){
+            $free[$key]['free_mode'] = $mode[$val['free_mode']] ;
+        }
+        
+       return $this->renderSuccessWeb(compact('free'));
     }
     
     public function yubao(){
