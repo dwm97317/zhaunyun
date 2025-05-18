@@ -1194,10 +1194,8 @@ class TrOrder extends Controller
         $shopList = ShopModel::getAllList();
         $lineList = $Line->getListAll();
         if(isset($adminstyle['pageno']['inpacktype']) && $adminstyle['pageno']['inpacktype']==20){
-            // dump($list->toArray());die;
           return $this->fetch('newindex', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));  
         }
-        //   dump($params);die;
         return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
     }
     

@@ -195,6 +195,7 @@
                                 <th>单个商品重量(kg)</th>
                                 <th>产品数量</th>
                                 <th>总金额USD</th>
+                                <th>单位</th>
                                 <th>出口海关编码</th>
                                 <th>操作</th>
                             </tr>
@@ -208,6 +209,7 @@
                                     <td class="am-text-middle"><?= $item['unit_weight'] ?></td>
                                     <td class="am-text-middle"><?= $item['unit_num'] ?></td>
                                     <td class="am-text-middle"><?= $item['total_free'] ?></td>
+                                    <td class="am-text-middle"><?= $item['unit']?$item['unit']:'' ?></td>
                                     <td class="am-text-middle"><?= $item['customs_code'] ?></td>
                                     <td class="am-text-middle">
                                         <div class="tpl-table-black-operation">
@@ -551,6 +553,13 @@
                 </div>
             </div>
             <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label">单位</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="inpack[unit]"
+                           value="" placeholder="请输入配货" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">出口海关编码</label>
                 <div class="am-u-sm-9 am-u-end">
                     <input type="text" class="tpl-form-input"  name="inpack[customs_code]"
@@ -604,6 +613,13 @@
                 <div class="am-u-sm-9 am-u-end">
                     <input type="text" class="tpl-form-input"  name="inpack[total_free]"
                            value="{{ total_free }}" placeholder="请输入配货" required> 
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label class="am-u-sm-3 am-u-lg-2 am-form-label">单位</label>
+                <div class="am-u-sm-9 am-u-end">
+                    <input type="text" class="tpl-form-input"  name="inpack[unit]"
+                           value="{{ unit }}" placeholder="请输入配货" required> 
                 </div>
             </div>
             <div class="am-form-group">

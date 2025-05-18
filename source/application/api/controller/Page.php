@@ -24,6 +24,7 @@ use  app\api\model\PackageService;
 use app\api\model\article\Category as CategoryModel;
 use app\api\model\Country;
 use app\api\model\Barcode;
+use app\api\model\LogisticsTrack;
 /**
  * 页面控制器
  * Class Index
@@ -110,6 +111,15 @@ class Page extends Controller
         $Batch = new Batch;
         
         return true;
+    }
+    
+        
+    //获取地图轨迹
+    public function getMapTracklist(){
+        $LogisticsTrack = new LogisticsTrack;
+        $params = $this->request->param();
+        $list = $LogisticsTrack->getList($params);
+        return $this->renderSuccess(compact('list'));
     }
     
     //获取批次列表

@@ -1924,7 +1924,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 <label class="am-u-sm-3 am-form-label"> 17tack WebHookL </label>
                                 <div class="am-u-sm-9">
                                     <input type="text" class="tpl-form-input"
-                                           value="http://zhuanyun.sllowly.cn/index.php?s=/api/api_Post/Webhook17Track&wxapp_id=<?= $store['wxapp']['wxapp_id'] ?>">
+                                           value="<?= base_url() ?>index.php?s=/api/api_Post/Webhook17Track&wxapp_id=<?= $store['wxapp']['wxapp_id'] ?>">
                                     <small>用于快递单号回调</small>       
                                 </div>
                             </div>

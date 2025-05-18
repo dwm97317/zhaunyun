@@ -40,30 +40,22 @@
                                             <option value="500" <?= $extractpageno == 500 ? 'selected' : '' ?>>显示500条</option>
                                         </select>
                                     </div>
+                                   
                                     <?php if($dataType=='all'): ?>
                                     <div class="am-form-group am-fl">
                                         <?php $extractStatus = $request->get('status'); ?>
                                         <select name="status"
                                                 data-am-selected="{btnSize: 'sm', placeholder: '包裹状态'}">
                                             <option value=""></option>
-                                            <option value="-1,1,2,3,4,5,6,7,8,9"
-                                                <?= $extractStatus === '-1' ? 'selected' : '' ?>>全部
+                                            <option value="-1,0,1,2,3,4,5,6,7,8,9"
+                                                <?= $extractStatus === '0' ? 'selected' : '' ?>>全部
                                             </option>
                                             <option value="1"
                                                 <?= $extractStatus === '1' ? 'selected' : '' ?>>待查验
                                             </option>
                                             <!--1 状态 1 待查验 2 待支付 3 已支付 4 拣货中 5 已打包  6已发货 7 已到货 8 已完成  9已取消-->
-                                            <option value="2"
-                                                <?= $extractStatus === '2' ? 'selected' : '' ?>>待支付
-                                            </option>
-                                            <option value="3"
-                                                <?= $extractStatus === '3' ? 'selected' : '' ?>>已支付
-                                            </option>
-                                            <option value="4"
-                                                <?= $extractStatus === '4' ? 'selected' : '' ?>>拣货中
-                                            </option>
-                                            <option value="5"
-                                                <?= $extractStatus === '5' ? 'selected' : '' ?>>已打包
+                                            <option value="2,3,4,5"
+                                                <?= $extractStatus === '2' ? 'selected' : '' ?>>待发货
                                             </option>
                                             <option value="6"
                                                 <?= $extractStatus === '6' ? 'selected' : '' ?>>已发货
@@ -75,7 +67,7 @@
                                                 <?= $extractStatus === '8' ? 'selected' : '' ?>>已完成
                                             </option>
                                             <option value="9"
-                                                <?= $extractStatus === '9' ? 'selected' : '' ?>>已取消
+                                                <?= $extractStatus === '-1' ? 'selected' : '' ?>>问题件
                                             </option>
                                         </select>
                                     </div>
