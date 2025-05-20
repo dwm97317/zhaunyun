@@ -74,7 +74,6 @@ class Index extends Controller
            empty($map['top_id']) && $map['top_id'] = '';
            $category = $Category->getListTopChild($map['top_id'])->toArray()['data']; 
         }
-        // $datatotal = $packageModel->getDataTotal($map);    
         $storeAddress =(new UserAddress())->getDsList();
         $packlist = []; 
         $packlists = '';

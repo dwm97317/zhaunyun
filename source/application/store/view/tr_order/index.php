@@ -72,6 +72,24 @@
                                         </select>
                                     </div>
                                     <?php endif;?>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractispay = $request->get('is_pay'); ?>
+                                        <!--支付状态 [1,已支付 2 未支付,3 待审核]-->
+                                        <select name="is_pay"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '支付状态'}">
+                                            <option value=""></option>
+                                            <option value="0">全部</option>
+                                            <option value="1"
+                                                <?= $extractispay === '1' ? 'selected' : '' ?>>已支付
+                                            </option>
+                                            <option value="2"
+                                                <?= $extractispay === '2' ? 'selected' : '' ?>>未支付
+                                            </option>
+                                            <option value="3"
+                                                <?= $extractispay === '3' ? 'selected' : '' ?>>待审核
+                                            </option>
+                                        </select>
+                                    </div>
                                     <?php if ($store['user']['is_super']==1): ?>
                                     <div class="am-form-group am-fl">
                                         <?php $extractShopId = $request->get('extract_shop_id'); ?>
