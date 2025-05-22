@@ -29,14 +29,6 @@ class BlindboxWall extends BlindboxWallModel
         return $this->belongsTo('app\store\model\User')->field(['user_id', 'nickName', 'avatarUrl']);
     }
     
-     /**
-     * 关联包裹表
-     * @return \think\model\relation\BelongsTo
-     */
-    public function package()
-    {
-        return $this->belongsTo('app\store\model\Package','package_id')->field(['id', 'order_sn', 'express_num']);
-    }
     
 
     
@@ -56,7 +48,7 @@ class BlindboxWall extends BlindboxWallModel
      */
     public function getList()
     {
-        return $this->with(['user', 'blindbox','package','image.file'])
+        return $this->with(['user','image.file'])
             ->where('is_delete', '=', 0)
             ->order(['sort' => 'asc', 'create_time' => 'desc'])
             ->paginate(15, false, [

@@ -24,7 +24,7 @@
                                 <th>分享ID</th>
                                 <th>分享内容</th>
                                 <th>用户信息</th>
-                                <th>关联盲盒</th>
+                                <!--<th>关联盲盒</th>-->
                                 <th>关联包裹</th>
                                 <th>是否显示</th>
                                 <th>排序</th>
@@ -39,22 +39,22 @@
                                         <td class="am-text-middle"><?= $item['wall_id'] ?></td>
                                         <td class="am-text-middle"><?= $item['content'] ?></td>
                                         <td class="am-text-middle"><?= $item['user_id'] ?></td>
-                                        <td class="am-text-middle"><?= $item['blindbox_id'] ?></td>
+                                    
                                         <td class="am-text-middle"><?= $item['package_id'] ?></td>
                                         <td class="am-text-middle"><?= $item['status']==0?"隐藏":"显示" ?></td>
                                         <td class="am-text-middle"><?= $item['sort'] ?></td>
                                         <td class="am-text-middle"><?= $item['create_time'] ?></td>
                                         <td class="am-text-middle">
                                             <div class="tpl-table-black-operation">
-                                                <?php if (checkPrivilege('market.blindbox/edit')): ?>
-                                                    <a href="<?= url('market.blindbox/edit', ['id' => $item['id']]) ?>">
+                                                <?php if (checkPrivilege('market.blindbox/editblindboxwall')): ?>
+                                                    <a href="<?= url('market.blindbox/editblindboxwall', ['id' => $item['wall_id']]) ?>">
                                                         <i class="am-icon-pencil"></i> 编辑
                                                     </a>
                                                 <?php endif; ?>
-                                                <?php if (checkPrivilege('market.blindbox/delete')): ?>
+                                                <?php if (checkPrivilege('market.blindbox/deleteblindboxwall')): ?>
                                                     <a href="javascript:void(0);"
                                                        class="item-delete tpl-table-black-operation-del"
-                                                       data-id="<?= $item['id'] ?>">
+                                                       data-id="<?= $item['wall_id'] ?>">
                                                         <i class="am-icon-trash"></i> 删除
                                                     </a>
                                                 <?php endif; ?>
@@ -85,7 +85,7 @@
     $(function () {
 
         // 删除元素
-        var url = "<?= url('market.blindbox/delete') ?>";
+        var url = "<?= url('market.blindbox/deleteblindboxwall') ?>";
         $('.item-delete').delete('id', url);
 
     });

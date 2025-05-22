@@ -396,7 +396,7 @@ class Batch extends Controller
              return $this->fetch('edit',compact('list','detail','set','track','ditchlist','templatelist'));
         }
         $param = $this->postData('batch');
-        // dump($detail);die;
+        // dump($param);die;
         //将集运单和包裹都设置为已发货状态
         if($param['status']==1){
             $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
@@ -407,7 +407,7 @@ class Batch extends Controller
             if(!empty($packdata)){
                 $package->where('batch_id',$batch_id)->update(['status'=>9]);
             }
-            unset($param['status']);
+          
         }elseif($param['status']==2){
         //将集运单和包裹都设置为已到货状态
             $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();

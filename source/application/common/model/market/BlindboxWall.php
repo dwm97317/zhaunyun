@@ -15,24 +15,6 @@ class BlindboxWall extends BaseModel
     protected $name = 'blindbox_wall';
 
     /**
-     * 所属包裹
-     * @return \think\model\relation\BelongsTo
-     */
-    public function packages()
-    {
-        return $this->belongsTo('Package','package_id');
-    }
-
-    /**
-     * 订单商品
-     * @return \think\model\relation\BelongsTo
-     */
-    public function blindbox()
-    {
-        return $this->belongsTo('Blindbox','blindbox_id');
-    }
-
-    /**
      * 关联用户表
      * @return \think\model\relation\BelongsTo
      */
@@ -58,7 +40,7 @@ class BlindboxWall extends BaseModel
      */
     public static function detail($wall_id)
     {
-        return self::get($wall_id, ['user', 'blindbox','packages','image.file']);
+        return self::get($wall_id, ['user','image.file']);
     }
 
     /**
@@ -84,6 +66,26 @@ class BlindboxWall extends BaseModel
             return true;
         });
     }
+    
+    /**
+     * 更新记录
+     * @param $data
+     * @return bool
+     */
+    public function editWall($data)
+    {
+        return $this->transaction(function () use ($data) {
+            $iamge = $data['images'];
+            unset($data['images']);
+            $data['update_time'] = time(); 
+            $wall_id = $this->save($data);
+            $model = new BlindboxWallImage;
+            isset($iamge) && count($iamge)>0  && $model->where('wall_id',$wall_id)->delete();
+            isset($iamge) && $this->saveAllImages($wall_id,$iamge);
+            return true;
+        });
+    }
+
 
     /**
      * 记录分享图片

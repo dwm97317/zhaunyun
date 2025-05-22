@@ -18,8 +18,9 @@ class BlindboxWallImage extends BaseModel
      */
     public function file()
     {
-        return $this->belongsTo('UploadFile', 'image_id', 'file_id')
-            ->bind(['file_path', 'file_name', 'file_url']);
+        $module = self::getCalledModule() ?: 'common';
+        return $this->belongsTo("app\\{$module}\\model\\UploadFile", 'image_id','file_id')
+        ->bind(['file_path', 'file_name', 'file_url']);
     }
-
+    
 }

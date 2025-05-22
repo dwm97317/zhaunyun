@@ -59,6 +59,25 @@ class Blindbox extends Controller
         return $this->renderError($model->getError() ?: '删除成功');
     }
     
+     /**
+     * 删除盲盒分享
+     * @param $id
+     * @return array|mixed
+     * @throws \think\exception\DbException
+     */
+    public function deleteblindboxwall($id)
+    {
+        // 优惠券详情
+        $BlindboxWallModel = new BlindboxWallModel();
+        $model = $BlindboxWallModel::detail($id);
+        // 更新记录
+        if ($model->delete()) {
+            return $this->renderSuccess('删除成功', url('market.blindbox/blindboxwall'));
+        }
+        return $this->renderError($model->getError() ?: '删除成功');
+    }
+    
+    
     /**
      * 盲盒分享墙
      * @param $coupon_id
@@ -70,6 +89,29 @@ class Blindbox extends Controller
         $BlindboxWallModel = new BlindboxWallModel();
         $list = $BlindboxWallModel->getList();
         return $this->fetch('wall', compact('list'));
+    }
+    
+    
+    /**
+     * 更新优惠券
+     * @param $coupon_id
+     * @return array|mixed
+     * @throws \think\exception\DbException
+     */
+    public function editblindboxwall($id)
+    {
+        // 优惠券详情
+        $BlindboxWallModel = new BlindboxWallModel();
+        $model = $BlindboxWallModel::detail($id);
+        // dump($model->toArray());die;
+        if (!$this->request->isAjax()) {
+            return $this->fetch('market/blindbox/walledit', compact('model','couponlist'));
+        }
+        // 更新记录
+        if ($model->editWall($this->postData('blindbox'))) {
+            return $this->renderSuccess('更新成功', url('market.blindbox/blindboxwall'));
+        }
+        return $this->renderError($model->getError() ?: '更新失败');
     }
     
     /**
