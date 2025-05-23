@@ -2219,11 +2219,11 @@ class Useropration extends Controller
                 'num'=> round($packModel->where($where)->where(['storage_id' =>$data['shop_id']])->where('entering_warehouse_time','between',[$today,$todayend])->SUM('weight'),2),
                 'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=1"
             ],
-            //今日预报数量->where(['storage_id' =>$data['shop_id']])
+            //今日预报数量
             [
                 'icon' => base_url().'assets/api/images//today.png' ,
                 'content'=>'今日预报数量',
-                'num'=> $packModel->where($where)->where('created_time','between',[$today,$todayend])->where('source',1)->count(),
+                'num'=> $packModel->where($where)->where(['storage_id' =>$data['shop_id']])->where('created_time','between',[$today,$todayend])->where('source',1)->count(),
                 'method'=>"/pages/cangkuyuans/packagelist/packagelist?type=12"
             ],
             //昨日入库
