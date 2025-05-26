@@ -725,6 +725,7 @@ class TrOrder extends Controller
         $line = (new Line())->getListAll([]);
         // 订单详情
         $detail = Inpack::details($id);
+        // dump($id);die;
         $detail['total'] = $detail['free']+$detail['pack_free']+$detail['other_free'];
         $set = Setting::detail('store')['values'];
         $is_auto_free = 0;
@@ -1688,7 +1689,15 @@ class TrOrder extends Controller
         }
         $PackageService = new PackageService(); 
         $pricethree = 0;
-        $pricetwo = $lines['predict']['price'];
+        $formatted = 0;   
+        if (preg_match('/^-?\d{1,3}(,\d{3})*(\.\d+)?$/', $lines['predict']['price'])) {
+            $floatValue = floatval(str_replace(',', '', $lines['predict']['price']));
+            $formatted = number_format($floatValue, 2);
+            $lines['predict']['price'] = $formatted;
+        } 
+        
+        $pricetwo = str_replace(',','',$lines['predict']['price']);
+        //   dump($lines['predict']['price']);
         if(count($pakdata['inpackservice'])>0){
           $servicelist = $pakdata['inpackservice'];
           foreach ($servicelist as $val){
@@ -1698,28 +1707,22 @@ class TrOrder extends Controller
                   $lines['predict']['service'] = $lines['predict']['service'] + $servicedetail['price'];
                   $pricethree = floatval($pricethree) + floatval($servicedetail['price']);
               }
+              
               if($servicedetail['type']==1){
+                  
                   $lines['predict']['service'] = floatval($pricetwo)*floatval($servicedetail['percentage'])/100 + floatval($lines['predict']['service']);
                   $pricethree = floatval($pricetwo)* floatval($servicedetail['percentage'])/100 + floatval($pricethree);
               }
+            
           }
         }
-        $formatted = 0;   
-        if (preg_match('/^-?\d{1,3}(,\d{3})*(\.\d+)?$/', $lines['predict']['price'])) {
-            $floatValue = floatval(str_replace(',', '', $lines['predict']['price']));
-            $formatted = number_format($floatValue, 2);
-            $lines['predict']['price'] = $formatted;
-        } 
         
+       
         $settingdata  = SettingModel::getItem('store',$line['wxapp_id']);
         //不需要主动更新费用
         if($settingdata['is_auto_free']==0){
            $lines['predict']['price'] = 0;
         }
-        
-        //
-        // dump($lines);die;
-        //  
         return $this->renderSuccess(['oWeigth'=>$oWeigth,'price'=>str_replace(',','',$lines['predict']['price']),'weightV'=>$weigthV,'packfree'=>$pricethree,'insure_free'=>$insure_free]);
     }
     

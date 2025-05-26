@@ -2390,6 +2390,19 @@ class Package extends Controller
                      $InpackItem->add($data);
              }
          }
+         //完成集运单价格的计算；
+        $settingdata  = SettingModel::getItem('store');
+        $cale_weight = $InpackItem->where('inpack_id',$param['id'])->sum('cale_weight'); //合并计费重量
+        $weight = $InpackItem->where('inpack_id',$param['id'])->sum('weight'); //合并重量
+        $volume_weight = $InpackItem->where('inpack_id',$param['id'])->sum('volume_weight'); //合并重量
+        (new Inpack())->where('id',$param['id'])->update([
+            'cale_weight'=>$cale_weight,
+            'weight'=>$weight,
+            'volume'=>$volume_weight
+        ]);
+        if($settingdata['is_auto_free']==1){
+            getpackfree($param['id']);   
+        }
          return $this->renderSuccess("添加成功");
      }
      

@@ -1844,10 +1844,6 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
             }
         }
         
-        //  dump($data);die;  
-        
-        $packD['volume'] = $weight; //体积重
-        $packD['cale_weight'] = $oWeigth; //计费重量
         $packD['other_free'] = $otherfree + $packData['other_free'];
         $packD['pack_free'] = $packfree;
         $packD['free'] = $data['sortprice'];

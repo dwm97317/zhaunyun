@@ -33,9 +33,13 @@ class InpackItem extends InpackItemModel
         if(!empty($data['width']) && !empty($data['length']) && !empty($data['height'])){
             $data['volume'] = $data['width']*$data['length']*$data['height']/1000000;
             $volume_weight = $data['width']*$data['length']*$data['height']/$Inpackdetail['line']['volumeweight'];
+            if($Inpackdetail['line']['weightvol_integer']==1){
+                $volume_weight = ceil($volume_weight);
+            }
             if(!empty($data['weight'])){
                 $data['cale_weight'] = $data['weight'] > $volume_weight?$data['weight']:$volume_weight;
             }
+            $data['volume_weight'] = $volume_weight;
         }
         return $this->allowField(true)->insert($data);
     }
