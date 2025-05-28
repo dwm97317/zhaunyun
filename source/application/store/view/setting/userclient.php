@@ -2227,7 +2227,77 @@
                                     </div>
                                 </div>
                             </div>
-                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">底部菜单设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    底部菜单设置
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[menus][type]" value="type2"
+                                               data-am-ucheck  <?= $values['menus']['type'] == 'type2' ? 'checked' : '' ?>>
+                                        请从下方预设底部菜单选择
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[menus][type]" value="type1"
+                                               data-am-ucheck  <?= $values['menus']['type'] == 'type1' ? 'checked' : '' ?>>
+                                        自定义-带快捷方式
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[menus][type]" value="type3"
+                                               data-am-ucheck <?= $values['menus']['type'] == 'type3' ? 'checked' : '' ?>>
+                                        自定义-不带快捷方式
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>选择自定义方式的，请前往【自定义区】【自定义菜单】设置菜单</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    预设底部菜单
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[menus][menu_type]" value="10"
+                                               data-am-ucheck
+                                            <?= $values['menus']['menu_type'] == '10' ? 'checked' : '' ?>>
+                                        A模式:首页/查询/快捷键/拼团/我的
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[menus][menu_type]" value="20"
+                                               data-am-ucheck
+                                            <?= $values['menus']['menu_type']== '20' ? 'checked' : '' ?>>
+                                        B模式:首页/查询/快捷键/运费/我的
+                                    </label>
+                                    <br>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[menus][menu_type]" value="30"
+                                               data-am-ucheck
+                                            <?= $values['menus']['menu_type'] == '30' ? 'checked' : '' ?>>
+                                        C模式:首页/查询/运费/我的
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[menus][menu_type]" value="40"
+                                               data-am-ucheck
+                                            <?= $values['menus']['menu_type'] == '40' ? 'checked' : '' ?>>
+                                        D模式:首页/查询/运费/拼团/我的
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[menus][menu_type]" value="50"
+                                               data-am-ucheck
+                                            <?= $values['menus']['menu_type'] == '50' ? 'checked' : '' ?>>
+                                        E模式:首页/查询/运费/商城/我的
+                                    </label>
+                                    <div class="help-block">
+                                        <small>注意：默认开启A模式，如需其他模式亲自行设置
+                                              <a href="<?= url('store/setting.help/menuSet') ?>" target="_blank">点击查看效果图？</a>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交

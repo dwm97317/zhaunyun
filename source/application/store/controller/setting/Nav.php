@@ -5,9 +5,9 @@ use app\store\controller\Controller;
 use app\store\model\WxappNavLink as WxappNavLinkModel;
 
 /**
- * 商品分类
- * Class Category
- * @package app\store\controller\goods
+ * 小程序导航
+ * Class Nav
+ * @package app\store\controller\setting
  */
 class Nav extends Controller
 {
@@ -19,7 +19,6 @@ class Nav extends Controller
     {
         $model = new WxappNavLinkModel;
         $list = $model->getList();
-        // dump($list);die;
         return $this->fetch('index', compact('list'));
     }
 

@@ -640,9 +640,12 @@ class Setting extends BaseModel
                             'is_door'=>1,
                             'is_remark'=>1,
                             'remark'=>'',
-                        ]
+                        ],
                     ],
-                    
+                    'menus'=>[
+                            'type'=>'type3',
+                            'menu_type'=>20
+                    ]
                 ]
             ],
             // 交易设置

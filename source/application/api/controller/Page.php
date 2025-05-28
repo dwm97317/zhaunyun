@@ -25,6 +25,7 @@ use app\api\model\article\Category as CategoryModel;
 use app\api\model\Country;
 use app\api\model\Barcode;
 use app\api\model\LogisticsTrack;
+use app\api\model\WxappMenus;
 /**
  * 页面控制器
  * Class Index
@@ -47,6 +48,16 @@ class Page extends Controller
         // 页面元素
         $data = WxappPage::getPageData($this->getUser(false), $page_id);
         return $this->renderSuccess($data);
+    }
+    
+    //获取底部菜单；
+    public function getMenus(){
+        $param = $this->request->param();
+        $model = new WxappMenus;
+        $userclient = SettingModel::getItem("userclient");
+        $menuItems = $model->getList($param);
+        $menuType = $userclient['menus']['type'];
+        return $this->renderSuccess(compact('menuItems','menuType'));
     }
     
     //获取条码信息；

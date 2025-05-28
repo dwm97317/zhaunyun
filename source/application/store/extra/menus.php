@@ -868,6 +868,10 @@ return [
                         'name' => '小程序导航',
                         'index' => 'setting.nav/index',
                     ],
+                    [
+                        'name' => '小程序菜单',
+                        'index' => 'setting.menus/index',
+                    ]
                 ]
             ],
             [
