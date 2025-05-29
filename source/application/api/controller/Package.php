@@ -2392,14 +2392,14 @@ class Package extends Controller
                      $data['width'] = $param['sonlist'][$i]['width'];
                      $data['length'] = $param['sonlist'][$i]['length'];
                      $data['height'] = $param['sonlist'][$i]['height'];
-                     $data['weight'] = $this->turnweight($settingdata['weight_mode']['mode'],$param['sonlist'][$i]['weight']);
+                     $data['weight'] = $this->turnweight($settingdata['weight_mode']['mode'],$param['sonlist'][$i]['weight'],$packData['line']['line_type_unit']);
                      $InpackItem->add($data);
              }
          }
          //完成集运单价格的计算；
         
         $oWeigth = $InpackItem->where('inpack_id',$param['id'])->sum('weight'); //合并重量
-        $oWeigth = $this->turnweight($settingdata['weight_mode']['mode'],$oWeigth);
+        $oWeigth = $this->turnweight($settingdata['weight_mode']['mode'],$oWeigth,$packData['line']['line_type_unit']);
         
         $cale_weight = $InpackItem->where('inpack_id',$param['id'])->sum('cale_weight'); //合并计费重量
         
@@ -2446,38 +2446,38 @@ class Package extends Controller
        return sprintf("%01.2f", $totalFree);
      }
      
-     public function turnweight($weight_mode,$oWeigth){
+     public function turnweight($weight_mode,$oWeigth,$line_type_unit){
          
          switch ($weight_mode) {
            case '10':
-                if($packData['line']['line_type_unit'] == 20){
+                if($line_type_unit == 20){
                     $oWeigth = 0.001 * $oWeigth;
                 }
-                if($packData['line']['line_type_unit'] == 30){
+                if($line_type_unit == 30){
                     $oWeigth = 0.00220462262185 * $oWeigth;
                 }
                break;
            case '20':
-                if($packData['line']['line_type_unit'] == 10){
+                if($line_type_unit == 10){
                     $oWeigth = 1000 * $oWeigth;
                 }
-                if($packData['line']['line_type_unit'] == 30){
+                if($line_type_unit == 30){
                     $oWeigth = 2.20462262185 * $oWeigth;
                 }
                break;
            case '30':
-               if($packData['line']['line_type_unit'] == 10){
+               if($line_type_unit == 10){
                     $oWeigth = 453.59237 * $oWeigth;
                 }
-                if($packData['line']['line_type_unit'] == 20){
+                if($line_type_unit == 20){
                     $oWeigth = 0.45359237 * $oWeigth;
                 }
                break;
            default:
-               if($packData['line']['line_type_unit'] == 10){
+               if($line_type_unit == 10){
                     $oWeigth = 1000 * $oWeigth;
                 }
-                if($packData['line']['line_type_unit'] == 30){
+                if($line_type_unit == 30){
                     $oWeigth = 2.20462262185 * $oWeigth;
                 }
                break;
