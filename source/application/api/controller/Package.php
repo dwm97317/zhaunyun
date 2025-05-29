@@ -2423,31 +2423,8 @@ class Package extends Controller
          return $this->renderSuccess($list);
      }
      
-     
-
-     
-     
-     //计算使用优惠券后的价格；
-     public function UseConponPrice($couponId,$total){
-         $totalFree = 0;
-        if(isset($couponId)){
-             $couponData = (new UserCoupon())->where('user_coupon_id',$couponId)->find();
-             
-             switch ($couponData['coupon_type']['value']) {
-                 case '10':
-                     $totalFree = $total - $couponData['reduce_price'];
-                     break;
-                 case '20':
-                     $totalFree = $total*($couponData['discount']/10);
-                     break;
-             }
-             return sprintf("%01.2f", $totalFree);
-        }
-       return sprintf("%01.2f", $totalFree);
-     }
-     
      public function turnweight($weight_mode,$oWeigth,$line_type_unit){
-         
+       
          switch ($weight_mode) {
            case '10':
                 if($line_type_unit == 20){
@@ -2483,8 +2460,31 @@ class Package extends Controller
                break;
        }
         $oWeigth = round($oWeigth,2);
-         
+        return $oWeigth;
      }
+     
+
+     
+     
+     //计算使用优惠券后的价格；
+     public function UseConponPrice($couponId,$total){
+         $totalFree = 0;
+        if(isset($couponId)){
+             $couponData = (new UserCoupon())->where('user_coupon_id',$couponId)->find();
+             
+             switch ($couponData['coupon_type']['value']) {
+                 case '10':
+                     $totalFree = $total - $couponData['reduce_price'];
+                     break;
+                 case '20':
+                     $totalFree = $total*($couponData['discount']/10);
+                     break;
+             }
+             return sprintf("%01.2f", $totalFree);
+        }
+       return sprintf("%01.2f", $totalFree);
+     }
+     
      
      
      // 更换地址
