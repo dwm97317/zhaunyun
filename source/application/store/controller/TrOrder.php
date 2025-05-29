@@ -1440,7 +1440,7 @@ class TrOrder extends Controller
         // 取两者中 较重者 
         $oWeigth = $weigthV>=$data['weight']*$line['volumeweight_weight'] ?$weigthV:$data['weight'];
         if($line['line_type']==1){
-            $oWeigth = round(($data['length']*$data['width']*$data['height'])/$line['volumeweight'],2);
+            $oWeigth = $data['weight'];
         }
         //关税和增值服务费用
         //计算所有的箱子的超长超重费；
