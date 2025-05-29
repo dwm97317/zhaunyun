@@ -2392,14 +2392,14 @@ class Package extends Controller
                      $data['width'] = $param['sonlist'][$i]['width'];
                      $data['length'] = $param['sonlist'][$i]['length'];
                      $data['height'] = $param['sonlist'][$i]['height'];
-                     $data['weight'] = $this->turnweight($setting['weight_mode']['mode'],$param['sonlist'][$i]['weight']);
+                     $data['weight'] = $this->turnweight($settingdata['weight_mode']['mode'],$param['sonlist'][$i]['weight']);
                      $InpackItem->add($data);
              }
          }
          //完成集运单价格的计算；
         
         $oWeigth = $InpackItem->where('inpack_id',$param['id'])->sum('weight'); //合并重量
-        $oWeigth = $this->turnweight($setting['weight_mode']['mode'],$oWeigth);
+        $oWeigth = $this->turnweight($settingdata['weight_mode']['mode'],$oWeigth);
         
         $cale_weight = $InpackItem->where('inpack_id',$param['id'])->sum('cale_weight'); //合并计费重量
         
