@@ -1425,7 +1425,7 @@ class TrOrder extends Controller
         }
         !isset($data['weight']) && $data['weight']=0;
         //根据是否重量取整
-        if($line['weight_integer']==1){
+        if($line['weight_integer']==1 && $line['line_type']==0){
             $data['weight'] = ceil($data['weight']);
         }
         // 计算体检重
