@@ -2380,24 +2380,33 @@ class Package extends Controller
          $param = $this->request->param();
          $InpackItem = new InpackItem();
          $InpackItem->where('inpack_id',$param['id'])->delete();
+         
+         $settingdata  = SettingModel::getItem('store');
+         $packData = (new Inpack())->where('id',$param['id'])->find();
+         if(empty($packData)){
+            return $this->renderError('订单不存在,请重试');
+         }
          if(count($param['sonlist'])>0){
              for ($i = 0; $i < count($param['sonlist']); $i++) {
                      $data['inpack_id'] = $param['id'];
                      $data['width'] = $param['sonlist'][$i]['width'];
                      $data['length'] = $param['sonlist'][$i]['length'];
                      $data['height'] = $param['sonlist'][$i]['height'];
-                     $data['weight'] = $param['sonlist'][$i]['weight'];
+                     $data['weight'] = $this->turnweight($setting['weight_mode']['mode'],$param['sonlist'][$i]['weight']);
                      $InpackItem->add($data);
              }
          }
          //完成集运单价格的计算；
-        $settingdata  = SettingModel::getItem('store');
+        
+        $oWeigth = $InpackItem->where('inpack_id',$param['id'])->sum('weight'); //合并重量
+        $oWeigth = $this->turnweight($setting['weight_mode']['mode'],$oWeigth);
+        
         $cale_weight = $InpackItem->where('inpack_id',$param['id'])->sum('cale_weight'); //合并计费重量
-        $weight = $InpackItem->where('inpack_id',$param['id'])->sum('weight'); //合并重量
-        $volume_weight = $InpackItem->where('inpack_id',$param['id'])->sum('volume_weight'); //合并重量
+        
+        $volume_weight = $InpackItem->where('inpack_id',$param['id'])->sum('volume_weight'); //合并体积重
         (new Inpack())->where('id',$param['id'])->update([
             'cale_weight'=>$cale_weight,
-            'weight'=>$weight,
+            'weight'=>$oWeigth,
             'volume'=>$volume_weight
         ]);
         if($settingdata['is_auto_free']==1){
@@ -2413,6 +2422,8 @@ class Package extends Controller
          $list = $InpackItem->where('inpack_id',$param['inpack_id'])->select();
          return $this->renderSuccess($list);
      }
+     
+     
 
      
      
@@ -2433,6 +2444,46 @@ class Package extends Controller
              return sprintf("%01.2f", $totalFree);
         }
        return sprintf("%01.2f", $totalFree);
+     }
+     
+     public function turnweight($weight_mode,$oWeigth){
+         
+         switch ($weight_mode) {
+           case '10':
+                if($packData['line']['line_type_unit'] == 20){
+                    $oWeigth = 0.001 * $oWeigth;
+                }
+                if($packData['line']['line_type_unit'] == 30){
+                    $oWeigth = 0.00220462262185 * $oWeigth;
+                }
+               break;
+           case '20':
+                if($packData['line']['line_type_unit'] == 10){
+                    $oWeigth = 1000 * $oWeigth;
+                }
+                if($packData['line']['line_type_unit'] == 30){
+                    $oWeigth = 2.20462262185 * $oWeigth;
+                }
+               break;
+           case '30':
+               if($packData['line']['line_type_unit'] == 10){
+                    $oWeigth = 453.59237 * $oWeigth;
+                }
+                if($packData['line']['line_type_unit'] == 20){
+                    $oWeigth = 0.45359237 * $oWeigth;
+                }
+               break;
+           default:
+               if($packData['line']['line_type_unit'] == 10){
+                    $oWeigth = 1000 * $oWeigth;
+                }
+                if($packData['line']['line_type_unit'] == 30){
+                    $oWeigth = 2.20462262185 * $oWeigth;
+                }
+               break;
+       }
+        $oWeigth = round($oWeigth,2);
+         
      }
      
      
