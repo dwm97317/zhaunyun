@@ -1291,7 +1291,7 @@ class Package extends Controller
             //发送模板消息通知
         }
          //计算费用
-         if($storesetting['is_auto_free']==1){
+         if($storesetting['is_auto_free']==1 && $allWeigth>0){
              getpackfree($inpackdate['id']); 
          }
         
