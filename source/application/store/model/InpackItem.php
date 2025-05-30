@@ -2,6 +2,8 @@
 namespace app\store\model;
 
 use app\common\model\InpackItem as InpackItemModel;
+use app\store\model\Inpack; 
+use app\store\model\Setting as SettingModel;
 
 /**
  * 集运子订单模型
@@ -26,7 +28,8 @@ class InpackItem extends InpackItemModel
         $result['wxapp_id'] = self::$wxapp_id;
         $result['create_time'] = time();
         $result['inpack_id'] = $data['inpack_id'];
-       
+        $inpackdetail = (new Inpack())->details($data['inpack_id']);
+        $settingdata  = SettingModel::getItem('store');
         foreach ($data['width'] as $key =>$val){
             for ($i = 0; $i < $data['num'][$key]; $i++) {
                 if(!empty($data['width'][$key]) && !empty($data['length'][$key]) && !empty($data['height'][$key])){
@@ -39,6 +42,7 @@ class InpackItem extends InpackItemModel
                     $result['weight'] = $data['weight'][$key];
                     $result['volume_weight'] = $data['volume_weight'][$key];
                     $result['cale_weight'] = $data['weight'][$key] > $data['volume_weight'][$key]?$data['weight'][$key]:$data['volume_weight'][$key];
+                    $result['line_weight'] = $this->turnweight($settingdata['weight_mode']['mode'],$result['cale_weight'],$inpackdetail['line']['line_type_unit']);
                 }
                 if(!empty($data['id'][$key]) && $i==0){
                     $this->where('id',$data['id'][$key])->update($result);
@@ -49,6 +53,47 @@ class InpackItem extends InpackItemModel
         }
         return true;
     }
+    
+    public function turnweight($weight_mode,$oWeigth,$line_type_unit){
+       
+         switch ($weight_mode) {
+           case '10':
+                if($line_type_unit == 20){
+                    $oWeigth = 0.001 * $oWeigth;
+                }
+                if($line_type_unit == 30){
+                    $oWeigth = 0.00220462262185 * $oWeigth;
+                }
+               break;
+           case '20':
+                if($line_type_unit == 10){
+                    $oWeigth = 1000 * $oWeigth;
+                }
+                if($line_type_unit == 30){
+                    $oWeigth = 2.20462262185 * $oWeigth;
+                }
+               break;
+           case '30':
+               if($line_type_unit == 10){
+                    $oWeigth = 453.59237 * $oWeigth;
+                }
+                if($line_type_unit == 20){
+                    $oWeigth = 0.45359237 * $oWeigth;
+                }
+               break;
+           default:
+               if($line_type_unit == 10){
+                    $oWeigth = 1000 * $oWeigth;
+                }
+                if($line_type_unit == 30){
+                    $oWeigth = 2.20462262185 * $oWeigth;
+                }
+               break;
+       }
+        $oWeigth = round($oWeigth,2);
+        return $oWeigth;
+     }
+     
     
         
     //编辑子项目

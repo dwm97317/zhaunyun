@@ -385,6 +385,8 @@ class Inpack extends InpackModel
        return false;
     }
     
+    
+    
      /***
      * 修改集运单的状态 
      * @param $data []

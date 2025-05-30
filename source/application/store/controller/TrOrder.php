@@ -1452,41 +1452,41 @@ class TrOrder extends Controller
         $insure_free = $pakdata['insure_free'];
         $reprice=0;
          //单位转化
-        //   switch ($setting['weight_mode']['mode']) {
-        //       case '10':
-        //             if($line['line_type_unit'] == 20){
-        //                 $oWeigth = 0.001 * $oWeigth;
-        //             }
-        //             if($line['line_type_unit'] == 30){
-        //                 $oWeigth = 0.00220462262185 * $oWeigth;
-        //             }
-        //           break;
-        //       case '20':
-        //             if($line['line_type_unit'] == 10){
-        //                 $oWeigth = 1000 * $oWeigth;
-        //             }
-        //             if($line['line_type_unit'] == 30){
-        //                 $oWeigth = 2.20462262185 * $oWeigth;
-        //             }
-        //           break;
-        //       case '30':
-        //           if($line['line_type_unit'] == 10){
-        //                 $oWeigth = 453.59237 * $oWeigth;
-        //             }
-        //             if($line['line_type_unit'] == 20){
-        //                 $oWeigth = 0.45359237 * $oWeigth;
-        //             }
-        //           break;
-        //       default:
-        //           if($line['line_type_unit'] == 10){
-        //                 $oWeigth = 1000 * $oWeigth;
-        //             }
-        //             if($line['line_type_unit'] == 30){
-        //                 $oWeigth = 2.20462262185 * $oWeigth;
-        //             }
-        //           break;
-        //   }
-        //   $oWeigth = round($oWeigth,2);
+          switch ($setting['weight_mode']['mode']) {
+              case '10':
+                    if($line['line_type_unit'] == 20){
+                        $oWeigth = 0.001 * $oWeigth;
+                    }
+                    if($line['line_type_unit'] == 30){
+                        $oWeigth = 0.00220462262185 * $oWeigth;
+                    }
+                  break;
+              case '20':
+                    if($line['line_type_unit'] == 10){
+                        $oWeigth = 1000 * $oWeigth;
+                    }
+                    if($line['line_type_unit'] == 30){
+                        $oWeigth = 2.20462262185 * $oWeigth;
+                    }
+                  break;
+              case '30':
+                  if($line['line_type_unit'] == 10){
+                        $oWeigth = 453.59237 * $oWeigth;
+                    }
+                    if($line['line_type_unit'] == 20){
+                        $oWeigth = 0.45359237 * $oWeigth;
+                    }
+                  break;
+              default:
+                  if($line['line_type_unit'] == 10){
+                        $oWeigth = 1000 * $oWeigth;
+                    }
+                    if($line['line_type_unit'] == 30){
+                        $oWeigth = 2.20462262185 * $oWeigth;
+                    }
+                  break;
+          }
+          $oWeigth = round($oWeigth,2);
 
         $lines['predict'] = [
               'weight' => $oWeigth,
@@ -2770,12 +2770,12 @@ class TrOrder extends Controller
     public function label30($data){
         
     if(count($data['packageitems'])==0){
-        $hll = '<td class="font_m">重量：'.$data['cale_weight'].$data['line_type_unit'].'</td>
+        $hll = '<td class="font_m">重量：'.$data['line_weight'].$data['line_type_unit'].'</td>
 		            <td class="font_m">尺寸：'.$data['length'].'*'.$data['width'].'*'.$data['height'].'</td>';
 		$jianshu = '<td class="font_m">件數：1/1</td>';
     }else{
-        $hll = '<td class="font_m">重量：'.$data['packageitems'][$data['index']]['cale_weight'].$data['line_type_unit'].'</td>
-        <td class="font_m">計費總重量：'.$data['cale_weight'].$data['line_type_unit'].'</td>
+        $hll = '<td class="font_m">重量：'.$data['packageitems'][$data['index']]['line_weight'].$data['line_type_unit'].'</td>
+        <td class="font_m">計費總重量：'.$data['line_weight'].$data['line_type_unit'].'</td>
 		            <td class="font_m">尺寸：'.$data['packageitems'][$data['index']]['length'].'*'.$data['packageitems'][$data['index']]['width'].'*'.$data['packageitems'][$data['index']]['height'].'</td>';
 		$jianshu = '<td class="font_m">件數：'.($data['index'] +1).'/'.count($data['packageitems']).'</td>';
     }

@@ -108,7 +108,14 @@
                                            value="<?= $detail['cale_weight']??'' ;?>" placeholder="请输入价格">
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">线路重量</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" readonly id="lineweight" name="data[line_weight]"
+                                           value="<?= $detail['line_weight']??'' ;?>" placeholder="请输入线路重量">
+                                    <small style="color:#ff6666;">当系统默认重量单位为kg，而渠道计费单位为磅或者克时，此重量为转化后的重量</small>
+                                </div>
+                            </div>
                             
                             
                             <?php if (checkPrivilege('tr_order/freelist')): ?>
@@ -551,6 +558,7 @@ function caleAmount() {
             if (res.code == 1) {
                 $('#price').val(res.msg.price);
                 $('#pack_free').val(res.msg.packfree);
+                $('#lineweight').val(res.msg.oWeigth);
                 MathFree();
             } else {
                 $priceField.val(originalPrice);

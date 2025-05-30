@@ -4,6 +4,8 @@ namespace app\api\model;
 
 use app\common\model\InpackItem as InpackItemModel;
 use app\api\model\Inpack;
+use app\api\model\Setting as SettingModel;
+
 /**
  * 集运单服务项目模型
  * Class GoodsImage
@@ -30,6 +32,7 @@ class InpackItem extends InpackItemModel
         $data['wxapp_id'] = self::$wxapp_id;
         $data['create_time'] = time();
         $Inpackdetail = (new Inpack())->getDetails($data['inpack_id'],[]);
+        $settingdata  = SettingModel::getItem('store');
         if(!empty($data['width']) && !empty($data['length']) && !empty($data['height'])){
             $data['volume'] = $data['width']*$data['length']*$data['height']/1000000;
             $volume_weight = $data['width']*$data['length']*$data['height']/$Inpackdetail['line']['volumeweight'];
@@ -40,8 +43,50 @@ class InpackItem extends InpackItemModel
                 $data['cale_weight'] = $data['weight'] > $volume_weight?$data['weight']:$volume_weight;
             }
             $data['volume_weight'] = $volume_weight;
+            $data['line_weight'] = $this->turnweight($settingdata['weight_mode']['mode'], $data['cale_weight'],$Inpackdetail['line']['line_type_unit']);
         }
         return $this->allowField(true)->insert($data);
     }
+    
+    public function turnweight($weight_mode,$oWeigth,$line_type_unit){
+       
+         switch ($weight_mode) {
+           case '10':
+                if($line_type_unit == 20){
+                    $oWeigth = 0.001 * $oWeigth;
+                }
+                if($line_type_unit == 30){
+                    $oWeigth = 0.00220462262185 * $oWeigth;
+                }
+               break;
+           case '20':
+                if($line_type_unit == 10){
+                    $oWeigth = 1000 * $oWeigth;
+                }
+                if($line_type_unit == 30){
+                    $oWeigth = 2.20462262185 * $oWeigth;
+                }
+               break;
+           case '30':
+               if($line_type_unit == 10){
+                    $oWeigth = 453.59237 * $oWeigth;
+                }
+                if($line_type_unit == 20){
+                    $oWeigth = 0.45359237 * $oWeigth;
+                }
+               break;
+           default:
+               if($line_type_unit == 10){
+                    $oWeigth = 1000 * $oWeigth;
+                }
+                if($line_type_unit == 30){
+                    $oWeigth = 2.20462262185 * $oWeigth;
+                }
+               break;
+       }
+        $oWeigth = round($oWeigth,2);
+        return $oWeigth;
+     }
+     
 
 }

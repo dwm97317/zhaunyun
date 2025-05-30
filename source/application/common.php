@@ -1571,12 +1571,12 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
     $packData = $Inpack->getDetails($id,$field=[]);
 
      //重量
-    $weight = $packData['length'] * $packData['width'] * $packData['height'] / $packData['line']['volumeweight'];
-    if(!empty($packData['length']) && !empty($packData['width']) && !empty($packData['height']) && $packData['line']['volumeweight_type']==20){
-        $weight = round(($packData['weight'] + (($packData['length']*$packData['width']*$packData['height'])/$packData['line']['volumeweight'] - $packData['weight'])*$packData['line']['bubble_weight']/100),2);
-    }
+    $oWeigth = $packData['cale_weight'];
+    // if(!empty($packData['length']) && !empty($packData['width']) && !empty($packData['height']) && $packData['line']['volumeweight_type']==20){
+    //     $weight = round(($packData['weight'] + (($packData['length']*$packData['width']*$packData['height'])/$packData['line']['volumeweight'] - $packData['weight'])*$packData['line']['bubble_weight']/100),2);
+    // }
     // dump($weight);die;
-    $oWeigth = $weight - $packData['weight']*$packData['line']['volumeweight_weight'] >= 0 ? $weight:$packData['weight'];
+    // $oWeigth = $weight - $packData['weight']*$packData['line']['volumeweight_weight'] >= 0 ? $weight:$packData['weight'];
     
     //总费用=路线规则中的费用+路线的增值服务费+服务项目的费用；
     $data = [

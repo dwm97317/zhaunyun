@@ -2392,22 +2392,22 @@ class Package extends Controller
                      $data['width'] = $param['sonlist'][$i]['width'];
                      $data['length'] = $param['sonlist'][$i]['length'];
                      $data['height'] = $param['sonlist'][$i]['height'];
-                     $data['weight'] = $this->turnweight($settingdata['weight_mode']['mode'],$param['sonlist'][$i]['weight'],$packData['line']['line_type_unit']);
+                     $data['weight'] = $param['sonlist'][$i]['weight'];
+                     
                      $InpackItem->add($data);
              }
          }
          //完成集运单价格的计算；
         
         $oWeigth = $InpackItem->where('inpack_id',$param['id'])->sum('weight'); //合并重量
-        $oWeigth = $this->turnweight($settingdata['weight_mode']['mode'],$oWeigth,$packData['line']['line_type_unit']);
-        
         $cale_weight = $InpackItem->where('inpack_id',$param['id'])->sum('cale_weight'); //合并计费重量
-        
+        $line_weight = $InpackItem->where('inpack_id',$param['id'])->sum('line_weight'); //合并计费重量
         $volume_weight = $InpackItem->where('inpack_id',$param['id'])->sum('volume_weight'); //合并体积重
         (new Inpack())->where('id',$param['id'])->update([
             'cale_weight'=>$cale_weight,
             'weight'=>$oWeigth,
-            'volume'=>$volume_weight
+            'volume'=>$volume_weight,
+            'line_weight'=>$line_weight
         ]);
         if($settingdata['is_auto_free']==1){
             getpackfree($param['id']);   
