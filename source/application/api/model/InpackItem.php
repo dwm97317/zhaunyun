@@ -40,7 +40,7 @@ class InpackItem extends InpackItemModel
                 $volume_weight = ceil($volume_weight);
             }
             if(!empty($data['weight'])){
-                $data['cale_weight'] = $data['weight'] > $volume_weight?$data['weight']:$volume_weight;
+                $data['cale_weight'] = $data['weight']*$Inpackdetail['line']['volumeweight_weight'] > $volume_weight?$data['weight']:$volume_weight;
             }
             $data['volume_weight'] = $volume_weight;
             $data['line_weight'] = $this->turnweight($settingdata['weight_mode']['mode'], $data['cale_weight'],$Inpackdetail['line']['line_type_unit']);

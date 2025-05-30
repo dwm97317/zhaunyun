@@ -258,15 +258,21 @@
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
 // 全局变量
-let currentVolRatio = 5000;
+let currentVolRatio =  <?= $detail['line']['volumeweight'] ?>;
 let isCalculating = false;
 let lastLineId = <?= $detail['line_id'] ?>;
 let weightvol_integer = <?= $detail['line']['weightvol_integer'] ?>;
+let volumeweight_weight = <?= $detail['line']['volumeweight_weight'] ?>;
+let volumeweight_type = <?= $detail['line']['volumeweight_type'] ?>;
+let bubble_weight = <?= $detail['line']['bubble_weight'] ?>;
 let lastChargeableWeight = 0;
 $(function () {
     // 初始化
     const initialOption = $('#line_select option:selected');
+  
     currentVolRatio = parseFloat(initialOption.data('vol-ratio')) || 5000;
+    const $row = $(this);
+    $row.find('.wvop').val(currentVolRatio);
     weightvol_integer = initialOption.data('vol-integer');
     lastLineId = initialOption.val();
     lastChargeableWeight = parseFloat($('#oWei').val()) || 0;
@@ -288,6 +294,7 @@ $(function () {
     $('#line_select').change(function() {
         const selectedOption = $(this).find('option:selected');
         currentVolRatio = parseFloat(selectedOption.data('vol-ratio')) || 5000;
+        
         weightvol_integer = selectedOption.data('vol-integer');
         lastLineId = selectedOption.val();
         updateAllVolWeights();
@@ -326,10 +333,17 @@ function updateAllVolWeights() {
         const length = parseFloat($row.find('.vlength').val()) || 0;
         const width = parseFloat($row.find('.vwidth').val()) || 0;
         const height = parseFloat($row.find('.vheight').val()) || 0;
+        const weight = parseFloat($row.find('.weight').val()) || 0;
         const quantity = parseFloat($row.find('.num').val()) || 1;
         
+        
         if(length > 0 && width > 0 && height > 0) {
-            let volWeight = length * width * height / currentVolRatio * quantity; // 先计算数字
+            if(volumeweight_type==20){
+                let volWeight = (weight + ((length * width * height / currentVolRatio) - weight)*bubble_weight)  * quantity; // 先计算数字
+            }else{
+                let volWeight = length * width * height / currentVolRatio * quantity; // 先计算数字
+            }
+            // console.log(volumeweight_type,645)
             volWeight = parseFloat(volWeight.toFixed(2)); // 保留 2 位小数并转回数字
             if (weightvol_integer == 1) {
                 volWeight = Math.ceil(volWeight); // 可以重新赋值，因为用 let
@@ -376,6 +390,12 @@ function updateAllWeights() {
         
         if(length > 0 && width > 0 && height > 0) {
             let volWeight = (length * width * height / currentVolRatio) * quantity;
+            
+            //  console.log(bubble_weight,645)
+            if(volumeweight_type==20){
+                 volWeight = (weight + ((length * width * height / currentVolRatio) - weight)*bubble_weight/100)  * quantity; // 先计算数字
+            }
+            // console.log(volWeight,645)
             if (weightvol_integer == 1) {
                 volWeight = Math.ceil(volWeight); // 可以重新赋值，因为用 let
             }
@@ -394,8 +414,7 @@ function updateAllWeights() {
     if(hasValidInputs) {
         const newActualWeight = totalActualWeight.toFixed(2);
         const newVolWeight = totalVolWeight.toFixed(2);
-        const newChargeableWeight = Math.max(totalActualWeight, totalVolWeight).toFixed(2);
-        
+        let newChargeableWeight = Math.max(totalActualWeight*volumeweight_weight, totalVolWeight).toFixed(2);
         // 只有当值真正变化时才更新DOM
         if($('input[name="data[weight]"]').val() !== newActualWeight) {
             $('input[name="data[weight]"]').val(newActualWeight);
@@ -403,8 +422,10 @@ function updateAllWeights() {
         if($('#weigthV').val() !== newVolWeight) {
             $('#weigthV').val(newVolWeight);
         }
-        if($('#oWei').val() !== newChargeableWeight) {
-            $('#oWei').val(newChargeableWeight);
+        if($('#oWei').val() !== newChargeableWeight/volumeweight_weight) {
+            
+            
+            $('#oWei').val(newChargeableWeight/volumeweight_weight);
             // 3. 关键修改：计费重量变化时强制计算运费
             caleAmount();
         }
@@ -502,7 +523,6 @@ function freeRuleDel(btn) {
         var other_free = $('#other_free')[0].value;
         var pack_free = $('#pack_free')[0].value;
         var insure_free = $('#insure_free')[0].value;
-        console.log(price,456);
         var total = Math.floor(price *100 )+ Math.floor(pack_free *100)+ Math.floor(other_free *100) + Math.floor(insure_free *100);  
         $("#all").val(total/100)
     }
