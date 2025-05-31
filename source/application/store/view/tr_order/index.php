@@ -448,7 +448,9 @@
                                         实际重量(<?= $set['weight_mode']['unit'] ?>):<?= $item['weight'] ?></br>
                                         体积重量(<?= $set['weight_mode']['unit'] ?>):<?= $item['volume'] ?></br>
                                         计费重量(<?= $set['weight_mode']['unit'] ?>):<?= $item['cale_weight'] ?></br>
+                                        <?php if ($item['line'] && $item['line']['line_type_unit']): ?>
                                         线路重量(<?= $line_type_unit[$item['line']['line_type_unit']] ?>):<?= $item['line_weight'] ?></br></br>
+                                        <?php endif ;?>
                                         共有 <?= count($item['packagelist'] ) ?> 个包裹 </br>
                                         <a href="<?= url('store/trOrder/package', ['id' => $item['id']]) ?>">查看包裹明细</a></br></br>
                                         
