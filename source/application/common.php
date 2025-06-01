@@ -1559,6 +1559,46 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
        return $this->renderSuccess($sortedAccounts);
     }
 
+    function turnweight($weight_mode,$oWeigth,$line_type_unit){
+       
+         switch ($weight_mode) {
+           case '10':
+                if($line_type_unit == 20){
+                    $oWeigth = 0.001 * $oWeigth;
+                }
+                if($line_type_unit == 30){
+                    $oWeigth = 0.00220462262185 * $oWeigth;
+                }
+               break;
+           case '20':
+                if($line_type_unit == 10){
+                    $oWeigth = 1000 * $oWeigth;
+                }
+                if($line_type_unit == 30){
+                    $oWeigth = 2.20462262185 * $oWeigth;
+                }
+               break;
+           case '30':
+               if($line_type_unit == 10){
+                    $oWeigth = 453.59237 * $oWeigth;
+                }
+                if($line_type_unit == 20){
+                    $oWeigth = 0.45359237 * $oWeigth;
+                }
+               break;
+           default:
+               if($line_type_unit == 10){
+                    $oWeigth = 1000 * $oWeigth;
+                }
+                if($line_type_unit == 30){
+                    $oWeigth = 2.20462262185 * $oWeigth;
+                }
+               break;
+       }
+        $oWeigth = round($oWeigth,2);
+        return $oWeigth;
+     }
+
     /**
     * 不确定路线查询运费
     * 最全运费查询
