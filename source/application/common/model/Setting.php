@@ -643,7 +643,7 @@ class Setting extends BaseModel
                         ],
                     ],
                     'menus'=>[
-                            'type'=>'type3',
+                            'type'=>'type2',
                             'menu_type'=>20
                     ]
                 ]
