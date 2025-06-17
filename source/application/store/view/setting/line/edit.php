@@ -958,6 +958,13 @@
        amformItem.removeChild(parent);
     }
     
+     // 删除
+    function deleteshouxufei(_this){
+       var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+       var parent = _this.parentNode;
+       amformItem.removeChild(parent);
+    }
+    
     // 删除
     function freeRuleDelareaunit(_this){
        var amformItem = document.getElementsByClassName('area_mode_unit')[0];

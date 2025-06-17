@@ -233,7 +233,9 @@
 		"to_comment": "去評論",
 		"支付待审核": "支付待審核",
 		"confirm_receipt": "確認簽收",
-		"no_order_yet": "暫無訂單"
+		"no_order_yet": "暫無訂單",
+		"请输入取消原因": "請輸入取消原因",
+		"取消订单提示":"取消訂單提示"
 	},
 	"page_shenqingdb_renling": {
 		"package_claim": "包裹認領",

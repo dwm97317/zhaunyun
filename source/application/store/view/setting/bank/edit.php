@@ -9,6 +9,21 @@
                                 <div class="widget-title am-fl">汇款账号编辑</div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">账号类型 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="bank[bank_type]" value="0" data-am-ucheck
+                                               <?= $model['bank_type'] == 0 ? 'checked' : '' ?>>
+                                        银行账户
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="bank[bank_type]" value="1" data-am-ucheck
+                                        <?= $model['bank_type'] == 1 ? 'checked' : '' ?>>
+                                        收款码
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">开户行 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="bank[bank_name]"
@@ -73,11 +88,12 @@
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">
                                         <input type="radio" name="bank[status]" value="1" data-am-ucheck
-                                               checked>
+                                               <?= $model['status'] == 1 ? 'checked' : '' ?>>
                                         启用
                                     </label>
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="bank[status]" value="0" data-am-ucheck>
+                                        <input type="radio" name="bank[status]" value="0" data-am-ucheck 
+                                        <?= $model['status'] == 0 ? 'checked' : '' ?>>
                                         禁用
                                     </label>
                                 </div>

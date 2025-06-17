@@ -747,7 +747,7 @@ class Index extends Controller
         $idsArr = explode(',',$ids);
         $pack = (new Package())->whereIn('id',$idsArr)->select();
         $weight = (new Package())->whereIn('id',$idsArr)->sum('weight');
-       
+        $volume = (new Package())->whereIn('id',$idsArr)->sum('volume');
         if (!$pack || count($pack) !== count($idsArr)){
             return $this->renderError('打包包裹数据错误');
         }
@@ -791,7 +791,7 @@ class Index extends Controller
           'weight' => $weight,
           'cale_weight' =>0,
           'pay_type'=> !empty($userinfo)?$userinfo['paytype']:0,
-          'volume' => 0, //体积重
+          'volume' => $volume, //体积重
           'pack_free' => 0,
           'other_free' =>0,
           'member_id' => $pack_member[0],
