@@ -94,11 +94,11 @@ class Shop extends BaseModel
      * @param $data
      * @return array
      */
-    public function getShopNameAttr($value)
-    {
-        strlen($value)>30 && $value = substr($value,0,30).'...';
-        return $value;
-    }
+    // public function getShopNameAttr($value)
+    // {
+    //     strlen($value)>30 && $value = substr($value,0,30).'...';
+    //     return $value;
+    // }
 
     /**
      * 门店详情
