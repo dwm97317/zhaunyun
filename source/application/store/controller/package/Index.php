@@ -736,7 +736,7 @@ class Index extends Controller
         $address_id = $this->postData('inpack')['address_id'];
         $pack_ids = isset($this->postData('inpack')['id'])?$this->postData('inpack')['id']:'';
         $remark = $this->postData('remark')[0];
-
+        $line = (new Line())->find($line_id);
         //物流模板设置
         $noticesetting = setting::getItem('notice');
         $storesetting = setting::getItem('store');
@@ -747,7 +747,13 @@ class Index extends Controller
         $idsArr = explode(',',$ids);
         $pack = (new Package())->whereIn('id',$idsArr)->select();
         $weight = (new Package())->whereIn('id',$idsArr)->sum('weight');
-        $volume = (new Package())->whereIn('id',$idsArr)->sum('volume');
+        $volumn = (new Package())->whereIn('id',$idsArr)->sum('volume');
+        // 计算体积重
+        $volumnweight = $volumn/$line['volumeweight']*1000000;
+        if($line['volumeweight_type']==20){
+            $volumnweight = round(($allWeigth + ($volumn*1000000/$line['volumeweight'] - $allWeigth)*$line['bubble_weight']/100),2);
+        }
+        
         if (!$pack || count($pack) !== count($idsArr)){
             return $this->renderError('打包包裹数据错误');
         }
@@ -775,7 +781,7 @@ class Index extends Controller
         
         $userinfo = (new User())->where('user_id',$pack_member[0])->find();
        
-        $line = (new Line())->find($line_id);
+        
         if (!$line){
             return $this->renderError('线路不存在,请重新选择');
         }
@@ -791,7 +797,7 @@ class Index extends Controller
           'weight' => $weight,
           'cale_weight' =>0,
           'pay_type'=> !empty($userinfo)?$userinfo['paytype']:0,
-          'volume' => $volume, //体积重
+          'volume' => $volumnweight, //体积重
           'pack_free' => 0,
           'other_free' =>0,
           'member_id' => $pack_member[0],
@@ -1237,6 +1243,7 @@ class Index extends Controller
     * /store/package.index/edit
     */
     public function save($data){
+        
         $list = [
             "id" => $data['id'],
             "storage_id" => $data['store_id'],
@@ -1254,6 +1261,10 @@ class Index extends Controller
             'is_take' =>!empty($data['user_id'])?2:1,
             "updated_time" => getTime()
         ];
+        if(!empty($list['length']) && !empty($list['width']) && !empty($list['height'])){
+            $list['volume'] = $list['length']*$list['width']*$list['height']/1000000;
+        }
+        
         $model = new Package();
         $PackageImage =  new PackageImage();
          

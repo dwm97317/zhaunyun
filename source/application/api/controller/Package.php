@@ -1214,7 +1214,13 @@ class Package extends Controller
         $price = 0; // 总运费
         $allWeigth = (new PackageModel())->whereIn('id',$idsArr)->sum('weight');
         $caleWeigth = 0;
-        $volumn = 0;
+        $volumn =  (new PackageModel())->whereIn('id',$idsArr)->sum('volume');
+        // 计算体积重
+        $volumnweight = $volumn*1000000/$line['volumeweight'];
+        if($line['volumeweight_type']==20){
+            $volumnweight = round(($allWeigth + ($volumn*1000000/$line['volumeweight'] - $allWeigth)*$line['bubble_weight']/100),2);
+        }
+        $cale_weight = $allWeigth>$volumnweight?$allWeigth:$volumnweight;
         $storesetting = SettingModel::getItem('store');
         // 创建包裹订单
         $inpackOrder = [
@@ -1228,9 +1234,9 @@ class Package extends Controller
           'free' => $price,
           'delivery_method'=>isset($params['currentTab'])?$params['currentTab']:1,
           'weight' => $allWeigth,
-          'cale_weight' => $allWeigth,
-          'line_weight'=> turnweight($storesetting['weight_mode']['mode'],$allWeigth,$line['line_type_unit']),
-          'volume' => $volumn,
+          'cale_weight' => $cale_weight,
+          'line_weight'=> turnweight($storesetting['weight_mode']['mode'],$cale_weight,$line['line_type_unit']),
+          'volume' => $volumnweight,
           'pack_free' => 0,
           'member_id' => $this->user['user_id'],
           'country_id' => $address['country_id'],
@@ -1241,7 +1247,7 @@ class Package extends Controller
           'line_id' => $line_id,
           'wxapp_id' => \request()->get('wxapp_id'),
         ];
-        
+        // dump($inpackOrder);die;
         $user_id =$this->user['user_id'];
         if($storesetting['usercode_mode']['is_show']==1){
            $member =  (new User())->where('user_id',$this->user['user_id'])->find();

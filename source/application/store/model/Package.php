@@ -166,9 +166,9 @@ class Package extends PackageModel
             'country_id' => isset($data['country'])?$data['country']:$result['country_id'],
             'width' => isset($data['width'])?$data['width']:$result['width'],
             'length' => isset($data['length'])?$data['length']:$result['length'],
-            'height' => isset($data['height'])?$data['height']:$result['height'],
-            'weight' => isset($data['weigth'])?$data['weigth']:$result['weight'],
-            'remark' => (isset($data['remark']) && !empty($data['remark']))?$data['remark']:$result['remark'],
+            'height' => (isset($data['height']) && !empty($data['height']))?$data['height']:$result['height'],
+            'weight' => (isset($data['weigth'])  && !empty($data['weigth']))?$data['weigth']:$result['weight'],
+            'remark' => isset($data['remark'])?$data['remark']:$result['remark'],
             'express_id' => isset($data['express_id'])?$data['express_id']:$result['express_id'],
             'shelf_id' => isset($data['shelf_id'])?$data['shelf_id']:$result['shelf_id'],
             'price' => isset($data['price'])?$data['price']:$result['price'],
@@ -180,7 +180,7 @@ class Package extends PackageModel
             'is_take'=> empty($data['user_id'])?($result['member_id']?2:1):2,
             'source' => isset($result['source'])?$result['source']:2, //记录后台录入状态
             'created_time' => $result['created_time']?$result['created_time']:getTime(),
-            'updated_time' => $result['updated_time']?$result['updated_time']:getTime(),
+            'updated_time' => getTime(),
             'entering_warehouse_time' => $result['entering_warehouse_time']?$result['entering_warehouse_time']:getTime(),
          ];
          //计算包裹的体积
@@ -833,7 +833,7 @@ class Package extends PackageModel
             // ->with(['categoryAttr','categoryAttr' => function($quer) use($query) {
             //     $quer->where('class_id','=',$query['category_id']);
             // }])
-            ->field('a.pack_type,a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time')
+            ->field('a.pack_type,a.volume,a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -865,7 +865,7 @@ class Package extends PackageModel
             // ->with(['categoryAttr','categoryAttr' => function($quer) use($query) {
             //     $quer->where('class_id','=',$query['category_id']);
             // }])
-            ->field('a.pack_type,a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time,pi.class_id')
+            ->field('a.pack_type,a.id,a.volume,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time,pi.class_id')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")

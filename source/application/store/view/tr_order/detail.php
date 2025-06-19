@@ -86,18 +86,28 @@
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">订单总重量(<?= $set['weight_mode']['unit'] ?>) </label>
                                 <div class="am-u-sm-9 am-u-end" style="position: relative">
                                      <div class="span">
-                                         <input type="text" readonly <?= $detail['is_pay']==1?'disabled=true':'' ;?>  class="tpl-form-input" style="width:80px;color:red"   name="data[weight]"
+                                         <input type="text" id="allweight"  readonly <?= $detail['is_pay']==1?'disabled=true':'' ;?>  class="tpl-form-input" style="width:80px;color:red"   name="data[weight]"
                                            value="<?= $detail['weight']??'' ;?>" placeholder="请输入重量">
                                            <small style="color:#ff6666;">添加箱子，输入长宽高和重量</small>
+                                           <div>
+                                                <button type="button" onclick="calefree(this)" class="j-submit am-btn am-btn-secondary">用此参数计算费用
+                                                </button>
+                                            </div>
                                      </div>
+                                     
                                 </div>
                             </div>
+                            
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">总体积重</label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="span">
-                                        <input style="width:80px;color:red;" readonly type="text" class="tpl-form-input" id="weigthV" name="data[volume]"
+                                        <input style="width:80px;color:red;"  readonly type="text" class="tpl-form-input" id="weigthV" name="data[volume]"
                                            value="<?= $detail['volume']??'' ;?>" placeholder="请输入价格">
+                                           <div>
+                                                <button type="button" onclick="calefreeforvol(this)" class="j-submit am-btn am-btn-secondary">用此参数计算费用
+                                                </button>
+                                            </div>
                                     </div>
                                 </div>
                             </div>
@@ -538,6 +548,84 @@ function debounce(func, wait) {
             func.apply(context, args);
         }, wait);
     };
+}
+
+function calefreeforvol(){
+    const line_id = $('select[name="data[line_id]"]').val();
+    const cale_weight = parseFloat($('#weigthV').val()) || 0;
+    
+    if(!line_id || cale_weight <= 0) {
+        return false;
+    }
+    
+    const $priceField = $('#price');
+    const originalPrice = $priceField.val();
+    $.ajax({
+        type: "POST",
+        url: "<?= url('store/trOrder/caleAmount')?>",
+        data: {
+            pid: $('input[name="data[id]"]').val(),
+            line_id: line_id,
+            weight: cale_weight
+        },
+        dataType: 'json',
+        success: function(res) {
+            if (res.code == 1) {
+                $('#price').val(res.msg.price);
+                $('#pack_free').val(res.msg.packfree);
+                $('#lineweight').val(res.msg.oWeigth);
+                MathFree();
+            } else {
+                $priceField.val(originalPrice);
+            }
+        },
+        error: function() {
+            $priceField.val(originalPrice);
+        },
+        complete: function() {
+            isCalculating = false;
+            $priceField.prop('disabled', false);
+        }
+    });
+}
+
+function calefree(){
+    const line_id = $('select[name="data[line_id]"]').val();
+    const cale_weight = parseFloat($('#allweight').val()) || 0;
+    
+    if(!line_id || cale_weight <= 0) {
+        return false;
+    }
+    
+    const $priceField = $('#price');
+    const originalPrice = $priceField.val();
+    $.ajax({
+        type: "POST",
+        url: "<?= url('store/trOrder/caleAmount')?>",
+        data: {
+            pid: $('input[name="data[id]"]').val(),
+            line_id: line_id,
+            weight: cale_weight
+        },
+        dataType: 'json',
+        success: function(res) {
+            if (res.code == 1) {
+                $('#price').val(res.msg.price);
+                $('#pack_free').val(res.msg.packfree);
+                $('#lineweight').val(res.msg.oWeigth);
+                MathFree();
+            } else {
+                $priceField.val(originalPrice);
+            }
+        },
+        error: function() {
+            $priceField.val(originalPrice);
+        },
+        complete: function() {
+            isCalculating = false;
+            $priceField.prop('disabled', false);
+        }
+    });
 }
     
 // 运费计算函数

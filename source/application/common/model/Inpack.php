@@ -298,7 +298,7 @@ class Inpack extends BaseModel
      */
     public function packagelist()
     {
-        return $this->hasMany('Package','inpack_id','id');
+        return $this->hasMany('Package','inpack_id','id')->where('is_delete', 0);
     }
     
     /**
