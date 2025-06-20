@@ -34,10 +34,10 @@
                                         </td>
                                         <td> 
                                         <?php foreach ($item['image'] as $it): ?>
-                                        <figure style="display:inline-flex;" data-am-widget="figure" class="am am-figure am-figure-default "  data-am-figure="{  pureview: 'true' }">
+                                        <figure style="display:inline-flex;height：100%;" data-am-widget="figure" class="am am-figure am-figure-default "  data-am-figure="{  pureview: 'true' }">
                                             <a href="<?= $it['file_path'] ?>" title="点击查看大图" target="_blank">
                                                 <?php if($it['file_path']) :?>
-                                                     <img src="<?= $it['file_path'] ?>" width="30" height="30" alt="">
+                                                     <img  src="<?= $it['file_path'] ?>" width="30" height="30" alt="">
                                                 <?php endif;?>
                                               </a>
                                          </figure>
@@ -146,6 +146,12 @@
     
 </script>
 <style>
+    .pinch-zoom-container{
+       
+    }
+    .am-pureview-slider img{
+         height: 90vh !important;
+    }
     .am-figure-zoomable:after{
         display: inline-block;
         font: normal normal normal 1.6rem / 1 FontAwesome, sans-serif;
