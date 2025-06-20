@@ -19,6 +19,8 @@
                                             <option value="30" <?= $values['pageno']['inpack'] == '30' ? 'selected' : '' ?>>30</option>
                                             <option value="50" <?= $values['pageno']['inpack'] == '50' ? 'selected' : '' ?>>50</option>
                                             <option value="100" <?= $values['pageno']['inpack'] == '100' ? 'selected' : '' ?>>100</option>
+                                            <option value="200" <?= $values['pageno']['inpack'] == '200' ? 'selected' : '' ?>>200</option>
+                                            <option value="500" <?= $values['pageno']['inpack'] == '500' ? 'selected' : '' ?>>500</option>
                                     </select>
                                 </div>
                             </div>
@@ -33,6 +35,8 @@
                                             <option value="30" <?= $values['pageno']['package'] == '30' ? 'selected' : '' ?>>30</option>
                                             <option value="50" <?= $values['pageno']['package'] == '50' ? 'selected' : '' ?>>50</option>
                                             <option value="100" <?= $values['pageno']['package'] == '100' ? 'selected' : '' ?>>100</option>
+                                            <option value="200" <?= $values['pageno']['package'] == '200' ? 'selected' : '' ?>>200</option>
+                                            <option value="500" <?= $values['pageno']['package'] == '500' ? 'selected' : '' ?>>500</option>
                                     </select>
                                 </div>
                             </div>
