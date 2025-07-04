@@ -46,6 +46,7 @@ class Package extends PackageModel
        'usermark',
        'shelf_id',
        'pack_type',
+       'class_ids',
        'inpack_id',
        'visit_data_time'
     ];

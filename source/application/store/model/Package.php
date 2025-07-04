@@ -113,7 +113,6 @@ class Package extends PackageModel
              return false;
         }
         $session = Session::get('yoshop_store');
-        // self::$wxapp_id == 10013 && file_put_contents("包裹入库.txt", "时间：".getTime().", 数据:".json_encode($data)."\r\n", FILE_APPEND);
         $tyoi = stripos($data['express_num'], "JD");
         if($tyoi==0 && $tyoi!=false){
             $ex = explode('-',$data['express_num']);
@@ -182,6 +181,7 @@ class Package extends PackageModel
             'created_time' => $result['created_time']?$result['created_time']:getTime(),
             'updated_time' => getTime(),
             'entering_warehouse_time' => $result['entering_warehouse_time']?$result['entering_warehouse_time']:getTime(),
+            'class_ids'=>$data['class_ids']
          ];
          //计算包裹的体积
          if($post['length']>0 && $post['width']>0 && $post['height']>0){

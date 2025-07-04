@@ -15,7 +15,7 @@ class Country extends CountryModel
         if ($where){
             $this -> whereLike('title','%'.$where."%");
         }
-        return $this->order('id ASC')->select();
+        return $this->where('status',1)->order('id ASC')->select();
     }
     
     public function queryHotCountry($where){
@@ -24,18 +24,19 @@ class Country extends CountryModel
         }
         return 
         $this->where('is_hot',1)
+        ->where('status',1)
         ->order('sort DESC')
         ->select();
     }
     
     // 查询快递列表
     public function queryTopCountry(){
-        return $this->where('is_top',1)->find();
+        return $this->where('is_top',1)->where('status',1)->find();
     }
     
     
     // 根据ID 查找字段
     public function getValueById($id,$field){
-        return $this->where(['id'=>$id])->value($field);
+        return $this->where(['id'=>$id])->where('status',1)->value($field);
     }
 }

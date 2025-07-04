@@ -1014,7 +1014,13 @@ class Useropration extends Controller
         //     $a = explode('-',$express_num);
         //     count($a)>1 && $express_num = $a[0];
         // }
-            //  dump($shelf_id);die;
+       //再加一层校验；
+        $map[] = ['is_delete','=',0];
+        $map[] = ['express_num','=',$express_num]; 
+        $is_exitres = (new Package())->setQuery($map)->find();
+        if($is_exitres){
+            $is_pre = 10;
+        }
        //$is_pre==0 为没有查询到包裹数据的情况，需要插入新数据
        if ($is_pre==0){
            if ($user_id){
@@ -1050,13 +1056,12 @@ class Useropration extends Controller
                 'usermark'=>$useremark,
                 'shelf_id'=>$shelf_id,
                 'weight'=>$weight,
-                'volume'=>isset($volume)?$volume:$packdatas['volume']
+                'volume'=>isset($volume)?$volume:$packdatas['volume'],
+                'class_ids'=>$class_ids
               ];
               $packdatas->save($order);
               $restwo = $packdatas['id'];
            }else{
-                     
-
             $order['status'] = 2;
             $order['is_take'] = 1;
             $order['storage_id'] = $clerk['shop_id'];
@@ -1077,6 +1082,7 @@ class Useropration extends Controller
             $order['usermark'] = $useremark;
             $order['shelf_id'] = $shelf_id;
             $order['entering_warehouse_time'] = getTime();
+            $order['class_ids'] =$class_ids;
             if($length>0 && $width>0 && $height>0){
                  $order['volume'] = $width*$length*$height/1000000;
             }
@@ -1090,7 +1096,9 @@ class Useropration extends Controller
                //存储包裹的分类信息；
             $classItem = [];
            if ($class_ids || $goodslist){
-             $classItem = $this->parseClass($class_ids);
+            $classItem = $this->parseClass($class_ids);
+          
+            if(count($goodslist)>0 && !empty($goodslist[0]['pinming'])){
                 foreach ($goodslist as $k => $val){
                      $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['pinming'];
                      $classItems[$k]['class_id'] = !empty($classItem)?$classItem[0]['category_id']:0;
@@ -1136,7 +1144,18 @@ class Useropration extends Controller
                      }
                      
                 }
-                
+            }else{
+                foreach ($classItem as $k => $val){
+                    // dump($val);doe;
+                   $classItems[$k]['class_id'] = $val['category_id'];
+                   $classItems[$k]['express_name'] = "";
+                   $classItems[$k]['class_name'] = $val['name'];
+                   $classItems[$k]['express_num'] = $express_num;
+                   $classItems[$k]['all_price'] = '';
+                   unset($classItem[$k]['category_id']); 
+                   unset($classItem[$k]['name']);        
+             }
+            }
          }
         
 
@@ -1228,6 +1247,7 @@ class Useropration extends Controller
        $update['usermark'] = !empty($usermark)?$usermark:$data['usermark'];
        $update['shelf_id'] = $shelf_id;
        $update['is_verify'] = $is_verify;
+       $update['class_ids'] = $class_ids;
        $update['updated_time'] = getTime();
        $update['entering_warehouse_time'] = getTime();
        if($length>0 && $width>0 && $height>0){
@@ -2830,8 +2850,9 @@ class Useropration extends Controller
         $data['service'] = $InpackService->with('service')->where('inpack_id',$id)->select();
         $pack =  (new Package());
         $shelf = new ShelfUnitItem();
-        $data['packs']= $pack->where('inpack_id',$id)->where('is_delete',0)->with(['packageimage.file','packitem','shelfunititem.shelfunit.shelf'])->select();
+        $data['packs']= $pack->where('inpack_id',$id)->where('is_delete',0)->with(['packageimage.file','packitem','shelfunititem.shelfunit.shelf'])->order(['is_scan asc','shelf_id desc'])->select();
         $data['countpack'] =count($data['packs']);
+        $data['countnoscanpack'] =$pack->where('inpack_id',$id)->where('is_scan',1)->where('is_delete',0)->count();
         // 获取物品详情
         $data['shop'] = '';
 
@@ -2951,6 +2972,10 @@ class Useropration extends Controller
      */
     public function changeOrderStatus($id,$status){
         $inpack= new Inpack();
+        $count = (new Package())->where('inpack_id',$id)->where('is_scan',1)->count();
+        if($count>0){
+            return $this->renderError('还有包裹未扫描');
+        }
         $res = $inpack->where('id',$id)->update(['status' => $status,'pick_time' => getTime()]);
         if($res){
         //进行通知打包员

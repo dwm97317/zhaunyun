@@ -1259,7 +1259,8 @@ class Index extends Controller
             "admin_remark" => $data['admin_remark'],
             'visit_free' => isset($data['visit_free'])?$data['visit_free']:0,
             'is_take' =>!empty($data['user_id'])?2:1,
-            "updated_time" => getTime()
+            "updated_time" => getTime(),
+            'class_ids'=> $data['class_ids']
         ];
         if(!empty($list['length']) && !empty($list['width']) && !empty($list['height'])){
             $list['volume'] = $list['length']*$list['width']*$list['height']/1000000;

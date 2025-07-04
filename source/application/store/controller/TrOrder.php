@@ -501,7 +501,7 @@ class TrOrder extends Controller
          // 订单详情
         $Package = new Package();
         $storesetting = SettingModel::getItem('store',$this->getWxappId());
-        $list = $Package->with("packageimage.file")->where('inpack_id',$id)->select();
+        $list = $Package->with("packageimage.file")->where('inpack_id',$id)->order('is_scan asc')->select();
        
         foreach ($list as $k => $v){
             $list[$k]['shelf'] = (new ShelfUnitItem())->getShelfUnitByPackId($v['id']);
@@ -1442,6 +1442,7 @@ class TrOrder extends Controller
         if($line['line_type']==1){
             $oWeigth = $data['weight'];
         }
+      
         //关税和增值服务费用
         //计算所有的箱子的超长超重费；
         
@@ -1486,6 +1487,7 @@ class TrOrder extends Controller
                     }
                   break;
           }
+         
           $oWeigth = round($oWeigth,2);
 
         $lines['predict'] = [
@@ -1687,6 +1689,8 @@ class TrOrder extends Controller
                }
                break;
         }
+        
+        
         $PackageService = new PackageService(); 
         $pricethree = 0;
         $formatted = 0;   

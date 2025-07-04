@@ -40,7 +40,7 @@ class WxappPage extends WxappPageModel
     public static function getPageData($user, $page_id = null)
     {
         // 页面详情
-        $detail = parent::getHomePage();
+        $detail = $page_id > 0 ? parent::detail($page_id) : parent::getHomePage();
         // 页面diy元素
         $items = $detail['page_data']['items'];
 
@@ -73,6 +73,7 @@ class WxappPage extends WxappPageModel
         unset($items['page']);
         return ['page' =>$page , 'items' => $items];
     }
+    
 
     /**
      * 商品组件：获取商品列表

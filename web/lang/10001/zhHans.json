@@ -843,7 +843,7 @@
 		"Select_coupon": "选择优惠券",
 		"p_Select_coupon": "请选择优惠券",
 		"Discount_amount": "优惠金额",
-		"Original_price": "原价：",
+		"Original_price": "订单金额：",
 		"Preferential_price": "优惠价：",
 		"payment_method": "付款方式",
 		"wx_pay": "微信支付",

@@ -179,8 +179,11 @@ class Page extends Controller
         $track = getFileDataForLang('lang/'.$this->wxapp_id.'/'.$data['type'].'.json');
         if(count($track)==0){
             $track = getFileDataForLang('lang/10001/'.$data['type'].'.json');
+            $track['common'] = getFileDataForLang('lang/10001/new_'.$data['type'].'.json');
+        }else{
+            $track['common'] = getFileDataForLang('lang/10001/new_'.$data['type'].'.json');
         }
-        $track['common'] = getFileDataForLang('lang/10001/new_zhHans.json');
+        
         return $this->renderSuccess($track);
     }
     
