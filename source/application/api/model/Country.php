@@ -22,8 +22,7 @@ class Country extends CountryModel
         if ($where){
             $this -> whereLike('title','%'.$where."%");
         }
-        return 
-        $this->where('is_hot',1)
+        return $this->where('is_hot',1)
         ->where('status',1)
         ->order('sort DESC')
         ->select();
