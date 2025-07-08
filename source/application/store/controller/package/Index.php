@@ -27,6 +27,7 @@ use app\store\model\InpackService as InpackServiceModel;
 use app\store\model\user\UserMark as UserMarkModel;
 use app\store\model\Batch;
 use app\store\model\store\shop\Clerk;
+use app\store\model\PackageClaim;
 /**
  * 商家用户控制器
  * Class StoreUser
@@ -92,6 +93,63 @@ class Index extends Controller
             $packlists = implode(',',$packlist);
         }
         return $this->fetch('index', compact('i','packlists','list','shopList','line','packageService','type','storeAddress','category','topcategory','set','countweight','batchlist','adminstyle','shelf'));
+    }
+    
+    /**
+     * 待认领任务列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function claim(){
+        $packageModel = new PackageClaim();
+        $map = \request()->param();
+        $list = $packageModel->getList($map);
+        // dump($list->toArray());die;
+        $shopList = ShopModel::getAllList();
+        return $this->fetch('claim', compact('list','shopList'));
+    }
+    
+    /**
+     * 删除待认领任务列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function deleteclaim(){
+        $packageModel = new PackageClaim();
+        $map = \request()->param();
+        if($packageModel->where('id',$map['id'])->delete()){
+             return $this->renderSuccess("删除成功");
+        }
+        return $this->renderError('删除失败');
+    }
+    
+    /**
+     * 待认领任务列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function doclaim(){
+        $packageModel = new PackageClaim();
+        $map = \request()->param();
+        $detail = $packageModel->where('id',$map['id'])->find();
+        if($map['status']==1){
+            (new Package())->where('id',$map['id'])->update([
+                'member_id'=>$detail['user_id'],
+                'is_take'=>2,
+                'updated_time'=>getTime()
+            ]);
+        }
+        
+        if(!empty($detail)){
+            $detail->save([
+                'status'=>$map['status'],
+                'clerk_remark'=>$map['remark'],
+                'clerk_name'=>$this->store['user']['user_name'],
+                'clerk_time'=>time(),
+            ]);
+            return $this->renderSuccess("处理成功");
+        }
+        return $this->renderError('认领任务不存在');
     }
     
     //获取包裹的统计数据

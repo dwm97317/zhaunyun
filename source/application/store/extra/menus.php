@@ -46,11 +46,14 @@ return [
               'name' => '预报包裹',
               'index' => 'package.report/index',
           ],
-           [
+          [
               'name' => '待认领',
               'index' => 'package.index/nouser',
           ],
-          
+          [
+              'name' => '客户认领',
+              'index' => 'package.index/claim',
+          ],
           [
               'name' => '全部包裹',
               'index' => 'package.index/index',

@@ -36,6 +36,20 @@
                                 </div>
                         </div>
                         <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 小程序公众号锁定 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_lock]" value="0" <?= $data['is_lock'] == 0 ? 'checked' : '' ?> 
+                                               data-am-ucheck>
+                                        否
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_lock]" value="1" <?= $data['is_lock'] == 1 ? 'checked' : '' ?> data-am-ucheck>
+                                        是
+                                    </label>
+                                </div>
+                        </div>
+                        <div class="am-form-group">
                             <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 版权说明 </label>
                             <div class="am-u-sm-9 am-u-end">
                                 <input type="text" class="tpl-form-input" name="store[copyright_des]"   value="<?= $data['copyright_des'] ?>">

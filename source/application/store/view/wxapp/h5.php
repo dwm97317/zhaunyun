@@ -13,7 +13,7 @@
                                     公众号名称
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxname]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxname]"
                                            value="<?= $model['app_wxname'] ?>" required>
                                 </div>
                                 
@@ -23,7 +23,7 @@
                                     原始ID
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxrealid]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxrealid]"
                                            value="<?= $model['app_wxrealid'] ?>" required>
                                 </div>
                             </div>
@@ -32,7 +32,7 @@
                                     公众号AppID <span class="tpl-form-line-small-title">(AppID)</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxappid]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxappid]"
                                            value="<?= $model['app_wxappid'] ?>" required>
                                            <small>登录微信公众平台，设置与开发 - 基本配置 - 公众号开发信息，记录开发者ID(AppID)</small>
                                 </div>
@@ -43,7 +43,7 @@
                                     公众号AppSecret <span class="tpl-form-line-small-title">(AppSecret)</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="password" class="tpl-form-input" name="wxapp[app_wxsecret]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="password" class="tpl-form-input" name="wxapp[app_wxsecret]"
                                            value="<?= $model['app_wxsecret'] ?>" required>
                                            <small>登录微信公众平台，设置与开发 - 基本配置 - 公众号开发信息，设置开发者密码(AppSecret)</small>
                                 </div>
@@ -56,8 +56,7 @@
                                     服务器地址(URL) <span class="tpl-form-line-small-title">(URL)</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    
-                                           <small>默认主域名+ /index.php?s=/api/wechat/callback&wxapp_id=<?= $model['wxapp_id'] ?></small>
+                                    <small>默认主域名+ /index.php?s=/api/wechat/callback&wxapp_id=<?= $model['wxapp_id'] ?></small>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -65,7 +64,7 @@
                                     公众号Token <span class="tpl-form-line-small-title">(Token)</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[wechat_token]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="text" class="tpl-form-input" name="wxapp[wechat_token]"
                                            value="<?= $model['wechat_token'] ?>">
                                            <small>登录微信公众平台，设置与开发 - 基本配置 - 开发接口管理，Token</small>
                                 </div>
@@ -75,15 +74,11 @@
                                     公众号EncodingAESKey <span class="tpl-form-line-small-title">(EncodingAESKey)</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[encodingAESKey]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="text" class="tpl-form-input" name="wxapp[encodingAESKey]"
                                            value="<?= $model['encodingAESKey'] ?>">
                                            <small>登录微信公众平台，设置与开发 - 基本配置 - 开发接口管理，EncodingAESKey</small>
                                 </div>
                             </div>
-                            
-                            
-                            
-                            
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">微信开放平台</div>
                             </div>
@@ -115,7 +110,7 @@
                                     微信开放平台AppID <span class="tpl-form-line-small-title">(AppID)</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxoepnid]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxoepnid]"
                                            value="<?= $model['app_wxoepnid'] ?>">
                                            <small>登录微信开放平台，申请移动应用，然后获取AppID，只有需要APP微信授权登录的才需要填写此项</small>
                                 </div>
@@ -126,7 +121,7 @@
                                     微信开放平台AppSecret <span class="tpl-form-line-small-title">(AppSecret)</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="password" class="tpl-form-input" name="wxapp[app_wxopensecret]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="password" class="tpl-form-input" name="wxapp[app_wxopensecret]"
                                            value="<?= $model['app_wxopensecret'] ?>">
                                            <small>登录微信开放平台，申请移动应用，然后获取AppSecret，只有需要APP微信授权登录的才需要填写此项</small>
                                 </div>
@@ -139,7 +134,7 @@
                                     H5站点地址 <span class="tpl-form-line-small-title"></span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[other_url]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="text" class="tpl-form-input" name="wxapp[other_url]"
                                            value="<?= $model['other_url'] ?>" required>
                                            <small>系统默认域名为https://zhuanyun10001.sllowly.cn,10001是动态变化的，根据商家的id自动变化。如果你需要配置自己的域名，请联系客服人员协助处理；</small>
                                 </div>
@@ -149,7 +144,7 @@
                                     备案号 <span class="tpl-form-line-small-title"></span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[filing_number]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="text" class="tpl-form-input" name="wxapp[filing_number]"
                                            value="<?= $model['filing_number'] ?>">
                                 </div>
                             </div>
@@ -158,7 +153,7 @@
                                     版权说明 <span class="tpl-form-line-small-title"></span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[copyrighttext]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="text" class="tpl-form-input" name="wxapp[copyrighttext]"
                                            value="<?= $model['copyrighttext'] ?>">
                                     <small>可以参考：©2017-2025 湖北思楼文化传媒有限公司</small>
                                 </div>

@@ -13,7 +13,7 @@
                                     AppID <span class="tpl-form-line-small-title">小程序ID</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_id]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_id]"
                                            value="<?= $model['app_id'] ?>" required>
                                 </div>
                             </div>
@@ -22,7 +22,7 @@
                                     AppSecret <span class="tpl-form-line-small-title">小程序密钥</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="password" class="tpl-form-input" name="wxapp[app_secret]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?>  autocomplete="off" type="password" class="tpl-form-input" name="wxapp[app_secret]"
                                            value="<?= $model['app_secret'] ?>" required>
                                 </div>
                             </div>
@@ -31,7 +31,7 @@
                                      <span class="tpl-form-line-small-title">绑定的公众号Appid</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxappid]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?>  autocomplete="off" type="text" class="tpl-form-input" name="wxapp[app_wxappid]"
                                            value="<?= $model['app_wxappid'] ?>">
                                     <small>绑定公众号才可以接收微信模板消息，当然还需要去【设置】->【模板消息】设置对应参数</small>
                                 </div>
@@ -44,7 +44,7 @@
                                     微信支付商户号 <span class="tpl-form-line-small-title">MCHID</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="text" class="tpl-form-input" name="wxapp[mchid]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?> autocomplete="off" type="text" class="tpl-form-input" name="wxapp[mchid]"
                                            value="<?= $model['mchid'] ?>">
                                 </div>
                             </div>
@@ -53,7 +53,7 @@
                                     微信支付密钥 <span class="tpl-form-line-small-title">APIKEY</span>
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <input autocomplete="off" type="password" class="tpl-form-input" name="wxapp[apikey]"
+                                    <input <?= $model['is_lock']==1?'readonly':'' ?>  autocomplete="off" type="password" class="tpl-form-input" name="wxapp[apikey]"
                                            value="<?= $model['apikey'] ?>">
                                 </div>
                             </div>
@@ -62,7 +62,7 @@
                                     apiclient_cert.pem
                                 </label>
                                 <div class="am-u-sm-9">
-                                     <textarea rows="6" name="wxapp[cert_pem]"
+                                     <textarea <?= $model['is_lock']==1?'readonly':'' ?> rows="6" name="wxapp[cert_pem]"
                                                placeholder="使用文本编辑器打开apiclient_cert.pem文件，将文件的全部内容复制进来"><?= $model['cert_pem'] ?></textarea>
                                     <small>使用文本编辑器打开apiclient_cert.pem文件，将文件的全部内容复制进来</small>
                                 </div>
@@ -72,7 +72,7 @@
                                     apiclient_key.pem
                                 </label>
                                 <div class="am-u-sm-9">
-                                     <textarea rows="6" name="wxapp[key_pem]"
+                                     <textarea <?= $model['is_lock']==1?'readonly':'' ?>  rows="6" name="wxapp[key_pem]"
                                                placeholder="使用文本编辑器打开apiclient_key.pem文件，将文件的全部内容复制进来"><?= $model['key_pem'] ?></textarea>
                                     <small>使用文本编辑器打开apiclient_key.pem文件，将文件的全部内容复制进来</small>
                                 </div>

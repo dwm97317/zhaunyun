@@ -63,6 +63,51 @@
                                 </div>
                             </li>
                             <li class="link-item">
+                                <div class="row page-name">自定义设计页面</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/pages/custom/index?page_id(页面ID)</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">收件地址</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/address/reciveaddress/reciveaddress</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">编辑收件地址</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/address/add_reciveaddress/add_reciveaddress</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">发货地址</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/address/sendaddress/sendaddress</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">编辑发货地址</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/address/add_sendaddress/add_sendaddress</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
                                 <div class="row page-name">分类列表</div>
                                 <div class="row am-cf">
                                     <div class="am-fl">地址：</div>
@@ -234,20 +279,11 @@
                                 </div>
                             </li>
                             <li class="link-item">
-                                <div class="row page-name">仓管工作人员中心（其实加盟商也是这个界面）</div>
-                                <div class="row am-cf">
-                                    <div class="am-fl">地址：</div>
-                                    <div class="am-fl">
-                                        <span class="x-color-green">/pages/cangkuyuan/cangkuyuan</span>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="link-item">
                                 <div class="row page-name">数据中心</div>
                                 <div class="row am-cf">
                                     <div class="am-fl">地址：</div>
                                     <div class="am-fl">
-                                        <span class="x-color-green">/pages/cangkuyuans/cangkuyuan_dataScreen/cangkuyuan_dataScreen</span>
+                                        <span class="x-color-green">/subPackage/pages/shopadmin/center</span>
                                     </div>
                                 </div>
                             </li>
@@ -256,7 +292,7 @@
                                 <div class="row am-cf">
                                     <div class="am-fl">地址：</div>
                                     <div class="am-fl">
-                                        <span class="x-color-green">/pages/shopadmin/center</span>
+                                        <span class="x-color-green">/subPackage/pages/shopadmin/center</span>
                                     </div>
                                 </div>
                             </li>

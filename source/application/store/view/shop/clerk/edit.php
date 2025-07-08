@@ -334,6 +334,22 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 认领通知 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="clerk[claim_status]" value="0" data-am-ucheck
+                                                <?= $model['claim_status'] == 0 ? 'checked' : '' ?>>
+                                        启用
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="clerk[claim_status]" value="1" data-am-ucheck
+                                         <?= $model['claim_status'] == 1 ? 'checked' : '' ?>>
+                                        禁用
+                                    </label>
+                                    <div class="help-block"><small>开启后可以接收到用户认领包裹的消息通知</small></div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 状态 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">

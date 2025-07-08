@@ -99,6 +99,7 @@ class Store extends Controller
            'version' =>  $data['version'],
            'filing_number' =>  $data['filing_number'],
            'baiduai'=>$data['baiduai'],
+           'is_lock'=>$data['is_lock'],
         ];
         $res = $model->where('wxapp_id',$wxapp_id)->update($wappData);
         if ($res) {

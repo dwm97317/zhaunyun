@@ -57,6 +57,8 @@ class Message extends Basics
         'package.Reservationconfirmed'=>'app\common\service\message\package\Reservationconfirmed',
         //下单成功通知
         'package.VisitOrdersuccess'=>'app\common\service\message\package\VisitOrdersuccess',
+        //下单成功通知
+        'package.claimpackage'=>'app\common\service\message\package\Claimpackage',
     ];
 
     /**

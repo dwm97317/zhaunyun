@@ -976,6 +976,12 @@ class Setting extends BaseModel
                             'template_id' => '',
                             'keywords' => ['character_string7', 'thing2','thing3','time5'],
                         ],
+                        // 认领通知
+                        'claimpackage' =>[
+                            'is_enable' => '0',
+                            'template_id' => '',
+                            'keywords' => ['character_string2', 'thing9','character_string1','time8','character_string4'],
+                        ]
                     ],
                 ],
             // 小票打印机设置

@@ -27,6 +27,7 @@ use app\common\model\store\shop\Capital;
 use app\api\model\user\UserMark;
 use app\common\service\package\Printer;
 use app\api\model\Barcode;
+use app\api\model\PackageClaim;
 
 /**
  * 用户管理
@@ -97,6 +98,65 @@ class Useropration extends Controller
         $list['user'] = UserModel::detail($param['user_id'],$with=[]);
         $list = $UserMark->getList($param['user_id']);
         return $this->renderSuccess($list);
+    }
+    
+        /**
+     * 仓库管理员 待认领
+     * @param 
+     * @return bool
+     * @throws \think\exception\DbException
+     */
+    public function packageclaimlist(){
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        if (!$clerk){
+            return $this->renderError('角色权限非法');
+        }
+        $params = $this->request->param();
+        $PackageClaim = new PackageClaim();
+        if(!empty($params['keyword'])){
+            $list = $PackageClaim->alias('a')->with(['user','package'])
+            ->join('user u', 'a.user_id = u.user_id',"LEFT")
+            ->join('package pa', 'pa.id = a.package_id',"LEFT")
+            ->where('pa.express_num|u.user_code|u.user_id|u.nickName','like','%'.$params['keyword'].'%')
+            ->where('a.status',0)
+            ->select();
+        }else{
+            $list = $PackageClaim->with(['user','package'])->where('status',0)->select();
+        }
+        return $this->renderSuccess($list);
+    }
+    
+    /**
+     * 待认领任务列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function doclaim(){
+        $packageModel = new PackageClaim();
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        if (!$clerk){
+            return $this->renderError('角色权限非法');
+        }
+        $map = $this->request->param();
+        $detail = $packageModel->where('id',$map['id'])->find();
+       
+        if($map['status']=='1'){
+            $res= (new Package())->where('id',$detail['package_id'])->update([
+                'member_id'=>$detail['user_id'],
+                'is_take'=>2,
+                'updated_time'=>getTime()
+            ]);
+        }
+        if(!empty($detail)){
+            $detail->save([
+                'status'=>$map['status'],
+                'clerk_remark'=>$map['remark'],
+                'clerk_name'=>$clerk['real_name'],
+                'clerk_time'=>time(),
+            ]);
+            return $this->renderSuccess("处理成功");
+        }
+        return $this->renderError('认领任务不存在');
     }
     
     // 仓库打包员 打包列表

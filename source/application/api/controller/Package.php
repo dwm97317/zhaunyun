@@ -48,6 +48,8 @@ use app\api\model\Barcode;
 use app\api\model\InpackImage;
 use app\api\model\InpackItem;
 use app\api\model\user\PointsLog as PointsLogModel;
+use app\api\model\PackageClaim;
+
 /**
  * 页面控制器
  * Class Index
@@ -1675,6 +1677,28 @@ class Package extends Controller
             }
             $packItemRes = $packItemModel->saveAllData($classItem,$package['id']);
         }
+        (new PackageClaim())->saveData([
+            'package_id'=>$package['id'],
+            'user_id'=>$this->user['user_id'],
+        ]);
+        
+        //处理通知信息
+         $clerk = (new Clerk())->where('shop_id',$package['storage_id'])->where('claim_status',0)->where('is_delete',0)->select();
+       
+         if(!empty($clerk)){
+            $data = [
+                'member_id'=>$this->user['user_id'],
+                'express_num'=>$package['express_num'],
+                'userName'=>$this->user['nickName'],
+                'calim_time'=>getTime(),
+                'wxapp_id'=>$package['wxapp_id'],
+                'weight'=>$package['weight'],
+            ];
+            foreach ($clerk as $key => $val){
+                $data['clerkid'] = $val['user_id'];
+                $reeee = Message::send('package.claimpackage',$data);  
+            }
+         }
         return $this->renderSuccess('认领成功');
      }
 
