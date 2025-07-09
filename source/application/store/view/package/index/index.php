@@ -100,6 +100,16 @@
                                         </select>
                                     </div>
                                     <div class="am-form-group am-fl">
+                                        <?php $extractscan = $request->get('is_scan'); ?>
+                                        <select name="is_scan"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '是否查验出库'}">
+                                            <option <?= $extractscan === '' ? 'selected' : '' ?> value="">是否查验出库</option>
+                                            <option <?= $extractscan === '0' ? 'selected' : '' ?> value="0">全部</option>
+                                            <option <?= $extractscan === '1' ? 'selected' : '' ?> value="1">未查验</option>
+                                            <option <?= $extractscan === '2' ? 'selected' : '' ?> value="2">已查验</option>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
                                         <?php $extractTopid = $request->get('top_id'); ?>
                                         <select onchange="changecategory(this)" name="top_id"
                                                 data-am-selected="{btnSize: 'sm', placeholder: '顶级分类'}">
@@ -341,8 +351,11 @@
                                         包裹数:<?= $item['num'] ?></br>
                                         
                                     </td>
-                                    <td class="am-text-middle">包裹状态:<?= $status[$item['a_status']];?></br>认领状态:<?= $taker_status[$item['is_take']];?></td>
-                      
+                                    <td class="am-text-middle">
+                                        包裹状态:<?= $status[$item['a_status']];?></br>
+                                        认领状态:<?= $taker_status[$item['is_take']];?></br>
+                                        查验状态:<?= $item['is_scan']==1?"未查验":"已查验" ;?></br>
+                                    </td>
                                     <td class="am-text-middle">
                                         预报时间:<?= $item['created_time'] ?></br>
                                         更新时间:<?= $item['updated_time'] ?></br>

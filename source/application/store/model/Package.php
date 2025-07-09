@@ -661,7 +661,7 @@ class Package extends PackageModel
         return $this->setindexListQueryWhere($query)
             ->alias('a')
             ->with(['categoryAttr','Member','country','storage','inpack','packageimage.file','batch','shelfunititem.shelfunit.shelf'])
-            ->field('a.pack_type,a.inpack_id,a.num,a.batch_id,a.usermark,a.id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title,a.scan_time')
+            ->field('a.is_scan,a.pack_type,a.inpack_id,a.num,a.batch_id,a.usermark,a.id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title,a.scan_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -691,7 +691,7 @@ class Package extends PackageModel
         return $this->setindexListQueryWhere($query)
             ->alias('a')
             ->with(['categoryAttr','Member','country','storage','inpack'])
-            ->field('a.pack_type,a.id,a.batch_id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.num,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title')
+            ->field('a.is_scan,a.pack_type,a.id,a.batch_id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.num,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -752,6 +752,7 @@ class Package extends PackageModel
         }
         empty($param['is_delete']) && $this->where('a.is_delete','=',0);
         !empty($param['shelf_id'])&& $this->where('a.shelf_id','=',$param['shelf_id']);
+        !empty($param['is_scan'])&& $this->where('a.is_scan','=',$param['is_scan']);
         !empty($param['class_id'])&& $this->where('class_id','in',$param['class_id']);
         !empty($param['is_take'])&& $this->where('is_take','in',$param['is_take']);
         !empty($param['source'])&& $this->where('source','=',$param['source']);
@@ -833,7 +834,7 @@ class Package extends PackageModel
             // ->with(['categoryAttr','categoryAttr' => function($quer) use($query) {
             //     $quer->where('class_id','=',$query['category_id']);
             // }])
-            ->field('a.pack_type,a.volume,a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time')
+            ->field('a.is_scan,a.pack_type,a.volume,a.id,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -865,7 +866,7 @@ class Package extends PackageModel
             // ->with(['categoryAttr','categoryAttr' => function($quer) use($query) {
             //     $quer->where('class_id','=',$query['category_id']);
             // }])
-            ->field('a.pack_type,a.id,a.volume,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time,pi.class_id')
+            ->field('a.is_scan,a.pack_type,a.id,a.volume,a.num,a.batch_id,a.usermark,a.inpack_id,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time,pi.class_id')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -889,7 +890,7 @@ class Package extends PackageModel
         }
         return $this->setListQueryWhere($query)
             ->alias('a')->with(['jaddress'])
-            ->field('a.pack_type,a.visit_data_time,a.jaddress_id,a.id,a.num,a.batch_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,ad.*,a.scan_time')
+            ->field('a.is_scan,a.pack_type,a.visit_data_time,a.jaddress_id,a.id,a.num,a.batch_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,ad.*,a.scan_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -918,7 +919,7 @@ class Package extends PackageModel
             ->alias('a')
             ->with('categoryAttr')
             ->where('a.is_delete',1)
-            ->field('a.pack_type,a.id,a.num,a.batch_id,a.inpack_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time')
+            ->field('a.is_scan,a.pack_type,a.id,a.num,a.batch_id,a.inpack_id,a.usermark,a.order_sn,u.nickName,a.member_id,u.user_code,s.shop_name,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,c.title,a.created_time,a.updated_time,a.scan_time')
             ->join('user u', 'a.member_id = u.user_id',"LEFT")
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
@@ -943,6 +944,7 @@ class Package extends PackageModel
         empty($param['is_delete']) && $this->where('a.is_delete','=',0);
         !empty($param['class_id'])&& $this->where('pi.class_id','in',$param['class_id']);
         !empty($param['is_take'])&& $this->where('is_take','in',$param['is_take']);
+        !empty($param['is_scan'])&& $this->where('is_scan','=',$param['is_scan']);
         !empty($param['source'])&& $this->where('source','=',$param['source']);
         !empty($param['is_delete'])&& $this->where('a.is_delete','=',$param['is_delete']);
         !empty($param['extract_shop_id'])&&is_numeric($param['extract_shop_id']) && $param['extract_shop_id'] > -1 && $this->where('storage_id', '=', (int)$param['extract_shop_id']);

@@ -30,18 +30,30 @@
                         
                     </div>
                     <div class="page_toolbar am-margin-bottom-xs am-cf am-fr" >
-                            <input type="hidden" name="s" value="/<?= $request->pathinfo() ?>">
-                             <div class="am-u-sm-12 am-u-md-9">
-                                    <div class="am-form-group am-fl">
-                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
-                                          <input style="width:300px" autocomplete='off' type="text" class="am-form-field" name="search"
-                                                   placeholder="出库单号输入" id="keys" value="<?= $request->get('search') ?>">
-                                            <div class="am-input-group-btn">
-                                                
+                            <form class="toolbar-form" action="">
+                                <input type="hidden" name="s" value="/<?= $request->pathinfo() ?>">
+                                <div class="am-u-sm-12">
+                                        <div class="am-form-group am-fl">
+                                        <?php $extractscan = $request->get('is_scan'); ?>
+                                        <select name="is_scan"
+                                                    data-am-selected="{btnSize: 'sm', placeholder: '是否查验出库'}">
+                                                <option <?= $extractscan === '' ? 'selected' : '' ?> value="">是否查验出库</option>
+                                                <option <?= $extractscan === '0' ? 'selected' : '' ?> value="0">全部</option>
+                                                <option <?= $extractscan === '1' ? 'selected' : '' ?> value="1">未查验</option>
+                                                <option <?= $extractscan === '2' ? 'selected' : '' ?> value="2">已查验</option>
+                                            </select>
+                                        </div>
+                                        <div class="am-form-group am-fl">
+                                            <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                              <input style="width:300px" autocomplete='off' type="text" class="am-form-field" name="search"
+                                                       placeholder="出库单号输入" id="keys" value="<?= $request->get('search') ?>">
+                                                <div class="am-input-group-btn">
+                                                    <button class="am-btn am-btn-default am-icon-search" type="submit"></button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </form>
                             </div>
                     </div>
                     <div class="am-u-sm-12">

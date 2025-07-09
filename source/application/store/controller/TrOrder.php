@@ -499,9 +499,13 @@ class TrOrder extends Controller
     
     public function package($id){
          // 订单详情
+        $params =$this->request->param(); 
+        $where = [];
         $Package = new Package();
         $storesetting = SettingModel::getItem('store',$this->getWxappId());
-        $list = $Package->with("packageimage.file")->where('inpack_id',$id)->order('is_scan asc')->select();
+        !empty($params['search']) && $where['express_num'] = $params['search'];
+        !empty($params['is_scan']) && $where['is_scan'] = $params['is_scan'];
+        $list = $Package->with("packageimage.file")->where($where)->where('inpack_id',$id)->order('is_scan asc')->select();
        
         foreach ($list as $k => $v){
             $list[$k]['shelf'] = (new ShelfUnitItem())->getShelfUnitByPackId($v['id']);
