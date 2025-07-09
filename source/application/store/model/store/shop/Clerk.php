@@ -56,7 +56,7 @@ class Clerk extends ClerkModel
         }
         $data['password'] = yoshop_hash($data['password']);
         $data['wxapp_id'] = self::$wxapp_id;
-        $list = ['is_datatop','is_zhiyoufahuoin','is_fahuoin','is_fahuolist','is_daodain','is_daodalist','is_saomashangjia','is_saomaxiajia','is_packageture','is_problem','is_fengxiang','is_dabaolist','is_saomadabao','is_saomachuku','is_chajianqianshou','is_daipaijian','is_shangmenqujian','is_kuaisuludan','is_datacenter','is_shopadmin','is_rfidjianguanshoujian','is_rfidjianguanchuku'];
+        $list = ['is_datatop','is_zhiyoufahuoin','is_fahuoin','is_fahuolist','is_daodain','is_daodalist','is_saomashangjia','is_saomaxiajia','is_packageture','is_problem','is_fengxiang','is_dabaolist','is_saomadabao','is_saomachuku','is_chajianqianshou','is_daipaijian','is_shangmenqujian','is_kuaisuludan','is_datacenter','is_shopadmin','is_rfidjianguanshoujian','is_rfidjianguanchuku','is_calimpackage'];
          
         foreach ($list as $key){
               if(!isset($data['clerk_authority'][$key])){
@@ -84,7 +84,7 @@ class Clerk extends ClerkModel
         }else{
             $data['password'] = yoshop_hash($data['password']);
         }
-        $list = ['is_datatop','is_zhiyoufahuoin','is_fahuoin','is_fahuolist','is_daodain','is_daodalist','is_saomashangjia','is_saomaxiajia','is_packageture','is_problem','is_fengxiang','is_dabaolist','is_saomadabao','is_saomachuku','is_chajianqianshou','is_daipaijian','is_shangmenqujian','is_kuaisuludan','is_datacenter','is_shopadmin','is_rfidjianguanshoujian','is_rfidjianguanchuku'];
+        $list = ['is_datatop','is_zhiyoufahuoin','is_fahuoin','is_fahuolist','is_daodain','is_daodalist','is_saomashangjia','is_saomaxiajia','is_packageture','is_problem','is_fengxiang','is_dabaolist','is_saomadabao','is_saomachuku','is_chajianqianshou','is_daipaijian','is_shangmenqujian','is_kuaisuludan','is_datacenter','is_shopadmin','is_rfidjianguanshoujian','is_rfidjianguanchuku','is_calimpackage'];
          
           foreach ($list as $key){
               if(!isset($data['clerk_authority'][$key])){

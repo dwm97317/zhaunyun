@@ -76,6 +76,11 @@
                                         <?= isset($model['clerk_authority']['is_userpacklist']) && $model['clerk_authority']['is_userpacklist'] == 1 ? 'checked' : '' ?>>
                                         用户入库包裹
                                     </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="clerk[clerk_authority][is_calimpackage]" value="1" data-am-ucheck
+                                        <?= isset($model['clerk_authority']['is_calimpackage']) && $model['clerk_authority']['is_calimpackage'] == 1 ? 'checked' : '' ?>>
+                                        客户认领包裹
+                                    </label>
                                     <div class="help-block">
                                         <small>入库员: 包裹入库时,进行入库操作;</small>
                                     </div>

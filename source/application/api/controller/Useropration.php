@@ -796,17 +796,24 @@ class Useropration extends Controller
     
         $post = $this->postData('code')[0];
         //特殊处理京东单号
-
+       
         $map[] = ['is_delete','=',0];
         $map[] = ['express_num','=',$post]; 
         $res = (new Package())
+            ->append(['ismorepack'])
             ->setQuery($map)
             ->field('id,express_num,order_sn,member_id,storage_id,status,width,height,weight,length,remark,admin_remark')
             ->with(['storage','packageimage.filepackage'])
             ->find();
+        if ($res) {  // 确保 $res 不是 null
+            $res->ismorepack = 0;  // 如果是对象
+            // 或者 $res['ismorepack'] = 0; 如果是数组
+        }
+      
         //当查询不到包裹时，尝试查询是否是集运单的国际单号；
         //当查询是JD包裹时，可以用原来的单号再查询一遍
         $tyoi = stripos($post, "JD");
+        
         if(empty($res) && $tyoi==0){
             $ex = explode('-',$post);
             $post = $ex[0];
@@ -814,9 +821,14 @@ class Useropration extends Controller
             $maps[] = ['express_num','=',$post]; 
             $res = (new Package())
                 ->setQuery($maps)
+                ->append(['ismorepack'])
                 ->field('id,express_num,order_sn,member_id,storage_id,status,width,height,weight,length,remark,admin_remark')
                 ->with(['storage','packageimage.filepackage'])
                 ->find();
+            if ($res) {  // 确保 $res 不是 null
+                $res->ismorepack = 1;  // 如果是对象
+                // 或者 $res['ismorepack'] = 0; 如果是数组
+            }
            
         }
       
@@ -839,6 +851,7 @@ class Useropration extends Controller
                 return $this->renderSuccess($clerk);
             }
         }
+       
         $where = ['user_id'=>$res['member_id']];
         $userdata = UserModel::detail($where,$with=[]);
         !empty($userdata) && $res['user_code'] =  $userdata['user_code'];
@@ -1078,6 +1091,7 @@ class Useropration extends Controller
         $map[] = ['is_delete','=',0];
         $map[] = ['express_num','=',$express_num]; 
         $is_exitres = (new Package())->setQuery($map)->find();
+        // dump($is_exitres);die;
         if($is_exitres){
             $is_pre = 10;
         }
