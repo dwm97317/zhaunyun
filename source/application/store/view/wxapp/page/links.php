@@ -18,6 +18,15 @@
                                 </div>
                             </li>
                             <li class="link-item">
+                                <div class="row page-name">切换语言</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/pages/switchLanguage/index</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
                                 <div class="row page-name">微信模板消息授权链接</div>
                                 <div class="row am-cf">
                                     <div class="am-fl">地址：</div>
