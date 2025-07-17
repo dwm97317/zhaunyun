@@ -113,5 +113,20 @@ class Clerk extends ClerkModel
     public function user(){
         return $this->belongsTo('app\api\model\User','user_id');
     }
-
+    
+    public  function getAllList($query)
+    {
+        return $this->setWherePack($query)
+        ->with('user')
+        ->where('status',1)
+        ->where('is_delete',0)
+        ->select();
+    }
+    
+       
+    // 设置 条件
+    public function setWherePack($query){
+        !empty($query['search']) && $this->where('real_name','like','%'.$query['search'].'%');
+        return $this;
+    }
 }

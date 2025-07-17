@@ -36,6 +36,22 @@ class Clerk extends ClerkModel
                 'query' => \request()->request()
             ]);
     }
+    
+        /**
+     * 获取列表数据
+     * @param int $status 状态
+     * @param int $shop_id 门店id
+     * @param string $search 店员姓名/手机号
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getAllList()
+    {
+        return $this
+            ->where('is_delete', '=', '0')
+            ->order(['create_time' => 'desc'])
+            ->select();
+    }
 
     /**
      * 新增记录

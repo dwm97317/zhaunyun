@@ -104,6 +104,8 @@
                                                     <i class="am-icon-trash"></i> 删除
                                                 </a>
                                             <?php endif; ?>
+                                            <a class="" href="<?= url('apps.dealer.user/clerkqrcode', ['dealer_id' => $item['user']['user_id'],'clerk_id'=>$item['clerk_id']]) ?>"
+                                                   target="_blank">员工二维码</a>
                                         </div>
                                     </td>
                                 </tr>

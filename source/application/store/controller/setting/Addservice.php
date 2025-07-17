@@ -3,7 +3,8 @@ namespace app\store\controller\setting;
 
 use app\store\controller\Controller;
 use app\store\model\LineService;
-
+use app\store\model\LineCategory as LineCategoryModel;
+use app\store\model\Countries;
 
 /**
  * 线路设置
@@ -29,10 +30,13 @@ class Addservice extends Controller
      */
     public function add(){
         if (!$this->request->isAjax()) {
-            return $this->fetch('add');
+            $linecategory = LineCategoryModel::getALL();
+            $countryList = (new Countries())->getListAll();
+            return $this->fetch('add',compact('linecategory','countryList'));
         }
         // 新增记录
         $model = new LineService();
+       
         if ($model->add($this->postData('line'))) {
             return $this->renderSuccess('添加成功', url('setting.addservice/index'));
         }
@@ -48,7 +52,9 @@ class Addservice extends Controller
         $model = (new LineService())->details($id);
         $model['rule'] = json_decode($model['rule'],true);
         if (!$this->request->isAjax()) {
-            return $this->fetch('edit', compact('model'));
+            $linecategory = LineCategoryModel::getALL();
+            $countryList = (new Countries())->getListAll();
+            return $this->fetch('edit', compact('model','linecategory','countryList'));
         }
         // 更新记录
         if ($model->edit($this->postData('line'))) {

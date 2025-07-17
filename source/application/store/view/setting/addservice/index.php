@@ -27,24 +27,33 @@
                                 <th>ID</th>
                                 <th>增值服务名称</th>
                                 <th>增值服务描述</th>
+                                <th>归属国家</th>
+                                <th>运输方式</th>
                                 <th>增值服务模式</th>
-                                <th>计费规则</th>
+                                <th>计费规则/偏远邮编</th>
                                 <th>操作</th>
 
                             </tr>
                             </thead>
                             <tbody>
+                            <?php $type = [10=>'重量模式',20=>'长度模式',30=>'偏远模式']; ?>    
                             <?php if (!$list->isEmpty()): ?>
                                 <?php foreach ($list as $item): ?>
                                     <tr>
                                         <td class="am-text-middle"><?= $item['service_id'] ?></td>
                                         <td class="am-text-middle"><?= $item['name'] ?></td>
                                         <td class="am-text-middle"><?= $item['desc'] ?></td>
-                                        <td class="am-text-middle"><?= $item['type']==10?"重量模式":"长度模式" ?></td>
+                                        <td class="am-text-middle"><?= $item['country']['title'] ?></td>
+                                        <td class="am-text-middle"><?= $item['linecategory']['name'] ?></td>
+                                        <td class="am-text-middle"><?= $type[$item['type']] ?></td>
                                         <td class="am-text-middle">
-                                            <?php if(isset($item['rule'])) : foreach(json_decode($item['rule'],true) as $item4) : ?>
-                                                <?= $item['type']==10?"重量":"长度" ?>在<?= $item4['weight'][0]; ?> - <?= $item4['weight'][1]; ?> 收费:<?= $item4['weight_price']; ?><br>
-                                            <?php endforeach; endif; ?>
+                                            <?php if (isset($item['rule']) && !empty($item['rule'])) : ?>
+                                                    <?php foreach (json_decode($item['rule'], true) as $item4) : ?>
+                                                        <?php echo ($item['type'] == 10 ? "重量" : "长度") . 
+                                                              "在" . $item4['weight'][0] . " - " . $item4['weight'][1] . 
+                                                              " 收费:" . $item4['weight_price'] . "<br>" ; ?>
+                                                    <?php endforeach; ?>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="am-text-middle">
                                             <div class="tpl-table-black-operation">

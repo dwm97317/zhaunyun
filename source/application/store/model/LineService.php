@@ -12,6 +12,7 @@ class LineService extends LineServiceModel
 {
     public function getList($query){
         return $this->setListQueryWhere($query)
+            ->with(['linecategory','country'])
             ->alias('a')
             ->paginate(10,false,[
                 'query'=>\request()->request()
@@ -29,8 +30,8 @@ class LineService extends LineServiceModel
     public function add($data){
         // 表单验证
         if (!$this->onValidate($data)) return false;
-        
-        foreach($data['weight_start'] as $k => $v){
+        if($data['type']==30){
+            foreach($data['weight_start'] as $k => $v){
                if(!empty($v)){
                    $spilt_weight[0] = $v;
                    $spilt_weight[1] = $data['weight_max'][$k];
@@ -39,8 +40,23 @@ class LineService extends LineServiceModel
                       'weight_price' => $data['weight_price'][$k],
                    ];
                }
-         }
-        $data['rule'] = json_encode($data['rule']);
+            }
+            $data['rule'] = json_encode($data['rule']);
+        }else{
+           foreach($data['weight_start'] as $k => $v){
+               if(!empty($v)){
+                   $spilt_weight[0] = $v;
+                   $spilt_weight[1] = $data['weight_max'][$k];
+                   $data['rule'][] = [
+                      'weight' => $spilt_weight,
+                      'weight_price' => $data['weight_price'][$k],
+                   ];
+               }
+            }
+            $data['rule'] = json_encode($data['rule']);
+        }
+       
+        
         // 保存数据
         $data['wxapp_id'] = self::$wxapp_id;
         if ($this->allowField(true)->save($data)) {
@@ -63,7 +79,9 @@ class LineService extends LineServiceModel
                    ];
                }
          }
-        $data['rule'] = json_encode($data['rule']);
+         $data['rule'] = json_encode($data['rule']);
+        
+        // dump($data);die;
         // 保存数据
         if ($this->allowField(true)->save($data)) {
         }

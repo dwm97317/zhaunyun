@@ -26,12 +26,20 @@ class Line extends LineModel
       return $this->where($where)->field('id,name')->order('sort DESC')->paginate(600);
     }
     
-    public function getLineplus($addressId){
-       $data =  (new UserAddress())->where('address_id',$addressId)->find();
-       if($data['country_id']){
-           return $this->where('FIND_IN_SET(:ids,countrys)', ['ids' => $data['country_id']])->where('status',1)->field('id,name')->order('sort DESC')->paginate(600);
+    public function getLineplus($query){
+      $where = [];
+       if(!empty($query['line_category'])){
+           $where['line_category'] = $query['line_category'];
+       } 
+     
+       if(!empty($query['address_id'])){
+           $data =  (new UserAddress())->where('address_id',$query['address_id'])->find();
+          
+           if($data['country_id']){
+               return $this->where('FIND_IN_SET(:ids,countrys)', ['ids' => $data['country_id']])->where($where)->where('status',1)->field('id,name')->order('sort DESC')->paginate(600);
+           }
        }
-      return $this->field('id,name')->order('sort DESC')->paginate(600);
+       return $this->field('id,name')->where($where)->order('sort DESC')->where('status',1)->paginate(600);
     }
     
     public function getLineForShop($param){

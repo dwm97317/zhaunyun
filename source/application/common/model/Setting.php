@@ -667,6 +667,7 @@ class Setting extends BaseModel
                 'describe' => '等级设置',
                 'values' => [
                     'is_open' => '0',   // 是否开启
+                    'birthdaycoupon'=>0, //会员生日赠送的优惠券ID
                 ]
             ],
             // 语言设置

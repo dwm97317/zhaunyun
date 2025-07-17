@@ -95,6 +95,50 @@ class Index extends Controller
         return $this->fetch('index', compact('i','packlists','list','shopList','line','packageService','type','storeAddress','category','topcategory','set','countweight','batchlist','adminstyle','shelf'));
     }
     
+    
+    //退货单包裹列表
+    public function returned(){
+        $list = [];$category=[];
+        $packageModel = new Package();
+        $Category = new Category();
+        $map1 = ['is_take'=>4 ];
+        $map2 = \request()->param();
+        $map = array_merge($map1,$map2);
+        $list = $packageModel->getList($map);
+        // dump($list->toARray());die;
+        $countweight = $packageModel->getListSum($map);
+        $shopList = ShopModel::getAllList();
+        $line = (new Line())->getList([]);
+        $packageService = (new PackageService())->getList([]);
+        $status = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
+        $topcategory = $Category->getListTop($name=null)->toArray()['data'];
+        if(!empty($topcategory)){
+           empty($map2['top_id']) && $map2['top_id'] = '';
+           $category = $Category->getListTopChild($map2['top_id'])->toArray()['data']; 
+        }
+        $type = 'errors';
+        $storeAddress =(new UserAddress())->getDsList();
+        $set = Setting::detail('store')['values'];
+
+        $packlist = []; 
+        $packlists = '';
+        $i = 0;
+        if(!empty($map['express_num'])){
+            $express_num = str_replace("\r\n","\n",trim($map['express_num']));
+            $express_num = explode("\n",$express_num);
+            
+            foreach ($express_num as $val){
+                $result = $packageModel->where(['express_num'=>$val,'is_delete'=>0])->find();
+                if(empty($result)){
+                    $packlist[$i] = $val;
+                    $i += 1;
+                }
+            }
+            $packlists = implode(',',$packlist);
+        }
+        return $this->fetch('returned', compact('i','packlists','list','shopList','title','line','packageService','category','topcategory','type','storeAddress','set','countweight'));
+    }
+    
     /**
      * 待认领任务列表
      * @return mixed

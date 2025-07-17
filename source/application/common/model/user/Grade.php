@@ -35,15 +35,6 @@ class Grade extends BaseModel
         return json_decode($json, true);
     }
 
-    /**
-     * 获取器：等级权益
-     * @param $json
-     * @return mixed
-     */
-    public function getEquityAttr($json)
-    {
-        return json_decode($json, true);
-    }
 
     /**
      * 修改器：升级条件
@@ -55,15 +46,6 @@ class Grade extends BaseModel
         return json_encode($data);
     }
 
-    /**
-     * 修改器：等级权益
-     * @param $data
-     * @return mixed
-     */
-    public function setEquityAttr($data)
-    {
-        return json_encode($data);
-    }
 
     /**
      * 会员等级详情

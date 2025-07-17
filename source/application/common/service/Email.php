@@ -28,7 +28,7 @@ class Email extends Basics
             }
             //获取设置信息
             $setting = SettingModel::getItem('email',$user['wxapp_id']);
-            // dump($user);die;
+           
             if($setting['is_enable']==0){
                 $this->error('邮箱功能已关闭'); 
                 return false;
@@ -59,7 +59,6 @@ class Email extends Basics
                  $subject = "【".$setting['setting']['replyName']."】".'邮箱验证';
                  $content = "【".$setting['setting']['replyName']."】".$data['code'];
             }
-           
             send_mail($toemail,$name,$subject,$content,$attachment=null,$setting['setting']);
             return true;
     }  

@@ -23,6 +23,70 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否热门 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="country[is_hot]" value="1"?>
+                                        是
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="country[is_hot]" value="0"  data-am-ucheck checked >
+                                        否
+                                    </label>
+                                    <div class="help-block">
+                                        <small style="color:#ff6666;">关闭状态:热门国家会优先展示</small>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否为默认发货国家 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="country[is_send]" value="1"?>
+                                        是
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="country[is_send]" value="0"  data-am-ucheck checked >
+                                        否
+                                    </label>
+                                    <div class="help-block">
+                                        <small style="color:#ff6666;">默认发货国家只能设置一个，被设置默认的国家在运费估算功能里被默认选择</small>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否为默认目的地国家 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="country[is_top]" value="1" ?>
+                                        是
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="country[is_top]" value="0"  data-am-ucheck checked>
+                                        否
+                                    </label>
+                                    <div class="help-block">
+                                        <small style="color:#ff6666;">默认目的地国家只能设置一个，被设置默认的国家在预报，填写地址等各个环节被默认选择</small>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否开启 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="country[status]" value="1" data-am-ucheck checked ?>
+                                        是
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="country[status]" value="0">
+                                        否
+                                    </label>
+                                    <div class="help-block">
+                                        <small style="color:#ff6666;">关闭状态:前端将不显示该国家</small>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">排序 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="country[sort]"

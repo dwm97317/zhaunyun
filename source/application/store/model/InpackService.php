@@ -19,6 +19,7 @@ class InpackService extends InpackServiceModel
     {
         return $this->belongsTo('PackageService','service_id','id');
     }
+
     
     
     //新增服务项目

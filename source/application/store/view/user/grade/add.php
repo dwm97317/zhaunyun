@@ -69,11 +69,39 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 等级权益 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 默认等级权益 </label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
                                     <div class="am-input-group">
                                         <span class="am-input-group-label am-input-group-label__left">折扣率</span>
-                                        <input type="number" name="grade[equity][discount]" class="am-form-field"
+                                        <input type="number" name="grade[equity]" class="am-form-field"
+                                               max="10" min="0" required>
+                                        <span class="widget-dealer__unit am-input-group-label am-input-group-label__right">折</span>
+                                    </div>
+                                    <div class="help-block">
+                                        <small>折扣率范围0-10，9.5代表9.5折，10代表不折扣</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 首单等级折扣 </label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <div class="am-input-group">
+                                        <span class="am-input-group-label am-input-group-label__left">折扣率</span>
+                                        <input type="number" name="grade[first_equity]" class="am-form-field"
+                                               max="10" min="0" required>
+                                        <span class="widget-dealer__unit am-input-group-label am-input-group-label__right">折</span>
+                                    </div>
+                                    <div class="help-block">
+                                        <small>折扣率范围0-10，9.5代表9.5折，10代表不折扣</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 第二单等级这块 </label>
+                                <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">
+                                    <div class="am-input-group">
+                                        <span class="am-input-group-label am-input-group-label__left">折扣率</span>
+                                        <input type="number" name="grade[second_equity]" class="am-form-field"
                                                max="10" min="0" required>
                                         <span class="widget-dealer__unit am-input-group-label am-input-group-label__right">折</span>
                                     </div>

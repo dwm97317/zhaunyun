@@ -6,6 +6,8 @@ use app\api\controller\Controller;
 use app\api\model\store\shop\Setting;
 use app\api\model\store\Shop as ShopModel;
 use app\api\model\store\shop\Clerk as ClerkModel;
+use app\api\model\store\shop\ClerkComment as ClerkCommentModel;
+
 /**
  * 我的团队
  * Class Order
@@ -103,5 +105,43 @@ class Clerk extends Controller
             'words' => $this->setting['words']['values'],
         ]);
     }
-
+    
+        
+    /**
+     * 新增评论
+     * */
+    public function createComment(){
+        // 验证用户
+        $this->user = $this->getUser();
+        if (!$this->user){
+            return $this->renderError('请先登录');
+        }
+        $model = new ClerkCommentModel;
+        $post = $this->postData();
+        $post['user_id'] = $this->user['user_id'];
+        if (empty($post['content'])){
+            return $this->renderError('请输入你评论的内容');
+        }
+        if (!$model->add($post)){
+            return $this->renderError($model->getError() ?: '提交失败');
+        }
+        return $this->renderSuccess('提交成功');
+    }
+    
+    /**
+     * 所有员工
+     * @param int $level
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function getkefulist()
+    {
+        $model = new ClerkModel;
+        $param = $this->request->param();
+        $list = $model->getAllList($param);
+        return $this->renderSuccess([
+            // 我的团队列表
+            'list' => $list
+        ]);
+    }
 }

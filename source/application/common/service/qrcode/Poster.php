@@ -58,11 +58,73 @@ class Poster extends Base
         $avatarUrl = $this->saveTempImage($wxappId, $avatarUrl , 'avatar');
         // 3. 下载小程序码
         $qrcode = $this->saveQrcode($wxappId, 'uid:' . $this->dealer['user_id']);
-            //   dump($qrcode);die;
+      
         // 4. 拼接海报图
         return $this->savePoster($backdrop, $avatarUrl, $qrcode);
     }
+    
+    /**
+     * 获取分销二维码
+     * @return string
+     * @throws \app\common\exception\BaseException
+     * @throws \think\exception\DbException
+     * @throws \Exception
+     */
+    public function getClerkImage($clerk_id)
+    {
+        
+        // if (file_exists($this->getPosterPath())) {
+        //     return $this->getPosterUrl();
+        // }
+   
+        $wxappId = $this->dealer['wxapp_id'];
+        $scene = '?uid=' . $this->dealer['user_id'] . '&clerk_id=' . $clerk_id; // 用 & 连接参数
+        $qrcode = $this->saveClerkQrcode($wxappId, $scene, 'pages/index/index');
+        return $this->saveClerkPoster($qrcode);
+    }
+    
+        /**
+     * 拼接海报图
+     * @param $backdrop
+     * @param $avatarUrl
+     * @param $qrcode
+     * @return string
+     * @throws \Exception
+     */
+     
+    
+    private function saveClerkPoster($qrcode)
+    {
+       // 实例化图像编辑器
+        $editor = Grafika::createEditor(['Gd']);
+        
+        // 1. 创建白色背景画布 (800x1200 像素，可根据需要调整)
+        $width = 480;
+        $height = 600;
+        $backdropImage = Grafika::createBlankImage($width, $height);
+        $white = new Color('#FFFFFF');
+        $editor->fill($backdropImage, $white);
+        // 打开小程序码
+        $editor->open($qrcodeImage, $qrcode);
 
+        // 小程序码添加到背景图
+        $qrcodeX =0;
+        $qrcodeY =0;
+        $editor->blend($backdropImage, $qrcodeImage, 'normal', 1.0, 'top-left', $qrcodeX, $qrcodeY);
+
+        // 写入用户昵称
+        $fontSize = 20;
+        $fontX = 150;
+        $fontY = 520;
+        $Color = new Color($this->config['nickName']['color']);
+        $fontPath = Grafika::fontsDir() . DS . 'st-heiti-light.ttc';
+        $nickName = "客服：".$this->dealer['user']['nickName'];
+        $editor->text($backdropImage,$nickName, $fontSize, $fontX, $fontY, $Color, $fontPath);
+
+        // 保存图片
+        $editor->save($backdropImage, $this->getPosterPath());
+        return $this->getPosterUrl();
+    }
     /**
      * 海报图文件路径
      * @return string

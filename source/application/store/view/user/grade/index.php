@@ -46,7 +46,9 @@
                                         <span>消费满<?= $item['upgrade']['expend_money'] ?>元</span>
                                     </td>
                                     <td class="am-text-middle">
-                                        <span><?= $item['equity']['discount'] ?>折</span>
+                                        默认：<span><?= $item['equity'] ?>折</span>
+                                        首单：<span><?= $item['first_equity'] ?>折</span>
+                                        次单：<span><?= $item['second_equity'] ?>折</span>
                                     </td>
                                     <td class="am-text-middle">
                                        <span class="am-badge am-badge-<?= $item['status'] ? 'success' : 'warning' ?>">

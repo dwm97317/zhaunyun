@@ -9,6 +9,7 @@ use app\store\model\store\shop\Clerk as ClerkModel;
 use app\store\model\Shelf;
 use app\store\model\ShelfUnit;
 use app\store\model\ShelfUnitItem;
+use app\common\model\store\shop\ClerkComment as ClerkCommentModel;
 
 /**
  * 门店店员控制器
@@ -33,6 +34,35 @@ class Clerk extends Controller
         // 门店列表
         $shopList = ShopModel::getAllList();
         return $this->fetch('index', compact('list', 'shopList'));
+    }
+    
+    /**
+     * 评价列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function comment()
+    {
+        $model = new ClerkCommentModel;
+        $clerkList = (new ClerkModel)->getAllList();
+        $params = $this->request->param();
+        $list = $model->getList($params);
+        return $this->fetch('comment', compact('list','clerkList'));
+    }
+    
+    /**
+     * 评价列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function deletecomment($comment_id)
+    {
+        // dump($id);die;
+        $model = ClerkCommentModel::detail($comment_id);
+        if($model->setDelete()){
+            return $this->renderSuccess('删除成功', url('store/shop.clerk/comment'));
+        }
+        return $this->renderError($model->getError() ?: '删除失败');
     }
     
         // 货位数据

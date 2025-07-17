@@ -9,6 +9,42 @@
                     <div class="link-list">
                         <ul class="" style='display: inline-block;'>
                             <li class="link-item">
+                                <div class="row page-name">邀请有礼</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/pages/invitedetail</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">一键下单</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/pages/sendingpackage/applyforpackaging</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">寄件下单</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/pages/sendingpackage/sendingpackage</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">批量预报</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/pages/packagereport</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
                                 <div class="row page-name">盲盒计划活动页</div>
                                 <div class="row am-cf">
                                     <div class="am-fl">地址：</div>
@@ -376,6 +412,15 @@
                                     <div class="am-fl">地址：</div>
                                     <div class="am-fl">
                                         <span class="x-color-green">/pages/mys/my_jinyun/my_jinyun?type=0</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">新手教程</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/pages/newusercourse</span>
                                     </div>
                                 </div>
                             </li>

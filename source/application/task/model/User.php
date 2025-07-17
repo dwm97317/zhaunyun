@@ -52,6 +52,53 @@ class User extends UserModel
     }
     
     /**
+     * 获取可用的会员等级列表
+     * @param null $wxappId
+     * @param array $order 排序规则
+     * @return false|\PDOStatement|string|\think\Collection
+     */
+    public function getBirthdayList()
+    {
+        $today = date("m-d"); // 当前月份和日期，如 "05-20"
+        $nextMonth = date("m-d", strtotime("+30 days")); // 30天后的月份和日期，如 "06-19"
+       
+        // 如果没有跨年（如 05-20 < 06-19）
+        if ($today <= $nextMonth) {
+            return $this->whereRaw("DATE_FORMAT(birthday, '%m-%d') BETWEEN '{$today}' AND '{$nextMonth}'")
+                ->where('grade_id', '>', '0')
+                ->where('is_delete', '=', '0')
+                ->select();
+        } 
+        // 如果跨年（如 12-20 < 01-19）
+        else {
+            return $this->where(function($query) use ($today, $nextMonth) {
+                    $query->whereRaw("DATE_FORMAT(birthday, '%m-%d') >= '{$today}'") // 大于等于今天（12月）
+                        ->orWhereRaw("DATE_FORMAT(birthday, '%m-%d') <= '{$nextMonth}'"); // 或小于等于下个月（1月）
+                })
+                ->where('grade_id', '>', '0')
+                ->where('is_delete', '=', '0')
+                ->select();
+        }
+    }
+    
+    
+    /**
+     * 获取今天生日的会员列表
+     * @param null $wxappId
+     * @param array $order 排序规则
+     * @return false|\PDOStatement|string|\think\Collection
+     */
+    public function getVipBirthdayUserList()
+    {
+        $today = date("m-d"); // 当前月份和日期，如 "05-20"
+        
+        return $this->whereRaw("DATE_FORMAT(birthday, '%m-%d') = '{$today}'")
+            ->where('grade_id', '>', '0')
+            ->where('is_delete', '=', '0')
+            ->select();
+    }
+    
+    /**
      * 查询会员时间到期的用户列表
      * @param $upgradeGrade
      * @param array $excludedUserIds

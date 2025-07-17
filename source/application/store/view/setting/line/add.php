@@ -24,27 +24,39 @@
                                     <input type="text" class="tpl-form-input" name="line[name]" value="" required>
                                 </div>
                             </div>
+                            <!--<div class="am-form-group">-->
+                            <!--    <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 运输形式 </label>-->
+                            <!--    <div class="am-u-sm-9 am-u-end">-->
+                            
+                            <!--        <label class="am-radio-inline">-->
+                            <!--            <input type="radio" name="line[line_category]"  value="10" data-am-ucheck checked>-->
+                            <!--            海运-->
+                            <!--        </label>-->
+                            <!--        <label class="am-radio-inline">-->
+                            <!--            <input type="radio" name="line[line_category]"  value="20" data-am-ucheck>-->
+                            <!--            空运-->
+                            <!--        </label>-->
+                            <!--        <label class="am-radio-inline">-->
+                            <!--            <input type="radio" name="line[line_category]"  value="30" data-am-ucheck>-->
+                            <!--            陆运-->
+                            <!--        </label>-->
+                                 
+                            <!--        <label class="am-radio-inline">-->
+                            <!--            <input type="radio" name="line[line_category]"  value="40" data-am-ucheck>-->
+                            <!--            铁运-->
+                            <!--        </label>-->
+                            
+                            <!--    </div>-->
+                            <!--</div>-->
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 运输形式 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                            
+                                    <?php if (count($linecategory)>0): foreach ($linecategory as $key =>$item): ?>
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="line[line_category]"  value="10" data-am-ucheck checked>
-                                        海运
+                                        <input type="radio" name="line[line_category]"  value="<?= $item['category_id'] ?>" data-am-ucheck  <?= $key==0?'checked':'' ?>>
+                                        <?= $item['name'] ?>
                                     </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="line[line_category]"  value="20" data-am-ucheck>
-                                        空运
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="line[line_category]"  value="30" data-am-ucheck>
-                                        陆运
-                                    </label>
-                                 
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="line[line_category]"  value="40" data-am-ucheck>
-                                        铁运
-                                    </label>
+                                    <?php endforeach; endif; ?>
                             
                                 </div>
                             </div>

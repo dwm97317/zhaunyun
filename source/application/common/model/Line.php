@@ -19,5 +19,12 @@ class Line extends BaseModel
     {
         return $this->hasOne('uploadFile', 'file_id', 'image_id');
     }
-
+    /**
+     * 关联运输方式
+     * @return \think\model\relation\HasOne
+     */
+    public function lineCategory()
+    {
+        return $this->hasOne('LineCategory','category_id','line_category');
+    }
 }

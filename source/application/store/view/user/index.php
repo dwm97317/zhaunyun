@@ -401,6 +401,14 @@
                     </div>
                 </div>
                 <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        到期时间
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <input type="text"  name="grade[grade_time]" placeholder="请选择到期时间" value="<?php echo date("Y-m-d H:i:s",time()) ?>" id="datetimepicker" class="am-form-field">
+                    </div>
+                </div>
+                <div class="am-form-group">
                     <label class="am-u-sm-3 am-form-label"> 管理员备注 </label>
                     <div class="am-u-sm-8 am-u-end">
                                 <textarea rows="2" name="grade[remark]" placeholder="请输入管理员备注"
@@ -665,6 +673,8 @@
     } 
 </script>
 <script>
+      
+    
     $(function () {
                checker = {
           num:0, 
@@ -876,6 +886,13 @@
                     return true;
                 }
             });
+            
+            $('#datetimepicker').datetimepicker({
+              format: 'yyyy-mm-dd hh:ii'
+            });
+            $('#datetimepicker').datetimepicker().on('changeDate', function(ev){
+            $('#datetimepicker').datetimepicker('hide');
+            });
         });
         
         /**
@@ -899,7 +916,8 @@
                 }
             });
         });
-         
+        
+
         
         /**
          * 修改会员折扣
@@ -948,7 +966,8 @@
         // 删除元素
         var url = "<?= url('user/delete') ?>";
         $('.j-delete').delete('user_id', url, '删除后不可恢复，确定要删除吗？');
-
+        
+        
     });
 </script>
 

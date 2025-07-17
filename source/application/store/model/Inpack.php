@@ -692,10 +692,10 @@ class Inpack extends InpackModel
             if($emailsetting['is_enable']==1 && (isset($pack['member_id']) || !empty($pack['member_id']))){
                 $EmailUser = UserModel::detail($pack['member_id']);
                 $EmailData['code'] = $data['id'];
-                $EmailData['logistics_describe']=$noticesetting['dosend']['describe'];
+                $resmsg = str_ireplace('{code}',$pack['t_order_sn'],$noticesetting['dosend']['describe']);
+                $EmailData['logistics_describe'] = $resmsg;
                 (new Email())->sendemail($EmailUser,$EmailData,$type=1);
             }
-        // }
         unset($update['verify']);
         $linedetail = $Line->details($pack['line_id']);
         $update['sendout_time'] = getTime();

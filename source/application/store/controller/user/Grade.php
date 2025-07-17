@@ -5,6 +5,7 @@ namespace app\store\controller\user;
 use app\store\controller\Controller;
 use app\store\model\user\Grade as GradeModel;
 use app\store\model\Setting as SettingModel;
+use app\store\model\Coupon as CouponModel;
 use app\store\model\user\UserGradeOrder as UserGradeOrderModel;
 /**
  * 会员等级
@@ -51,8 +52,10 @@ class Grade extends Controller
     public function setting()
     {
         if (!$this->request->isAjax()) {
+            $list = (new CouponModel())->getAllList();
             $vars['values'] = SettingModel::getItem("grade");
-            return $this->fetch("setting", $vars);
+            $values = $vars['values'];
+            return $this->fetch("setting",compact('values','list'));
         }
         $model = new SettingModel;
         if ($model->edit("grade", $this->postData("grade"))) {

@@ -26,6 +26,7 @@ use app\api\model\Country;
 use app\api\model\Barcode;
 use app\api\model\LogisticsTrack;
 use app\api\model\WxappMenus;
+use app\api\model\Insure;
 /**
  * 页面控制器
  * Class Index
@@ -58,6 +59,21 @@ class Page extends Controller
         $menuItems = $model->getList($param);
         $menuType = $userclient['menus']['type'];
         return $this->renderSuccess(compact('menuItems','menuType'));
+    }
+    
+    //获取保险列表
+    public function getInsure(){
+        $param = $this->request->param();
+        $model = new Insure;
+        $list = $model->getList();
+        return $this->renderSuccess(compact('list'));
+    }
+    
+    // 获取仓库详情
+    public function getDefaultShop(){
+        $this->user = $this->getUser();
+        $data = (new Shop())->getDefault();
+        return $this->storageDetails($data['shop_id']);
     }
     
     //获取条码信息；
@@ -307,6 +323,7 @@ class Page extends Controller
              $store['values']['file_path'] = UploadFile::detail($store['values']['cover_id'])['file_path'];
         }
         $store["country"] = (new Country())->queryTopCountry();
+        $store["sendcountry"] = (new Country())->querySendCountry();
         $store['userclient']= SettingModel::detail('userclient')['values'];
         if(!empty($store['userclient']['guide']['first_image'])){
              $store['userclient']['guide']['first_image'] = UploadFile::detail($store['userclient']['guide']['first_image'])['file_path'];

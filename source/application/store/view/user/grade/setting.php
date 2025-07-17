@@ -21,7 +21,22 @@
                                     </label>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    会员生日赠送的优惠券
+                                </label>
+                                <div class="am-u-sm-9">
+                                     
+                                   <select name="grade[birthdaycoupon]]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                        <?php if (isset($list) && !$list->isEmpty()):
+                                            foreach ($list as $item): ?>
+                                            <option value="<?= $item['coupon_id']?>"  <?= $item['coupon_id'] == $values['birthdaycoupon'] ? 'selected' : '' ?> ><?= $item['name']?></option>
+                             
+                                        <?php endforeach; endif; ?>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交

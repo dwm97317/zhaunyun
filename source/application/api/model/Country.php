@@ -32,7 +32,9 @@ class Country extends CountryModel
     public function queryTopCountry(){
         return $this->where('is_top',1)->where('status',1)->find();
     }
-    
+    public function querySendCountry(){
+        return $this->where('is_send',1)->find();
+    }
     
     // 根据ID 查找字段
     public function getValueById($id,$field){

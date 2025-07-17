@@ -14,4 +14,17 @@ class LineService extends BaseModel
     public static  function detail($id){
         return (new static()) ->find($id);
     }
+    
+    /**
+     * 关联包裹图片表
+     * @return \think\model\relation\HasMany
+     */
+    public function linecategory()
+    {
+        return $this->hasOne('LineCategory','category_id','line_category_id');
+    }
+    
+    public function country(){
+        return $this->belongsTo('Countries','country_id');
+    }
 }

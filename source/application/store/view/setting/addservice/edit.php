@@ -16,7 +16,6 @@
                                 </div>
                             </div>
                             
-                           
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">增值服务说明 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -32,38 +31,109 @@
                                         重量模式
                                     </label>
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="line[type]"  value="20" <?= $model['type'] == 20 ? 'checked' : '' ?> data-am-ucheck>
+                                        <input type="radio" name="line[type]" value="20" <?= $model['type'] == 20 ? 'checked' : '' ?> data-am-ucheck>
                                         长度模式
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[type]" value="30" <?= $model['type'] == 30 ? 'checked' : '' ?> data-am-ucheck>
+                                        偏远模式
                                     </label>
                                 </div>
                             </div>
-                             <!--区间计费规则--->
-                             <div class="am-form-up" id="area_mode">
-                                     <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">区间计费规则</label>
-                                    <div class="am-u-sm-9 am-u-end">
-                                      <table class="am-table">
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 运输形式 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <?php if (count($linecategory)>0): foreach ($linecategory as $key =>$item): ?>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[line_category_id]"  value="<?= $item['category_id'] ?>" data-am-ucheck  <?= $item['category_id']==$model['line_category_id']?'checked':'' ?>>
+                                        <?= $item['name'] ?>
+                                    </label>
+                                    <?php endforeach; endif; ?>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">归属国家 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="line[country_id]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" >
+                                        <option value=""></option>
+                                        <?php if (isset($countryList) && !$countryList->isEmpty()):
+                                            foreach ($countryList as $item): ?>
+                                                <?php if(isset($model['country_id'])): ?>
+                                                   <option value="<?= $item['id'] ?>" <?= $model['country_id'] == $item['id'] ? 'selected' : '' ?> ><?= $item['title'] ?></option>
+                                                <?php else: ?>  
+                                                   <option value="<?= $item['id'] ?>" ><?= $item['title'] ?></option>
+                                                <?php endif; ?>
+                                            <?php endforeach; endif; ?>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- 区间计费规则（所有模式都显示） -->
+                            <div class="am-form-group" id="area_mode">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">区间计费规则</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <table class="am-table">
                                         <thead>
                                             <tr>
                                                 <th>开始</th>
                                                 <th>结束</th>
                                                 <th>费用</th>
+                                                <th>操作</th>
                                             </tr>
                                         </thead>
                                         <tbody class="area_mode">
-                                            <tr>
-                                                <?php if(isset($model['rule'])) : foreach($model['rule'] as $item4) : ?>
+                                            <?php 
+                                            if(isset($model['rule']) && isset($model['rule']['weight_rules'])) {
+                                                foreach($model['rule']['weight_rules'] as $item) : 
+                                            ?>
                                                 <tr>
-                                                    <td><input type="text" name="line[weight_start][]" class="" id="doc-ipt-start-1" placeholder="输入起始值" value="<?= $item4['weight'][0]; ?>"></td>
-                                                    <td><input type="text" name="line[weight_max][]" class="" id="doc-ipt-end-1" placeholder="输入结束值" value="<?= $item4['weight'][1]??''; ?>"></td>
-                                                    <td><input type="text" name="line[weight_price][]" class="" id="doc-ipt-price-1" placeholder="输入所需费用" value="<?= $item4['weight_price'] ; ?>"></td>
-                                                    <td onclick="addfreeRulearea(this)">新增</td>
-                                                    <td onclick="freeRuleDelarea(this)">删除</td>
+                                                    <td><input type="text" name="line[weight_start][]" placeholder="输入起始值" value="<?= $item['start'] ?? '' ?>"></td>
+                                                    <td><input type="text" name="line[weight_max][]" placeholder="输入结束值" value="<?= $item['end'] ?? '' ?>"></td>
+                                                    <td><input type="text" name="line[weight_price][]" placeholder="输入所需费用" value="<?= $item['price'] ?? '' ?>"></td>
+                                                    <td>
+                                                        <button type="button" class="am-btn am-btn-xs am-btn-danger" onclick="freeRuleDelarea(this)">删除</button>
+                                                    </td>
                                                 </tr>
-                                                 <?php endforeach; endif; ?>
-                                            </tr>
+                                            <?php 
+                                                endforeach;
+                                            } else {
+                                            ?>
+                                                <tr>
+                                                    <td><input type="text" name="line[weight_start][]" placeholder="输入起始值"></td>
+                                                    <td><input type="text" name="line[weight_max][]" placeholder="输入结束值"></td>
+                                                    <td><input type="text" name="line[weight_price][]" placeholder="输入所需费用"></td>
+                                                    <td>
+                                                        <button type="button" class="am-btn am-btn-xs am-btn-danger" onclick="freeRuleDelarea(this)">删除</button>
+                                                    </td>
+                                                </tr>
+                                            <?php } ?>
                                         </tbody>
-                                       </table>
-                             </div></div>
+                                    </table>
+                                    <button type="button" class="am-btn am-btn-xs am-btn-success" onclick="addfreeRulearea()">新增规则</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 偏远地区设置（仅偏远模式显示） -->
+                            <div class="am-form-group" id="remote_mode" style="<?= $model['type'] != 30 ? 'display:none;' : '' ?>">
+                                <div class="am-u-sm-9 am-u-end ">
+                                    <?php
+                                    $remoteData = [];
+                                    if($model['type'] == 30 && isset($model['rule'])) {
+                                        $remoteData = $model['rule'];
+                                    }
+                                    ?>
+                                    <div class="am-form-group">
+                                        <label class="am-u-sm-3 am-u-lg-3 am-form-label form-require">偏远地区列表</label>
+                                        <div class="am-u-sm-9 am-u-end">
+                                            <textarea class="tpl-form-input" name="line[remote_areas]" rows="5" 
+                                                      placeholder="请输入偏远地区列表，每行一个地区" required><?= isset($remoteData['remote_areas']) ? $remoteData['remote_areas'] : '' ?></textarea>
+                                            <small class="am-text-warning">每行输入一个偏远地区名称</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">是否启用</label>
                                 <div class="am-u-sm-9 am-u-end" >
@@ -72,15 +142,14 @@
                                         启用
                                     </label>
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="line[status]"  value="1" <?= $model['status'] == 1 ? 'checked' : '' ?> data-am-ucheck>
+                                        <input type="radio" name="line[status]" value="1" <?= $model['status'] == 1 ? 'checked' : '' ?> data-am-ucheck>
                                         禁用
                                     </label>
                                 </div>
                             </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
-                                    <button type="submit" class="j-submit am-btn am-btn-secondary">提交
-                                    </button>
+                                    <button type="submit" class="j-submit am-btn am-btn-secondary">提交</button>
                                 </div>
                             </div>
                         </fieldset>
@@ -93,28 +162,61 @@
 <script>
     function addfreeRulearea(){
         var amformItem = document.getElementsByClassName('area_mode')[0];
-            console.log(amformItem)
         var Item1 = document.createElement('tr');
         
-        var _html = '<td><input type="text"name="line[weight_start][]"class=""id="doc-ipt-start-1"placeholder="输入起始重量"></td><td><input type="text"name="line[weight_max][]"class=""id="doc-ipt-end-1"placeholder="输入结束重量"></td><td><input type="text"name="line[weight_price][]"class=""id="doc-ipt-price-1"placeholder="输入所需价格"></td><td><input type="hidden" name="line[weight_unit][]" class="" id="doc-ipt-unit-1" placeholder="输入计费单位重量" value="1"><td class="" onclick="freeRuleDelarea(this)">删除</td>';
+        var _html = '<td><input type="text" name="line[weight_start][]" placeholder="输入起始值"></td>' +
+                    '<td><input type="text" name="line[weight_max][]" placeholder="输入结束值"></td>' +
+                    '<td><input type="text" name="line[weight_price][]" placeholder="输入所需费用"></td>' +
+                    '<td>' +
+                    '<button type="button" class="am-btn am-btn-xs am-btn-danger" onclick="freeRuleDelarea(this)">删除</button>' +
+                    '</td>';
         Item1.innerHTML = _html;
     
         amformItem.appendChild(Item1);
     }
     
-        // 删除
+    // 删除
     function freeRuleDelarea(_this){
-      var amformItem = document.getElementsByClassName('area_mode')[0];
-      var parent = _this.parentNode;
-      amformItem.removeChild(parent);
+        var row = _this.closest('tr');
+        row.parentNode.removeChild(row);
     }
     
     $(function () {
-        /**
-         * 表单验证提交
-         * @type {*}
-         */
-        $('#my-form').superForm();
-
+        // 监听服务类型变化
+        $('input[name="line[type]"]').change(function() {
+            if ($(this).val() == '30') {
+                // 偏远模式 - 显示偏远地区设置
+                $('#remote_mode').show();
+            } else {
+                // 重量模式或长度模式 - 隐藏偏远地区设置
+                $('#remote_mode').hide();
+            }
+            // 区间计费规则在所有模式下都显示
+        });
+        
+        // 表单验证提交
+        $('#my-form').superForm({
+            // 自定义验证规则
+            validate: function() {
+                // 验证区间计费规则
+                var valid = true;
+                $('input[name^="line[weight_start]"]').each(function() {
+                    if (!$(this).val()) valid = false;
+                });
+                if (!valid) {
+                    alert('请填写完整的区间计费规则');
+                    return false;
+                }
+                
+                // 如果是偏远模式，验证偏远地区设置
+                if ($('input[name="line[type]"]:checked').val() == '30') {
+                    if (!$('textarea[name="line[remote_areas]"]').val()) {
+                        alert('请输入偏远地区列表');
+                        return false;
+                    }
+                }
+                return true;
+            }
+        });
     });
 </script>

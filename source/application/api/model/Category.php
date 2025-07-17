@@ -40,6 +40,11 @@ class Category extends CategoryModel
     }
     
     // 获取热门全部分类
+    public function getChildCategoryAll(){
+        return $this->where('is_hot',1)->where('parent_id','>',0)->field('category_id,name,parent_id,is_hot')->select()->toArray();
+    }
+    
+    // 获取热门全部分类
     public function getSonCategoryAll($category_id){
          $result =  $this->where('parent_id',$category_id)->field('category_id')->select()->toArray();
          return array_column($result, 'category_id');

@@ -243,6 +243,21 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否默认(默认仓库在包裹预报，订单提交时，自动默认) </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shop[is_default]" value="1" data-am-ucheck
+                                            <?= $model['is_default'] == 1 ? 'checked' : '' ?>>
+                                        默认仓库
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shop[is_default]" value="0" data-am-ucheck
+                                            <?= $model['is_default'] == 0 ? 'checked' : '' ?>>
+                                        非默认仓库
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
                                     </button>

@@ -64,7 +64,7 @@ class UserGradeOrder extends Controller
         // 生成充值订单
         $model = new UserGradeOrderModel;
         if (!$model->createOrder($userInfo, $gradeId, $payType)) {
-            return $this->renderError($model->getError() ?: '充值失败');
+            return $this->renderError($model->getError() ?: '下单失败');
         }
         switch ($payType) {
             case '20':
@@ -105,7 +105,7 @@ class UserGradeOrder extends Controller
         // ];
         // Message::send('package.balancepay',$data);   
         // 充值状态提醒
-        $message = ['success' => '充值成功', 'error' => '订单未支付'];
+        $message = ['success' => '下单成功', 'error' => '下单未支付'];
         return $this->renderSuccess(compact('payment', 'message'), $message);
     }
 

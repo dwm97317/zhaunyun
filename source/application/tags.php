@@ -78,6 +78,11 @@ return [
     'user_grade' => [
         'app\\task\\behavior\\user\\Grade'
     ],
+    
+    // 会员生日行为管理
+    'user_birthday' => [
+        'app\\task\\behavior\\user\\Birthday'
+    ],
 
     // 砍价任务行为管理
     'bargain_task' => [

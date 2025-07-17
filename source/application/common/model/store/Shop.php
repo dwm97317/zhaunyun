@@ -110,5 +110,10 @@ class Shop extends BaseModel
     {
         return static::get($shop_id, ['logo','user']);
     }
+    
+    public function getDefault()
+    {
+        return $this->where('is_default',1)->where('is_delete',0)->find();
+    }
 
 }

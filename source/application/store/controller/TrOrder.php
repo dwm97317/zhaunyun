@@ -1419,9 +1419,20 @@ class TrOrder extends Controller
                 }
                 //会员等级折扣
                 $suer  = User::detail($pakdata['member_id']);
+                //first_equity  second_equity equity
                 
-                if(!empty($suer['grade']) && $suer['grade']['status']==1 && $suer['grade']['equity']['discount']>0){
-                    $value['discount'] = $suer['grade']['equity']['discount'] * 0.1;
+                if(!empty($suer['grade']) && $suer['grade']['status']==1){
+                    $countorder = (new Inpack())->where('member_id',$suer['user_id'])->where('is_delete',0)->where('is_pay',1)->count();
+               
+                    if($countorder==0){
+                        $value['discount'] = $suer['grade']['first_equity']*0.1;
+                    }
+                    if($countorder==1){
+                        $value['discount'] = $suer['grade']['second_equity']*0.1;
+                    }
+                    if($countorder>1){
+                        $value['discount'] = $suer['grade']['equity']*0.1;
+                    }
                 }
                 //   dump($value['discount']);die;
         }else{

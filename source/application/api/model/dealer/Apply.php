@@ -3,6 +3,7 @@
 namespace app\api\model\dealer;
 
 use app\common\model\dealer\Apply as ApplyModel;
+use app\api\model\dealer\User as DealerUserModel;
 
 /**
  * 分销商申请模型
@@ -42,6 +43,10 @@ class Apply extends ApplyModel
      */
     public function submit($user, $name, $mobile)
     {
+        $dealer =  DealerUserModel::detail($user['user_id']);
+        if(!empty($dealer && $dealer['is_delete']!=1)){
+            return true;
+        }
         // 成为分销商条件
         $config = Setting::getItem('condition');
         // 数据整理

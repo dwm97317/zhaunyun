@@ -331,7 +331,7 @@ class User extends UserModel
         $oldGradeId = $this['grade_id'];
         return $this->transaction(function () use ($oldGradeId, $data) {
             // 更新用户的等级
-            $status = $this->save(['grade_id' => $data['grade_id']]);
+            $status = $this->save(['grade_id' => $data['grade_id'],'grade_time'=>strtotime($data['grade_time'])]);
             // 新增用户等级修改记录
             if ($status) {
                 (new GradeLogModel)->record([

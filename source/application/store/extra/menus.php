@@ -67,6 +67,10 @@ return [
               'index' => 'package.index/appointment',
           ],
           [
+              'name' => '退货件',
+              'index' => 'package.index/returned',
+          ],
+          [
               'name' => '问题件',
               'index' => 'package.index/errors',
           ],
@@ -167,6 +171,10 @@ return [
                 'index' => 'user/index',
             ],
             [
+                        'name' => '会员生日',
+                        'index' => 'user.birthday/index',
+                    ],
+            [
                 'name' => '唛头列表',
                 'index' => 'user/marklist',
             ],
@@ -261,6 +269,13 @@ return [
                             'shop.clerk/index',
                             'shop.clerk/add',
                             'shop.clerk/edit',
+                        ]
+                    ],
+                    [
+                        'name' => '评价/投诉建议',
+                        'index' => 'shop.clerk/comment',
+                        'uris' => [
+                            'shop.clerk/comment'
                         ]
                     ],
                     [
@@ -896,6 +911,24 @@ return [
                               'setting.country/index',
                               'setting.country/add',
                               'setting.country/edit',
+                          ],
+                        ],
+                        [
+                          'name' => '运输方式',
+                          'index' => 'setting.line_category/index',
+                          'uris' => [
+                              'setting.line_category/index',
+                              'setting.line_category/add',
+                              'setting.line_category/edit',
+                          ],
+                        ],
+                        [
+                          'name' => '保险管理',
+                          'index' => 'setting.insure/index',
+                          'uris' => [
+                              'setting.insure/index',
+                              'setting.insure/add',
+                              'setting.insure/edit',
                           ],
                         ],
                         [

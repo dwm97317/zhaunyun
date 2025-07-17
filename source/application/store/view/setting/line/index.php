@@ -61,13 +61,13 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <?php $linecategory = [0=>"未选择",10=>'海运',20=>'空运',30=>'陆运',40=>'铁运']; ?>
+                          
                             <?php if (!$list->isEmpty()): ?>
                                 <?php foreach ($list as $item): ?>
                                     <tr>
                                         <td class="am-text-middle"><?= $item['id'] ?></td>
                                         <td class="am-text-middle"><?= $item['name'] ?></td>
-                                        <td class="am-text-middle"><?= $linecategory[$item['line_category']] ?></td>
+                                        <td class="am-text-middle"><?= $item['lineCategory']['name'] ?></td>
                                         <td class="am-text-middle"><?= $item['weight_min'] ?></td>
                                         <td class="am-text-middle"><?= $item['limitationofdelivery'] ?></td>
                                         <td class="am-text-middle"><?= $item['tariff'] ?></td>

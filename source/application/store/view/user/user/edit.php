@@ -65,6 +65,13 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">会员生日 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input id="datetimepicker" type="text" class="tpl-form-input" name="user[birthday]" 
+                                           value="<?= date('Y-m-d',strtotime($detail['birthday'])) ?>">
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-5 am-u-lg-2 am-form-label">所属客服 </label>
                                 <div class="am-u-sm-9  am-u-end">
                                     <select name="user[service_id]"
@@ -112,6 +119,10 @@
          * @type {*}
          */
         $('#my-form').superForm();
-
+        $('#datetimepicker').datetimepicker({
+          format: 'yyyy-mm-dd',  // 只显示年月日
+          minView: 2,           // 设置最小视图为天（0-分，1-时，2-日，3-月，4-年）
+          autoclose: true       // 选择日期后自动关闭
+        });
     });
 </script>

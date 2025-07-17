@@ -52,6 +52,7 @@ class Grade extends GradeModel
         if (!$this->validateForm($data, 'edit')) {
             return false;
         }
+        // dump($data);die;
         return $this->allowField(true)->save($data) !== false;
     }
 

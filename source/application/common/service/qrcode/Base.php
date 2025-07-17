@@ -51,6 +51,39 @@ class Base
         //   dump($savePath);die;
         return $savePath;
     }
+    
+    /**
+     * 保存小程序码到文件
+     * @param $wxapp_id
+     * @param $scene
+     * @param null $page
+     * @return string
+     * @throws \app\common\exception\BaseException
+     * @throws \think\exception\DbException
+     */
+    protected function saveClerkQrcode($wxapp_id, $scene, $page = null)
+    {
+        // 文件目录
+        $dirPath = RUNTIME_PATH . 'image' . '/' . $wxapp_id;
+        !is_dir($dirPath) && mkdir($dirPath, 0755, true);
+        // 文件名称
+        $fileName = 'qrcode_' . md5($wxapp_id . $scene . $page) . '.png';
+        // 文件路径
+        $savePath = "{$dirPath}/{$fileName}";
+        // dump($savePath);die;
+        if (file_exists($savePath)) return $savePath;
+        // 小程序配置信息
+        $wxConfig = WxappModel::getWxappCache($wxapp_id);
+        // 请求api获取小程序码
+    ;
+        $Qrcode = new Qrcode($wxConfig['app_id'], $wxConfig['app_secret']);
+        $content = $Qrcode->getClerkQrcode($scene, $page);
+      
+        // 保存到文件
+        file_put_contents($savePath, $content);
+      
+        return $savePath;
+    }
 
     /**
      * 获取网络图片到临时目录

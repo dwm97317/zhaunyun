@@ -49,6 +49,7 @@ use app\api\model\InpackImage;
 use app\api\model\InpackItem;
 use app\api\model\user\PointsLog as PointsLogModel;
 use app\api\model\PackageClaim;
+use app\api\model\LineCategory;
 
 /**
  * 页面控制器
@@ -77,6 +78,85 @@ class Package extends Controller
         }
     }
     
+    //获取累计的优惠金额
+    public function getcouponTotal(){
+        $Inpack = new Inpack();
+        $count = $Inpack->where('member_id',$this->user['user_id'])->where('is_delete',0)->sum('user_coupon_money');
+        return $this->renderSuccess(compact('count'));
+    }
+    
+     //退货申请
+    public function returnd(){
+        if (!$this->user['user_id']){
+            return $this->renderError('请先登录');
+        }
+        $post = $this->postData();
+        if(!$post['express_num']){
+            return $this->renderError('请选择需要退货单快递单');
+        }
+        if(!$post['address_id']){
+            return $this->renderError('请选择退货地址');
+        }
+        $packModel = new PackageModel();
+        $packres = $packModel->where('express_num',$post['express_num'])->where('is_delete',0)->find();
+        if(empty($packres)){
+            return $this->renderError('快递单不存在');
+        }
+        $packres->save([
+            'is_take'=>4,  
+            'address_id'=>$post['address_id'],  
+            'remark'=>$post['remark'],
+            'updated_time'=>getTime(),
+        ]);
+        $wxapp_id = \request()->get('wxapp_id');
+        if(!empty($post['imageIds'])){
+             $this->inImages($packres['id'],$post['imageIds'],$wxapp_id);
+         }
+        Logistics::add($packres['id'],'申报退货');
+        return $this->renderSuccess('申请退货成功');
+    }
+    
+    
+     // 包裹批量预报
+    public function newreport(){
+        if (!$this->user['user_id']){
+            return $this->renderError('请先登录');
+        }
+        $post = $this->postData();
+        $packModel = new PackageModel();
+        $array = preg_split('/\s+/', $post['packlist']);
+        if(count($array)==0){
+            return $this->renderError('请输入快递单号');
+        }
+        foreach ($array as $v){
+            $packres = $packModel->where('express_num',$v)->where('is_delete',0)->find();
+            if(empty($packres)){
+                // 包裹不存在则添加新包裹，将单号，用户id，是否认领，创建时间，更新时间，入库状态
+                $pack_id = $packModel->insertGetId([
+                    'express_num'=>$v,
+                    'order_sn' => CreateSn(),
+                    'member_id'=>$this->user['user_id'],
+                    'is_take'=>2,
+                    'status'=>1,
+                    'updated_time'=>getTime(),
+                    'created_time'=>getTime(),
+                    'wxapp_id'=>$this->wxapp_id
+                ]);
+               
+            }else{
+                //包裹存在，则更新绑定用户id，更新时间，绑定状态
+                $packres->save([
+                    'member_id'=>$this->user['user_id'],
+                    'is_take'=>2,
+                    'updated_time'=>getTime()
+                ]);
+                $pack_id = $packres['id'];
+            }
+        }
+   
+        Logistics::add($pack_id,'包裹预报成功');
+        return $this->renderSuccess('申请预报成功');
+    }
         
     //批量打包
     public function quickPackageItAll(){
@@ -635,6 +715,148 @@ class Package extends Controller
      
      /***
       * 用户预约包裹上门取件
+      * 时间：2025年06月27日
+      */
+      public function doorpickup(){
+         if (!$this->user['user_id']){
+            return $this->renderError('请先登录');
+         }
+         $user = (new User())->find($this->user['user_id']);
+         $post = $this->postData();
+         $userclientsetting = SettingModel::getItem('userclient');   
+         $storage =(new ShopModel())->getDefault();     
+         if (!$storage){
+             return $this->renderError('仓库信息错误');
+         }
+         if ($post['pack_type']==1 &&  !$post['address_id']){
+              return $this->renderError('请选择收件地址');
+         }
+         if (!$post['jaddress_id']){
+              return $this->renderError('请选择寄件地址');
+         }
+         
+         //生成预约单号
+         $express = createYysn();
+         $classItem = [];
+         if (isset($post['goodsInfo']) && isset($post['goodsInfo']['ids'])){
+             $classItem = $this->parseClassName($post['goodsInfo']['ids']);
+           
+             foreach ($classItem as $k => $val){
+                  $classItem[$k]['class_id'] = $val['category_id'];
+                  $classItem[$k]['express_name'] = '预约取件';
+                  $classItem[$k]['class_name'] = $val['name'];
+                  $classItem[$k]['express_num'] = $express;
+                  unset($classItem[$k]['category_id']); 
+                  unset($classItem[$k]['name']);        
+             }
+         }
+         
+         $packModel = new PackageModel();
+         $packItemModel = new PackageItemModel();
+         // todo 判断预报的单号是否存在（待认领或者已认领），如果存在且被认领则提示已认领，如果存在但未被认领则修改存在的记录所属用户，认领状态；
+         $packres = $packModel->where('express_num',$express)->where('is_delete',0)->find();
+
+         if($post['packType']=='goods'){
+              $remark = "保留商品包装";
+          }else{
+              $remark = "保留快递包装";
+          }
+         // 开启事务
+         Db::startTrans();
+       
+         //如果是直邮包裹，需要同步创建集运订单
+         if($post['pack_type']==1){
+             $inpackOrder = [
+              'order_sn' => createSn(),
+              'storage_id' => $storage['shop_id'],
+              'address_id'=>$post['address_id'],
+              'free' => 0,
+              'member_id'=>$this->user['user_id'],
+              'weight' => $post['goodsInfo']['weight']??0,
+              'length' => $post['goodsInfo']['length']??0,
+              'width' => $post['goodsInfo']['width']??0,
+              'height' => $post['goodsInfo']['height']??0,
+              'cale_weight' => $post['goodsInfo']['weight']??0,
+              'volume' => 0, //体积重
+              'pack_free' => 0,
+              'other_free' =>0,
+              'insure_free'=>0,
+              'created_time' => getTime(),
+              'updated_time' => getTime(),
+              'status' => 1,
+              'source' => 4,
+              'remark'=>$remark.'-'.$post['remark'],
+              'line_id'=> $post['line_id'],
+              'wxapp_id' => $this->wxapp_id,
+            ];
+           $inpack_id =  (new Inpack())->insertGetId($inpackOrder);
+           $post['inpack_id'] = $inpack_id;
+         }
+       
+       
+         $post['express_name'] = '预约取件';
+         $post['express_num'] = $express;
+         $post['source'] = 7;
+         $post['member_id'] = $this->user['user_id'];
+         $post['member_name'] = $user['nickName'];
+         $post['order_sn'] = CreateSn();
+         $post['is_take'] = 2;
+         $post['line_id'] = $post['line_id'];
+         $post['visit_data_time'] = $post['pickup_date'].' '.$post['pickup_time'];
+         $post['remark'] = $remark.'-'.$post['remark'];
+         $res = $packModel->saveData($post);
+        
+         if (!$res){
+             return $this->renderError('预约失败');
+         }
+
+         $clerk = (new Clerk())->where('visit_status',0)->where('is_delete',0)->select();
+         
+         $jaddress = (new UserAddress())->find($post['jaddress_id']); //获取地址信息
+          //循环通知员工打包消息 
+          foreach ($clerk as $key => $val){
+              $data['member_id'] = $val['user_id'];
+              $data['express_num'] = $express;
+              $data['phone'] = $jaddress['phone'];
+              $data['id'] = $res;
+              $data['wxapp_id'] = $this->wxapp_id;
+              $data['userName'] = $jaddress['name'];
+              $data['visit_data_time'] = $post['pickup_date'].' '.$post['pickup_time'];
+              $data['addressdetail'] = $jaddress['country'].$jaddress['province'].$jaddress['city'].$jaddress['detail'];
+              Message::send('package.Reservationconfirmed',$data);   
+          }
+         //通知用户自己
+         
+         $userNotice['member_id'] = $this->user['user_id'];
+         $userNotice['express_num'] = $express;
+         $userNotice['userName'] = $jaddress['name'];
+         $userNotice['addressdetail'] = $jaddress['detail'];
+         $userNotice['wxapp_id'] = $this->wxapp_id;
+         $userNotice['id'] = $res;
+         $userNotice['time'] = date("Y-m-d H:i:s",time());
+         Message::send('package.VisitOrdersuccess',$userNotice);   
+         if ($classItem){
+             $packItemRes = $packItemModel->saveAllData($classItem,$res);
+             if (!$packItemRes){
+                Db::rollback();
+                return $this->renderError('预约失败');
+             }
+         }         
+         Logistics::add($res,'预约成功');
+         
+         Db::commit();
+         return $this->renderSuccess('预约成功');
+     }
+     
+     // 格式化
+     public function parseClassName($class_ids){
+         $class_item = [];
+         $class = (new Category())->whereIn('category_id',$class_ids)->field('category_id,name')->select()->toArray();
+         return $class;
+     }
+     
+     /***
+      * 用户预约包裹上门取件
       * 时间：2022年06月29日
       */
       public function appreport(){
@@ -820,6 +1042,12 @@ class Package extends Controller
              $data[$k]['is_show'] = false;
         }
         $data = makeTree($data,'category_id');
+        return $this->renderSuccess($data);
+     }
+     
+     // 分类列表
+     public function getChildcategory(){
+        $data = (new Category())->gethotCategoryAll();
         return $this->renderSuccess($data);
      }
      
@@ -1179,7 +1407,97 @@ class Package extends Controller
         }
         return $this->renderSuccess('打包包裹提交成功');
      }
-     
+
+     // 提交订单
+      public function applyforpackage(){
+          $params = $this->request->param();
+         
+          $address = (new UserAddress())->find($params['address_id']);
+          if (!$address){
+             return $this->renderError('地址信息错误');
+          }
+          $line = (new Line())->find($params['line_id']);
+          if (!$line){
+            return $this->renderError('线路不存在,请重新选择');
+          }
+          $remark = "";
+          if($params['form']){
+              if($params['form']['packType']=='goods'){
+                  $remark = "保留商品包装";
+              }else{
+                  $remark = "保留快递包装";
+              }
+          }
+          if(!$params['form']['expressNo']){
+              return $this->renderError('请填写快递单号');
+          }
+          $pack = (new PackageModel())->where('express_num',$params['form']['expressNo'])->where('is_delete',0)->find();
+          if(!empty($pack['inpack_id'])){
+              return $this->renderError('此快递单号已提交发货');
+          }
+          $wxapp_id = \request()->get('wxapp_id');
+          $storesetting = SettingModel::getItem('store');
+          $shopname = (new ShopModel())->getDefault();     
+          $inpackOrder = [
+              'order_sn' => $storesetting['createSn']==10?createSn():createSnByUserIdCid($this->user['user_id'],$address['country_id']),
+              'remark' =>$remark,
+              'storage_id' => $shopname['shop_id'],
+              'address_id' => $params['address_id'],
+              'delivery_method'=>isset($params['currentTab'])?$params['currentTab']:1,
+              'pack_free' => 0,
+              'member_id' => $this->user['user_id'],
+              'country_id' => $address['country_id'],
+              'unpack_time' => getTime(),  //提交打包时间
+              'created_time' => getTime(),  
+              'updated_time' => getTime(),
+              'status' => 1,
+              'line_id' => $params['line_id'],
+              'wxapp_id' => $wxapp_id,
+        ];
+        $user_id =$this->user['user_id'];
+        if($storesetting['usercode_mode']['is_show']==1){
+           $member =  (new User())->where('user_id',$this->user['user_id'])->find();
+           $user_id = $member['user_code'];
+        }
+        $createSnfistword = $storesetting['createSnfistword'];
+        $xuhao = ((new Inpack())->where(['member_id'=>$this->user['user_id'],'is_delete'=>0])->count()) + 1;
+        
+        // dump($shopname->toArray());die;
+        $orderno = createNewOrderSn($storesetting['orderno']['default'],$xuhao,$createSnfistword,$user_id,$shopname['shop_alias_name'],$address['country_id'],$address['country_id']);
+        $inpackOrder['order_sn'] = $orderno;
+        
+        $inpack_id = (new Inpack())->insertGetId($inpackOrder); 
+        if (!$inpack_id){
+            return $this->renderError('提交失败');
+        }
+
+          if(empty($pack)){
+              $data = [
+                   'member_id' => $this->user['user_id'],
+                   'created_time' => getTime(),  
+                   'updated_time' => getTime(),
+                   'storage_id' => $shopname['shop_id'],
+                   'is_take'=>2,
+                   'status'=>1,
+                   'order_sn' => createSn(),
+                   'remark' =>$remark,
+                   'express_num'=>$params['form']['expressNo'],
+                   'inpack_id'=>$inpack_id,
+                   'wxapp_id' => $wxapp_id,
+              ];
+            //   dump($data);die;
+              (new PackageModel())->saveData($data);
+          }else{
+              $pack->editData([
+                  'member_id' => $this->user['user_id'],
+                  'is_take'=>2,
+                  'updated_time' => getTime(),
+                  'remark' =>$remark,
+              ]);
+          }  
+          return $this->renderSuccess('提交成功');
+      }
+
      // 提交打包处理
      public function postPack(){
         $params = $this->request->param();
@@ -2406,6 +2724,21 @@ class Package extends Controller
         return $this->renderSuccess($data);
      }
      
+     //编辑修改订单
+     public function editInpack(){
+        $params = $this->request->param();
+        $data = (new Inpack())->getDetails($params['id'],'*');
+        if(empty($data)){
+              return $this->renderError('订单不存在,请重试');
+        }
+        $data->save([
+             'total_goods_value'=>isset($params['total_goods_value'])?$params['total_goods_value']:0,
+             'insure_free'=>isset($params['insure_free'])?$params['insure_free']:0,
+             'updated_time'=>getTime()
+        ]);
+        return $this->renderSuccess("添加成功");
+     }
+     
      //添加分箱-仓管端使用
      public function addSonInpackItem(){
          $param = $this->request->param();
@@ -2993,15 +3326,16 @@ class Package extends Controller
         return $this->renderSuccess($data);
     }
     
+    // 运输方式
+    public function lineCategoryList(){
+        $data = (new LineCategory())->getList([]);
+        return $this->renderSuccess($data);
+    }
+    
     // 线路列表   版本20220916
     public function lineplus(){
-        $addressId= input('address_id');
-        if(!empty($addressId)){
-            $data = (new Line())->getLineplus($addressId);
-        }else{
-            $data = (new Line())->getLine([]); 
-        }
-        
+        $params = $this->request->param();
+        $data = (new Line())->getLineplus($params);
         return $this->renderSuccess($data);
     }
     

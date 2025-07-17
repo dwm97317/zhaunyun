@@ -8,6 +8,7 @@ use app\store\model\Category;
 use app\common\model\Setting;
 use app\store\model\LineService;
 use app\store\model\store\Shop as ShopModel;
+use app\store\model\LineCategory as LineCategoryModel;
 
 /**
  * 线路设置
@@ -64,10 +65,11 @@ class Line extends Controller
     public function add()
     {
         $set = Setting::detail('store')['values'];
+        $linecategory = LineCategoryModel::getALL();
         $lineservice = (new LineService())->getListAll();
         if (!$this->request->isAjax()) {
             $shopList = ShopModel::getAllList();
-            return $this->fetch('add',compact('set','lineservice','shopList'));
+            return $this->fetch('add',compact('set','lineservice','shopList','linecategory'));
         }
         // 新增记录
         $model = new LineModel();
@@ -166,8 +168,9 @@ class Line extends Controller
         $set = Setting::detail('store')['values'];
   
         if (!$this->request->isAjax()) {
+            $linecategory = LineCategoryModel::getALL();
             $shopList = ShopModel::getAllList();
-            return $this->fetch('edit', compact('model','country','set','lineservice','shopList'));
+            return $this->fetch('edit', compact('model','country','set','lineservice','shopList','linecategory'));
         }
         //  dump($this->postData('line'));die;
         // 更新记录

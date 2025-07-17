@@ -156,6 +156,7 @@
                                             <option value="entering_warehouse_time" <?= $extracttimetype == 'entering_warehouse_time' ? 'selected' : '' ?>>入库时间</option>
                                             <option value="created_time" <?= $extracttimetype == 'created_time' ? 'selected' : '' ?>>预报时间</option>
                                             <option value="scan_time" <?= $extracttimetype == 'scan_time' ? 'selected' : '' ?>>扫码查验时间</option>
+                                             
     
                                         </select>
                                     </div>
