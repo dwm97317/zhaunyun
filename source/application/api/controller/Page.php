@@ -584,7 +584,10 @@ class Page extends Controller
                      $data['linkman'] = ($this->user)['nickName'];
                 }
                 if($setting['link_mode'] == 60){
-                        $data['linkman'] = $data['shop_name'];
+                    $data['linkman'] = $data['shop_name'];
+                }
+                if($setting['link_mode'] == 70){
+                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
                 }
                // 根据地址的设置，生成不同的地址展示模式
                 switch ($setting['address_mode']) {
@@ -627,6 +630,9 @@ class Page extends Controller
                 }
                 if($setting['link_mode'] == 60){
                     $data['linkman'] = $data['shop_name'];
+                }
+                if($setting['link_mode'] == 70){
+                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
                 }
                 // 根据地址的设置，生成不同的地址展示模式
                 switch ($setting['address_mode']) {
@@ -672,6 +678,9 @@ class Page extends Controller
                 if($setting['link_mode'] == 60){
                      $data['linkman'] = $data['shop_name'];
                 }
+                if($setting['link_mode'] == 70){
+                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
+                }
                 
                 // 根据地址的设置，生成不同的地址展示模式
                 switch ($setting['address_mode']) {
@@ -711,6 +720,9 @@ class Page extends Controller
                 }
                 if($setting['link_mode'] == 60){
                      $data['linkman'] = $data['shop_name'];
+                }
+                if($setting['link_mode'] == 70){
+                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
                 }
                 
                 // 根据地址的设置，生成不同的地址展示模式
@@ -759,6 +771,9 @@ class Page extends Controller
                 if($setting['link_mode'] == 60){
                      $data['linkman'] = $data['shop_name'];
                 }
+                if($setting['link_mode'] == 70){
+                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
+                }
                 
                 // 根据地址的设置，生成不同的地址展示模式
                 switch ($setting['address_mode']) {
@@ -799,7 +814,9 @@ class Page extends Controller
                 if($setting['link_mode'] == 60){
                      $data['linkman'] = $data['shop_name'];
                 }
-                
+                if($setting['link_mode'] == 70){
+                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
+                }
                 // 根据地址的设置，生成不同的地址展示模式
                 switch ($setting['address_mode']) {
                     case '10':

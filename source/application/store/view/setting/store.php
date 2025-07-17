@@ -767,6 +767,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                             <option value="40" <?= $values['link_mode'] == 40 ? 'selected' : '' ?>>仓库简称+UID</option>
                                             <option value="50" <?= $values['link_mode'] == 50 ? 'selected' : '' ?>>用户昵称</option>
                                             <option value="60" <?= $values['link_mode'] == 60 ? 'selected' : '' ?>>仓库名</option>
+                                            <option value="70" <?= $values['link_mode'] == 70 ? 'selected' : '' ?>>仓库简称(用户昵称)</option>
                                     </select>
                                     <div class="help-block">
                                         <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
