@@ -77,6 +77,7 @@ class User extends BaseModel
                 'shop_id' => $user['shop_id'],
                 'line_id' => $user['line_id'],
                 'country_id' => $user['country_id'],
+                'clerk_id' => $user['clerk_id'],
                 'is_super' => $user['is_super'],
             ],
             'wxapp' => $wxapp->toArray(),

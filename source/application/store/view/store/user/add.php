@@ -18,7 +18,7 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">所属角色 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <select name="user[role_id][]" multiple data-am-selected="{btnSize: 'sm'}">
+                                    <select name="user[role_id][]"  data-am-selected="{btnSize: 'sm'}">
                                         <?php if (isset($roleList)): foreach ($roleList as $role): ?>
                                             <option value="<?= $role['role_id'] ?>"> <?= $role['role_name_h1'] ?></option>
                                         <?php endforeach; endif; ?>
@@ -46,6 +46,26 @@
                                     </select>
                                     <div class="help-block">
                                         <small>可以设置多个仓库，让管理员能够查看多个仓库的包裹和订单信息</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 绑定员工 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="user[clerk_id][]" multiple
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'所有员工', maxHeight: 400}">
+                                        <?php if (isset($clerklist) && !$clerklist->isEmpty()):
+                                            foreach ($clerklist as $item): ?>
+                                                 <?php if(isset($data['clerk_id'])): ?>
+                                                      <option value="<?= $item['clerk_id'] ?>"  <?= $data['clerk_id'] == $item['clerk_id'] ? 'selected' : '' ?>><?= $item['shop_name'] ?></option>
+                                                <?php else: ?>  
+                                                     <option value="<?= $item['clerk_id'] ?>"><?= $item['real_name'] ?></option>
+                                                <?php endif; ?>
+                                             
+                                            <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>可以设置该账号可以查看那些员工绑定到用户，用户包裹，用户订单，不选则为可以查看所有用户所有包裹、订单等；</small>
                                     </div>
                                 </div>
                             </div>

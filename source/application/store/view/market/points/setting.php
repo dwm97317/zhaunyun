@@ -41,6 +41,13 @@
                                               placeholder="请输入积分说明/规则"><?= $values['describe'] ?></textarea>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-u-lg-2 am-form-label"> 积分兑换说明 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <textarea rows="5" name="points[exchange]"
+                                              placeholder="请输入积分兑换说明"><?= $values['exchange'] ?></textarea>
+                                </div>
+                            </div>
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">集运积分赠送</div>
                             </div>

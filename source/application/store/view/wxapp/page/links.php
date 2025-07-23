@@ -18,6 +18,15 @@
                                 </div>
                             </li>
                             <li class="link-item">
+                                <div class="row page-name">积分兑换</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/pages/point/exchange</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
                                 <div class="row page-name">一键下单</div>
                                 <div class="row am-cf">
                                     <div class="am-fl">地址：</div>

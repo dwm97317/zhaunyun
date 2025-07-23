@@ -658,6 +658,7 @@ class Package extends PackageModel
         if(isset($setting['packageorderby'])){
             $order = [$setting['packageorderby']['order_mode']=>$setting['packageorderby']['order_type']];
         }
+            //  dump($query);die;
         return $this->setindexListQueryWhere($query)
             ->alias('a')
             ->with(['categoryAttr','Member','country','storage','inpack','packageimage.file','batch','shelfunititem.shelfunit.shelf','address'])
@@ -758,6 +759,7 @@ class Package extends PackageModel
         !empty($param['source'])&& $this->where('source','=',$param['source']);
         !empty($param['is_delete'])&& $this->where('a.is_delete','=',$param['is_delete']);
         !empty($param['batch_id'])&& $this->where('a.batch_id',$param['batch_id']);
+        !empty($param['user_id'])&& $this->where('a.member_id',$param['user_id']);
         !empty($param['extract_shop_id'])&&is_numeric($param['extract_shop_id']) && $param['extract_shop_id'] > -1 && $this->where('storage_id', '=', (int)$param['extract_shop_id']);
         if(!empty($param['time_type'])){
             !empty($param['start_time']) && $this->where($param['time_type'], '>=', $param['start_time']);

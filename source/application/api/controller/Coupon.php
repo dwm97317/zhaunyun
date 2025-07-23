@@ -27,6 +27,13 @@ class Coupon extends Controller
         return $this->renderSuccess(compact('list'));
     }
     
+    public function pointlists()
+    {
+        $model = new CouponModel;
+        $list = $model->getpointList($this->getUser(false));
+        return $this->renderSuccess(compact('list'));
+    }
+    
     
     public function couponDetail(){
        $model = new UserCoupon;

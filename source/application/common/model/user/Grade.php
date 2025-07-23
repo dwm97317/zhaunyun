@@ -75,6 +75,24 @@ class Grade extends BaseModel
             ->order($order)
             ->select();
     }
+    
+    /**
+     * 获取可用的会员等级列表
+     * @param null $wxappId
+     * @param array $order 排序规则
+     * @return false|\PDOStatement|string|\think\Collection
+     */
+    public static function getUsablePointList($wxappId = null, $order = ['weight' => 'asc'])
+    {
+        $model = new static;
+        $wxappId = $wxappId ? $wxappId : $model::$wxapp_id;
+        return $model->where('status', '=', '1')
+            ->where('is_delete', '=', '0')
+            ->where('use_point', '>', '0')
+            ->where('wxapp_id', '=', $wxappId)
+            ->order($order)
+            ->select();
+    }
 
     /**
      * 验证等级权重是否存在

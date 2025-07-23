@@ -272,10 +272,22 @@
                                                     <span class="am-icon-caret-down"></span>
                                                 </button>
                                                 <ul class="am-dropdown-content" data-id="<?= $item['user_id'] ?>">
-                                                    <?php if (checkPrivilege('tr_order/all_list')): ?>
+                                                    <?php if (checkPrivilege('tr_order/alluserlist')): ?>
                                                         <li>
                                                             <a class="am-dropdown-item" target="_blank"
-                                                               href="<?= url('tr_order/all_list', ['user_id' => $item['user_id']]) ?>">用户订单</a>
+                                                               href="<?= url('tr_order/alluserlist', ['user_id' => $item['user_id']]) ?>">用户订单</a>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (checkPrivilege('package.index/userindex')): ?>
+                                                        <li>
+                                                            <a class="am-dropdown-item" target="_blank"
+                                                               href="<?= url('package.index/userindex', ['user_id' => $item['user_id']]) ?>">用户包裹</a>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (checkPrivilege('market.points/log')): ?>
+                                                        <li>
+                                                            <a class="am-dropdown-item" target="_blank"
+                                                               href="<?= url('market.points/log', ['user_id' => $item['user_id']]) ?>">积分记录</a>
                                                         </li>
                                                     <?php endif; ?>
                                                     <?php if (checkPrivilege('user.recharge/order')): ?>

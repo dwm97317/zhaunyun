@@ -10,6 +10,7 @@ use app\store\model\store\Shop as ShopModel;
 use app\store\model\Countries;
 use app\store\model\Line;
 use think\Session;
+use app\store\model\store\shop\Clerk;
 /**
  * 商家用户控制器
  * Class StoreUser
@@ -43,9 +44,10 @@ class User extends Controller
         $model = new StoreUserModel;
         if (!$this->request->isAjax()) {
             $shopList = ShopModel::getAllList();
+            $clerklist = (new Clerk())->getAllList();
             // 角色列表
             $roleList = (new RoleModel)->getList();
-            return $this->fetch('add', compact('roleList','shopList'));
+            return $this->fetch('add', compact('roleList','shopList','clerklist'));
         }
         // 新增记录
         if ($model->add($this->postData('user'))) {
@@ -73,6 +75,7 @@ class User extends Controller
                 'model' => $model,
                 // 角色列表
                 'roleList' => (new RoleModel)->getList(),
+                'clerklist' => (new Clerk())->getAllList(),
                 'shopList' => ShopModel::getAllList(),
                 'countrylist'=>(new Countries)->getListAll(),
                 'linelist'=>(new Line)->getListAll(),

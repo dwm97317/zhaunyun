@@ -14,6 +14,7 @@ use app\api\model\Setting;
 use think\Cache;
 use app\api\model\Wxapp as WxappModel;
 use app\api\model\UserCoupon;
+use app\api\model\Coupon;
 use app\common\service\Message;
 use app\api\model\Certificate;
 use app\api\model\user\UserMark;
@@ -200,6 +201,43 @@ class User extends Controller
         $userInfo['coupon'] = (new UserCoupon())->where('user_id',$userInfo['user_id'])->where('is_use',0)->where('is_expire',0)->where('is_delete',0)->count();
         return $this->renderSuccess(compact('userInfo'));
     }
+    
+    /**
+     * 当前优惠券详情
+     * @return array
+     * @throws \app\common\exception\BaseException
+     * @throws \think\exception\DbException
+     */
+    public function coupondetail($coupon_id)
+    {
+       $detail = Coupon::detail($coupon_id);
+       return $this->renderSuccess(compact('detail'));
+    }
+    
+    
+    /**
+     * 兑换优惠券
+     * @return array
+     * @throws \app\common\exception\BaseException
+     * @throws \think\exception\DbException
+     */
+    public function exchangeCoupon($coupon_id)
+    {
+       $userInfo = $this->getUser();
+       $detail = Coupon::detail($coupon_id);
+       if($detail['use_point'] > $userInfo['points']){
+           return $this->renderError('积分不足');  
+       }
+       $UserCoupon = new UserCoupon();
+       $res = $UserCoupon->receive($userInfo,$coupon_id);
+       if(!$res){
+           return $this->renderError($UserCoupon->getError());  
+       }
+       $userInfo->setDecPoints($detail['use_point'],'兑换优惠券'.$detail['name']);
+       return $this->renderSuccess('兑换成功');   
+    }
+    
+    
     
     /**
      * 更新用户资料

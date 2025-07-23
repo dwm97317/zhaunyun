@@ -278,5 +278,25 @@ class User extends BaseModel
         return $this->setInc('points', $points);
     }
     
+    /**
+     * 减少用户的可用积分
+     * @param $points
+     * @param $describe
+     * @return int|true
+     * @throws \think\Exception
+     */
+    public function setDecPoints($points, $describe)
+    {
+        // 新增积分变动明细
+        PointsLogModel::add([
+            'user_id' => $this['user_id'],
+            'type'=>2,
+            'value' => -$points,
+            'describe' => $describe,
+        ]);
+        // 更新用户可用积分
+        return $this->setDec('points', $points);
+    }
+    
 
 }

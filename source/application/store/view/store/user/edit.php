@@ -48,6 +48,23 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 绑定员工 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="user[clerk_id][]" multiple
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'所有员工', maxHeight: 400}">
+                                            <option value="0"></option>
+                                        <?php if (isset($clerklist)): foreach ($clerklist as $role): ?>
+                                            <option value="<?= $role['clerk_id'] ?>"
+                                                <?= in_array($role['clerk_id'], explode(',',$model['clerk_id'])) ? 'selected' : '' ?>>
+                                                <?= $role['real_name'] ?></option>
+                                        <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>可以设置该账号可以查看那些员工绑定到用户，用户包裹，用户订单，不选则为可以查看所有用户所有包裹、订单等；</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 管理的路线 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <select name="user[line_id][]" multiple

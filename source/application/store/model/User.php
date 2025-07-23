@@ -51,6 +51,7 @@ class User extends UserModel
      */
     public function getList($nickName = '', $gender = -1, $grade = null,$user_code='',$user_id='',$service_id=null)
     {
+   
         // 检索：微信昵称
         !empty($nickName) && $this->where('nickName', 'like', "%$nickName%");
         

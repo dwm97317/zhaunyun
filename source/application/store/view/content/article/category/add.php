@@ -36,7 +36,11 @@
                                     </label>
                                     <label class="am-radio-inline">
                                         <input type="radio" name="category[belong]" value="4" data-am-ucheck>
-                                        包裹预报协议
+                                        隐私协议
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="category[belong]" value="5" data-am-ucheck>
+                                        保险协议
                                     </label>
                                 </div>
                             </div>

@@ -5,6 +5,7 @@ namespace app\common\service\qrcode;
 use Grafika\Color;
 use Grafika\Grafika;
 use app\common\model\dealer\Setting;
+use app\common\model\store\shop\Clerk;
 
 /**
  * 分销二维码
@@ -80,7 +81,7 @@ class Poster extends Base
         $wxappId = $this->dealer['wxapp_id'];
         $scene = '?uid=' . $this->dealer['user_id'] . '&clerk_id=' . $clerk_id; // 用 & 连接参数
         $qrcode = $this->saveClerkQrcode($wxappId, $scene, 'pages/index/index');
-        return $this->saveClerkPoster($qrcode);
+        return $this->saveClerkPoster($qrcode,$clerk_id);
     }
     
         /**
@@ -93,7 +94,7 @@ class Poster extends Base
      */
      
     
-    private function saveClerkPoster($qrcode)
+    private function saveClerkPoster($qrcode,$clerk_id)
     {
        // 实例化图像编辑器
         $editor = Grafika::createEditor(['Gd']);
@@ -118,7 +119,8 @@ class Poster extends Base
         $fontY = 520;
         $Color = new Color($this->config['nickName']['color']);
         $fontPath = Grafika::fontsDir() . DS . 'st-heiti-light.ttc';
-        $nickName = "客服：".$this->dealer['user']['nickName'];
+        $clerkdetail = Clerk::detail($clerk_id);
+        $nickName = "客服：".$clerkdetail['real_name'];
         $editor->text($backdropImage,$nickName, $fontSize, $fontX, $fontY, $Color, $fontPath);
 
         // 保存图片

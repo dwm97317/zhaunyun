@@ -118,6 +118,12 @@ class User extends StoreUserModel
         if(!isset($data['country_id'])){
             $data['country_id'] = '0';
         }
+        if(!empty($data['clerk_id'])){
+            $data['clerk_id'] = implode(',',$data['clerk_id']);
+        }
+        if(!isset($data['clerk_id'])){
+            $data['clerk_id'] = '0';
+        }
         $this->startTrans();
         try {
             // 新增管理员记录
@@ -180,6 +186,12 @@ class User extends StoreUserModel
         if(!isset($data['country_id'])){
             $data['country_id'] = '0';
         }
+        if(!empty($data['clerk_id'])){
+            $data['clerk_id'] = implode(',',$data['clerk_id']);
+        }
+        if(!isset($data['clerk_id'])){
+            $data['clerk_id'] = '0';
+        }
         $this->startTrans();
         try {
             // 更新管理员记录
@@ -238,6 +250,7 @@ class User extends StoreUserModel
             'store_user_id' => $this['store_user_id'],
             'user_name' => $data['user_name'],
             'shop_id' => $this['shop_id'],
+            'clerk_id'=> $this['clerk_id'],
             'is_super' => $this['is_super'],
         ]);
         return true;

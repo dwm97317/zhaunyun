@@ -47,6 +47,68 @@ class Index extends Controller
         $packageModel = new Package();
         $Category = new Category();
         $map = \request()->param();
+        // dump($map);die;
+        $adminstyle = Setting::detail('adminstyle')['values'];
+        $map['limitnum'] = isset($map['limitnum'])?$map['limitnum']:(isset($adminstyle['pageno'])?$adminstyle['pageno']['package']:15);
+              
+        $list = $packageModel->getList($map);
+
+        $shelf =   (new Shelf())->getList(['ware_no' => $this->store['user']['shop_id']]);
+        
+        $countweight = '+∞';
+        if(isset($map['search']) || isset($map['likesearch']) || isset($map['express_num'])){
+            $countweight = $packageModel->getListSum($map);
+        }
+        
+        $shopList = ShopModel::getAllList(['wxapp_id'=> $this->getWxappId()]);
+
+        $batchlist = (new Batch())->getAllwaitList([]);
+        $line = (new Line())->getList([]);
+        $packageService = (new PackageService())->getList([]);
+        //获取设置
+        $set = Setting::detail('store')['values'];
+        
+        $type = 'all';
+   
+        $topcategory = $Category->getListTop($name=null)->toArray()['data'];
+   
+        if(!empty($topcategory)){
+           empty($map['top_id']) && $map['top_id'] = '';
+           $category = $Category->getListTopChild($map['top_id'])->toArray()['data']; 
+        }
+        $storeAddress =(new UserAddress())->getDsList();
+        $packlist = []; 
+        $packlists = '';
+        $i = 0;
+        if(!empty($map['express_num'])){
+            $express_num = str_replace("\r\n","\n",trim($map['express_num']));
+            $express_num = explode("\n",$express_num);
+            
+            foreach ($express_num as $val){
+                $result = $packageModel->where(['express_num'=>$val,'is_delete'=>0])->find();
+                if(empty($result)){
+                    $packlist[$i] = $val;
+                    $i += 1;
+                }
+            }
+            $packlists = implode(',',$packlist);
+        }
+        return $this->fetch('index', compact('i','packlists','list','shopList','line','packageService','type','storeAddress','category','topcategory','set','countweight','batchlist','adminstyle','shelf'));
+    }
+    
+    /**
+     * 用户列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function userindex(){
+   
+        $list = [];
+        $category=[];
+        $packageModel = new Package();
+        $Category = new Category();
+        $map = \request()->param();
+        // dump($map);die;
         $adminstyle = Setting::detail('adminstyle')['values'];
         $map['limitnum'] = isset($map['limitnum'])?$map['limitnum']:(isset($adminstyle['pageno'])?$adminstyle['pageno']['package']:15);
               

@@ -645,6 +645,9 @@ class Setting extends BaseModel
                     'menus'=>[
                             'type'=>'type2',
                             'menu_type'=>20
+                    ],
+                    'insure'=>[
+                        'is_insure_open'=>0, //是否开启保险费用    
                     ]
                 ]
             ],
@@ -1173,6 +1176,7 @@ class Setting extends BaseModel
                         'full_order_price' => '100.00',       // 订单满[?]元
                         'max_money_ratio' => '10',             // 最高可抵扣订单额百分比
                     ],
+                    'exchange'=>"",
                     // 充值说明
                     'describe' => "a) 积分不可兑现、不可转让,仅可在本平台使用;\n" .
                         "b) 您在本平台参加特定活动也可使用积分,详细使用规则以具体活动时的规则为准;\n" .

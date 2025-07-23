@@ -77,6 +77,12 @@ class Article extends Controller
         return $this->renderSuccess(compact('detail'));
      }
 
+     // 保险协议 - 协议
+     public function insurenote(){
+        $category_id = (new CategoryModel())->where(['belong'=>5])->value("category_id");
+        $detail = ArticleModel::where(['category_id'=>$category_id])->find();
+        return $this->renderSuccess(compact('detail'));
+     }
      
 
 }

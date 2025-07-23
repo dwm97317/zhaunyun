@@ -2298,6 +2298,27 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">保险功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启保险
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[insure][is_insure_open]" value="1"
+                                               data-am-ucheck  <?= $values['insure']['is_insure_open'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[insure][is_insure_open]" value="0"
+                                               data-am-ucheck <?= $values['insure']['is_insure_open'] == 0 ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交

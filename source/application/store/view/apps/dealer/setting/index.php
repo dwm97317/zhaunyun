@@ -34,6 +34,29 @@
                                         </div>
                                     </div>
                                     <div class="am-form-group am-padding-top">
+                                        <label class="am-u-sm-3 am-form-label form-require"> 分销模式 </label>
+                                        <div class="am-u-sm-9">
+                                            <label class="am-radio-inline">
+                                                <input type="radio" name="setting[basic][modal]"
+                                                       value="10" data-am-ucheck class="distribution-mode"
+                                                    <?= $data['basic']['values']['modal'] == '10' ? 'checked' : '' ?>>
+                                                常规分销
+                                            </label>
+                                            <label class="am-radio-inline">
+                                                <input type="radio" name="setting[basic][modal]"
+                                                       value="20" data-am-ucheck class="distribution-mode"
+                                                    <?= $data['basic']['values']['modal'] == '20' ? 'checked' : '' ?>>
+                                                积分分销
+                                            </label>
+                                            <label class="am-radio-inline">
+                                                <input type="radio" name="setting[basic][modal]"
+                                                       value="30" data-am-ucheck class="distribution-mode"
+                                                    <?= $data['basic']['values']['modal'] == '30' ? 'checked' : '' ?>>
+                                                优惠券分销
+                                            </label>
+                                        </div>
+                                    </div>
+                                     <div class="am-form-group am-padding-top distribution-level" style="<?= $data['basic']['values']['modal'] != '10' ? 'display:none;' : '' ?>">
                                         <label class="am-u-sm-3 am-form-label form-require"> 分销层级 </label>
                                         <div class="am-u-sm-9">
                                             <label class="am-radio-inline">
@@ -56,6 +79,41 @@
                                             </label>
                                         </div>
                                     </div>
+                                    <div class="am-form-group am-padding-top coupon-distribution" style="<?= $data['basic']['values']['modal'] != '30' ? 'display:none;' : '' ?>">
+                                        <label class="am-u-sm-3 am-form-label form-require"> 优惠券分销 </label>
+                                        <div class="am-u-sm-9">
+                                            <div class="am-input-group am-input-group-sm">
+                                                <span class="am-input-group-label">每邀请</span>
+                                                <input type="number" class="am-form-field" min="1" 
+                                                       name="setting[basic][give_num]"
+                                                       value="<?= $data['basic']['values']['give_num'] ?>" required>
+                                                <span class="am-input-group-label">人注册，可获得一张</span>
+                                                <select id="selectize-tags-1" name="setting[basic][give_coupon]" class="am-form-field">
+                                                    <?php if (isset($list)) : foreach ($list as $key => $item): ?>
+                                                        <option value="<?= $item['coupon_id'] ?>" <?= $item['coupon_id'] == $data['basic']['values']['give_coupon'] ? "selected" : '' ?>>
+                                                            <?= $item['name'] ?>
+                                                        </option>
+                                                    <?php endforeach; endif; ?>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                   <div class="am-form-group am-padding-top point-distribution" style="<?= $data['basic']['values']['modal'] != '20' ? 'display:none;' : '' ?>">
+                                        <label class="am-u-sm-3 am-form-label form-require"> 积分分销 </label>
+                                        <div class="am-u-sm-9">
+                                            <div class="am-input-group am-input-group-sm">
+                                                <span class="am-input-group-label">每邀请</span>
+                                                <input type="number" class="am-form-field" min="1" 
+                                                       name="setting[basic][give_num]"
+                                                       value="<?= $data['basic']['values']['give_num'] ?>" required>
+                                                <span class="am-input-group-label">人注册，可获得积分</span>
+                                                <input type="number" class="am-form-field" min="1" 
+                                                       name="setting[basic][give_point]"
+                                                       value="<?= $data['basic']['values']['give_point'] ?>" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                 </div>
                                 <div class="am-tab-panel am-margin-top-lg" id="tab2">
                                     <div class="am-form-group">
@@ -697,7 +755,24 @@
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
     $(function () {
-
+        $('.distribution-mode').change(function() {
+            var mode = $(this).val();
+            
+            // 隐藏所有设置区域
+            $('.distribution-level').hide();
+            $('.point-distribution').hide();
+            $('.coupon-distribution').hide();
+            
+            // 根据选择显示对应的设置区域
+            if (mode === '10') {
+                $('.distribution-level').show();
+            } else if (mode === '20') {
+                $('.point-distribution').show();
+            } else if (mode === '30') {
+                $('.coupon-distribution').show();
+            }
+        });
+        
         // 选择图片：分销中心首页
         $('.j-index').selectImages({
             name: 'setting[background][index]'

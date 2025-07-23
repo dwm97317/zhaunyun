@@ -172,6 +172,14 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">兑换所需积分 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="number" min="0" class="tpl-form-input" name="coupon[use_point]"
+                                           value="<?= $model['use_point'] ?>" required>
+                                    <small>兑换此优惠券需要的积分数量，0为不参与兑换，大于0的数字即为兑换所需的积分数</small>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">排序 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="number" min="0" class="tpl-form-input" name="coupon[sort]"

@@ -1954,7 +1954,7 @@ class Package extends Controller
          }
          $data = (new PackageModel())->with('packageimage.file')->where($where)->paginate(15);
          foreach($data as $k => $v){
-              $data[$k]['express_num'] = func_substr_replace($v['express_num'],'*',4,6);
+              $data[$k]['express_num'] = func_substr_replace($v['express_num'],'*',4,2);
          }
          return $this->renderSuccess($data);
      }

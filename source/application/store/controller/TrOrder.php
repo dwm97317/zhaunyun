@@ -707,6 +707,16 @@ class TrOrder extends Controller
      * @return mixed
      * @throws \think\exception\DbException
      */
+    public function alluserlist()
+    {
+        return $this->getList('全部订单列表', "all");
+    }
+    
+    /**
+     * 全部订单列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
     public function getTroderList()
     {
         $params = $this->request->param();

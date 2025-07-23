@@ -4,6 +4,7 @@ namespace app\store\controller\apps\dealer;
 use app\store\controller\Controller;
 use app\store\model\dealer\Setting as SettingModel;
 use app\store\model\Goods as GoodsModel;
+use app\store\model\Coupon as CouponModel;
 
 /**
  * 分销设置
@@ -24,9 +25,10 @@ class Setting extends Controller
     {
         if (!$this->request->isAjax()) {
             $data = SettingModel::getAll();
+            $list = (new CouponModel())->getList();
             // 购买指定商品成为分销商：商品列表
             $goodsList = (new GoodsModel)->getListByIds($data['condition']['values']['become__buy_goods_ids']);
-            return $this->fetch('index', compact('data', 'goodsList'));
+            return $this->fetch('index', compact('data', 'goodsList','list'));
         }
         $model = new SettingModel;
         if ($model->edit($this->postData('setting'))) {
