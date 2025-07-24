@@ -217,7 +217,7 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 体积重大于实重  </label>
                                 <div class="am-u-sm-1 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="line[volumeweight_weight]" value="1" required>
+                                    <input min="1" type="number" class="tpl-form-input" name="line[volumeweight_weight]" value="1" required>
                                 </div>
                                 <span style="font-size: 16px;">倍时以体积重计费</span>
                             </div>
