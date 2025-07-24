@@ -51,8 +51,14 @@
                                                     <option value="8000">8000</option>
                                                     <option value="9000">9000</option>
                                                     <option value="10000">10000</option>
-                                                    <option value="139">139</option>
+                                                    <option value="15000">15000</option>
+                                                    <option value="18000">18000</option>
+                                                    <option value="27000">27000</option>
+                                                    <option value="28316">28316</option>
+                                                    
+                                                    <o1ption value="139">139</option>
                                                     <option value="166">166</option>
+                                                    <option value="1000000">1000000</option>
                                                  </select>
                                              </div>
                                              <div class="span">
@@ -350,14 +356,14 @@ function updateAllVolWeights() {
         const weight = parseFloat($row.find('.weight').val()) || 0;
         const quantity = parseFloat($row.find('.num').val()) || 1;
         
-        
+     
         if(length > 0 && width > 0 && height > 0) {
             if(volumeweight_type==20){
                 let volWeight = (weight + ((length * width * height / currentVolRatio) - weight)*bubble_weight)  * quantity; // 先计算数字
             }else{
                 let volWeight = length * width * height / currentVolRatio * quantity; // 先计算数字
             }
-            // console.log(volumeweight_type,645)
+            console.log(volWeight,645)
             volWeight = parseFloat(volWeight.toFixed(2)); // 保留 2 位小数并转回数字
             if (weightvol_integer == 1) {
                 volWeight = Math.ceil(volWeight); // 可以重新赋值，因为用 let
@@ -388,7 +394,7 @@ function updateAllVolWeights() {
 function updateAllWeights() {
     // if(isCalculating) return;
     // isCalculating = true;
-    // console.log(777);
+    console.log(777);
     let totalActualWeight = 0;
     let totalVolWeight = 0;
     let hasValidInputs = false;
@@ -405,15 +411,16 @@ function updateAllWeights() {
         if(length > 0 && width > 0 && height > 0) {
             let volWeight = (length * width * height / currentVolRatio) * quantity;
             
-            //  console.log(bubble_weight,645)
+             console.log(bubble_weight,645)
             if(volumeweight_type==20){
                  volWeight = (weight + ((length * width * height / currentVolRatio) - weight)*bubble_weight/100)  * quantity; // 先计算数字
             }
-            // console.log(volWeight,645)
+            console.log(volWeight,685)
             if (weightvol_integer == 1) {
                 volWeight = Math.ceil(volWeight); // 可以重新赋值，因为用 let
             }
-            $row.find('.volume_weight').val(volWeight.toFixed(2));
+            
+            $row.find('.volume_weight').val(Math.ceil(volWeight * 100) / 100);
             totalVolWeight += volWeight;
             hasValidInputs = true;
         }
@@ -469,8 +476,13 @@ function addfreeRule(btn) {
                 <option value="8000">8000</option>
                 <option value="9000">9000</option>
                 <option value="10000">10000</option>
+                <option value="15000">15000</option>
+                <option value="18000">18000</option>
+                <option value="27000">27000</option>
+                <option value="28316">28316</option>
                 <option value="139">139</option>
                 <option value="166">166</option>
+                <option value="1000000">1000000</option>
             </select>
         </div>
         <div class="span">
