@@ -410,7 +410,7 @@ function updateAllWeights() {
         console.log(currentVolRatio,8877666)
         if(length > 0 && width > 0 && height > 0) {
             let volWeight = (length * width * height / currentVolRatio) * quantity;
-            
+            console.log(volWeight,8877667)
              console.log(bubble_weight,645)
             if(volumeweight_type==20){
                  volWeight = (weight + ((length * width * height / currentVolRatio) - weight)*bubble_weight/100)  * quantity; // 先计算数字
@@ -445,7 +445,7 @@ function updateAllWeights() {
         }
         if($('#oWei').val() !== newChargeableWeight/volumeweight_weight) {
             
-            
+            console.log(volumeweight_weight,123456)
             $('#oWei').val(newChargeableWeight/volumeweight_weight);
             // 3. 关键修改：计费重量变化时强制计算运费
             caleAmount();
