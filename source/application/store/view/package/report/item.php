@@ -151,7 +151,7 @@
                                             <a href="<?= url('store/package.index/edieditpackageitemt', ['id' => $item['id']]) ?>"> <i class="am-icon-pencil"></i> 编辑</a>
                                             <?php endif;?>
                                             <?php if (checkPrivilege('package.index/deletepackageitem')): ?>
-                                            <a href="javascript:void(0);" class="item-delete tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a>
+                                            <a href="javascript:void(0);" class="packageitem-delete tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a>
                                             <?php endif;?>
                                         </div>
                                     </td>
@@ -192,7 +192,7 @@
                                     <td class="am-text-middle"><?= $item['status_cn'] ?></td>
                                     <td class="am-text-middle"><?= $item['logistics_describe'] ?></td>
                                     <td class="am-text-middle"><?= $item['created_time'] ?></td>
-                                    <td class="am-text-middle"><a href="javascript:void(0);" class="packageitem-delete tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a></td>
+                                    <td class="am-text-middle"><a href="javascript:void(0);" class="item-delete tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a></td>
                                 </tr>
                             <?php endforeach?>
                             </tbody>

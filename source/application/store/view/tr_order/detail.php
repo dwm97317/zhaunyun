@@ -569,7 +569,7 @@ function debounce(func, wait) {
 function calefreeforvol(){
     const line_id = $('select[name="data[line_id]"]').val();
     const cale_weight = parseFloat($('#weigthV').val()) || 0;
-    
+    console.log(cale_weight,9876);
     if(!line_id || cale_weight <= 0) {
         return false;
     }
@@ -608,7 +608,7 @@ function calefreeforvol(){
 function calefree(){
     const line_id = $('select[name="data[line_id]"]').val();
     const cale_weight = parseFloat($('#allweight').val()) || 0;
-    
+    console.log(cale_weight,877);
     if(!line_id || cale_weight <= 0) {
         return false;
     }

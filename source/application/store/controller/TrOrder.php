@@ -1463,7 +1463,8 @@ class TrOrder extends Controller
             $weigthV = ceil($weigthV);
         }
         // 取两者中 较重者 
-        $oWeigth = $weigthV>=$data['weight']*$line['volumeweight_weight'] ?$weigthV:$data['weight'];
+        // dump($data['weight']);die;
+        $oWeigth = ($weigthV >= ($data['weight']*$line['volumeweight_weight'])) ? $weigthV:$data['weight'];
         if($line['line_type']==1){
             $oWeigth = $data['weight'];
         }
