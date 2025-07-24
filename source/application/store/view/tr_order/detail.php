@@ -282,10 +282,11 @@ let currentVolRatio = <?= $detail['line']['volumeweight'] ?? 5000 ?>;
 let isCalculating = false;
 let lastLineId = <?= $detail['line_id'] ?>;
 let weightvol_integer = <?= $detail['line']['weightvol_integer'] ?>;
-let volumeweight_weight = <?= $detail['line']['volumeweight_weight'] ?>;
+let volumeweight_weight = <?= $detail['line']['volumeweight_weight'] ?? 1 ?>;
 let volumeweight_type = <?= $detail['line']['volumeweight_type'] ?>;
 let bubble_weight = <?= $detail['line']['bubble_weight'] ?>;
 let lastChargeableWeight = 0;
+console.log(volumeweight_weight,99887112334)
 
 $(function () {
     // 初始化
