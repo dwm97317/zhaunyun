@@ -407,7 +407,7 @@ function updateAllWeights() {
         const height = parseFloat($row.find('.vheight').val()) || 0;
         const weight = parseFloat($row.find('.weight').val()) || 0;
         const quantity = parseFloat($row.find('.num').val()) || 1;
-        
+        console.log(currentVolRatio,8877666)
         if(length > 0 && width > 0 && height > 0) {
             let volWeight = (length * width * height / currentVolRatio) * quantity;
             
