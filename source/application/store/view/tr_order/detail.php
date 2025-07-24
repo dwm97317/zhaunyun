@@ -278,7 +278,7 @@
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
 // 全局变量
-let currentVolRatio =  <?= $detail['line']['volumeweight'] ?>;
+let currentVolRatio = <?= $detail['line']['volumeweight'] ?? 5000 ?>;
 let isCalculating = false;
 let lastLineId = <?= $detail['line_id'] ?>;
 let weightvol_integer = <?= $detail['line']['weightvol_integer'] ?>;
@@ -286,6 +286,7 @@ let volumeweight_weight = <?= $detail['line']['volumeweight_weight'] ?>;
 let volumeweight_type = <?= $detail['line']['volumeweight_type'] ?>;
 let bubble_weight = <?= $detail['line']['bubble_weight'] ?>;
 let lastChargeableWeight = 0;
+
 $(function () {
     // 初始化
     const initialOption = $('#line_select option:selected');
