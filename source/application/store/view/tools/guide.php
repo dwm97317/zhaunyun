@@ -45,7 +45,7 @@
                                     </dt>
                                     <dd class="am-accordion-bd am-collapse">
                                         <div class="am-accordion-content">
-                                            运输方式：<a target="_blank" href="<?= url('/setting.line_category/index') ?>">点击前往</a>
+                                            运输方式：<a target="_blank" href="<?= url('/store/setting.line_category/index') ?>">点击前往</a>
                                         </div>
                                     </dd>
                                 </dl>
@@ -56,7 +56,7 @@
                                     </dt>
                                     <dd class="am-accordion-bd am-collapse">
                                         <div class="am-accordion-content">
-                                            类目管理：<a target="_blank" href="<?= url('/setting.category/index') ?>">点击前往</a>
+                                            类目管理：<a target="_blank" href="<?= url('/store/setting.category/index') ?>">点击前往</a>
                                         </div>
                                     </dd>
                                 </dl>
@@ -67,7 +67,7 @@
                                     </dt>
                                     <dd class="am-accordion-bd am-collapse">
                                         <div class="am-accordion-content">
-                                            集运线路：<a target="_blank" href="<?= url('/setting.line/index') ?>">点击前往</a>
+                                            集运线路：<a target="_blank" href="<?= url('/store/setting.line/index') ?>">点击前往</a>
                                         </div>
                                     </dd>
                                 </dl>
@@ -78,7 +78,7 @@
                                     </dt>
                                     <dd class="am-accordion-bd am-collapse">
                                         <div class="am-accordion-content">
-                                            打包服务：<a target="_blank" href="<?= url('/setting.package/index') ?>">点击前往</a>
+                                            打包服务：<a target="_blank" href="<?= url('/store/setting.package/index') ?>">点击前往</a>
                                         </div>
                                     </dd>
                                 </dl>
@@ -89,7 +89,7 @@
                                     </dt>
                                     <dd class="am-accordion-bd am-collapse">
                                         <div class="am-accordion-content">
-                                            增值服务：<a target="_blank" href="<?= url('/setting.addservice/index') ?>">点击前往</a>
+                                            增值服务：<a target="_blank" href="<?= url('/store/setting.addservice/index') ?>">点击前往</a>
                                         </div>
                                     </dd>
                                 </dl>
