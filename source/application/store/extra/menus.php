@@ -1125,6 +1125,10 @@ return [
                 'name' => 'API接口',
                 'index' => 'tools/apipost',
             ],
+            [
+                'name' => '使用指南',
+                'index' => 'tools/guide',
+            ],
         ]
     ]
 ];

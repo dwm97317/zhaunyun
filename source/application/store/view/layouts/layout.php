@@ -59,6 +59,9 @@
             <!-- 其它功能-->
             <div class="am-fr tpl-header-navbar">
                 <ul>
+                    <li class="am-text-sm tpl-header-navbar-welcome">
+                        <a href="<?= url('tools/guide') ?>"><span>使用指南</span></a>
+                    </li>
                     <?php if (isset($count)): ?>
                     <li style="margin-top:10px" class="am-text-sm tpl-header-navbar-welcome">
                         <div class="am-dropdown" data-am-dropdown>

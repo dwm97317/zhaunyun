@@ -53,5 +53,10 @@ class Tools extends Controller
         return $this->fetch('apipost',compact('list'));
     }
     
-
+    //使用指南
+    public function guide(){
+        $UpdateLog = new UpdateLog;
+        $list = $UpdateLog->getList();
+        return $this->fetch('guide',compact('list'));
+    }
 }
