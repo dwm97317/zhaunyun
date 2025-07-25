@@ -10,6 +10,15 @@ use app\common\model\UpdateLog;
 use app\common\model\ApiPost;
 use app\common\model\Logistics;
 use app\store\model\Setting as SettingModel;
+use app\store\model\store\Shop as ShopModel;
+use app\store\model\LineCategory as LineCategoryModel;
+use app\store\model\Category as CategoryModel;
+use app\store\model\PackageService;
+use app\store\model\LineService;
+use app\store\model\Express as ExpressModel;
+use app\store\model\Ditch as DitchModel;
+use app\store\model\Insure as InsureModel;
+
 /**
  * 工具功能
  * Class Passport
@@ -55,8 +64,16 @@ class Tools extends Controller
     
     //使用指南
     public function guide(){
-        $UpdateLog = new UpdateLog;
-        $list = $UpdateLog->getList();
-        return $this->fetch('guide',compact('list'));
+        $shoplist = (new ShopModel)->getList([]);
+        $countrylist = (new Countries())->getListAllCountry();
+        $linecategory = (new LineCategoryModel)->getList();
+        $categorylist = (new CategoryModel())->getCacheTree();
+        $linelist = (new Line())->getList([]);
+        $packageservicelist = (new PackageService())->getList([]);
+        $lineservicelist = (new LineService())->getList([]);
+        $expresslist = (new ExpressModel)->getList();
+        $ditchlist = (new DitchModel)->getList();
+        $insurelist = (new InsureModel)->getList();
+        return $this->fetch('guide',compact('shoplist','countrylist','linecategory','categorylist','linelist','packageservicelist','lineservicelist','expresslist','ditchlist','insurelist'));
     }
 }

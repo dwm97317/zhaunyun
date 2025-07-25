@@ -70,139 +70,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     </div>
                                 </div>
                             </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require">
-                                    是否开启电话客服
-                                </label>
-                                <div class="am-u-sm-9">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_phone]" value="1"
-                                               data-am-ucheck
-                                            <?= $values['is_phone'] == '1' ? 'checked' : '' ?>
-                                               required>
-                                        开启
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_phone]" value="0"
-                                               data-am-ucheck
-                                            <?= $values['is_phone'] == '0' ? 'checked' : '' ?>>
-                                        关闭
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 客户服务名称 </label>
-                                <div class="am-u-sm-9">
-                                     <input type="text" class="tpl-form-input" name="store[service_name]"
-                                           value="<?= $values['service_name']??'' ?>" required>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 客户服务电话 </label>
-                                <div class="am-u-sm-9">
-                                     <input type="text" class="tpl-form-input" name="store[service_phone]"
-                                           value="<?= $values['service_phone']??'' ?>" required>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require">
-                                    是否开启微信客服
-                                </label>
-                                <div class="am-u-sm-9">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_wechat]" value="1"
-                                               data-am-ucheck
-                                            <?= $values['is_wechat'] == '1' ? 'checked' : '' ?>
-                                               required>
-                                        开启
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_wechat]" value="0"
-                                               data-am-ucheck
-                                            <?= $values['is_wechat'] == '0' ? 'checked' : '' ?>>
-                                        关闭
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 微信客服名称 </label>
-                                <div class="am-u-sm-9">
-                                     <input type="text" class="tpl-form-input" name="store[wechat_name]"
-                                           value="<?= $values['wechat_name']??'' ?>" required>
-                                            <div class="help-block">
-                                        <small>注：默认开启客服功能，修改名称，用户端对应的文字也将修改；</small>
-                                </div>
-                                </div>
-                            </div>
-                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require">
-                                    是否开启微信号展示
-                                </label>
-                                <div class="am-u-sm-9">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_wechathao]" value="1"
-                                               data-am-ucheck
-                                            <?= $values['is_wechathao'] == '1' ? 'checked' : '' ?>
-                                               required>
-                                        开启
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_wechathao]" value="0"
-                                               data-am-ucheck
-                                            <?= $values['is_wechathao'] == '0' ? 'checked' : '' ?>>
-                                        关闭
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 微信客服账号 </label>
-                                <div class="am-u-sm-9">
-                                     <input type="text" class="tpl-form-input" name="store[wechathao]"
-                                           value="<?= $values['wechathao']??'' ?>" required>
-                                            <div class="help-block">
-                                        <small>注：默认开启客服微信号，修改微信号，用户端对应的文字也将修改；</small>
-                                </div>
-                                </div>
-                            </div>
-                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require">
-                                    是否开启客服邮箱展示
-                                </label>
-                                <div class="am-u-sm-9">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_kefuemail]" value="1"
-                                               data-am-ucheck
-                                            <?= $values['is_kefuemail'] == '1' ? 'checked' : '' ?>
-                                               required>
-                                        开启
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_kefuemail]" value="0"
-                                               data-am-ucheck
-                                            <?= $values['is_kefuemail'] == '0' ? 'checked' : '' ?>>
-                                        关闭
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 邮箱客服名称 </label>
-                                <div class="am-u-sm-9">
-                                     <input type="text" class="tpl-form-input" name="store[emailname]"
-                                           value="<?= $values['emailname']??'' ?>" required>
-                                            <div class="help-block">
-                                        <small>注：默认开启客服邮箱，修改邮箱后，用户端对应的文字也将修改；</small>
-                                </div>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 客服邮箱账号 </label>
-                                <div class="am-u-sm-9">
-                                     <input type="text" class="tpl-form-input" name="store[kefuemail]"
-                                           value="<?= $values['kefuemail']??'' ?>" required>
-                                            <div class="help-block">
-                                </div>
-                                </div>
-                            </div>
+                            
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
                                     首页标题模式
@@ -873,6 +741,143 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                             <div class="help-block">
                                                  <small>默认:运输只能够不包破损，建议选择合适的包装方式，可多选，超特大件另议非要。打包后重量会有所增加，实际重量以出货后置！</small>
                                             </div>
+                                </div>
+                            </div>
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">客服设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启电话客服
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_phone]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['is_phone'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_phone]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['is_phone'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 客户服务名称 </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="store[service_name]"
+                                           value="<?= $values['service_name']??'' ?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 客户服务电话 </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="store[service_phone]"
+                                           value="<?= $values['service_phone']??'' ?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启微信客服
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_wechat]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['is_wechat'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_wechat]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['is_wechat'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 微信客服名称 </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="store[wechat_name]"
+                                           value="<?= $values['wechat_name']??'' ?>" required>
+                                            <div class="help-block">
+                                        <small>注：默认开启客服功能，修改名称，用户端对应的文字也将修改；</small>
+                                </div>
+                                </div>
+                            </div>
+                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启微信号展示
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_wechathao]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['is_wechathao'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_wechathao]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['is_wechathao'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 微信客服账号 </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="store[wechathao]"
+                                           value="<?= $values['wechathao']??'' ?>" required>
+                                            <div class="help-block">
+                                        <small>注：默认开启客服微信号，修改微信号，用户端对应的文字也将修改；</small>
+                                </div>
+                                </div>
+                            </div>
+                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否开启客服邮箱展示
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_kefuemail]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['is_kefuemail'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_kefuemail]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['is_kefuemail'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 邮箱客服名称 </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="store[emailname]"
+                                           value="<?= $values['emailname']??'' ?>" required>
+                                            <div class="help-block">
+                                        <small>注：默认开启客服邮箱，修改邮箱后，用户端对应的文字也将修改；</small>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 客服邮箱账号 </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="store[kefuemail]"
+                                           value="<?= $values['kefuemail']??'' ?>" required>
+                                            <div class="help-block">
+                                </div>
                                 </div>
                             </div>
                             
