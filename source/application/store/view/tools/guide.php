@@ -205,6 +205,12 @@
                                             <div class="am-accordion-content">
                                                在<a target="_blank" href="<?= url('/store/setting/userclient') ?>">用户端设置</a>中找到【引导用户关注公众号】，按系统说明设置即可
                                             </div>
+                                            <div class="am-accordion-content">
+                                               公众号二维码在<a target="_blank" href="https://mp.weixin.qq.com/">微信公众平台</a>中，请使用管理员账号扫码登录，有的管理员扫码后有多个选择，请选择标题为【选择服务号登录】，在后台找到【设置与开发】【账号设置】【二维码】眼睛往右边看可以找到【下载二维码】按钮，点击选择合适大小二维码下载；
+                                            </div>
+                                            <div class="am-accordion-content">
+                                               注意：集运物流平台使用公众号主要是让用户接受包裹的出入库等通知，如需发布公众号推文，请在<a target="_blank" href="https://mp.weixin.qq.com/">微信公众平台</a>中自行发布。
+                                            </div>
                                         </dd>
                                     </dl>
                                     
@@ -327,6 +333,20 @@
                                         <div class="am-accordion-content"> 在优惠券设置中，你可以根据需要设置【新用户注册发放】【下单并评价完成后发放】的优惠券，设置此功能必须先添加优惠券
                                         </div>
                                         <div class="am-accordion-content"> 如需回收优惠券，在<a target="_blank" href="<?= url('/store/market.coupon/receive') ?>">领取记录</a>中找到对应的记录删除即可
+                                        </div>
+                                    </dd>
+                                </dl>
+                                
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        用户编号(ID)规则
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            在<a target="_blank" href="<?= url('/store/setting/store') ?>">系统设置</a>中找到【用户编号设置】，并按照所需要的生成规则选择
+                                            系统ID：系统ID为数据库自增的，是数字型，并且不可更改
+                                            编号CODE：推荐使用，编号模式比较灵活，可以自定义编号是随机数字，随机字母，或者固定字母+随机数字组合
+                                            唛头模式：唛头模式是用户可以自定义唛头，因为此功能暂不成熟，暂时不推荐使用，未来开发完善后可以选择
                                         </div>
                                     </dd>
                                 </dl>

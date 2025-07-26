@@ -385,92 +385,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     </div>
                                 </div>
                             </div>
-                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require">
-                                    用户编号模式
-                                </label>
-                                <div class="am-u-sm-9">
-                                    <label class="am-radio-inline" id>
-                                        <input type="radio" name="store[usercode_mode][is_show]" value="0" onclick="switchLineMode(this)"
-                                               data-am-ucheck 
-                                            <?= $values['usercode_mode']['is_show'] == '0' ? 'checked' : '' ?>>
-                                        使用系统用户ID
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[usercode_mode][is_show]" value="1" onclick="switchLineMode(this)"
-                                               data-am-ucheck
-                                            <?= $values['usercode_mode']['is_show'] == '1' ? 'checked' : '' ?>
-                                               required>
-                                        使用唯一编号CODE
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[usercode_mode][is_show]" value="2" onclick="switchLineMode(this)"
-                                               data-am-ucheck
-                                            <?= $values['usercode_mode']['is_show'] == '2' ? 'checked' : '' ?>
-                                               required>
-                                        使用可切换的唛头
-                                    </label>
-                                </div>
-                            </div>
-                            <div id="usercode">
-                            <div class="am-form-group usercoded"> 
-                                <label class="am-u-sm-3  am-form-label form-require"> 用户编号模式设置 </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <select name="store[usercode_mode][mode]"
-                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
-                                            <option value="10" <?= $values['usercode_mode']['mode'] == 10 ? 'selected' : '' ?> >纯数字模式</option>
-                                            <option value="20" <?= $values['usercode_mode']['mode'] == 20 ? 'selected' : '' ?>>纯英文模式</option>
-                                            <option value="30" <?= $values['usercode_mode']['mode'] == 30 ? 'selected' : '' ?> >数字英文混合模式</option>
-                                    </select>
-                                    <div class="help-block">
-                                        <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- 用户编号配置：纯数字模式 -->
-                         
-                            <div id="<?= UserCodeTypeEnum::SHUZI ?>" class="form-tab-group  <?= $values['usercode_mode']['mode'] == 10 ? 'active' : '' ?> <?= ($values['usercode_mode']['mode'] == 10 && $values['usercode_mode']['is_show'] == '0') ? 'disnone' : '' ?> " name="store[usercode_mode][mode]">
-                                <div class="am-form-group">
-                                    <label class="am-u-sm-3 am-form-label form-require">数字个数，最佳是5位</label>
-                                    <div class="am-u-sm-9 am-u-end">
-                                        <input class="tpl-form-input" type="number"
-                                               name="store[usercode_mode][<?= UserCodeTypeEnum::SHUZI ?>][number]" min="4" max="10" value="<?= $values['usercode_mode']['10']['number'] ??'' ?>">
-                                        <small>填5位数生成的范围为：00001-99999</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 用户编号配置：纯英文模式 -->
-                            <div id="<?= UserCodeTypeEnum::ZIMU ?>" class="form-tab-group  <?= $values['usercode_mode']['mode'] == 20 ? 'active' : '' ?> <?= ($values['usercode_mode']['mode'] == 20 && $values['usercode_mode']['is_show'] == '0') ? 'disnone' : '' ?>" name="store[usercode_mode][mode]">
-                                <div class="am-form-group">
-                                    <label class="am-u-sm-3  am-form-label form-require"> 英文个数，最佳是5位数 </label>
-                                    <div class="am-u-sm-9 am-u-end">
-                                        <input type="text" class="tpl-form-input"
-                                               name="store[usercode_mode][<?= UserCodeTypeEnum::ZIMU ?>][char]" value="<?= $values['usercode_mode']['20']['char'] ??'' ?>">
-                                                <small>填5位数随机生成的编号为：BHRTD，JGFDSA，OPRADS...</small>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- 用户编号配置：数字英文混合模式 -->
-                            <div id="<?= UserCodeTypeEnum::SHUMU ?>" name="store[usercode_mode][mode] " class="form-tab-group  <?= $values['usercode_mode']['mode'] == 30 ? 'active' : '' ?> 
-                            <?= ($values['usercode_mode']['mode'] == 30 && $values['usercode_mode']['is_show'] == '0') ? 'disnone' : '' ?>">
-                                <div class="am-form-group">
-                                    <label class="am-u-sm-3  am-form-label form-require"> 头部英文，最佳为2-3个固定子母 </label>
-                                    <div class="am-u-sm-9 am-u-end">
-                                         <input type="text" class="tpl-form-input"
-                                               name="store[usercode_mode][<?= UserCodeTypeEnum::SHUMU ?>][char]" value="<?= $values['usercode_mode']['30']['char'] ??'' ?>">
-                                    </div>
-                                    <label class="am-u-sm-3  am-form-label form-require"> 数字个数，最佳是5位 </label>
-                                    <div class="am-u-sm-9 am-u-end">
-                                        <input type="text" class="tpl-form-input"  value="<?= $values['usercode_mode']['30']['number'] ??'' ?>"
-                                               name="store[usercode_mode][<?= UserCodeTypeEnum::SHUMU ?>][number]">
-                                                <small>子母填【JY】，数字填5生成的范围为：JY00001-JY99999</small>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            </div>
+                             
                             
                             <div class="am-form-group">
                                 <label class="am-u-sm-3  am-form-label form-require"> 运费查询排序方式 </label>
@@ -743,6 +658,95 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                             </div>
                                 </div>
                             </div>
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">用户编号设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    用户编号模式
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline" id>
+                                        <input type="radio" name="store[usercode_mode][is_show]" value="0" onclick="switchLineMode(this)"
+                                               data-am-ucheck 
+                                            <?= $values['usercode_mode']['is_show'] == '0' ? 'checked' : '' ?>>
+                                        使用系统用户ID
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[usercode_mode][is_show]" value="1" onclick="switchLineMode(this)"
+                                               data-am-ucheck
+                                            <?= $values['usercode_mode']['is_show'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        使用唯一编号CODE
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[usercode_mode][is_show]" value="2" onclick="switchLineMode(this)"
+                                               data-am-ucheck
+                                            <?= $values['usercode_mode']['is_show'] == '2' ? 'checked' : '' ?>
+                                               required>
+                                        使用可切换的唛头
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="usercode">
+                            <div class="am-form-group usercoded"> 
+                                <label class="am-u-sm-3  am-form-label form-require"> 用户编号模式设置 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="store[usercode_mode][mode]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="10" <?= $values['usercode_mode']['mode'] == 10 ? 'selected' : '' ?> >纯数字模式</option>
+                                            <option value="20" <?= $values['usercode_mode']['mode'] == 20 ? 'selected' : '' ?>>纯英文模式</option>
+                                            <option value="30" <?= $values['usercode_mode']['mode'] == 30 ? 'selected' : '' ?> >数字英文混合模式</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 用户编号配置：纯数字模式 -->
+                         
+                            <div id="<?= UserCodeTypeEnum::SHUZI ?>" class="form-tab-group  <?= $values['usercode_mode']['mode'] == 10 ? 'active' : '' ?> <?= ($values['usercode_mode']['mode'] == 10 && $values['usercode_mode']['is_show'] == '0') ? 'disnone' : '' ?> " name="store[usercode_mode][mode]">
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-form-label form-require">数字个数，最佳是5位</label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input class="tpl-form-input" type="number"
+                                               name="store[usercode_mode][<?= UserCodeTypeEnum::SHUZI ?>][number]" min="4" max="10" value="<?= $values['usercode_mode']['10']['number'] ??'' ?>">
+                                        <small>填5位数生成的范围为：00001-99999</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 用户编号配置：纯英文模式 -->
+                            <div id="<?= UserCodeTypeEnum::ZIMU ?>" class="form-tab-group  <?= $values['usercode_mode']['mode'] == 20 ? 'active' : '' ?> <?= ($values['usercode_mode']['mode'] == 20 && $values['usercode_mode']['is_show'] == '0') ? 'disnone' : '' ?>" name="store[usercode_mode][mode]">
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3  am-form-label form-require"> 英文个数，最佳是5位数 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input"
+                                               name="store[usercode_mode][<?= UserCodeTypeEnum::ZIMU ?>][char]" value="<?= $values['usercode_mode']['20']['char'] ??'' ?>">
+                                                <small>填5位数随机生成的编号为：BHRTD，JGFDSA，OPRADS...</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 用户编号配置：数字英文混合模式 -->
+                            <div id="<?= UserCodeTypeEnum::SHUMU ?>" name="store[usercode_mode][mode] " class="form-tab-group  <?= $values['usercode_mode']['mode'] == 30 ? 'active' : '' ?> 
+                            <?= ($values['usercode_mode']['mode'] == 30 && $values['usercode_mode']['is_show'] == '0') ? 'disnone' : '' ?>">
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3  am-form-label form-require"> 头部英文，最佳为2-3个固定子母 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                         <input type="text" class="tpl-form-input"
+                                               name="store[usercode_mode][<?= UserCodeTypeEnum::SHUMU ?>][char]" value="<?= $values['usercode_mode']['30']['char'] ??'' ?>">
+                                    </div>
+                                    <label class="am-u-sm-3  am-form-label form-require"> 数字个数，最佳是5位 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input"  value="<?= $values['usercode_mode']['30']['number'] ??'' ?>"
+                                               name="store[usercode_mode][<?= UserCodeTypeEnum::SHUMU ?>][number]">
+                                                <small>子母填【JY】，数字填5生成的范围为：JY00001-JY99999</small>
+                                    </div>
+                                </div>
+                            </div>
+                         
                             
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">客服设置</div>
