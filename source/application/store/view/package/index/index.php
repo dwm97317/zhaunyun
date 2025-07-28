@@ -846,7 +846,7 @@ function renderData(datatotal) {
                     console.log(444);
                     for (var i=0;i<_data.length;i++){
                         // _html += '<option value="">'+_data[i]['shelf_name']+'</option>';
-                        $selected.append('<option value="' + _data[i]['shelf_unit_id'] +'">' +_data[i]['shelf_unit_floor']+ '层'+ _data[i]['shelf_unit_no'] + '号</option>');
+                        $selected.append('<option value="' + _data[i]['shelf_unit_id'] +'">' + _data[i]['shelf_unit_no'] + '</option>');
                     }
                 }
                 _render = true;

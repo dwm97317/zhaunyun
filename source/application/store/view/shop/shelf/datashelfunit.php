@@ -62,6 +62,9 @@
                                 <?php if (checkPrivilege('shop.shelf/download')): ?>
                                 <button type="button" id="j-download" class="am-btn am-btn-secondary am-radius">批量下载</button>
                                 <?php endif; ?>
+                                <?php if (checkPrivilege('shop.shelf/printshelf')): ?>
+                                <button type="button" id="j-print" class="am-btn am-btn-secondary am-radius">打印货位码</button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -277,6 +280,70 @@
 				}
 		   })
         })
+        
+        /**
+         * 批量打印面单
+         */
+        $('#j-print').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+               layer.alert('请先选择货位', {icon: 5});
+                return;
+            }
+     
+            $.ajax({
+                type:"POST",
+                url:'<?= url('store/shop.shelf/printshelfunit') ?>',
+                data:{selectIds:selectIds},
+                dataType:"JSON",
+                success:function(result){
+                    if(result.code ===0){
+                       layer.alert(result.msg, {icon: 5});
+                       return; 
+                    }
+                     $.showModal({
+                        title: '打印预览',
+                        area: [375, '90%'],  // 使用百分比适应不同屏幕
+                        content: '<div style="overflow-y:auto;">' + result + '</div>',
+                        btn: ['打印', '取消'],
+                        success: function($content) {
+                            // 添加打印样式
+                            $content.find('table.container').css({
+                                'margin': '0 auto',
+                                'width': 'auto'
+                            });
+                        },
+                        yes: function(index, $content) {
+                            PrintDiv(result);
+                        }
+                    });
+                }
+            })
+            
+        });
+        
+        
+        
+        function PrintDiv(content) {
+            var win = window.open("");
+            win.document.write('<html><head></head><body>'
+                + content + '</body>'
+                + "</html>");
+            win.document.close();
+            //Chrome
+            if (navigator.userAgent.indexOf("Chrome") != -1) {
+                win.onload = function () {
+                    win.document.execCommand('print');
+                    win.close();
+                }
+            }
+            //Firefox
+            else {
+                win.print();
+                win.close();
+            }
+        }    
      })
      
 </script>

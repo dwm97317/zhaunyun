@@ -88,52 +88,118 @@ class Shelf extends Controller
         return $this->renderError($model->getError() ?: '更新失败');
     }
     
+    public function printshelfunit() {
+        // 1. 获取选择的货位ID
+        $selectIds = $this->postData("selectIds");
+        if (empty($selectIds)) {
+            throw new Exception("未选择任何货位");
+        }
     
+        // 2. 查询货位数据
+        $ShelfUnitModel = new ShelfUnitModel();
+        $data = $ShelfUnitModel->with(['user','shelf'])->where('shelf_unit_id','in',$selectIds)->select();
+        if (count($data)==0) {
+            throw new Exception("未找到货位数据");
+        }
+        require_once APP_PATH . '/common/library/phpqrcode/phpqrcode.php';
+        $QRcode = new \QRcode();
+        // 3. 生成条形码（调整为更适合标签的尺寸）
+        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG();
+       
+        $htmlArray = [];
+        $html = '';
+        $setting = Setting::getItem('store',$data[0]['wxapp_id']);
+        
+        foreach ($data as $item) {
+            $shelfNo = (string)$item['shelf_unit_no'];
+            $item['barcode'] = $generatorSVG->getBarcode($item['shelf_unit_no'], $generatorSVG::TYPE_CODE_128, 2, 50);
+            if($setting['usercode_mode']['is_show']==0){
+                $item['user_id'] = $item['user']['user_code'];
+            }
+            $userDisplay = '';
+            if (!empty($item['user']) || !empty($item['user_id'])) {
+                $userDisplay = '<tr>
+                    <td class="center font_xxxl">'.($item['user']['nickName'] ?? '').($item['user_id'] ?? '').'</td>
+                </tr>';
+            }
+            if ($item['shelf'] && $item['shelf']['barcode_type']==10) {
+                   // 生成二维码 - 使用 phpqrcode
+                ob_start();
+                $QRcode::png($item['shelf_unit_no'], null, QR_ECLEVEL_L, 8, 2);
+                $qrCodeImage = ob_get_clean();
+                $codeHtml = '<img src="data:image/png;base64,' . base64_encode($qrCodeImage) . '" />';
+            } else {
+                // 默认生成条形码
+                $codeHtml = $generatorSVG->getBarcode($item['shelf_unit_no'], $generatorSVG::TYPE_CODE_128, 2, 50);
+            }
+            $item['barcode'] = $codeHtml;
+            $html = $html. '<style>
+                * {
+                	margin: 0;
+                	padding: 0;
+                	font-family: ttt, sans-serif;
+                	
+                }
+                .font_xl {
+            		font-size: 18px;
+            		font-weight: bold
+            	}
+                .font_xxxl {
+                    font-size: 24px;
+                    font-weight: bold;
+                }
+            	table {
+            		margin-top: -1px;
+            		border-collapse: collapse
+            	}
+            	table.nob{
+            	    width:100%;
+            	}
+                table.nob td {
+            		border: 0
+            	}
+            	table.container {
+            		width: 375px;
+            		border: 1px solid #000;
+            		border-bottom: 0
+            		text-align:center;
+            		margin-top:10px;
+            	}
+            
+            	table td {
+            		border-top: 1px solid #000;
+            		border-bottom: 1px solid #000
+            	}
+            	.center{text-align:center;}
+            	.pt20{ padding-top:20px;}
+            	.pb20{ padding-bottom:10px;}
+            </style>
+            <table class="container">
+                <tr>
+            		<td  class="center">
+            			<table class="nob">
+            				<tr center>
+            					<td class="center pt20">'.$item['barcode'].'</td>
+            				</tr>
+            				<tr>
+            					<td class="center font_xl pb20">'.$item['shelf_unit_no'].'</td>
+            				</tr>
+            			</table>
+            		</td>
+            	</tr>
+               '.$userDisplay.'
+            </table>';
+        }
+        return $html;
+    }
 
     // 货位数据
     public function dataShelfUnit(){
-       $map['ware_no'] = $this->store['user']['shop_id'];
        $set = Setting::detail('store')['values'];
-       $list = (new ShelfModel())->getAllList($map);
-       $shelf = [];
-       if(count($list)>0){
-           foreach ($list as $key => $item){
-               $shelf[$key] = $item['id'];
-           }
-       }
-       $data=[];$_map=[];
-       $postData = $this->request->param();
-           
-      if (empty($postData['express_num'])){
-           empty($postData['shelf_id']) && $postData['shelf_ids'] = $shelf;
-           $data = (new ShelfUnit())->getWithShelf($postData);
-        //   dump($data->toArray());die;
-           foreach($data as &$v){
-               $_map['shelf_unit_id'] = $v['shelf_unit_id'];
-               $shelfunititem = (new ShelfUnitItem())->getItemWithPackage($_map);
-               if ($shelfunititem){
-                   $v['shelfunititem'] = $shelfunititem;
-               }
-           }
-      }else{
-           !empty($postData['express_num']) && $_map['express_num'] = $postData['express_num'];
-            $item = (new ShelfUnitItem())->getItemWithPackage($_map);
-            foreach ($item as $k =>$v){
-                $shelf_unit_id[] = $v['shelf_unit_id'];
-            }
-           
-            if(!empty($item)){
-                $sheft_map = ['shelf_unit_ids'=>$shelf_unit_id];
-                $dataShelf = (new ShelfUnit())->getWithShelf($sheft_map);
-                foreach($dataShelf as &$v){
-                  if ($item){
-                      $v['shelfunititem'] = $item;
-                 }
-               }  
-            }
-            $data = $dataShelf;
-      }
-       return $this->fetch('datashelfunit', compact('data','list','set'));
+       $params = $this->request->param();
+       $params['ware_no'] = $this->store['user']['shop_id'];
+       $data = (new ShelfUnit())->getAllList($params);
+       return $this->fetch('datashelfunit', compact('data','set'));
     }
     
     public function reset(){

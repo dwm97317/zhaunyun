@@ -1914,6 +1914,95 @@
                             </div>
                             
                             <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">下单流程功能设置(此功能对应是页面：/subPackage/pages/newusercourse)</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label">自定义步骤设置</label>
+                                <div class="am-u-sm-9">
+                                    <div id="diy-steps-container">
+                                        <?php if (!empty($values['diyuserprocess'])): ?>
+                                            <?php foreach ($values['diyuserprocess'] as $index => $step): ?>
+                                                <div class="diy-step-item am-panel am-panel-default" data-index="<?= $index ?>">
+                                                    <div class="am-panel-hd am-cf">
+                                                        <h3 class="am-panel-title am-fl">步骤 <?= $index + 1 ?></h3>
+                                                        <button type="button" class="am-close am-fr" onclick="removeDiyStep(<?= $index ?>)">&times;</button>
+                                                    </div>
+                                                    <div class="am-panel-bd">
+                                                        <div class="am-form-group">
+                                                            <label class="am-u-sm-3 am-form-label form-require">步骤标题</label>
+                                                            <div class="am-u-sm-9">
+                                                                <input type="text" class="tpl-form-input" 
+                                                                       name="userclient[diyuserprocess][<?= $index ?>][title]" 
+                                                                       value="<?= htmlspecialchars($step['title']) ?>" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="am-form-group">
+                                                            <label class="am-u-sm-3 am-form-label form-require">步骤说明</label>
+                                                            <div class="am-u-sm-9">
+                                                                <input type="text" class="tpl-form-input" 
+                                                                       name="userclient[diyuserprocess][<?= $index ?>][desc]" 
+                                                                       value="<?= htmlspecialchars($step['desc']) ?>" required>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="am-form-group">
+                                                            <label class="am-u-sm-3 am-form-label">宽度设置</label>
+                                                            <div class="am-u-sm-9">
+                                                                <input type="number" class="tpl-form-input" min="1" max="100"
+                                                                       name="userclient[diyuserprocess][<?= $index ?>][width]" 
+                                                                       value="<?= isset($step['width']) ? htmlspecialchars($step['width']) : '100' ?>">
+                                                                <small>请输入1-100之间的数字，表示百分比宽度</small>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="am-form-group">
+                                                            <label class="am-u-sm-3 am-form-label">按钮设置</label>
+                                                            <div class="am-u-sm-9">
+                                                                <div class="buttons-container">
+                                                                    <?php foreach ($step['buttons'] as $btnIndex => $button): ?>
+                                                                        <div class="button-item am-panel am-panel-default am-margin-bottom">
+                                                                            <div class="am-panel-bd">
+                                                                                <div class="am-form-group am-margin-bottom-0">
+                                                                                    <label class="am-u-sm-3 am-form-label">按钮文字</label>
+                                                                                    <div class="am-u-sm-9">
+                                                                                        <input type="text" class="tpl-form-input" 
+                                                                                               name="userclient[diyuserprocess][<?= $index ?>][buttons][<?= $btnIndex ?>][ititle]" 
+                                                                                               value="<?= htmlspecialchars($button['ititle']) ?>">
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="am-form-group am-margin-bottom-0">
+                                                                                    <label class="am-u-sm-3 am-form-label">跳转地址</label>
+                                                                                    <div class="am-u-sm-9">
+                                                                                        <input type="text" class="tpl-form-input" 
+                                                                                               name="userclient[diyuserprocess][<?= $index ?>][buttons][<?= $btnIndex ?>][url]" 
+                                                                                               value="<?= htmlspecialchars($button['url']) ?>">
+                                                                                        <small class="am-block">小程序内部链接使用链接库中的<a target="_blank" href="index.php?s=/store/wxapp.page/links">点击打开链接库</a></small>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="am-text-right">
+                                                                                    <button type="button" class="am-btn am-btn-danger am-btn-xs" onclick="removeButton(this)">删除按钮</button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php endforeach; ?>
+                                                                </div>
+                                                                <button type="button" class="am-btn am-btn-primary am-btn-xs" onclick="addButton(<?= $index ?>)">
+                                                                    <i class="am-icon-plus"></i> 添加按钮
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </div>
+                                    <button type="button" class="am-btn am-btn-success" id="add-diy-step">
+                                        <i class="am-icon-plus"></i> 添加自定义步骤
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">用户端首页引导区功能设置</div>
                             </div>
                             <div class="am-form-group">
@@ -2389,3 +2478,155 @@
         });
     });
 </script>
+<script>
+    // 添加新步骤
+    $('#add-diy-step').click(function() {
+        var index = $('.diy-step-item').length;
+        var html = `
+        <div class="diy-step-item am-panel am-panel-default" data-index="${index}">
+            <div class="am-panel-hd am-cf">
+                <h3 class="am-panel-title am-fl">步骤 ${index + 1}</h3>
+                <button type="button" class="am-close am-fr" onclick="removeDiyStep(${index})">&times;</button>
+            </div>
+            <div class="am-panel-bd">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">步骤标题</label>
+                    <div class="am-u-sm-9">
+                        <input type="text" class="tpl-form-input" 
+                               name="userclient[diyuserprocess][${index}][title]" required>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">步骤说明</label>
+                    <div class="am-u-sm-9">
+                        <input type="text" class="tpl-form-input" 
+                               name="userclient[diyuserprocess][${index}][desc]" required>
+                    </div>
+                </div>
+                
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label">宽度设置</label>
+                    <div class="am-u-sm-9">
+                        <input type="number" class="tpl-form-input" min="1" max="100"
+                               name="userclient[diyuserprocess][${index}][width]" value="100">
+                        <small>请输入1-100之间的数字，表示百分比宽度</small>
+                    </div>
+                </div>
+                
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label">按钮设置</label>
+                    <div class="am-u-sm-9">
+                        <div class="buttons-container">
+                            <div class="button-item am-panel am-panel-default am-margin-bottom">
+                                <div class="am-panel-bd">
+                                    <div class="am-form-group am-margin-bottom-0">
+                                        <label class="am-u-sm-3 am-form-label">按钮文字</label>
+                                        <div class="am-u-sm-9">
+                                            <input type="text" class="tpl-form-input" 
+                                                   name="userclient[diyuserprocess][${index}][buttons][0][ititle]">
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-margin-bottom-0">
+                                        <label class="am-u-sm-3 am-form-label">跳转地址</label>
+                                        <div class="am-u-sm-9">
+                                            <input type="text" class="tpl-form-input" 
+                                                   name="userclient[diyuserprocess][${index}][buttons][0][url]">
+                                            <small class="am-block">小程序内部链接使用链接库中的<a target="_blank" href="index.php?s=/store/wxapp.page/links">点击打开链接库</a></small>
+                                        </div>
+                                    </div>
+                                    <div class="am-text-right">
+                                        <button type="button" class="am-btn am-btn-danger am-btn-xs" onclick="removeButton(this)">删除按钮</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="am-btn am-btn-primary am-btn-xs" onclick="addButton(${index})">
+                            <i class="am-icon-plus"></i> 添加按钮
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        $('#diy-steps-container').append(html);
+    });
+    
+    // 删除步骤
+    function removeDiyStep(index) {
+        $('.diy-step-item[data-index="'+index+'"]').remove();
+        // 重新索引
+        $('.diy-step-item').each(function(newIndex) {
+            $(this).attr('data-index', newIndex);
+            $(this).find('.am-panel-title').text('步骤 ' + (newIndex + 1));
+            // 更新name属性
+            $(this).find('[name^="userclient[diyuserprocess]"]').each(function() {
+                var name = $(this).attr('name');
+                name = name.replace(/\[diyuserprocess\]\[\d+\]/, '[diyuserprocess]['+newIndex+']');
+                $(this).attr('name', name);
+            });
+        });
+    }
+    
+    // 添加按钮
+    function addButton(stepIndex) {
+        var container = $('.diy-step-item[data-index="'+stepIndex+'"] .buttons-container');
+        var btnIndex = container.find('.button-item').length;
+        
+        var html = `
+        <div class="button-item am-panel am-panel-default am-margin-bottom">
+            <div class="am-panel-bd">
+                <div class="am-form-group am-margin-bottom-0">
+                    <label class="am-u-sm-3 am-form-label">按钮文字</label>
+                    <div class="am-u-sm-9">
+                        <input type="text" class="tpl-form-input" 
+                               name="userclient[diyuserprocess][${stepIndex}][buttons][${btnIndex}][ititle]">
+                    </div>
+                </div>
+                <div class="am-form-group am-margin-bottom-0">
+                    <label class="am-u-sm-3 am-form-label">跳转地址</label>
+                    <div class="am-u-sm-9">
+                        <input type="text" class="tpl-form-input" 
+                               name="userclient[diyuserprocess][${stepIndex}][buttons][${btnIndex}][url]">
+                        <small class="am-block">小程序内部链接使用链接库中的<a target="_blank" href="index.php?s=/store/wxapp.page/links">点击打开链接库</a></small>
+                    </div>
+                </div>
+                <div class="am-text-right">
+                    <button type="button" class="am-btn am-btn-danger am-btn-xs" onclick="removeButton(this)">删除按钮</button>
+                </div>
+            </div>
+        </div>`;
+        container.append(html);
+    }
+    
+    // 删除按钮
+    function removeButton(btn) {
+        $(btn).closest('.button-item').remove();
+    }
+</script>
+
+<style>
+    .diy-step-item {
+        margin-bottom: 20px;
+    }
+    .am-panel-hd {
+        padding: 10px 15px;
+    }
+    .button-item .am-panel-bd {
+        padding: 15px;
+    }
+    .am-close {
+        font-size: 20px;
+        line-height: 1;
+        margin-top: -10px;
+    }
+    .buttons-container {
+        margin-bottom: 10px;
+    }
+    #add-diy-step {
+        margin-top: 10px;
+    }
+    .am-form-group small {
+        display: block;
+        margin-top: 5px;
+        color: #888;
+    }
+</style>

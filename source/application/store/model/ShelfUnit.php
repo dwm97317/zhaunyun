@@ -3,6 +3,7 @@ namespace app\store\model;
 use think\Model;
 use app\common\model\ShelfUnit as ShelfUnitModel;
 use app\common\service\QrcodeService;
+use app\store\model\ShelfUnitItem;
 /**
  * 线路模型
  * Class Delivery
@@ -17,17 +18,30 @@ class ShelfUnit extends ShelfUnitModel
             'query'=>\request()->request()
         ]);
     }
+    
+    public function getAllList($query){
+        $ShelfUnitItem = new ShelfUnitItem;
+        return $this->setQueryWhere($query)
+        ->with(['shelf','user'])
+        ->paginate(20,false,[
+            'query'=>\request()->request()
+        ])->each(function($item,$key) use ($ShelfUnitItem){
+            $item['shelfunititem'] = $ShelfUnitItem->where('shelf_unit_id',$item['shelf_unit_id'])->select();
+        });
+    }
 
     public function setListQueryWhere($query){
         return $this->where(['shelf_id'=>$query]);
     }
     
     public function setQueryWhere($query){
+        !empty($query['ware_no']) && $this->where('ware_no','=',$query['ware_no']);
         !empty($query['shelf_ids']) && $this->where('shelf_id','in',$query['shelf_ids']);
         !empty($query['shelf_id']) && $this->where('shelf_id','=',$query['shelf_id']);
         !empty($query['shelf_unit_id']) && $this->where('shelf_unit_id','=',$query['shelf_unit_id']);
         !empty($query['shelf_unit_ids']) && $this->where('shelf_unit_id','in',$query['shelf_unit_ids']);
         !empty($query['search']) && $this->where('shelf_unit_no|shelf_unit_id','like','%'.$query['search'].'%');
+        
         return $this;
     }
     
@@ -73,11 +87,11 @@ class ShelfUnit extends ShelfUnitModel
     
     // 重新生成二维码
     public function resetCode($ids){
-        $list = $this->where('shelf_unit_id','in',$ids)->select();
+        $list = $this->with('shelf')->where('shelf_unit_id','in',$ids)->select();
         $qrcodeService = (new QrcodeService());
         foreach ($list as $v){
-        
-            $update['shelf_unit_qrcode'] = $qrcodeService->create($v['shelf_unit_code']);
+          
+            $update['shelf_unit_qrcode'] = $qrcodeService->createBarcode($v['shelf_unit_code'],$v['shelf']['barcode_type']);
             $this->where(['shelf_unit_id'=>$v['shelf_unit_id']])->update($update);
         } 
         return true;
@@ -151,7 +165,7 @@ class ShelfUnit extends ShelfUnitModel
     
      // 关联货架
     public function Shelf(){
-      return $this->belongsTo('app\store\model\Shelf','shelf_id')->field('id,shelf_no,shelf_name'); 
+      return $this->belongsTo('app\store\model\Shelf','shelf_id')->field('id,shelf_no,shelf_name,barcode_type'); 
     }
     
     public function user(){

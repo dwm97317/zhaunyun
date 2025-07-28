@@ -288,11 +288,29 @@
                                 </div>
                             </li>
                             <li class="link-item">
-                                <div class="row page-name">操作指引</div>
+                                <div class="row page-name">投诉/评价</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/pages/suggestions/serviceevaluation</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">新手教程一</div>
                                 <div class="row am-cf">
                                     <div class="am-fl">地址：</div>
                                     <div class="am-fl">
                                         <span class="x-color-green">/pages/mys/my_xinshouxiadan/my_xinshouxiadan</span>
+                                    </div>
+                                </div>
+                            </li>
+                             <li class="link-item">
+                                <div class="row page-name">新手教程二(可自定义流程)</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/subPackage/pages/newusercourse</span>
                                     </div>
                                 </div>
                             </li>
@@ -424,15 +442,7 @@
                                     </div>
                                 </div>
                             </li>
-                            <li class="link-item">
-                                <div class="row page-name">新手教程</div>
-                                <div class="row am-cf">
-                                    <div class="am-fl">地址：</div>
-                                    <div class="am-fl">
-                                        <span class="x-color-green">/subPackage/pages/newusercourse</span>
-                                    </div>
-                                </div>
-                            </li>
+                           
                             <li class="link-item">
                                 <div class="row page-name">内容详情</div>
                                 <div class="row am-cf">

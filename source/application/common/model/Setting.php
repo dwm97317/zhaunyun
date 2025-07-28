@@ -564,6 +564,56 @@ class Setting extends BaseModel
                         'fourth_title'=>"第四步：支付订单费用",
                         'fourth_remark'=>"包裹打包完成后，可支付包裹运费费用，仓库即会快速发货。",
                     ],
+                    'diyuserprocess'=>[
+                        [
+                            'title'=>'请先预报您的包裹',
+                            'desc'=>'如果您所有物品在家或在公司需要直发海外，请选择上门取件预报。如果您物品在网上购买需要转发海外，请选择自寄集运预报',
+                            'buttons'=>[
+                                [
+                                    'ititle'=>'预报包裹',
+                                    'url'=>'/pages/indexs/baoguoyg/baoguoyg'
+                                ]
+                            ],
+                            'width'=>'100'
+                        ],
+                        [
+                            'title'=>'选择到仓包裹下单',
+                            'desc'=>'如果您的包裹是上门取件下单，这一步请忽略不计。如果您的包裹是自己邮寄，并且已到达仓库，请选择包裹合并下单。',
+                            'buttons'=>[
+                                [
+                                    'ititle'=>'合并下单',
+                                    'url'=>'/pages/indexs/shenqingdb/shenqingdb'
+                                ]
+                            ],
+                            'width'=>'100'
+                        ],
+                        [
+                            'title'=>'待订单打包完成后，支付订单运费',
+                            'desc'=>'上门取件订单包裹到仓，或者自寄集运合并下单后，仓库人员会根据订单信息进行打包，合箱打包完成后，请确认并支付运费。',
+                            'buttons'=>[
+                                [
+                                    'ititle'=>'待支付订单',
+                                    'url'=>'/pages/indexs/my_dingdan/my_dingdan?id=2&type=nopay'
+                                ]
+                            ],
+                            'width'=>'100'
+                        ],
+                        [
+                            'title'=>'订单发货后，等待完成签收',
+                            'desc'=>'支付运费后，订单会由仓库发出，请关注订单物流消息，等待快递员派送。',
+                            'buttons'=>[
+                                [
+                                    'ititle'=>'待收货订单',
+                                    'url'=>'/pages/indexs/my_dingdan/my_dingdan?id=3&type=no_send'
+                                ],
+                                [
+                                    'ititle'=>'已签收订单',
+                                    'url'=>'/pages/indexs/my_dingdan/my_dingdan?id=6&type=complete'
+                                ]
+                            ],
+                            'width'=>'30'
+                        ]
+                    ],
                     'guide'=>[
                         'is_default'=>1, //使用系统默认的
                         'first_image'=>"",
