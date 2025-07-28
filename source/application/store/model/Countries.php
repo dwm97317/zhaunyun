@@ -49,6 +49,8 @@ class Countries extends Country
         foreach ($data as $key =>$value) {
             $country[$key]['title'] = $value['title'];
             $country[$key]['code'] = $value['code'];
+            $country[$key]['prefix'] = $value['prefix'];
+            $country[$key]['three_code'] = $value['three_code'];
             $country[$key]['status'] = $value['status'];
             $country[$key]['sort'] = $value['sort'];
             $country[$key]['is_hot'] = $value['is_hot'];

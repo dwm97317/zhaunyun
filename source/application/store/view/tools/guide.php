@@ -279,6 +279,17 @@
                                             
                                         </dd>
                                     </dl>
+                                    
+                                    <dl class="am-accordion-item">
+                                        <dt class="am-accordion-title">
+                                            小程序仓库地址显示方式设置
+                                        </dt>
+                                        <dd class="am-accordion-bd am-collapse">
+                                            <div class="am-accordion-content">
+                                            在<a target="_blank" href="<?= url('/store/setting/store') ?>">系统设置</a>找到【小程序仓库地址显示方式设置】，选择你需要的显示方式即可
+                                            </div>
+                                        </dd>
+                                    </dl>
                                         
                                     <dt class="am-accordion-title">
                                         支付功能配置
@@ -353,6 +364,38 @@
                                 
                                 <dl class="am-accordion-item">
                                     <dt class="am-accordion-title">
+                                        公众号菜单管理
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            菜单管理：<a target="_blank" href="<?= url('/store/wxapp/mp') ?>">点击前往</a>
+                                        </div>
+                                        <div class="am-accordion-content">
+                                        公众号菜单设置需要在<a target="_blank" href="https://mp.weixin.qq.com/">微信公众平台</a>的服务号中设置跟域名的绑定，此绑定操作请联系系统技术客服。绑定完成后可以在此处设置公众号的菜单，可以跳转你的集运小程序的首页，包裹预报等任意页面，也可以跳转到其他外部网站链接，公众号内部文章等。
+                                        </div>
+                                        
+                                    </dd>
+                                </dl>
+                                
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        公众号自动回复
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            自动回复：<a target="_blank" href="<?= url('/store/wxapp/wechat') ?>">点击前往</a>
+                                        </div>
+                                        <div class="am-accordion-content">
+                                        公众号自动回复设置需要在<a target="_blank" href="https://mp.weixin.qq.com/">微信公众平台</a>的服务号中设置跟域名的绑定，此绑定操作请联系系统技术客服。绑定完成后可以在此处设置自己的回复规则，你可以设置用户关注公众号后展示用户编号，比如你可以设置：欢迎关注xx集运，你的编号为{code}。程序会自动将{code}用用户真实的编号替换。
+                                        </div>
+                                        
+                                    </dd>
+                                </dl>
+                                
+                                
+                                
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
                                         站内信
                                     </dt>
                                     <dd class="am-accordion-bd am-collapse">
@@ -388,6 +431,36 @@
                                         </div>
                                         <div class="am-accordion-content">
                                         如需给添加的管理员设置对应的功能权限，请在【角色管理】中先添加角色，给角色设置能够操作的功能权限；
+                                        </div>
+                                        
+                                    </dd>
+                                </dl>
+                                
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        自提点管理
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            自提点：<a target="_blank" href="<?= url('/store/shop.address/index') ?>">点击前往</a>
+                                        </div>
+                                        <div class="am-accordion-content">
+                                        请根据需要添加自提点，如需要关闭用户自填地址，请在<a target="_blank" href="<?= url('/store/setting/userclient') ?>">用户端设置</a>找到【用户打包功能设置】开启或关闭
+                                        </div>
+                                        
+                                    </dd>
+                                </dl>
+                                
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        仓管账号添加
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            员工管理：<a target="_blank" href="<?= url('/store/shop.clerk/index') ?>">点击前往</a>
+                                        </div>
+                                        <div class="am-accordion-content">
+                                        请根据需要添加员工账号，设置账号密码和对应的功能权限
                                         </div>
                                         
                                     </dd>

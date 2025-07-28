@@ -30,13 +30,13 @@ class QrcodeService {
     
     public function createBarcode($text,$type){
         // dump($text);die;
-        if ($type =='phpQrcode'){
+        if ($type =='10'){
             $rout1 = $this->createQrcodeByQr($text);
-            $rout2 = $this->makeImgWithStr($text,30);
+            $rout2 = $this->makeImgWithStr($text,20);
             $this->CompositeImage([$rout1,$rout2],$rout1);
             return $rout1;
         }
-        if ($type=='barcode'){
+        if ($type=='20'){
              //条形码
             $width = 400;
             $height = 200;
@@ -174,7 +174,7 @@ class QrcodeService {
         require_once APP_PATH.'/common/library/phpqrcode/phpqrcode.php';
         $data = $text;//内容
         $level = 'L';// 纠错级别：L、M、Q、H
-        $size = 6;//元素尺寸
+        $size = 8;//元素尺寸
         $margin = 1;//边距
         $outfile = $this->outPut.date("YmdHis").rand(000000,999999).'.png';
 

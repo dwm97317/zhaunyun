@@ -389,8 +389,14 @@
                                              </a>
                                              <?php endif; ?>
                                              <?php endif; ?>
-                     
-                                          
+                                        </div>
+                                        <div class="tpl-table-black-operation" style="margin-top:10px;">
+                                           <?php if (!empty($item['packageimage'])): ?>
+                                            <a href="javascript:void(0);" class="view-images tpl-table-black-operation-green" 
+                                               data-images='<?= $item['packageimage'] ?>'>
+                                                <i class="iconfont icon-xiangqing"></i> 图片预览
+                                            </a>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -1315,4 +1321,136 @@ function renderData(datatotal) {
         }
 
 </script>
+<!-- 图片预览模态框模板 -->
+<script id="tpl-image-preview" type="text/template">
+    <div class="am-modal am-modal-no-btn image-preview-wrapper" tabindex="-1" id="image-preview-modal">
+        <div class="am-modal-dialog">
+            <div class="am-modal-hd">
+                图片预览 (共{{ images.length }}张)
+                <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+            </div>
+            <div class="am-modal-bd image-content" style="max-height: 80vh; overflow-y: auto;">
+                <div class="image-gallery" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    {{each images item}}
+                    <div class="image-item" style="flex: 0 0 calc(25% - 10px); box-sizing: border-box;">
+                        <img class="preview-image" 
+                             src="{{ item.file_path }}" 
+                             style="max-width: 100%; max-height: 200px; cursor: pointer;"
+                             data-original="{{ item.file_path }}"
+                             alt="包裹图片">
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<!-- Viewer.js CSS -->
+<link rel="stylesheet" href="assets/store/css/viewer.min.css">
 
+<!-- Viewer.js JS -->
+<script src="assets/store/js/viewer.min.js"></script>
+<script>
+$(function() {
+    // 图片预览点击事件
+    $('.view-images').on('click', function(e) {
+        e.stopPropagation(); // 阻止事件冒泡
+        
+        var images = $(this).data('images');
+        
+        // 渲染模态框
+        var modalHtml = template('tpl-image-preview', {images: images});
+        $('body').append(modalHtml);
+        
+        // 显示模态框
+        var $modal = $('#image-preview-modal');
+        $modal.modal({
+            closeViaDimmer: false
+        });
+        
+        // 初始化Viewer.js
+        var gallery = new Viewer(document.querySelector('.image-gallery'), {
+            inline: false,
+            button: true,
+            navbar: true,
+            title: false,
+            toolbar: {
+                zoomIn: 1,
+                zoomOut: 1,
+                oneToOne: 1,
+                reset: 1,
+                prev: 1,
+                play: 0,
+                next: 1,
+                rotateLeft: 1,
+                rotateRight: 1,
+                flipHorizontal: 1,
+                flipVertical: 1,
+            },
+            viewed() {
+                gallery.zoomTo(1);
+            }
+        });
+        
+        // 点击模态框空白区域关闭
+        $modal.on('click', function(e) {
+            // 检查点击的是否是模态框内容区域以外的部分
+            if ($(e.target).hasClass('image-preview-wrapper')) {
+                $modal.modal('close');
+            }
+        });
+        
+        // 点击图片时不关闭模态框
+        $('.image-content').on('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // 模态框关闭时清理
+        $modal.on('closed.modal.amui', function() {
+            gallery.destroy();
+            $(this).remove();
+        });
+    });
+});
+</script>
+<style>
+    /* 模态框样式 */
+    .image-preview-wrapper {
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+    
+    .image-preview-wrapper .am-modal-dialog {
+        background: white;
+        border-radius: 5px;
+        max-width: 90%;
+        max-height: 90vh;
+        overflow: hidden;
+    }
+    
+    /* 图片网格样式 */
+    .image-gallery {
+        padding: 10px;
+    }
+    
+    .image-item {
+        transition: all 0.3s ease;
+    }
+    
+    .image-item:hover {
+        transform: scale(1.03);
+    }
+    
+    .preview-image {
+        border: 1px solid #eee;
+        border-radius: 3px;
+    }
+    
+    /* 关闭按钮样式 */
+    .am-close-spin {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 24px;
+        color: #666;
+    }
+</style>

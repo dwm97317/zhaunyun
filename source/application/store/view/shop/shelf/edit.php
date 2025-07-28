@@ -42,7 +42,35 @@
                                 </div>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 所属仓库 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="shelf[ware_no]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}"  data-select_type='shelf'>
+                                        <option value=""></option>
+                                        <?php if (isset($shopList) && !$shopList->isEmpty()): ?>
+                                          <?php foreach ($shopList as $item): ?>
+                                                <option value="<?= $item['shop_id'] ?>"  <?= $model['ware_no']??'' == $item['shop_id'] ? 'selected' : '' ?>><?= $item['shop_name'] ?></option>
+                                            <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>货架所在仓库</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 条码类型 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="shelf[barcode_type]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" data-select_type='shelf'>
+                                                <option value="10" <?= $model['barcode_type']??'' == 10? 'selected' : '' ?>>二维码</option>
+                                                <option value="20" <?= $model['barcode_type']??'' == 20 ? 'selected' : '' ?>>条形码</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>货架所在仓库</small>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">货架状态 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -72,20 +100,9 @@
     </div>
 </div>
 
-<!-- 图片文件列表模板 -->
-{{include file="layouts/_template/tpl_file_item" /}}
-
-<!-- 文件库弹窗 -->
-{{include file="layouts/_template/file_library" /}}
 
 <script>
     $(function () {
-
-        // 选择图片
-        $('.upload-file').selectImages({
-            name: 'banner[image_id]'
-        });
-
         /**
          * 表单验证提交
          * @type {*}

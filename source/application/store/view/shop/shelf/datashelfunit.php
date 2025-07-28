@@ -70,14 +70,17 @@
                             <thead>
                             <tr>
                                 <th><input id="checkAll" type="checkbox"></th>
-                                <th width='100px'>货位ID</th>
-                                <th width='100px'>货位编号</th>
-                                <th width='150px'>所属货架</th>
-                                <th width='200px'>货位码</th>
+                                <th>货位ID</th>
+                                <th>货位编号</th>
+                                <th>所属货架</th>
+                                <th>规格</th>
+                                <th>专属用户</th>
+                                <th>货位码</th>
                                 <th>货位数据</th>
-                                <th width='150px'>操作</th>
+                                <th>操作</th>
                             </tr>
                             </thead>
+                            <?php $shelftype = [ 10=>'小',20=>'中',30=>'大',40=>'特殊' ]; ?>
                             <tbody id="body">
                             <?php if (count($data)>0): ?>
                                 <?php foreach ($data as $item): ?>
@@ -88,8 +91,24 @@
                                         <td class="am-text-middle"><?= $item['shelf_unit_id'] ?></td>
                                         <td class="am-text-middle"><?= $item['shelf_unit_no'] ?></td>
                                         <td class="am-text-middle"><?= $item['shelf']['shelf_name'] ?></td>
-                                        <td class="am-text-middle"><a target="_blank" href="/<?= $item['shelf_unit_qrcode'];?>"><img width="30" height="30" src="/<?= $item['shelf_unit_qrcode'];?>" ></a></td>
-                                        <td class="am-text-middle"><?php if (isset($item['shelfunititem']) && !$item['shelfunititem']->isEmpty() ): ?><?php foreach($item['shelfunititem'] as $_item):?>
+                                        <td class="am-text-middle"><?= $shelftype[$item['shelf_type']] ?></td>
+                                        <td class="am-text-middle">
+                                            <?= $item['user']['nickName'] ;?>
+                                            
+                                            <?php if($set['usercode_mode']['is_show']==1) :?>
+                                                 <span><?= $item['user']['user_code'] ?></span>
+                                            <?php endif;?>
+                                            <?php if($set['usercode_mode']['is_show']==0) :?>
+                                                 <span><?= $item['user']['user_id'] ?></span>
+                                            <?php endif;?>
+                                        </td>
+                                        <td class="am-text-middle">
+                                            <a target="_blank" href="/<?= $item['shelf_unit_qrcode'];?>">
+                                            <img width="30" height="30" src="/<?= $item['shelf_unit_qrcode'];?>" ></a>
+                                        </td>
+                                        <td class="am-text-middle">
+                                            <?php if (isset($item['shelfunititem']) && !$item['shelfunititem']->isEmpty() ): ?>
+                                        <?php foreach($item['shelfunititem'] as $_item):?>
                                             包裹单号:<?= $_item['express_num']; ?> 
                                             [UID]:<?= $_item['user_id'] ;?>  上架时间：<?= $_item['created_time'] ;?></br>
                                             <?php endforeach ;?>
@@ -97,6 +116,11 @@
                                         </td>
                                         <td class="am-text-middle">
                                             <div class="tpl-table-black-operation">
+                                                    <a href="<?= url('shop.shelf/editshelfunit',
+                                                        ['shelf_unit_id' => $item['shelf_unit_id']]) ?>">
+                                                        <i class="am-icon-pencil"></i> 编辑
+                                                    </a>
+                                             
                                                 <?php if (checkPrivilege('shelf_manager.index/deleteshelfunititem')): ?>
                                                 <?php if(isset($item['shelfunititem']) && !$item['shelfunititem']->isEmpty() ) :?>
                                                     <a href="javascript:;"

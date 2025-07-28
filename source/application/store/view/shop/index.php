@@ -47,10 +47,9 @@
                                 <th>仓库ID</th>
                                 <th>仓库名称</th>
                                 <th>仓库门头</th>
-                                <th>营业时间</th>
                                 <th>联系人</th>
                                 <th>联系电话</th>
-                                <th>邮编</th>
+                                <th>仓库所在国家</th>
                                 <th>仓库地址</th>
                                 <th>仓库状态</th>
                                 <th>排序</th>
@@ -68,13 +67,18 @@
                                             <img src="<?= $item['logo']['file_path'] ?>" width="72" height="72" alt="">
                                         </a>
                                     </td>
-                                    <td class="am-text-middle"><?= $item['shop_hours'] ?></td>
                                     <td class="am-text-middle"><?= $item['linkman'] ?></td>
                                     <td class="am-text-middle"><?= $item['phone'] ?></td>
-                                    <td class="am-text-middle"><?= $item['post'] ?></td>
+                                    <td class="am-text-middle"><?= $item['country']['title'] ?></td>
                                     <td class="am-text-middle">
-                                        <?= $item['region']['province'] ?>  <?= $item['region']['city'] ?>  <?= $item['region']['region'] ?>
-                                        <?= $item['address'] ?>
+                                        <?php 
+                                        if ($item['type']==0) {
+                                            echo $item['region']['province'].$item['region']['city'].$item['region']['region'].$item['address'];
+                                        }
+                                        if ($item['type']==1) {
+                                            echo $item['address'];
+                                        }
+                                        ?>
                                     </td>
                                     <td class="am-text-middle">
                                             <span class="am-badge am-badge-<?= $item['status'] ? 'success' : 'warning' ?>">

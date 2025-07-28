@@ -35,6 +35,11 @@ class Shop extends BaseModel
         return $this->belongsTo("app\\{$module}\\model\\User",'user_id');
     }
     
+    public function country(){
+        $module = self::getCalledModule() ?: 'common';
+        return $this->belongsTo("app\\common\\model\\Country",'country_id');
+    }
+    
     /**
      * 关联包裹图片表
      * @return \think\model\relation\HasMany

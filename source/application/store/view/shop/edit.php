@@ -46,28 +46,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3  am-u-lg-2 am-form-label"> 仓库总负责人(收钱的人) </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <div class="widget-become-goods am-form-file am-margin-top-xs">
-                                        <button type="button"
-                                                class="j-selectUser upload-file am-btn am-btn-secondary am-radius">
-                                            <i class="am-icon-cloud-upload"></i> 选择用户
-                                        </button>
-                                        <div class="user-list uploader-list am-cf">
-                                           <div class="file-item">
-                                               <a href="<?= $model['user']['avatarUrl'] ?>" title="<?= $model['user']['nickName'] ?>" target="_blank">
-                                                 <img src="<?= $model['user']['avatarUrl'] ?>">
-                                               </a>
-                                               <input type="hidden" name="shop[user_id]" value="<?= $model['user']['user_id'] ?>">
-                                           </div>
-                                        </div>
-                                        <div class="am-block">
-                                         <small>点击选择用户更改包裹所属用户</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            
                             <div class="am-form-group am-padding-top">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 联系人 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -90,31 +69,39 @@
                                     <small>例如：8:30-17:30</small>
                                 </div>
                             </div>
-                            
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 寄件分红比例 </label>
-                                <div class="am-u-sm-9 am-u-end" style="width:200px;">
-                                    <input type="text" class="tpl-form-input" name="shop[send_bonus]"
-                                           placeholder="请输入寄件分红比例" value="<?= $model['send_bonus'] ?>" required>
-                                    <small>请填写0-100的正数，如：10</small>
-                                </div>
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 取件分红比例 </label>
-                                <div class="am-u-sm-9 am-u-end" style="width:200px;">
-                                    <input type="text" class="tpl-form-input" name="shop[pick_bonus]"
-                                           placeholder="请输入取件分红比例" value="<?= $model['pick_bonus'] ?>" required>
-                                           
-                                </div>
-                                <label class="am-u-sm-4 am-u-lg-2 am-form-label form-require"> 打包服务分红比例 </label>
-                                <div class="am-u-sm-9 am-u-end" style="width:300px;">
-                                    <input type="text" class="tpl-form-input" name="shop[service_bonus]"
-                                           placeholder="请输入打包服务分红比例" value="<?= $model['service_bonus'] ?>" required>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">运往国家 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="shop[country_id]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" >
+                                        <option value=""></option>
+                                        <?php if (isset($countryList) && !$countryList->isEmpty()):
+                                            foreach ($countryList as $item): ?>
+                                                <?php if(isset($model['country_id'])): ?>
+                                                   <option value="<?= $item['id'] ?>" <?= $model['country_id'] == $item['id'] ? 'selected' : '' ?> ><?= $item['title'] ?></option>
+                                                <?php else: ?>  
+                                                   <option value="<?= $item['id'] ?>" ><?= $item['title'] ?></option>
+                                                <?php endif; ?>
+                                            <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>请选择包裹将要寄往的国家</small>
+                                    </div>
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 仓库邮编 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 仓库位置 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="shop[post]"
-                                           placeholder="请输入仓库邮编" required value="<?= $model['post'];?>">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shop[type]" value="0" data-am-ucheck
+                                            <?= $model['type'] == 0 ? 'checked' : '' ?>>
+                                        国内仓库
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shop[type]" value="1" data-am-ucheck
+                                            <?= $model['type'] == 1 ? 'checked' : '' ?>>
+                                        国外仓库
+                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group am-padding-top">
@@ -150,23 +137,13 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 仓库坐标 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 仓库邮编 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <div class="am-block">
-                                        <input type="text" style="background: none !important;" id="coordinate"
-                                               class="tpl-form-input" name="shop[coordinate]"
-                                               placeholder="请选择门店坐标"
-                                               value="<?= $model['latitude'] ?>,<?= $model['longitude'] ?>"
-                                               readonly=""
-                                               required>
-                                    </div>
-                                    <div class="am-block am-padding-top-xs">
-                                        <iframe id="map" src="<?= url('shop/getpoint') ?>"
-                                                width="915"
-                                                height="610"></iframe>
-                                    </div>
+                                    <input type="text" class="tpl-form-input" name="shop[post]"
+                                           placeholder="请输入仓库邮编" required value="<?= $model['post'];?>">
                                 </div>
                             </div>
+                           
                             <div class="am-form-group am-padding-top">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 仓库简介 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -182,21 +159,7 @@
                                     <small>数字越小越靠前</small>
                                 </div>
                             </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 仓库位置 </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="shop[type]" value="0" data-am-ucheck
-                                            <?= $model['type'] == 0 ? 'checked' : '' ?>>
-                                        国内仓库
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="shop[type]" value="1" data-am-ucheck
-                                            <?= $model['type'] == 1 ? 'checked' : '' ?>>
-                                        国外仓库
-                                    </label>
-                                </div>
-                            </div>
+                            
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 仓库类型 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -210,6 +173,47 @@
                                             <?= $model['is_join'] == 1 ? 'checked' : '' ?>>
                                         加盟仓库
                                     </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-u-lg-2 am-form-label"> 仓库总负责人(收钱的人) </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="widget-become-goods am-form-file am-margin-top-xs">
+                                        <button type="button"
+                                                class="j-selectUser upload-file am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择用户
+                                        </button>
+                                        <div class="user-list uploader-list am-cf">
+                                           <div class="file-item">
+                                               <a href="<?= $model['user']['avatarUrl'] ?>" title="<?= $model['user']['nickName'] ?>" target="_blank">
+                                                 <img src="<?= $model['user']['avatarUrl'] ?>">
+                                               </a>
+                                               <input type="hidden" name="shop[user_id]" value="<?= $model['user']['user_id'] ?>">
+                                           </div>
+                                        </div>
+                                        <div class="am-block">
+                                         <small>点击选择用户更改包裹所属用户</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 寄件分红比例 </label>
+                                <div class="am-u-sm-9 am-u-end" style="width:200px;">
+                                    <input type="text" class="tpl-form-input" name="shop[send_bonus]"
+                                           placeholder="请输入寄件分红比例" value="<?= $model['send_bonus'] ?>" required>
+                                    <small>请填写0-100的正数，如：10</small>
+                                </div>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 取件分红比例 </label>
+                                <div class="am-u-sm-9 am-u-end" style="width:200px;">
+                                    <input type="text" class="tpl-form-input" name="shop[pick_bonus]"
+                                           placeholder="请输入取件分红比例" value="<?= $model['pick_bonus'] ?>" required>
+                                           
+                                </div>
+                                <label class="am-u-sm-4 am-u-lg-2 am-form-label form-require"> 打包服务分红比例 </label>
+                                <div class="am-u-sm-9 am-u-end" style="width:300px;">
+                                    <input type="text" class="tpl-form-input" name="shop[service_bonus]"
+                                           placeholder="请输入打包服务分红比例" value="<?= $model['service_bonus'] ?>" required>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -323,6 +327,51 @@
                 }
             });
         });
+        // 选择图片
+        $('.upload-filed').selectImages({
+            name: 'shop[logo_image_id]'
+        });
+
+        /**
+         * 表单验证提交
+         * @type {*}
+         */
+        $('#my-form').superForm();
+    });
+</script>
+<script>
+    $(function () {
+        // 根据仓库类型显示/隐藏仓库区域
+        function toggleRegionFields() {
+            var isOverseas = $('input[name="shop[type]"]:checked').val() == '1';
+            $('.am-form-group.am-padding-top').toggle(!isOverseas); // 隐藏或显示整个仓库区域表单组
+            $('.x-region-select').toggle(!isOverseas); // 隐藏或显示区域选择
+            
+            // 设置必填验证
+            $('select[name="shop[province_id]"], select[name="shop[city_id]"], select[name="shop[region_id]"]')
+                .prop('required', !isOverseas);
+        }
+
+        // 监听仓库位置radio的变化
+        $('input[name="shop[type]"]').change(toggleRegionFields);
+
+        // 初始化时检查一次
+        toggleRegionFields();
+
+        // 选择用户
+        $('.j-selectUser').click(function () {
+            var $userList = $('.user-list');
+            $.selectData({
+                title: '选择用户',
+                uri: 'user/lists',
+                dataIndex: 'user_id',
+                done: function (data) {
+                    var user = [data[0]];
+                    $userList.html(template('tpl-user-item', user));
+                }
+            });
+        });
+
         // 选择图片
         $('.upload-filed').selectImages({
             name: 'shop[logo_image_id]'

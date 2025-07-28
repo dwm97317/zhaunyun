@@ -5,7 +5,8 @@ namespace app\store\controller;
 use app\store\model\store\Shop as ShopModel;
 use app\store\model\store\shop\ShopBonus as ShopBonusModel;
 use app\store\model\Line;
-use  app\store\model\PackageService;
+use app\store\model\PackageService;
+use app\store\model\Countries;
 /**
  * 仓库管理
  * Class Shop
@@ -82,8 +83,10 @@ class Shop extends Controller
     public function add()
     {
         $model = new ShopModel;
+        $Countries = new Countries;
         if (!$this->request->isAjax()) {
-            return $this->fetch('add');
+            $countryList = (new Countries())->getListAll();
+            return $this->fetch('add',compact('countryList'));
         }
         // 新增记录
         if ($model->add($this->postData('shop'))) {
@@ -102,9 +105,9 @@ class Shop extends Controller
     {
         // 仓库详情
         $model = ShopModel::detail($shop_id);
-        // dump($model->toArray());die;
+        $countryList = (new Countries())->getListAll();
         if (!$this->request->isAjax()) {
-            return $this->fetch('edit', compact('model'));
+            return $this->fetch('edit', compact('model','countryList'));
         }
         // 新增记录
         if ($model->edit($this->postData('shop'))) {

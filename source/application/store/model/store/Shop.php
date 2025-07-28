@@ -22,7 +22,7 @@ class Shop extends ShopModel
     {
         // 查询列表数据
         
-        return $this->setListQueryWhere($param)
+        return $this->setListQueryWhere($param)->with(['country'])
             ->paginate(15, false, [
                 'query' => \request()->request()
             ]);
@@ -153,12 +153,12 @@ class Shop extends ShopModel
     {
         $data['wxapp_id'] = self::$wxapp_id;
         // 格式化坐标信息
-        $coordinate = explode(',', $data['coordinate']);
-        $data['latitude'] = $coordinate[0];
-        $data['longitude'] = $coordinate[1];
+        // $coordinate = explode(',', $data['coordinate']);
+        // $data['latitude'] = $coordinate[0];
+        // $data['longitude'] = $coordinate[1];
         // 生成geohash
-        $Geohash = new Geohash;
-        $data['geohash'] = $Geohash->encode($data['longitude'], $data['latitude']);
+        // $Geohash = new Geohash;
+        // $data['geohash'] = $Geohash->encode($data['longitude'], $data['latitude']);
         return $data;
     }
 

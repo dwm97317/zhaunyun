@@ -539,62 +539,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 </div>
                             </div>
                           
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3  am-form-label form-require"> 用户复制仓库地址收件人显示模式 </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <select name="store[link_mode]"
-                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
-                                            <option value="10" <?= $values['link_mode']== 10 ? 'selected' : '' ?>>仓库名+UID</option>
-                                            <option value="20" <?= $values['link_mode'] == 20 ? 'selected' : '' ?>>仓库联系人+UID</option>
-                                            <option value="30" <?= $values['link_mode'] == 30 ? 'selected' : '' ?>>用户昵称+UID</option>
-                                            <option value="40" <?= $values['link_mode'] == 40 ? 'selected' : '' ?>>仓库简称+UID</option>
-                                            <option value="50" <?= $values['link_mode'] == 50 ? 'selected' : '' ?>>用户昵称</option>
-                                            <option value="60" <?= $values['link_mode'] == 60 ? 'selected' : '' ?>>仓库名</option>
-                                            <option value="70" <?= $values['link_mode'] == 70 ? 'selected' : '' ?>>仓库简称(用户昵称)</option>
-                                    </select>
-                                    <div class="help-block">
-                                        <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3  am-form-label form-require"> 用户复制仓库地址显示模式 </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <select name="store[address_mode]"
-                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
-                                            <option value="10" <?= $values['address_mode']== 10 ? 'selected' : '' ?>>纯仓库地址</option>
-                                            <option value="20" <?= $values['address_mode'] == 20 ? 'selected' : '' ?>>地址+UID</option>
-                                            <option value="30" <?= $values['address_mode'] == 30 ? 'selected' : '' ?>>地址+UID+室</option>
-                                            <option value="40" <?= $values['address_mode'] == 40 ? 'selected' : '' ?>>地址+UID+室+客服</option>
-                                    </select>
-                                    <div class="help-block">
-                                        <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require">
-                                    复制仓库地址时，UID是否修改为xxxx室
-                                </label>
-                                <div class="am-u-sm-9">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_change_uid]" value="1"
-                                               data-am-ucheck
-                                            <?= $values['is_change_uid'] == '1' ? 'checked' : '' ?>
-                                               required>
-                                        开启
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_change_uid]" value="0"
-                                               data-am-ucheck
-                                            <?= $values['is_change_uid'] == '0' ? 'checked' : '' ?>>
-                                        关闭
-                                    </label>
-                                    <div class="help-block">
-                                        <small>此方法可以避免被电商平台隐私打**码，导致的UID看不到</small>
-                                    </div>
-                                </div>
-                            </div>
+                            
                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require"> 滞留件时效 </label>
                                 <div class="am-u-sm-9">
@@ -746,7 +691,67 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     </div>
                                 </div>
                             </div>
-                         
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">小程序仓库地址显示方式设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label form-require"> 用户复制仓库地址收件人显示模式 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="store[link_mode]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="10" <?= $values['link_mode']== 10 ? 'selected' : '' ?>>仓库名+UID</option>
+                                            <option value="20" <?= $values['link_mode'] == 20 ? 'selected' : '' ?>>仓库联系人+UID</option>
+                                            <option value="30" <?= $values['link_mode'] == 30 ? 'selected' : '' ?>>用户昵称+UID</option>
+                                            <option value="40" <?= $values['link_mode'] == 40 ? 'selected' : '' ?>>仓库简称+UID</option>
+                                            <option value="50" <?= $values['link_mode'] == 50 ? 'selected' : '' ?>>用户昵称</option>
+                                            <option value="60" <?= $values['link_mode'] == 60 ? 'selected' : '' ?>>仓库名</option>
+                                            <option value="70" <?= $values['link_mode'] == 70 ? 'selected' : '' ?>>仓库简称(用户昵称)</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label form-require"> 用户复制仓库地址显示模式 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="store[address_mode]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                            <option value="10" <?= $values['address_mode']== 10 ? 'selected' : '' ?>>纯仓库地址</option>
+                                            <option value="20" <?= $values['address_mode'] == 20 ? 'selected' : '' ?>>地址+UID</option>
+                                            <option value="30" <?= $values['address_mode'] == 30 ? 'selected' : '' ?>>地址+UID+室</option>
+                                            <option value="40" <?= $values['address_mode'] == 40 ? 'selected' : '' ?>>地址+UID+室+客服</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    复制仓库地址时，UID是否修改为xxxx室
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_change_uid]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['is_change_uid'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_change_uid]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['is_change_uid'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                    <div class="help-block">
+                                        <small>此方法可以避免被电商平台隐私打**码，导致的UID看不到</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">客服设置</div>

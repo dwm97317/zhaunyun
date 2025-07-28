@@ -9,10 +9,10 @@
                     <div class="am-u-sm-12 am-u-md-6 am-u-lg-6">
                         <div class="am-form-group">
                             <div class="am-btn-toolbar">
-                                <?php if (checkPrivilege('shelf_manager.index/add')): ?>
+                                <?php if (checkPrivilege('shop.shelf/add')): ?>
                                     <div class="am-btn-group am-btn-group-xs">
                                         <a class="am-btn am-btn-default am-btn-success am-radius"
-                                           href="<?= url('shelf_manager.index/add') ?>">
+                                           href="<?= url('shop.shelf/add') ?>">
                                             <span class="am-icon-plus"></span> 新增
                                         </a>
                                     </div>
@@ -47,8 +47,8 @@
                                         <td class="am-text-middle"><?= date('Y-m-d',$item['created_time']) ?></td>
                                         <td class="am-text-middle">
                                             <div class="tpl-table-black-operation">
-                                                <?php if (checkPrivilege('shelf_manager.index/edit')): ?>
-                                                    <a href="<?= url('shelf_manager.index/edit',
+                                                <?php if (checkPrivilege('shop.shelf/edit')): ?>
+                                                    <a href="<?= url('shop.shelf/edit',
                                                         ['id' => $item['id']]) ?>">
                                                         <i class="am-icon-pencil"></i> 编辑
                                                     </a>
@@ -92,7 +92,7 @@
 <script>
     $(function () {
         // 删除元素
-        var url = "<?= url('shelf_manager.index/shelfdelete') ?>";
+        var url = "<?= url('shop.shelf/shelfdelete') ?>";
         $('.item-delete').delete('id', url);
     });
 </script>

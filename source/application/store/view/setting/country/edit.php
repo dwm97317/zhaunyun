@@ -16,13 +16,26 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">代码 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">二字码 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="country[code]"
                                            value="<?= $model['code']?>" required>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">三字码 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="country[three_code]"
+                                           value="<?= $model['three_code']?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">手机号前缀 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="country[prefix]"
+                                           value="<?= $model['prefix']?>" required>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否热门 </label>
                                 <div class="am-u-sm-9 am-u-end">

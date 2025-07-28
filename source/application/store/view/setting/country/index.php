@@ -31,7 +31,9 @@
                             <tr>
                                 <th>ID</th>
                                 <th>国家名称</th>
-                                <th>代码</th>
+                                <th>二字码</th>
+                                <th>三字码</th>
+                                <th>手机号前缀</th>
                                 <th>是否热门</th>
                                 <th>是否默认</th>
                                 <th>排序</th>
@@ -45,6 +47,8 @@
                                         <td class="am-text-middle"><?= $item['id'] ?></td>
                                         <td class="am-text-middle"><?= $item['title'] ?></td>
                                         <td class="am-text-middle"><?= $item['code'] ?></td>
+                                        <td class="am-text-middle"><?= $item['three_code'] ?></td>
+                                        <td class="am-text-middle"><?= $item['prefix'] ?></td>
                                         <td class="am-text-middle"><?= $item['is_hot']==1?"热门":'' ?></td>
                                         <td class="am-text-middle"><?= $item['is_top']==1?"默认":'' ?></td>
                                         <td class="am-text-middle"><?= $item['sort'] ?></td>

@@ -45,7 +45,7 @@
                                     <div class="am-form-group am-fl">
                                         <?php $extractStatus = $request->get('status'); ?>
                                         <select name="status"
-                                                data-am-selected="{btnSize: 'sm', placeholder: '包裹状态'}">
+                                                data-am-selected="{btnSize: 'sm', placeholder: '订单状态'}">
                                             <option value=""></option>
                                             <option value="-1,0,1,2,3,4,5,6,7,8,9"
                                                 <?= $extractStatus === '0' ? 'selected' : '' ?>>全部
@@ -1208,7 +1208,7 @@
                 return false;
             }
             // data.balance = user_id;
-            $.post('store/tr_Order/balanceAndPrice',{id:id,user_id:user_id}, function (result) {
+            $.post('<?= url('store/trOrder/balanceAndPrice') ?>',{id:id,user_id:user_id}, function (result) {
                 if(result.code == 1 ){
                     data.balance = result.data.balance;
                     data.price = result.data.price;
@@ -1220,7 +1220,7 @@
                         , success: function ($content) {
                         }
                         , yes: function ($content) {
-                            $.post('store/tr_Order/payyue',{id:id,user_id:user_id}, function (result) {
+                            $.post('<?= url('store/trOrder/payyue') ?>',{id:id,user_id:user_id}, function (result) {
                                 result.code === 1 ? $.show_success(result.msg, result.url)
                                     : $.show_error(result.msg);
                             });
@@ -1243,7 +1243,7 @@
                 return false;
             }
             
-            $.post('store/tr_Order/balanceAndPrice',{id:id,user_id:user_id}, function (result) {
+            $.post('<?= url('store/trOrder/balanceAndPrice') ?>',{id:id,user_id:user_id}, function (result) {
                 if(result.code == 1 ){
                     data.balance = result.data.balance;
                     data.price = result.data.price;
@@ -1255,7 +1255,7 @@
                         , success: function ($content) {
                         }
                         , yes: function ($content) {
-                            $.post('store/tr_Order/cashforPrice',{id:id,user_id:user_id}, function (result) {
+                            $.post('<?= url('store/trOrder/cashforPrice') ?>',{id:id,user_id:user_id}, function (result) {
                                 result.code === 1 ? $.show_success(result.msg, result.url)
                                     : $.show_error(result.msg);
                             });

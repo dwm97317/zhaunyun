@@ -351,15 +351,15 @@ return [
                 'active' => true,
                 'submenu' => [
                         [
-                            'name' => '货架数据',
-                            'index' => 'shop.shelf/index',
-                            
-                        ],
-                        [
                             'name' => '货位数据',
                             'index' => 'shop.shelf/datashelfunit',
                   
                         ],
+                        [
+                            'name' => '货架数据',
+                            'index' => 'shop.shelf/index',
+                            
+                        ]
                       ]
             ]
         ]

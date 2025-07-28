@@ -44,7 +44,7 @@ class ShelfUnit extends ShelfUnitModel
 
     
     public function details($id){
-       return $this->find($id);
+       return $this->with(['user'])->find($id);
     }
 
     /**
@@ -58,16 +58,13 @@ class ShelfUnit extends ShelfUnitModel
     {
         // 表单验证
         if (!$this->onValidate($data)) return false;
-        // 保存数据
-        if ($this->allowField(true)->save($data)) {
-        }
-        return false;
+        return $this->allowField(true)->save($data);
     }
     
     // 获取货位数据
     public function getWithShelf($query){
         return $this->setQueryWhere($query)
-        ->with('shelf')
+        ->with(['shelf','user'])
         ->alias('a')
         ->paginate(30,false,[
             'query'=>\request()->request()
@@ -87,19 +84,19 @@ class ShelfUnit extends ShelfUnitModel
     }
     
     public function onValidate($data){
-      if (!isset($data['shelf_name']) || empty($data['shelf_name'])) {
+      if (!isset($data['shelf_unit_code']) || empty($data['shelf_unit_code'])) {
          $this->error = '请输入货架名称';
          return false;
       }
-      if (!isset($data['shelf_no']) || empty($data['shelf_no'])) {
+      if (!isset($data['shelf_unit_no']) || empty($data['shelf_unit_no'])) {
         $this->error = '请输入货架编号';
         return false;
       }
-      $res = $this->where(['shelf_no'=>$data['shelf_no']])->find();
-      if ($res){
-          $this->error = '该货架编号已存在';
-          return false;
-      }
+    //   $res = $this->where(['shelf_unit_no'=>$data['shelf_unit_no']])->find();
+    //   if ($res){
+    //       $this->error = '该货位编号已存在';
+    //       return false;
+    //   }
       return true;
     }
     
@@ -120,22 +117,28 @@ class ShelfUnit extends ShelfUnitModel
     }
 
     // 生成货位数据
-    public function getShelfUnitData($data,$shelf,$type){
+    public function getShelfUnitData($data, $shelf, $type) {
         $shelf_unit = [];
-          
-        $allrang = $data['shelf_row']*$data['shelf_column'];
         $qrcodeService = (new QrcodeService());
-        for ($i = 1; $i <= $allrang ; $i++){
-            //   dump(createQrcodeCode($data['shelf_no'].'S'.$i));die;
-                $shelf_unit[$i]['shelf_unit_no'] = 'S'.$i;
-                $shelf_unit[$i]['shelf_unit_code'] = $data['shelf_no'].'S'.$i;
-                $shelf_unit[$i]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'].'S'.$i,$type);
-                $shelf_unit[$i]['shelf_id'] = $shelf;
-                $shelf_unit[$i]['shelf_unit_floor'] = $i; //层数
-                $shelf_unit[$i]['wxapp_id'] = self::$wxapp_id;
+        $K = 0;
+        
+        for ($i = 1; $i <= $data['shelf_column']; $i++) {
+            for ($j = 1; $j <= $data['shelf_row']; $j++) {
+                // Format numbers with leading zeros for single-digit numbers
+                $formattedI = $i < 10 ? '0' . $i : $i;
+                $formattedJ = $j < 10 ? '0' . $j : $j;
+                
+                $shelf_unit[$K]['shelf_unit_no'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
+                $shelf_unit[$K]['shelf_unit_code'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
+                $shelf_unit[$K]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ, $type);
+                $shelf_unit[$K]['shelf_id'] = $shelf;
+                $shelf_unit[$K]['shelf_unit_floor'] = $i; // layer
+                $shelf_unit[$K]['wxapp_id'] = self::$wxapp_id;
+                $K++;
+            }
         } 
         return $shelf_unit;
-    }    
+    }  
     
     /**
      * 软删除
@@ -148,7 +151,11 @@ class ShelfUnit extends ShelfUnitModel
     
      // 关联货架
     public function Shelf(){
-      return $this->belongsTo('app\api\model\Shelf','shelf_id')->field('id,shelf_no,shelf_name'); 
+      return $this->belongsTo('app\store\model\Shelf','shelf_id')->field('id,shelf_no,shelf_name'); 
+    }
+    
+    public function user(){
+      return $this->belongsTo('app\store\model\User','user_id','user_id')->field('user_id,user_code,nickName,avatarUrl'); 
     }
     
     // 根据货架移除货位
