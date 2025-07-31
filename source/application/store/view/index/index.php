@@ -182,40 +182,137 @@
     }, true);
 
 </script>
+
+
 <!-- 登录通知弹窗 -->
-<?php if (!empty($log)): ?>
-<div id="login-notification" style="display: none;width:600px;max-height:300px;z-index: 660;position:relative;">
-    <div class="notification-content" style="padding: 20px;position:relative;height:100%;">
-        <h3 style="color: #333; margin-bottom: 15px;text-align: center;"><?= $log['log_title'] ?></h3>
-        <div style="color: #666; line-height: 1.6; max-height: 180px; overflow-y: auto; padding: 10px;margin-bottom: 50px;">
-            <!-- 这里添加更多内容使滚动条出现 -->
-            <?= $log['log_content'] ?>
+<?php if (!empty($log)) { ?>
+<div id="login-notification">
+    <div class="notification-content">
+        <h3 class="notification-title"><?= htmlspecialchars($log['log_title'] ?? '') ?></h3>
+        <div class="rich-text-content">
+            <?= htmlspecialchars_decode($log['log_content'] ?? '') ?>
         </div>
-        <div style="position:absolute;bottom:20px;left:0;right:0;text-align:center;">
-            <button type="button" class="am-btn am-btn-primary" onclick="closeNotification(<?= $log['log_id'] ?>)" style="margin:0 auto;">我知道了</button>
+        <div class="notification-footer">
+            <button type="button" class="am-btn am-btn-primary" onclick="closeNotification(<?= (int)($log['log_id'] ?? 0) ?>)">我知道了</button>
         </div>
     </div>
 </div>
 
+<style>
+/* 弹窗基础样式 */
+#login-notification {
+    width: 600px;
+    max-width: 90vw; /* 最大宽度为视口宽度的90% */
+}
+
+.notification-content {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.notification-title {
+    color: #333;
+    margin-bottom: 15px;
+    text-align: center;
+    flex-shrink: 0; /* 防止标题被压缩 */
+}
+
+.rich-text-content {
+    color: #666;
+    line-height: 1.6;
+    padding: 10px;
+    flex-grow: 1; /* 填充剩余空间 */
+    min-height: 100px; /* 最小高度 */
+}
+
+.notification-footer {
+    text-align: center;
+    margin-top: 20px;
+    flex-shrink: 0; /* 防止底部被压缩 */
+}
+
+/* 控制富文本中的图片大小 */
+.rich-text-content img {
+    max-width: 100%;
+    height: auto !important;
+    display: block;
+    margin: 5px auto;
+}
+</style>
+
 <script>
 // 页面加载完成后显示通知
 $(document).ready(function() {
-    // 延迟显示通知，确保页面完全加载
     setTimeout(function() {
+        // 获取弹窗内容元素
+        var $notification = $('#login-notification');
+        var $content = $notification.find('.rich-text-content');
+        
+        // 计算内容高度
+        var contentHeight = $content[0].scrollHeight;
+        
+        // 计算弹窗总高度（内容高度 + 固定部分高度）
+        var titleHeight = $notification.find('.notification-title').outerHeight(true);
+        var footerHeight = $notification.find('.notification-footer').outerHeight(true);
+        var paddingHeight = 40; // 上下padding总和
+        var totalHeight = contentHeight + titleHeight + footerHeight + paddingHeight;
+        
+        // 设置高度限制
+        var maxViewportHeight = window.innerHeight * 0.8;
+        var finalHeight = Math.min(totalHeight, maxViewportHeight);
+        
+        // 如果内容超出最大高度，添加滚动
+        if (totalHeight > maxViewportHeight) {
+            $content.css({
+                'max-height': (maxViewportHeight - titleHeight - footerHeight - paddingHeight) + 'px',
+                'overflow-y': 'auto'
+            });
+            finalHeight = maxViewportHeight;
+        }
+        
+        // 显示弹窗
         layer.open({
             type: 1,
             title: false,
-            closeBtn: 1, // 显示关闭按钮
-            shadeClose: true, // 点击遮罩关闭
-            area: ['600px', '300px'], // 设置宽高
+            closeBtn: 1,
+            shadeClose: true,
+            area: ['600px', finalHeight + 'px'],
             shade: 0,
-            content: $('#login-notification'),
-            zIndex: layer.zIndex, // 使用layer的zIndex管理
+            content: $notification,
+            zIndex: layer.zIndex,
             success: function(layero, index) {
-                // 确保弹窗内的点击事件不会冒泡到遮罩层
+                // 防止点击事件冒泡
                 $(layero).find('.notification-content').on('click', function(e) {
                     e.stopPropagation();
                 });
+                
+                // 窗口大小变化时重新计算
+                $(window).on('resize.notification', function() {
+                    var newContentHeight = $content[0].scrollHeight;
+                    var newTotalHeight = newContentHeight + titleHeight + footerHeight + paddingHeight;
+                    var newFinalHeight = Math.min(newTotalHeight, window.innerHeight * 0.8);
+                    
+                    layer.style(index, {
+                        height: newFinalHeight + 'px'
+                    });
+                    
+                    if (newTotalHeight > window.innerHeight * 0.8) {
+                        $content.css({
+                            'max-height': (window.innerHeight * 0.8 - titleHeight - footerHeight - paddingHeight) + 'px',
+                            'overflow-y': 'auto'
+                        });
+                    } else {
+                        $content.css({
+                            'max-height': 'none',
+                            'overflow-y': 'visible'
+                        });
+                    }
+                });
+            },
+            end: function() {
+                // 移除resize事件监听
+                $(window).off('resize.notification');
             }
         });
     }, 1000);
@@ -224,17 +321,16 @@ $(document).ready(function() {
 // 关闭通知
 function closeNotification(id) {
     layer.closeAll();
-     $.ajax({
-           url:'<?= url('store/tools/addwxapplog') ?>',
-           type:"get",
-           data:{log_id:id},
-           success:function(result){
-                if(result.code ===0){
-                   
-                }
-           }
-           
-      })
+    $.ajax({
+        url: '<?= url('store/tools/addwxapplog') ?>',
+        type: "get",
+        data: {log_id: id},
+        success: function(result) {
+            if(result.code === 0) {
+                // 处理成功
+            }
+        }
+    });
 }
 </script>
-<?php endif; ?>
+<?php } ?>

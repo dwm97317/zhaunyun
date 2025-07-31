@@ -66,20 +66,20 @@
 
 <script src="assets/common/plugins/umeditor/umeditor.config.js?v=<?= $version ?>"></script>
 <script src="assets/common/plugins/umeditor/umeditor.min.js"></script>
+<script src="assets/store/js/file.library.js?v=2.2.55"></script>
+<script src="assets/store/js/app.js?v=2.2.55"></script>
+
 <script>
     $(function () {
-         // 富文本编辑器
-        UM.getEditor('container', {
-            initialFrameWidth: 375 + 15,
-            initialFrameHeight: 400
-        });
-        /**
-         * 表单验证提交
-         * @type {*}
-         */
-        $('#my-form').superForm();
-
+    // 再初始化 UEditor
+    UM.getEditor('container', {
+        initialFrameWidth: 375 + 15,
+        initialFrameHeight: 400
     });
+
+    // 表单提交
+    $('#my-form').superForm();
+});
 </script>
 <style>
 /* 文件库 */

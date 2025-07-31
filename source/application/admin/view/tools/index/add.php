@@ -48,7 +48,7 @@
     </div>
 </div>
 
-<!-- 图片文件列表模板 -->
+
 <script id="tpl-file-item" type="text/template">
     {{ each list }}
     <div class="file-item">
@@ -68,18 +68,15 @@
 <script src="assets/common/plugins/umeditor/umeditor.min.js"></script>
 <script>
     $(function () {
-         // 富文本编辑器
-        UM.getEditor('container', {
-            initialFrameWidth: 375 + 15,
-            initialFrameHeight: 400
-        });
-        /**
-         * 表单验证提交
-         * @type {*}
-         */
-        $('#my-form').superForm();
-
+    // 再初始化 UEditor
+    UM.getEditor('container', {
+        initialFrameWidth: 375 + 15,
+        initialFrameHeight: 400
     });
+
+    // 表单提交
+    $('#my-form').superForm();
+});
 </script>
 <style>
 /* 文件库 */
