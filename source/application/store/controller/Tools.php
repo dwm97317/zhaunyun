@@ -7,6 +7,7 @@ use app\store\model\Countries;
 use app\api\controller\Page;
 use app\store\model\Line;
 use app\common\model\UpdateLog;
+use app\common\model\UpdateLogWxapp;
 use app\common\model\ApiPost;
 use app\common\model\Logistics;
 use app\store\model\Setting as SettingModel;
@@ -55,6 +56,15 @@ class Tools extends Controller
         $list = $UpdateLog->getList();
         return $this->fetch('updatelog',compact('list'));
     }
+    
+    //获取更新日志
+    public function addwxapplog(){
+        $UpdateLogWxapp = new UpdateLogWxapp;
+        $param = $this->request->param();
+        $UpdateLogWxapp->add($param);
+        return $this->renderSuccess('添加成功');
+    }
+    
     
     public function apipost(){
         $ApiPost = new ApiPost;

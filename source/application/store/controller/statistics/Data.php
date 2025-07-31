@@ -5,7 +5,10 @@ namespace app\store\controller\statistics;
 use app\store\controller\Controller;
 use app\store\service\statistics\Data as StatisticsDataService;
 use app\store\model\Inpack;
-
+use think\Db;
+use app\store\model\store\shop\Clerk;
+use app\store\model\User as UserModel;
+use app\store\model\Package as PackageModel;
 /**
  * 数据概况
  * Class Data
@@ -28,7 +31,62 @@ class Data extends Controller
         parent::_initialize();
         $this->statisticsDataService = new StatisticsDataService;
     }
-
+    
+    /**
+ * 统计用户首次入库时间
+ * @return mixed
+ * @throws \think\Exception
+ */
+public function firstenter()
+{ 
+    $param = $this->request->param();
+    $startTime = input('start_time', date('Y-m-01'));
+    $endTime = input('end_time', date('Y-m-d'));
+    $UserModel = new UserModel;
+    $Clerk = new Clerk;
+    $PackageModel = new PackageModel;
+    $where = [];
+    
+    // 如果有客服筛选条件
+    if(!empty($param['service_id'])){
+        $where['u.service_id'] = $param['service_id'];
+    }
+    
+    // 获取有权限的客服列表
+    $servicelist = $Clerk->where('clerk_authority','like','%is_myuser%')
+                        ->where('clerk_authority','like','%is_myuserpackage%')
+                        ->where('is_delete',0)
+                        ->select();
+    
+    // 步骤1: 获取在时间范围内首次入库的客户
+    $firstEnterQuery = $PackageModel
+        ->field('member_id, MIN(entering_warehouse_time) AS first_enter_time')
+        ->where('entering_warehouse_time', 'between', [$startTime, $endTime])
+        ->where('is_delete',0)
+        ->where('wxapp_id',10001)
+        ->group('member_id');
+    
+    // 步骤2: 统计这些客户在时间范围内的总包裹数
+    $list = $UserModel
+        ->alias('u')
+        ->join([$firstEnterQuery->buildSql() => 'fc'], 'u.user_id = fc.member_id')
+        ->join('package ep', 'fc.member_id = ep.member_id AND ep.entering_warehouse_time BETWEEN :start AND :end')
+        ->where($where)  // 添加客服筛选条件
+        ->where('ep.is_delete',0)
+        ->bind(['start' => $startTime, 'end' => $endTime])
+        ->field('u.user_id, u.nickName, u.mobile, u.service_id, fc.first_enter_time, COUNT(ep.express_num) AS total_packages')
+        ->group('u.user_id, u.nickName, fc.first_enter_time')
+        ->order('total_packages desc')
+        ->select();
+    
+    // 获取所有客服信息用于显示客服名称
+    $clerkList = $Clerk->column('real_name', 'clerk_id');
+    foreach($list as &$item){
+        $item['service_name'] = $clerkList[$item['service_id']] ?? '无归属客服';
+    }
+    
+    return $this->fetch('firstenter',compact('list','servicelist'));  
+}
     /**
      * 数据统计主页
      * @return mixed

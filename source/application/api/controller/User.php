@@ -71,6 +71,14 @@ class User extends Controller
         return $this->renderSuccess($list);
     }
     
+    //获取用户列表
+    public function getuserList(){
+        $param = $this->request->param();
+        $model = new UserModel;
+        $list = $model->getList($param);
+        return $this->renderSuccess($list);
+    }
+    
     public function clerklogin()
     {
         $model = new UserModel;

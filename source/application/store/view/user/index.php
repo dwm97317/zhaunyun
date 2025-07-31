@@ -170,7 +170,6 @@
                                           <?php endif;?>
                                     </td>
                                     <td class="am-text-middle">
-                                        
                                         开放平台ID:<?= $item['union_id'] ?> <br> 
                                         小程序ID:<?= $item['open_id'] ?> <br>
                                         公众号ID:<?= $item['gzh_openid'] ?> <br> 
@@ -784,10 +783,6 @@
             var selectIds = checker.getCheckSelect();
             if (selectIds.length==0){
                 layer.alert('请先选择用户', {icon: 5});
-                return;
-            }
-            if (selectIds.length>1){
-                layer.alert('只能选择1个用户', {icon: 5});
                 return;
             }
             data.selectId = selectIds.join(',');

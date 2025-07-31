@@ -7,19 +7,18 @@
                         <fieldset>
                             <div class="tips am-margin-top-sm am-margin-bottom-sm">
                                 <div class="pre">
-                                    <p>
-                                        模板消息仅用于微信小程序向用户发送服务通知，因微信限制，每笔支付订单可允许向用户在7天内推送最多3条模板消息。
+                                    <p>模板消息仅用于微信小程序向用户发送服务通知，因微信限制，每笔支付订单可允许向用户在7天内推送最多3条模板消息。
                                         <a href="<?= url('store/setting.help/tplmsg') ?>" target="_blank">如何获取模板消息ID？</a>
                                     </p>
                                     <p>第一步：<a class="set_industry" href="javascript:;">设置所属行业</a></p>
                                 </div>
                             </div>
                             <div class="widget-head am-cf">
-                                <div class="widget-title am-fl">是否为老模板消息（微信模板消息更改为了类目消息，2023年8月后注册的公众号请选择否）</div>
+                                <div class="widget-title am-fl">是否海外主体(海外主体能应用的模板有限)/div>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
-                                    是否启用
+                                    是否海外
                                 </label>
                                 <div class="am-u-sm-9">
                                     <label class="am-radio-inline">

@@ -53,23 +53,19 @@ class Referee extends RefereeModel
         $model->add($referee_id, $user_id, 1);
         //根据分销模式来决定是赠送优惠券还是积分
         //积分分销
-        if(isset($setting['modal']) && $setting['modal']!=10){
+        if(isset($setting['modal']) && (in_array(20,$setting['modal']) || in_array(30,$setting['modal']))){
             $count = $model->where('dealer_id',$referee_id)->where('is_settle',0)->count();
-         
-            if($count >= $setting['give_num']){
-                if ($setting['modal'] == 20) {
-                    UserModel::detail($referee_id)->setIncPoints($setting['give_point'], '邀请新人奖励');
-                }elseif ($setting['modal'] == 30) {
-                    (new UserCoupon())->receive(User::detail($referee_id), $setting['give_coupon']);
-                }
-                $model->where('dealer_id', $referee_id)->where('is_settle', 0)->limit($setting['give_num'])->update(['is_settle' => 1]);
+            if($count >= $setting['give_num'] && in_array(30,$setting['modal'])){
+                 (new UserCoupon())->receive(User::detail($referee_id), $setting['give_coupon']);
+                 $model->where('dealer_id', $referee_id)->where('is_settle', 0)->limit($setting['give_num'])->update(['is_settle' => 1]);
+            }
+            if($count >= $setting['give_pnum'] && in_array(20,$setting['modal'])){
+                 UserModel::detail($referee_id)->setIncPoints($setting['give_point'], '邀请新人奖励');
+                 $model->where('dealer_id', $referee_id)->where('is_settle_point', 0)->limit($setting['give_num'])->update(['is_settle_point' => 1]);
             }
             
         }
-        //优惠券分销
-        if($setting['modal']==30){
-            
-        }
+        
         // # 记录二级推荐关系
         if ($setting['level'] >= 2) {
             // 二级分销商id

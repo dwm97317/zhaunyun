@@ -59,7 +59,7 @@ class Controller extends \think\Controller
     {
         // 商家登录信息
         $this->store = Session::get('yoshop_store');
-        // dump($this->store);die;
+   
         // 当前路由信息
         $this->getRouteinfo();
         // 验证登录状态
@@ -98,6 +98,7 @@ private function layout()
         // 验证当前请求是否在白名单
         if (!in_array($this->routeUri, $this->notLayoutAction)) {
             $storeData = $this->store;
+           
             $Inpack = new Inpack;
             $storeData['wxapp']['end_time'] = date("Y-m-d",$storeData['wxapp']['end_time']);
             // 输出到view

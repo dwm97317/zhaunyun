@@ -3,6 +3,7 @@
 namespace app\common\model;
 
 use think\Request;
+use app\common\model\UpdateLogWxapp;
 /**
  * 更新日志
  * Class UpdateLog
@@ -23,6 +24,27 @@ class UpdateLog extends BaseModel
             ->paginate(15, false, [
                 'query' => Request::instance()->request()
             ]);
+    }
+    
+    /**
+     * 获取列表
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getLastlog()
+    {
+       // 查询商家已查看的日志ID
+        $readLogIds = (new UpdateLogWxapp())
+            ->where('wxapp_id', self::$wxapp_id)
+            ->column('log_id');
+        
+        // 查询未读的最新日志
+        $latestLog = self::useGlobalScope(false)
+            ->whereNotIn('log_id', $readLogIds ?: [0])
+            ->order('log_id', 'desc')
+            ->find();
+        
+        return $latestLog;
     }
     
      /**

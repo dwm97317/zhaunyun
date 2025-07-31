@@ -38,6 +38,15 @@ class User extends UserModel
          $wxapp_id = self::$wxapp_id;
          return $wxapp_id;
     }
+    
+    public function getList($query){
+        return $this->where('nickName|user_id|user_code','like','%'.$query['keyword'].'%')
+            ->where('is_delete', '=', 0)
+            ->order(['create_time' => 'desc'])
+            ->paginate(15, false, [
+                'query' => request()->request()
+            ]);
+    }
 
     /**
      * 获取用户信息

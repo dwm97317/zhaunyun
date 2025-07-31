@@ -106,7 +106,7 @@ class hantePay extends config{
         return [
             'prepay_id' => $per[1],
             'nonceStr' =>  $prepay['data']->nonce_str,
-            'timeStamp' => $prepay['data']->time_stamp,
+            'timeStamp' => substr($prepay['data']->time_stamp, 0, 10),
             'paySign' => $prepay['data']->pay_sign,
         ];
     }

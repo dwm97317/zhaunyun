@@ -625,6 +625,10 @@ return [
                 'index' => 'statistics.data/index',
             ],
             [
+                'name' => '首次入库',
+                'index' => 'statistics.data/firstenter',
+            ],
+            [
                 'name' => '国家统计',
                 'index' => 'statistics.data/country',
             ],

@@ -1466,6 +1466,27 @@
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
+                                    进入申请打包页面时，是否自动弹窗隐私协议
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[packit][is_privacy]" value="1"
+                                               data-am-ucheck  <?= $values['packit']['is_privacy'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[packit][is_privacy]" value="0"
+                                               data-am-ucheck <?= $values['packit']['is_privacy'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>设置开启后，进入打包页面，则会优先弹窗阅读隐私协议，阅读完毕后才能关闭</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
                                     是否在提交打包前需要完善用户资料
                                 </label>
                                   <div class="am-u-sm-9">
@@ -1484,6 +1505,7 @@
                                     </div>
                                 </div>
                             </div>
+                            
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
                                     是否在提交打包前可以填写代收款（代收货款）
@@ -1951,7 +1973,7 @@
                                                                 <input type="number" class="tpl-form-input" min="1" max="100"
                                                                        name="userclient[diyuserprocess][<?= $index ?>][width]" 
                                                                        value="<?= isset($step['width']) ? htmlspecialchars($step['width']) : '100' ?>">
-                                                                <small>请输入1-100之间的数字，表示百分比宽度</small>
+                                                                <small>一个按钮请填写100，两个填写30，最好不要超过2个</small>
                                                             </div>
                                                         </div>
                                                         
@@ -2509,7 +2531,7 @@
                     <div class="am-u-sm-9">
                         <input type="number" class="tpl-form-input" min="1" max="100"
                                name="userclient[diyuserprocess][${index}][width]" value="100">
-                        <small>请输入1-100之间的数字，表示百分比宽度</small>
+                        <small>一个按钮请填写100，两个填写30，最好不要超过2个</small>
                     </div>
                 </div>
                 

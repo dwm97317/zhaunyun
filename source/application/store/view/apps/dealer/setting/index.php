@@ -36,27 +36,27 @@
                                     <div class="am-form-group am-padding-top">
                                         <label class="am-u-sm-3 am-form-label form-require"> 分销模式 </label>
                                         <div class="am-u-sm-9">
-                                            <label class="am-radio-inline">
-                                                <input type="radio" name="setting[basic][modal]"
+                                            <label class="am-checkbox-inline">
+                                                <input type="checkbox" name="setting[basic][modal][]"
                                                        value="10" data-am-ucheck class="distribution-mode"
-                                                    <?= $data['basic']['values']['modal'] == '10' ? 'checked' : '' ?>>
+                                                     <?= in_array('10', $data['basic']['values']['modal']) ? 'checked' : '' ?>>
                                                 常规分销
                                             </label>
-                                            <label class="am-radio-inline">
-                                                <input type="radio" name="setting[basic][modal]"
+                                            <label class="am-checkbox-inline">
+                                                <input type="checkbox" name="setting[basic][modal][]"
                                                        value="20" data-am-ucheck class="distribution-mode"
-                                                    <?= $data['basic']['values']['modal'] == '20' ? 'checked' : '' ?>>
+                                                     <?= in_array('20', $data['basic']['values']['modal']) ? 'checked' : '' ?>>
                                                 积分分销
                                             </label>
-                                            <label class="am-radio-inline">
-                                                <input type="radio" name="setting[basic][modal]"
+                                            <label class="am-checkbox-inline">
+                                                <input type="checkbox" name="setting[basic][modal][]"
                                                        value="30" data-am-ucheck class="distribution-mode"
-                                                    <?= $data['basic']['values']['modal'] == '30' ? 'checked' : '' ?>>
+                                                     <?= in_array('30', $data['basic']['values']['modal']) ? 'checked' : '' ?>>
                                                 优惠券分销
                                             </label>
                                         </div>
                                     </div>
-                                     <div class="am-form-group am-padding-top distribution-level" style="<?= $data['basic']['values']['modal'] != '10' ? 'display:none;' : '' ?>">
+                                    <div class="am-form-group am-padding-top distribution-level" style="<?= !in_array('10', $data['basic']['values']['modal']) ? 'display:none;' : '' ?>">
                                         <label class="am-u-sm-3 am-form-label form-require"> 分销层级 </label>
                                         <div class="am-u-sm-9">
                                             <label class="am-radio-inline">
@@ -79,7 +79,22 @@
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="am-form-group am-padding-top coupon-distribution" style="<?= $data['basic']['values']['modal'] != '30' ? 'display:none;' : '' ?>">
+                                    <div class="am-form-group am-padding-top point-distribution" style="<?= !in_array('20', $data['basic']['values']['modal']) ? 'display:none;' : '' ?>">
+                                        <label class="am-u-sm-3 am-form-label form-require"> 积分分销 </label>
+                                        <div class="am-u-sm-9">
+                                            <div class="am-input-group am-input-group-sm">
+                                                <span class="am-input-group-label">每邀请</span>
+                                                <input type="number" class="am-form-field" min="1" 
+                                                       name="setting[basic][give_pnum]"
+                                                       value="<?= $data['basic']['values']['give_pnum'] ?>" required>
+                                                <span class="am-input-group-label">人注册，可获得积分</span>
+                                                <input type="number" class="am-form-field" min="1" 
+                                                       name="setting[basic][give_point]"
+                                                       value="<?= $data['basic']['values']['give_point'] ?>" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-padding-top coupon-distribution" style="<?= !in_array('30', $data['basic']['values']['modal']) ? 'display:none;' : '' ?>">
                                         <label class="am-u-sm-3 am-form-label form-require"> 优惠券分销 </label>
                                         <div class="am-u-sm-9">
                                             <div class="am-input-group am-input-group-sm">
@@ -98,21 +113,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                   <div class="am-form-group am-padding-top point-distribution" style="<?= $data['basic']['values']['modal'] != '20' ? 'display:none;' : '' ?>">
-                                        <label class="am-u-sm-3 am-form-label form-require"> 积分分销 </label>
-                                        <div class="am-u-sm-9">
-                                            <div class="am-input-group am-input-group-sm">
-                                                <span class="am-input-group-label">每邀请</span>
-                                                <input type="number" class="am-form-field" min="1" 
-                                                       name="setting[basic][give_num]"
-                                                       value="<?= $data['basic']['values']['give_num'] ?>" required>
-                                                <span class="am-input-group-label">人注册，可获得积分</span>
-                                                <input type="number" class="am-form-field" min="1" 
-                                                       name="setting[basic][give_point]"
-                                                       value="<?= $data['basic']['values']['give_point'] ?>" required>
-                                            </div>
-                                        </div>
-                                    </div>
+                                   
                                     
                                 </div>
                                 <div class="am-tab-panel am-margin-top-lg" id="tab2">
@@ -755,21 +756,30 @@
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
     $(function () {
-        $('.distribution-mode').change(function() {
-            var mode = $(this).val();
-            
-            // 隐藏所有设置区域
-            $('.distribution-level').hide();
-            $('.point-distribution').hide();
-            $('.coupon-distribution').hide();
-            
-            // 根据选择显示对应的设置区域
-            if (mode === '10') {
+         $('.distribution-mode').on('change', function() {
+            // Get all checked modes
+            var checkedModes = [];
+            $('.distribution-mode:checked').each(function() {
+                checkedModes.push($(this).val());
+            });
+    
+            // Show/hide sections based on checked modes
+            if (checkedModes.includes('10')) {
                 $('.distribution-level').show();
-            } else if (mode === '20') {
+            } else {
+                $('.distribution-level').hide();
+            }
+    
+            if (checkedModes.includes('20')) {
                 $('.point-distribution').show();
-            } else if (mode === '30') {
+            } else {
+                $('.point-distribution').hide();
+            }
+    
+            if (checkedModes.includes('30')) {
                 $('.coupon-distribution').show();
+            } else {
+                $('.coupon-distribution').hide();
             }
         });
         

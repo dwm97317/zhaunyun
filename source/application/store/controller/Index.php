@@ -2,7 +2,7 @@
 namespace app\store\controller;
 
 use app\store\model\Store as StoreModel;
-
+use app\common\model\UpdateLog;
 /**
  * 后台首页
  * Class Index
@@ -25,7 +25,10 @@ class Index extends Controller
             $this->redirect($url);
         }
         $model = new StoreModel;
-        return $this->fetch('index', ['data' => $model->getHomeData()]);
+        // 系统更新通知
+        $UpdateLog = new UpdateLog;
+        $log = $UpdateLog->getLastlog();
+        return $this->fetch('index', ['data' => $model->getHomeData(),'log'=>$log]);
     }
 
 }

@@ -175,7 +175,7 @@
 </script>
 <script>
     $(function () {
-       checker = {
+       var checker = {
           num:0, 
           check:[],
           init:function(){
@@ -232,10 +232,12 @@
        }
        
        checker.init();
-        /**
+       
+       
+      /**
          * 审核操作状态
          */
-        $('#j-verify').on('click', function(){
+       $('#j-verify').on('click', function(){
             var $tabs, data = $(this).data();
             var selectIds = checker.getCheckSelect();
             selectIds.push(data.id);
@@ -262,8 +264,10 @@
                     return true;
                 }
             });
-        });
+        });    
        
     });
+    
+
 </script>
 

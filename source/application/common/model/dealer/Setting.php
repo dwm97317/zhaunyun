@@ -109,9 +109,11 @@ class Setting extends BaseModel
                     // 是否开启分销功能
                     'is_open' => '0',   // 参数值：1开启 0关闭
                     // 分销模式
-                    'modal'=>10,  // 参考值： 10 常规分销 20 积分分销 30 优惠券分销
+                    'modal'=>[10],  // 参考值： 10 常规分销 20 积分分销 30 优惠券分销
                     'give_num'=>5,
                     'give_coupon'=>0,
+                    
+                    'give_pnum'=>5,
                     'give_point'=>1,
                     // 分销层级
                     'level' => '3', // 参数值：1一级 2二级 3三级

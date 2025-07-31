@@ -240,7 +240,6 @@ class Package extends PackageModel
                   $sub = $this->sendEnterMessage([$post]);
               }else{
                   //发送新版本订阅消息以及模板消息
-             
                   Message::send('package.inwarehouse',$post);
               }
               

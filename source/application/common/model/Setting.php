@@ -529,6 +529,7 @@ class Setting extends BaseModel
                         'is_mobile_force'=>0,
                     ],
                     'packit'=>[
+                        'is_privacy'=>0, // 是否在打包页面弹出隐私协议
                         'is_force' => 0, //是否强制弹出完善用户资料
                         'is_waitreceivedmoney'=>0, //是否展示代收款
                         'is_packagestation'=>1,//开启自提点

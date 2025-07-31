@@ -182,3 +182,59 @@
     }, true);
 
 </script>
+<!-- 登录通知弹窗 -->
+<?php if (!empty($log)): ?>
+<div id="login-notification" style="display: none;width:600px;max-height:300px;z-index: 660;position:relative;">
+    <div class="notification-content" style="padding: 20px;position:relative;height:100%;">
+        <h3 style="color: #333; margin-bottom: 15px;text-align: center;"><?= $log['log_title'] ?></h3>
+        <div style="color: #666; line-height: 1.6; max-height: 180px; overflow-y: auto; padding: 10px;margin-bottom: 50px;">
+            <!-- 这里添加更多内容使滚动条出现 -->
+            <?= $log['log_content'] ?>
+        </div>
+        <div style="position:absolute;bottom:20px;left:0;right:0;text-align:center;">
+            <button type="button" class="am-btn am-btn-primary" onclick="closeNotification(<?= $log['log_id'] ?>)" style="margin:0 auto;">我知道了</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// 页面加载完成后显示通知
+$(document).ready(function() {
+    // 延迟显示通知，确保页面完全加载
+    setTimeout(function() {
+        layer.open({
+            type: 1,
+            title: false,
+            closeBtn: 1, // 显示关闭按钮
+            shadeClose: true, // 点击遮罩关闭
+            area: ['600px', '300px'], // 设置宽高
+            shade: 0,
+            content: $('#login-notification'),
+            zIndex: layer.zIndex, // 使用layer的zIndex管理
+            success: function(layero, index) {
+                // 确保弹窗内的点击事件不会冒泡到遮罩层
+                $(layero).find('.notification-content').on('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        });
+    }, 1000);
+});
+
+// 关闭通知
+function closeNotification(id) {
+    layer.closeAll();
+     $.ajax({
+           url:'<?= url('store/tools/addwxapplog') ?>',
+           type:"get",
+           data:{log_id:id},
+           success:function(result){
+                if(result.code ===0){
+                   
+                }
+           }
+           
+      })
+}
+</script>
+<?php endif; ?>

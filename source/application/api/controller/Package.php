@@ -172,7 +172,6 @@ class Package extends Controller
           'storage_id' => $clerk['shop_id'],
           'address_id'=>0,
           'free' => 0,
-          'member_id'=>0,
           'weight' =>$param['weight'],
           'length' =>$param['length'],
           'width' =>$param['width'],
@@ -190,10 +189,13 @@ class Package extends Controller
           'line_id' => $param['line_id'],
         ];
 
-        if(isset($param['address_id'])){
+        if(isset($param['address_id']) && !empty($param['address_id'])){
             $address = (new UserAddress())->find($param['address_id']); //获取地址信息
             $inpackOrder['member_id'] = $address['user_id'];
             $inpackOrder['address_id'] = $address['address_id'];
+        }
+        if(isset($param['user_id']) && !empty($param['user_id'])){
+            $inpackOrder['member_id'] = $param['user_id'];
         }
         // 开启事务
         Db::startTrans();
@@ -234,7 +236,7 @@ class Package extends Controller
                     'entering_warehouse_time'=>getTime(),
                     'status'=>8,
                     'express_num'=>$val,
-                    'member_id'=>isset($address['user_id'])?$address['user_id']:0,
+                    'member_id'=>isset($inpackOrder['member_id'])?$inpackOrder['member_id']:0,
                     'storage_id'=>$clerk['shop_id'],
                     'updated_time'=>getTime(),
                     'created_time'=>getTime(),

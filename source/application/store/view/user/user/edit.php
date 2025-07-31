@@ -68,7 +68,7 @@
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">会员生日 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input id="datetimepicker" type="text" class="tpl-form-input" name="user[birthday]" 
-                                           value="<?= date('Y-m-d',strtotime($detail['birthday'])) ?>">
+                                           value="<?= date("Y-m-d",strtotime($detail['birthday'])) ?>">
                                 </div>
                             </div>
                             <div class="am-form-group">

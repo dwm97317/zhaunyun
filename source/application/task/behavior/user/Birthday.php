@@ -7,6 +7,7 @@ use app\task\model\User as UserModel;
 use app\task\model\user\Birthday as BirthdayModel;
 use app\common\model\UserCoupon as UserCouponModel;
 use app\task\model\Setting;
+use app\task\model\SiteSms;
 use app\store\model\Coupon;
 
 class Birthday
@@ -43,7 +44,7 @@ class Birthday
     }
     
     /**
-     * 设置用户的会员等级
+     * 赠送优惠券
      * @return array|bool|false
      * @throws \Exception
      */
@@ -51,18 +52,25 @@ class Birthday
     {
         // 用户模型
         $UserModel = new UserModel;
+        $SiteSms = new SiteSms;
         $userList = $UserModel->getVipBirthdayUserList();
+    
         if ($userList->isEmpty()) {
             return false;
         }
         
         $coupon_id = Setting::getItem('grade',$wxapp_id)['birthdaycoupon'];
+        $store = Setting::getItem('store',$wxapp_id);
         $data = [];
         foreach ($userList as $user) {
            $result =  (new BirthdayModel())->where('user_id',$user['user_id'])->find();
            if(!empty($result) && $result['is_send_coupon']==0){
                $this->receive($user,$coupon_id);
                $result->save(['is_send_coupon'=>1]);
+           }
+           if(!empty($result) && $result['is_send']==0){
+               $result->save(['is_send'=>1]);
+               $SiteSms->add(['user_id'=>$user['user_id'],'content'=>'今天是您的生日，'.$store['title'].'祝您生日快乐，健康生活每一天！','wxapp_id'=>$wxapp_id]);
            }
            
         }
@@ -171,7 +179,7 @@ class Birthday
     
 
     /**
-     * 设置用户的会员等级
+     * 赠送优惠券
      * @return array|bool|false
      * @throws \Exception
      */
