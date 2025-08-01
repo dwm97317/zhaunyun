@@ -260,7 +260,17 @@ class Inpack extends BaseModel
      */
     public function inpackimage()
     {
-        return $this->hasMany('InpackImage')->order(['id' => 'asc']);
+        return $this->hasMany('InpackImage')->where(['image_type' => 10])->order(['id' => 'asc']);
+    }
+    
+        
+    /**
+     * 关联包裹图片表
+     * @return \think\model\relation\HasMany
+     */
+    public function wvimages()
+    {
+         return $this->hasMany('InpackImage')->where(['image_type' => 20])->order(['id' => 'asc']);
     }
     
     

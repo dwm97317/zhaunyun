@@ -495,6 +495,8 @@ class Useropration extends Controller
         unset($indata['token']);
         unset($indata['imageIds']);
         unset($indata['deleteIds']);
+        unset($indata['vwimageIds']);
+        unset($indata['vwdeleteIds']);
         $inpack = new Inpack();
         $settingkeeper  = SettingModel::getItem('keeper');
         if($settingkeeper['shopkeeper']['is_rfid']==1 && !empty($data['rfid_id'])){
@@ -513,13 +515,26 @@ class Useropration extends Controller
         if(!empty($data['imageIds'])){
             foreach ($data['imageIds'] as $key => $value){
               $dataimg['image_id'] = $value;
+              $dataimg['image_type'] = 10;
+              $resimg  = (new InpackImage())->save($dataimg);
+            }
+        }
+        if(!empty($data['vwimageIds'])){
+            foreach ($data['vwimageIds'] as $key => $value){
+              $dataimg['image_id'] = $value;
+              $dataimg['image_type'] = 20;
               $resimg  = (new InpackImage())->save($dataimg);
             }
         }
         //删除集运单图片
         if(!empty($data['deleteIds'])){
             foreach ($data['deleteIds'] as $key => $value){
-              $resdeleteimg  = (new InpackImage())->where('id',$value)->delete();
+              $resdeleteimg  = (new InpackImage())->where('image_type',10)->where('id',$value)->delete();
+            }
+        }
+        if(!empty($data['vwdeleteIds'])){
+            foreach ($data['vwdeleteIds'] as $key => $value){
+              $resdeleteimg  = (new InpackImage())->where('id',$value)->where('image_type',20)->delete();
             }
         }
         //完成集运单价格的计算；
@@ -2918,7 +2933,7 @@ class Useropration extends Controller
         //完成集运单价格的计算；
         // getpackfree($id);
         
-        $data = $packModel ->with(['member','inpackimage.file'])->find($id);
+        $data = $packModel ->with(['member','inpackimage.file','wvimages.file'])->find($id);
         
         $InpackService = new InpackService();//包装服务 
         $data['service'] = $InpackService->with('service')->where('inpack_id',$id)->select();

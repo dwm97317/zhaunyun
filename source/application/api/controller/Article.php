@@ -66,7 +66,12 @@ class Article extends Controller
        ->where('b.belong',3)
        ->where('a.is_delete',0)
        ->select();
-        $detail = $data['0'];
+        if(count($data)>0){
+           $detail = $data['0'];
+        }else{
+            $detail = "";
+        }
+        
         return $this->renderSuccess(compact('detail'));
     }
     

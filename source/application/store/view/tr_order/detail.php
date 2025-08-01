@@ -209,6 +209,32 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">重量/体积重实拍图 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <button type="button"
+                                                class="uploadwx-file am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择图片
+                                        </button>
+                                        <div class="uploader-list am-cf">
+                                            <?php foreach ($detail['wvimages'] as $key => $item): ?>
+                                                <div class="file-item">
+                                                    <a href="<?= $item['file_path'] ?>" title="点击查看大图" target="_blank">
+                                                        <img src="<?= $item['file_path'] ?>">
+                                                    </a>
+                                                    <input type="hidden" name="data[wvimages][]"
+                                                           value="<?= $item['image_id'] ?>">
+                                                    <i class="iconfont icon-shanchu file-item-delete"></i>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                    <div class="help-block am-margin-top-sm">
+                                        <small>尺寸750x750像素以上，大小2M以下 (可拖拽图片调整显示顺序 )</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">反馈备注</label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="data[remark]"
@@ -326,6 +352,10 @@ $(function () {
      // 选择图片
         $('.upload-file').selectImages({
             name: 'data[images][]' , multiple: true
+        }); 
+        
+        $('.uploadwx-file').selectImages({
+            name: 'data[wvimages][]' , multiple: true
         }); 
 
         /**

@@ -320,9 +320,10 @@ class Inpack extends InpackModel
         //   dump($data);die;
         if(isset($data['images'])){
            $inpackImg = new  InpackImage;
-           $inpackImg->where('inpack_id',$data['id'])->delete();
+           $inpackImg->where('inpack_id',$data['id'])->where('image_type',10)->delete();
            $img = [
                 'inpack_id' => $data['id'],
+                'image_type'=>10,
                 'wxapp_id' =>  self::$wxapp_id,
             ];
            foreach ($data['images'] as $val){
@@ -330,6 +331,21 @@ class Inpack extends InpackModel
                $imgres = $inpackImg->insert($img);
            }
            unset($data['images']);
+        }
+        
+        if(isset($data['wvimages'])){
+           $inpackImg = new  InpackImage;
+           $inpackImg->where('inpack_id',$data['id'])->where('image_type',20)->delete();
+           $img = [
+                'inpack_id' => $data['id'],
+                'image_type'=>20,
+                'wxapp_id' =>  self::$wxapp_id,
+            ];
+           foreach ($data['wvimages'] as $val){
+               $img['image_id'] = $val;
+               $imgres = $inpackImg->insert($img);
+           }
+           unset($data['wvimages']);
         }
   
         $pack = $this->where('id',$data['id'])->find();
@@ -750,7 +766,7 @@ class Inpack extends InpackModel
     
     //获取集运单的相关信息->with(['line','storage','inpackimage.file'])
     public static function details($id){
-        return self::get($id, ['inpackimage.file','line','address','certimage','packagelist.categoryAttr','packageitems','inpackdetail']);
+        return self::get($id, ['inpackimage.file','wvimages.file','line','address','certimage','packagelist.categoryAttr','packageitems','inpackdetail']);
     }
 
 
