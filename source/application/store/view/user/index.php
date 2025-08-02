@@ -74,7 +74,7 @@
                                     <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input type="text" class="am-form-field" name="nickName"
-                                                   placeholder="请输入微信昵称"
+                                                   placeholder="请输入微信昵称或手机号"
                                                    value="<?= $request->get('nickName') ?>">
                                             <div class="am-input-group-btn">
                                                 <button class="am-btn am-btn-default am-icon-search"

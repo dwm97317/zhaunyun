@@ -160,7 +160,7 @@
                         </div>
                         
                         <div class="widget-head am-cf">
-                            <div class="widget-title am-fl">功能说明</div>
+                            <div class="widget-title am-fl">小程序端功能说明</div>
                         </div>
                        <div class="link-list">
                             <div data-am-widget="accordion" class="am-accordion am-accordion-gapped" data-am-accordion='{ "multiple": false }'>
@@ -291,7 +291,92 @@
                                         </dd>
                                     </dl>
                                         
+                                    
+                                
+                                
+                                <dl class="am-accordion-item">
                                     <dt class="am-accordion-title">
+                                        用户编号(ID)规则
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            在<a target="_blank" href="<?= url('/store/setting/store') ?>">系统设置</a>中找到【用户编号设置】，并按照所需要的生成规则选择
+                                            系统ID：系统ID为数据库自增的，是数字型，并且不可更改
+                                            编号CODE：推荐使用，编号模式比较灵活，可以自定义编号是随机数字，随机字母，或者固定字母+随机数字组合
+                                            唛头模式：唛头模式是用户可以自定义唛头，因为此功能暂不成熟，暂时不推荐使用，未来开发完善后可以选择
+                                        </div>
+                                    </dd>
+                                </dl>
+
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        电子秤
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            电子秤接口：<a target="_blank" href="<?= url('/store/tools/apipost') ?>">点击前往</a>
+                                        </div>
+                                        <div class="am-accordion-content">
+                                        系统已经接入了能够识别单号，拍照，称重的普通电子秤。如需购买请联系软件开发商；
+                                        如需更加强大的电子秤或自有的电子秤，请将上面的电子秤接口发送给电子秤厂商，让其接入接口即可；
+                                        </div>
+                                        
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                        <div class="widget-head am-cf">
+                            <div class="widget-title am-fl">后台管理端功能说明</div>
+                        </div>
+                        <div class="link-list">
+                            <div data-am-widget="accordion" class="am-accordion am-accordion-gapped" data-am-accordion='{ "multiple": false }'>
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        新建管理员账号
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            管理员：<a target="_blank" href="<?= url('/store/store.user/index') ?>">点击前往</a>
+                                        </div>
+                                        <div class="am-accordion-content">
+                                        如需给添加的管理员设置对应的功能权限，请在【角色管理】中先添加角色，给角色设置能够操作的功能权限；
+                                        </div>
+                                        
+                                    </dd>
+                                </dl>
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        自提点管理
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            自提点：<a target="_blank" href="<?= url('/store/shop.address/index') ?>">点击前往</a>
+                                        </div>
+                                        <div class="am-accordion-content">
+                                        请根据需要添加自提点，如需要关闭用户自填地址，请在<a target="_blank" href="<?= url('/store/setting/userclient') ?>">用户端设置</a>找到【用户打包功能设置】开启或关闭
+                                        </div>
+                                        
+                                    </dd>
+                                </dl>
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        优惠券功能设置
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            优惠券设置：<a target="_blank" href="<?= url('/store/market.coupon/index') ?>">点击前往</a>
+                                        </div>
+                                        <div class="am-accordion-content">
+                                        点击【新增】添加优惠券，选择公开到领券中心则所有用户都可以领取，否则只能给用户私发。私发优惠券需要进入<a target="_blank" href="<?= url('store/user/index') ?>">用户列表</a>，选中需要发送优惠券的用户，点击上面按钮【发放优惠券】，选择需要发放的优惠券即可；
+                                        
+                                        </div>
+                                        <div class="am-accordion-content"> 在优惠券设置中，你可以根据需要设置【新用户注册发放】【下单并评价完成后发放】的优惠券，设置此功能必须先添加优惠券
+                                        </div>
+                                        <div class="am-accordion-content"> 如需回收优惠券，在<a target="_blank" href="<?= url('/store/market.coupon/receive') ?>">领取记录</a>中找到对应的记录删除即可
+                                        </div>
+                                    </dd>
+                                </dl>
+                                <dt class="am-accordion-title">
                                         支付功能配置
                                     </dt>
                                     <dd class="am-accordion-bd am-collapse">
@@ -312,7 +397,29 @@
                                         </div>
                                     </dd>
                                 </dl>
-                                
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        给用户充值余额&积分
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                        在<a target="_blank" href="<?= url('/store/user/index') ?>">用户列表</a>中，在用户列后面找到【充值】按钮，点击按提示充值
+                                        </div>
+                                    </dd>
+                                </dl>
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        充值设置&充值套餐
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                        充值设置：<a target="_blank" href="<?= url('/store/market.recharge/setting') ?>">点击前往</a>
+                                        </div>
+                                        <div class="am-accordion-content"> 
+                                        充值套餐：<a target="_blank" href="<?= url('/store/market.recharge.plan/index') ?>">点击前往</a>
+                                        </div>
+                                    </dd>
+                                </dl>
                                 <dl class="am-accordion-item">
                                     <dt class="am-accordion-title">
                                         积分功能设置
@@ -328,40 +435,6 @@
                                         
                                     </dd>
                                 </dl>
-                                
-                                <dl class="am-accordion-item">
-                                    <dt class="am-accordion-title">
-                                        优惠券功能设置
-                                    </dt>
-                                    <dd class="am-accordion-bd am-collapse">
-                                        <div class="am-accordion-content">
-                                            优惠券设置：<a target="_blank" href="<?= url('/store/market.coupon/index') ?>">点击前往</a>
-                                        </div>
-                                        <div class="am-accordion-content">
-                                        点击【新增】添加优惠券，选择公开到领券中心则所有用户都可以领取，否则只能给用户私发。私发优惠券需要进入<a target="_blank" href="<?= url('store/user/index') ?>">用户列表</a>，选中需要发送优惠券的用户，点击上面按钮【发放优惠券】，选择需要发放的优惠券即可；
-                                        
-                                        </div>
-                                        <div class="am-accordion-content"> 在优惠券设置中，你可以根据需要设置【新用户注册发放】【下单并评价完成后发放】的优惠券，设置此功能必须先添加优惠券
-                                        </div>
-                                        <div class="am-accordion-content"> 如需回收优惠券，在<a target="_blank" href="<?= url('/store/market.coupon/receive') ?>">领取记录</a>中找到对应的记录删除即可
-                                        </div>
-                                    </dd>
-                                </dl>
-                                
-                                <dl class="am-accordion-item">
-                                    <dt class="am-accordion-title">
-                                        用户编号(ID)规则
-                                    </dt>
-                                    <dd class="am-accordion-bd am-collapse">
-                                        <div class="am-accordion-content">
-                                            在<a target="_blank" href="<?= url('/store/setting/store') ?>">系统设置</a>中找到【用户编号设置】，并按照所需要的生成规则选择
-                                            系统ID：系统ID为数据库自增的，是数字型，并且不可更改
-                                            编号CODE：推荐使用，编号模式比较灵活，可以自定义编号是随机数字，随机字母，或者固定字母+随机数字组合
-                                            唛头模式：唛头模式是用户可以自定义唛头，因为此功能暂不成熟，暂时不推荐使用，未来开发完善后可以选择
-                                        </div>
-                                    </dd>
-                                </dl>
-                                
                                 <dl class="am-accordion-item">
                                     <dt class="am-accordion-title">
                                         公众号菜单管理
@@ -391,9 +464,6 @@
                                         
                                     </dd>
                                 </dl>
-                                
-                                
-                                
                                 <dl class="am-accordion-item">
                                     <dt class="am-accordion-title">
                                         站内信
@@ -406,51 +476,7 @@
                                         </div>
                                     </dd>
                                 </dl>
-                                
-                                <dl class="am-accordion-item">
-                                    <dt class="am-accordion-title">
-                                        用户余额充值&充值套餐
-                                    </dt>
-                                    <dd class="am-accordion-bd am-collapse">
-                                        <div class="am-accordion-content">
-                                        充值设置：<a target="_blank" href="<?= url('/store/market.recharge/setting') ?>">点击前往</a>
-                                        </div>
-                                        <div class="am-accordion-content"> 
-                                        充值套餐：<a target="_blank" href="<?= url('/store/market.recharge.plan/index') ?>">点击前往</a>
-                                        </div>
-                                    </dd>
-                                </dl>
-                                
-                                <dl class="am-accordion-item">
-                                    <dt class="am-accordion-title">
-                                        新建管理员账号
-                                    </dt>
-                                    <dd class="am-accordion-bd am-collapse">
-                                        <div class="am-accordion-content">
-                                            管理员：<a target="_blank" href="<?= url('/store/store.user/index') ?>">点击前往</a>
-                                        </div>
-                                        <div class="am-accordion-content">
-                                        如需给添加的管理员设置对应的功能权限，请在【角色管理】中先添加角色，给角色设置能够操作的功能权限；
-                                        </div>
-                                        
-                                    </dd>
-                                </dl>
-                                
-                                <dl class="am-accordion-item">
-                                    <dt class="am-accordion-title">
-                                        自提点管理
-                                    </dt>
-                                    <dd class="am-accordion-bd am-collapse">
-                                        <div class="am-accordion-content">
-                                            自提点：<a target="_blank" href="<?= url('/store/shop.address/index') ?>">点击前往</a>
-                                        </div>
-                                        <div class="am-accordion-content">
-                                        请根据需要添加自提点，如需要关闭用户自填地址，请在<a target="_blank" href="<?= url('/store/setting/userclient') ?>">用户端设置</a>找到【用户打包功能设置】开启或关闭
-                                        </div>
-                                        
-                                    </dd>
-                                </dl>
-                                
+
                                 <dl class="am-accordion-item">
                                     <dt class="am-accordion-title">
                                         仓管账号添加
@@ -465,25 +491,8 @@
                                         
                                     </dd>
                                 </dl>
-                                
-                                <dl class="am-accordion-item">
-                                    <dt class="am-accordion-title">
-                                        电子秤
-                                    </dt>
-                                    <dd class="am-accordion-bd am-collapse">
-                                        <div class="am-accordion-content">
-                                            电子秤接口：<a target="_blank" href="<?= url('/store/tools/apipost') ?>">点击前往</a>
-                                        </div>
-                                        <div class="am-accordion-content">
-                                        系统已经接入了能够识别单号，拍照，称重的普通电子秤。如需购买请联系软件开发商；
-                                        如需更加强大的电子秤或自有的电子秤，请将上面的电子秤接口发送给电子秤厂商，让其接入接口即可；
-                                        </div>
-                                        
-                                    </dd>
-                                </dl>
                             </div>
                         </div>
-                        
                     </div>
                 </div>
             </div>

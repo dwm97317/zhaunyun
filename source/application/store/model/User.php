@@ -53,7 +53,7 @@ class User extends UserModel
     {
    
         // 检索：微信昵称
-        !empty($nickName) && $this->where('nickName', 'like', "%$nickName%");
+        !empty($nickName) && $this->where('nickName|mobile', 'like', "%$nickName%");
         
         // 检索：微信昵称
         !empty($user_code) && $this->where('user_code', 'like', "%$user_code%");
