@@ -285,7 +285,7 @@ class User extends UserModel
                 RefereeModel::createRelation($model['user_id'], $refereeId);
             }
             //发送优惠券
-            if($couponsetting['is_register']==1){
+            if($couponsetting['is_register']==1 && (time() - strtotime($model['create_time']) < 86400)){
                 (new UserCoupon())->newUserReceive($model,$couponsetting['register_coupon']);
             }
             $this->commit();
@@ -355,7 +355,7 @@ class User extends UserModel
                 RefereeModel::createRelation($model['user_id'], $refereeId);
             }
             //发送优惠券
-            if($couponsetting['is_register']==1){
+            if($couponsetting['is_register']==1 && (time() - strtotime($model['create_time']) < 86400)){
                 (new UserCoupon())->newUserReceive($model,$couponsetting['register_coupon']);
             }
             $this->commit();
