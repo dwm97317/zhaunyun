@@ -1326,6 +1326,7 @@ class Useropration extends Controller
         }
        //更新包裹信息
        $update['member_id'] = !empty($user_id)?$user_id:$data['member_id'];
+       $update['is_take'] = !empty($user_id)?2:$data['is_take'];
        $update['length'] = !empty($length)?$length:$data['length'];
        $update['height'] = !empty($height)?$height:$data['height'];
        $update['width'] = !empty($width)?$width:$data['width'];
