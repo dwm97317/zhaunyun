@@ -78,7 +78,6 @@ class Order extends Controller
            //更新拼团订单的inpack_id 以及 所有的用户集运单中的t_order_sn
         $detail = $SharingOrder->where('order_id',$id)->find();
         $track = getFileData('assets/track.json');
-        $track = array_slice($track,0,998);
         if (!$this->request->isAjax()){
             return $this->fetch('delivery', compact(
                 'detail','track'

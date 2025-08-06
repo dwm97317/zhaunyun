@@ -46,12 +46,18 @@
                                                    placeholder="请输入快递单号" value="<?= $request->get('express_num') ?>">
                                         </div>
                                     </div>
-                                    <!--<div class="am-form-group am-fl">-->
-                                    <!--    <div class="am-input-group am-input-group-sm tpl-form-border-form">-->
-                                    <!--        <input type="text" class="am-form-field" name="express_num"-->
-                                    <!--               placeholder="输入快递单号快速入库">-->
-                                    <!--    </div>-->
-                                    <!--</div>-->
+                                    <div class="am-form-group am-fl">
+                                        <?php $extracttimetype = $request->get('search_type'); ?>
+                                        <select name="search_type"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '请选择查询类型'}">
+                                            <option value="all" <?= $extracttimetype == 'all' ? 'selected' : '' ?>>模糊查询</option>
+                                            <option value="member_id" <?= $extracttimetype == 'member_id' ? 'selected' : '' ?>>用户ID</option>
+                                            <option value="user_code" <?= $extracttimetype == 'user_code' ? 'selected' : '' ?>>用户CODE</option>
+                                            <option value="user_mark" <?= $extracttimetype == 'user_mark' ? 'selected' : '' ?>>用户唛头</option>
+                                            <option value="nickName" <?= $extracttimetype == 'nickName' ? 'selected' : '' ?>>用户昵称</option>
+                                            <option value="mobile" <?= $extracttimetype == 'mobile' ? 'selected' : '' ?>>手机号</option>
+                                        </select>
+                                    </div>
                                     <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input type="text" class="am-form-field" name="search"

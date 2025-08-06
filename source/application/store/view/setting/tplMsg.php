@@ -14,7 +14,7 @@
                                 </div>
                             </div>
                             <div class="widget-head am-cf">
-                                <div class="widget-title am-fl">是否海外主体(海外主体能应用的模板有限)/div>
+                                <div class="widget-title am-fl">是否海外主体(海外主体能应用的模板有限)</div>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">

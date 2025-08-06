@@ -36,7 +36,7 @@
                                      <?php if (isset($track)):
                                            
                                             foreach ($track as $item): ?>
-                                                <option value="<?= $item['key'] ?>"><?= $item['_name'] ?></option>
+                                                <option value="<?= $item['key'] ?>"><?= $item['_name_zh-cn'].'-'.$item['key'] ?></option>
                                             <?php endforeach; endif; ?>
                                      </select>
                                 </div>
