@@ -42,6 +42,12 @@ class User extends Controller
         ]);
     }
     
+    public function getUserOpenid()
+    {
+        $model = new UserModel;
+        return $this->renderSuccess($model->loginphoneTogetOpenid($this->getUser(),$this->request->post()));
+    }
+    
         
     //获取用户唛头
     public function getusermark(){

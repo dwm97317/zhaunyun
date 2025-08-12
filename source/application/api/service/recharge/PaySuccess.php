@@ -71,6 +71,13 @@ class PaySuccess extends Basics
                 ]);
             }
             
+            if($payType == PayTypeEnum::HANTEPAY){
+                $this->model->save([
+                        'pay_status' => PayStatusEnum::SUCCESS,
+                        'pay_time' => time(),
+                ]);
+            }
+            
             // 累积用户余额
             $this->user->setInc('balance', $this->model['actual_money']);
             $this->user->setIncUserExpend($this->user['user_id'],$this->model['actual_money']);
@@ -82,10 +89,7 @@ class PaySuccess extends Basics
                 'remark' => '用户主动充值',
                 'sence_type' => 1,
             ], ['order_no' => $this->model['order_no']]);
-            // 更新prepay_id记录
-            if ($payType == PayTypeEnum::WECHAT) {
-//                WxappPrepayIdModel::updatePayStatus($this->model['order_id'], OrderTypeEnum::RECHARGE);
-            }
+
             return true;
         });
     }

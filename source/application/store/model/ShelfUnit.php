@@ -141,14 +141,23 @@ class ShelfUnit extends ShelfUnitModel
                 // Format numbers with leading zeros for single-digit numbers
                 $formattedI = $i < 10 ? '0' . $i : $i;
                 $formattedJ = $j < 10 ? '0' . $j : $j;
-                
-                $shelf_unit[$K]['shelf_unit_no'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
-                $shelf_unit[$K]['shelf_unit_code'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
-                $shelf_unit[$K]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ, $type);
-                $shelf_unit[$K]['shelf_id'] = $shelf;
-                $shelf_unit[$K]['shelf_unit_floor'] = $i; // layer
-                $shelf_unit[$K]['wxapp_id'] = self::$wxapp_id;
-                $K++;
+                if($data['shelf_column']==1){
+                    $shelf_unit[$K]['shelf_unit_no'] = $data['shelf_no'] . '-' . $formattedJ;
+                    $shelf_unit[$K]['shelf_unit_code'] = $data['shelf_no'] . '-' . $formattedJ;
+                    $shelf_unit[$K]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'] . '-' . $formattedJ, $type);
+                    $shelf_unit[$K]['shelf_id'] = $shelf;
+                    $shelf_unit[$K]['shelf_unit_floor'] = $i; // layer
+                    $shelf_unit[$K]['wxapp_id'] = self::$wxapp_id;
+                    $K++;
+                }else{
+                    $shelf_unit[$K]['shelf_unit_no'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
+                    $shelf_unit[$K]['shelf_unit_code'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
+                    $shelf_unit[$K]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ, $type);
+                    $shelf_unit[$K]['shelf_id'] = $shelf;
+                    $shelf_unit[$K]['shelf_unit_floor'] = $i; // layer
+                    $shelf_unit[$K]['wxapp_id'] = self::$wxapp_id;
+                    $K++;
+                }
             }
         } 
         return $shelf_unit;
