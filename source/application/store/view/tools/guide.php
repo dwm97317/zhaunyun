@@ -491,6 +491,17 @@
                                         
                                     </dd>
                                 </dl>
+                                
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        耗材管理
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            耗材指的是胶带，纸箱等打包需要的消耗品，如需进行库存管理，则<a target="_blank" href="<?= url('/store/setting.consumables/index') ?>">点击前往</a>
+                                        </div>
+                                    </dd>
+                                </dl>
                             </div>
                         </div>
                     </div>
