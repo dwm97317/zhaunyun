@@ -54,18 +54,16 @@ class Birthday
         $UserModel = new UserModel;
         $SiteSms = new SiteSms;
         $userList = $UserModel->getVipBirthdayUserList();
-    
-        if ($userList->isEmpty()) {
+        $gradesetting = Setting::getItem('grade',$wxapp_id);
+        if ($gradesetting['is_open']==0 || $userList->isEmpty()) {
             return false;
         }
-        
-        $coupon_id = Setting::getItem('grade',$wxapp_id)['birthdaycoupon'];
         $store = Setting::getItem('store',$wxapp_id);
         $data = [];
         foreach ($userList as $user) {
            $result =  (new BirthdayModel())->where('user_id',$user['user_id'])->find();
            if(!empty($result) && $result['is_send_coupon']==0){
-               $this->receive($user,$coupon_id);
+               $this->receive($user,$gradesetting['birthdaycoupon']);
                $result->save(['is_send_coupon'=>1]);
            }
            if(!empty($result) && $result['is_send']==0){

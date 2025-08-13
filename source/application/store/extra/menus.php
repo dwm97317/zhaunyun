@@ -970,7 +970,16 @@ return [
                             'setting.banner/add',
                             'setting.banner/edit',
                             ],
-                        ], 
+                        ],
+                        [
+                        'name' => '耗材管理',
+                        'index' => 'setting.consumables/index',
+                        'uris' => [
+                            'setting.consumables/index',
+                            'setting.consumables/add',
+                            'setting.consumables/edit',
+                            ],
+                        ],
                 ]
             ],
             [

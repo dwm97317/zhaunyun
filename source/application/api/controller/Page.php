@@ -27,6 +27,7 @@ use app\api\model\Barcode;
 use app\api\model\LogisticsTrack;
 use app\api\model\WxappMenus;
 use app\api\model\Insure;
+use app\api\model\Consumables;
 /**
  * 页面控制器
  * Class Index
@@ -65,6 +66,22 @@ class Page extends Controller
     public function getInsure(){
         $param = $this->request->param();
         $model = new Insure;
+        $list = $model->getList();
+        return $this->renderSuccess(compact('list'));
+    }
+    
+    //获取耗材详情
+    public function getconsumablesdetail(){
+        $param = $this->request->param();
+        $model = new Consumables;
+        $detail = $model->finddetail($param['code']);
+        return $this->renderSuccess(compact('detail'));
+    }
+    
+    //获取耗材列表
+    public function getconsumableslist(){
+        $param = $this->request->param();
+        $model = new Consumables;
         $list = $model->getList();
         return $this->renderSuccess(compact('list'));
     }

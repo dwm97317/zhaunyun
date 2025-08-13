@@ -111,23 +111,11 @@
 <!-- 文件库弹窗 -->
 {{include file="layouts/_template/file_library" /}}
 <script>
-    $(function () {
-
-        /**
-         * 表单验证提交
-         * @type {*}
-         */
-        $('#my-form').superForm();
-
-    });
-    
      $(function () {
-         // 选择图片
+        // 选择图片
         $('.upload-file').selectImages({
             name: 'nav[nav_icon]'
         });
-      
-
         /**
          * 表单验证提交
          * @type {*}

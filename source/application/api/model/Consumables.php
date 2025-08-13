@@ -1,19 +1,18 @@
 <?php
 
 namespace app\api\model;
-use app\common\model\wxapp\Navlink;
+use app\common\model\Consumables as ConsumablesModel;
 
 /**
- * 小程序导航
- * Class Wxapp/nav
+ * 耗材管理
+ * Class Consumables
  * @package app\store\model
  */
-class WxappNavLink extends Navlink
+class Consumables extends ConsumablesModel
 {
     public function getList(){
         return $this
         ->with('image')
-        ->where('is_use',0)
         ->order('sort','asc')
         ->select();
     }

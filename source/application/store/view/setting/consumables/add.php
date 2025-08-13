@@ -6,16 +6,17 @@
                     <div class="widget-body">
                         <fieldset>
                             <div class="widget-head am-cf">
-                                <div class="widget-title am-fl">新增导航菜单</div>
+                                <div class="widget-title am-fl">新增耗材</div>
                             </div>
+                            
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 导航名称 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 耗材名称 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="nav[name]" value="" required>
+                                    <input type="text" class="tpl-form-input" name="consumables[name]" value="" required>
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">导航图标 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">耗材图标 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="am-form-file">
                                         <button type="button"
@@ -28,53 +29,45 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 导航类型 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 耗材价格 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="nav[nav_linktype]" value="1" data-am-ucheck
-                                               checked>
-                                        小程序内部链接
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="nav[nav_linktype]" value="2" data-am-ucheck>
-                                         外部链接
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="nav[nav_linktype]" value="3" data-am-ucheck>
-                                         微信客服
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="nav[nav_linktype]" value="4" data-am-ucheck>
-                                         手机号
-                                    </label>
+                                    <input type="text" class="tpl-form-input" name="consumables[price]" value="" required>
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">链接地址 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 耗材单位 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <input type="text" min="0" class="tpl-form-input" name="nav[nav_link]" value=""
-                                           required>
-                                    <small>注意：小程序内部链接使用链接库中的<a target="_blank" href="index.php?s=/store/wxapp.page/links">点击打开链接库</a></small>
+                                    <input type="text" class="tpl-form-input" name="consumables[unit]" value="" required>
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否显示 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 耗材规格 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="nav[is_use]" value="0" data-am-ucheck
-                                               checked>
-                                        显示
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="nav[is_use]" value="1" data-am-ucheck>
-                                        隐藏
-                                    </label>
+                                    <input type="text" class="tpl-form-input" name="consumables[spec]" value="" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 耗材备注 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="consumables[remark]" value="" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 耗材库存 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input  min="0" type="number" class="tpl-form-input" name="consumables[num]" value="" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 耗材条码 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="consumables[barcode]" value="">
                                 </div>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">排序 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <input type="number" min="0" class="tpl-form-input" name="nav[sort]" value="100"
+                                    <input type="number" min="0" class="tpl-form-input" name="consumables[sort]" value="100"
                                            required>
                                     <small>数字越小越靠前</small>
                                 </div>
@@ -101,7 +94,7 @@
     $(function () {
         // 选择图片
         $('.upload-file').selectImages({
-            name: 'nav[nav_icon]'
+            name: 'consumables[image_id]'
         });
         /**
          * 表单验证提交

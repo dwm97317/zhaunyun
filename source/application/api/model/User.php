@@ -100,9 +100,11 @@ class User extends UserModel
     public function loginphoneTogetOpenid($user,$post)
     {
         // 微信登录 获取session_key
-        $session = $this->wxApplogin($post['code']);
-        // dump($session);die;
-        $user->save(['gzh_openid'=>$session['openid']]);
+        $session = $this->wxlogin($post['code']);
+        $user->save([
+            'open_id'=>$session['openid'],
+            'union_id'=>isset($session['unionid'])?$session['unionid']:$user['union_id'],
+        ]);
         return true;
     }
     

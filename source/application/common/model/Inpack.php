@@ -293,6 +293,15 @@ class Inpack extends BaseModel
         return $this->hasOne('ShelfUnitItem','pack_id','order_sn');
     }
     
+    /**
+     * 关联耗材表
+     * @return \think\model\relation\HasMany
+     */
+    public function consumableslog()
+    {
+        return $this->hasMany('ConsumablesLog','inpack_id','id');
+    }
+    
      /**
      * 关联优惠券
      * @return \think\model\relation\HasMany

@@ -28,6 +28,8 @@ use app\api\model\user\UserMark;
 use app\common\service\package\Printer;
 use app\api\model\Barcode;
 use app\api\model\PackageClaim;
+use app\api\model\ConsumablesLog;
+use app\api\model\Consumables;
 
 /**
  * 用户管理
@@ -497,6 +499,7 @@ class Useropration extends Controller
         unset($indata['deleteIds']);
         unset($indata['vwimageIds']);
         unset($indata['vwdeleteIds']);
+        unset($indata['consumables']);
         $inpack = new Inpack();
         $settingkeeper  = SettingModel::getItem('keeper');
         if($settingkeeper['shopkeeper']['is_rfid']==1 && !empty($data['rfid_id'])){
@@ -509,8 +512,8 @@ class Useropration extends Controller
         //更新集运单图片
         $resimg = $resdeleteimg = true;
         $dataimg = [
-                'inpack_id' =>$data['id'],
-                'wxapp_id' =>  \request()->get('wxapp_id'),
+            'inpack_id' =>$data['id'],
+            'wxapp_id' =>  \request()->get('wxapp_id'),
         ];
         if(!empty($data['imageIds'])){
             foreach ($data['imageIds'] as $key => $value){
@@ -535,6 +538,19 @@ class Useropration extends Controller
         if(!empty($data['vwdeleteIds'])){
             foreach ($data['vwdeleteIds'] as $key => $value){
               $resdeleteimg  = (new InpackImage())->where('id',$value)->where('image_type',20)->delete();
+            }
+        }
+        // 添加耗材使用记录，并减少库存
+        if(!empty($data['consumables'])){
+            foreach ($data['consumables'] as $key => $value){
+              // 更新用户可用积分
+              (new ConsumablesLog())->add([
+                 'con_id'=>$value['id'],
+                 'inpack_id'=>$data['id'],
+                 'num'=>$value['usenum'],
+                 'remark'=>"仓管端选择"
+               ]);
+               Consumables::detail($value['id'])->setDec('num',$value['usenum']);
             }
         }
         //完成集运单价格的计算；
@@ -2934,8 +2950,8 @@ class Useropration extends Controller
         //完成集运单价格的计算；
         // getpackfree($id);
         
-        $data = $packModel ->with(['member','inpackimage.file','wvimages.file'])->find($id);
-        
+        $data = $packModel ->with(['member','inpackimage.file','wvimages.file','consumableslog.consumables'])->find($id);
+        // dump($data->toArray());die;
         $InpackService = new InpackService();//包装服务 
         $data['service'] = $InpackService->with('service')->where('inpack_id',$id)->select();
         $pack =  (new Package());

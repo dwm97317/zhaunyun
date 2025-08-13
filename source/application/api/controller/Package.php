@@ -3201,6 +3201,18 @@ class Package extends Controller
      public function packTotal(){
          $model =  (new Inpack());
          $param = $this->request->param();
+         if(empty($this->user['user_id'])){
+            $return = [ 
+                'all'=>0,
+                'nopay'=>0,
+                'verify' =>0,
+                'no_send' => 0,
+                'send' =>0,
+                'complete' => 0,
+                'reach'=>0,
+            ];
+            return $this->renderSuccess($return);
+         }
          $where = [
           'is_delete' => 0,
           'member_id' => $this->user['user_id']
