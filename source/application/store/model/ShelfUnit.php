@@ -21,8 +21,9 @@ class ShelfUnit extends ShelfUnitModel
     
     public function getAllList($query){
         $ShelfUnitItem = new ShelfUnitItem;
-        return $this->setQueryWhere($query)
+        return $this->setQueryWhere($query)->alias('a')
         ->with(['shelf','user'])
+        ->join('shelf se', 'a.shelf_id = se.id',"LEFT")
         ->paginate(20,false,[
             'query'=>\request()->request()
         ])->each(function($item,$key) use ($ShelfUnitItem){
@@ -35,12 +36,12 @@ class ShelfUnit extends ShelfUnitModel
     }
     
     public function setQueryWhere($query){
-        !empty($query['ware_no']) && $this->where('ware_no','=',$query['ware_no']);
-        !empty($query['shelf_ids']) && $this->where('shelf_id','in',$query['shelf_ids']);
-        !empty($query['shelf_id']) && $this->where('shelf_id','=',$query['shelf_id']);
-        !empty($query['shelf_unit_id']) && $this->where('shelf_unit_id','=',$query['shelf_unit_id']);
-        !empty($query['shelf_unit_ids']) && $this->where('shelf_unit_id','in',$query['shelf_unit_ids']);
-        !empty($query['search']) && $this->where('shelf_unit_no|shelf_unit_id','like','%'.$query['search'].'%');
+        !empty($query['ware_no']) && $this->where('se.ware_no','=',$query['ware_no']);
+        !empty($query['shelf_ids']) && $this->where('a.shelf_id','in',$query['shelf_ids']);
+        !empty($query['shelf_id']) && $this->where('a.shelf_id','=',$query['shelf_id']);
+        !empty($query['shelf_unit_id']) && $this->where('a.shelf_unit_id','=',$query['shelf_unit_id']);
+        !empty($query['shelf_unit_ids']) && $this->where('a.shelf_unit_id','in',$query['shelf_unit_ids']);
+        !empty($query['search']) && $this->where('a.shelf_unit_no|a.shelf_unit_id','like','%'.$query['search'].'%');
         
         return $this;
     }
