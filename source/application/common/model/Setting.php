@@ -542,6 +542,7 @@ class Setting extends BaseModel
                         'is_addressforce'=>0, //是否强制填写地址
                         'is_wxopen'=>0, //是否开启了微信开放平台
                         'is_merge_user'=>0, //默认不合并用户的
+                        'is_codeopen'=>1, //默认开启用户自行输入编号
                     ],
                     'line'=>[
                         'is_line_show'=>1,  //运费查询后是否展示所有路线

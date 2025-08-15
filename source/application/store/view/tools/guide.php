@@ -332,6 +332,20 @@
                             <div data-am-widget="accordion" class="am-accordion am-accordion-gapped" data-am-accordion='{ "multiple": false }'>
                                 <dl class="am-accordion-item">
                                     <dt class="am-accordion-title">
+                                        谷歌浏览器下载安装
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            下载地址：<a target="_blank" href="https://www.google.cn/chrome/index.html">点击前往下载</a>
+                                        </div>
+                                        <div class="am-accordion-content">
+                                        谷歌浏览器兼容性最好，请使用谷歌浏览器，其他浏览器可能有一些莫名的bug
+                                        </div>
+                                        
+                                    </dd>
+                                </dl>
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
                                         新建管理员账号
                                     </dt>
                                     <dd class="am-accordion-bd am-collapse">

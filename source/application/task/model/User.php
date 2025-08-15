@@ -112,6 +112,7 @@ class User extends UserModel
         return $this->alias('user')
             ->field(['user.user_id', 'user.grade_id'])
             ->where('user.grade_time', '<=', time())
+            ->where('user.grade_time', '>',0)
             ->where('user.is_delete', '=', 0)
             ->select();
     }

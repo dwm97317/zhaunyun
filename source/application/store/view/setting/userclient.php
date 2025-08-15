@@ -1692,6 +1692,27 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    用户注册时是否可以输入旧系统（上一个系统）的用户编号
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[loginsetting][is_codeopen]" value="1"
+                                               data-am-ucheck  <?= $values['loginsetting']['is_codeopen'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[loginsetting][is_codeopen]" value="0"
+                                               data-am-ucheck <?= $values['loginsetting']['is_codeopen'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <div class="help-block am-u-sm-12">
+                                        <small>开启后在用户注册时可以自行输入编码，不开启则由系统自动按照规则生成</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <!--运费查询功能设置-->
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">运费查询功能设置</div>
