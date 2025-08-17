@@ -81,7 +81,7 @@
                         <button type="button" id="j-upuser" class="am-btn am-btn-default am-radius"><i class="iconfont icon-yonghu "></i> 修改所属用户</button>
                         <?php endif;?>
                         <!--批量修改入库状态-->
-                        <?php if (checkPrivilege('package.index/changeshelf')): ?>
+                        <?php if (checkPrivilege('package.report/upsatatus')): ?>
                         <button type="button" id="j-upstatus" class="am-btn am-btn-default am-radius"><i class="iconfont icon-zhuangtaixiugai "></i> 批量修改入库状态</button>
                         <?php endif;?>
                         <!--导出-->
