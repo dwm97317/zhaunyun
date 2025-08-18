@@ -76,7 +76,7 @@
 <script>
     $(function () {
         // 删除小程序
-        $('.j-delete').delete('log_id', "<?= url('tools.apipost/delete') ?>", '确定要删除吗？删除后无法恢复');
+        $('.j-delete').delete('api_id', "<?= url('tools.apipost/delete') ?>", '确定要删除吗？删除后无法恢复');
     });
 </script>
 

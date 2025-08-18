@@ -516,6 +516,17 @@
                                         </div>
                                     </dd>
                                 </dl>
+                                
+                                <dl class="am-accordion-item">
+                                    <dt class="am-accordion-title">
+                                        通过入库照片识别用户编号
+                                    </dt>
+                                    <dd class="am-accordion-bd am-collapse">
+                                        <div class="am-accordion-content">
+                                            通过电子秤或PDA快速入库后，包裹很多是无主待认领的，这时候我们可以通过在<a target="_blank" href="<?= url('/store/package.index/nouser') ?>">待认领</a>中找到【补齐包裹所属用户】来将包裹转为有主包裹
+                                        </div>
+                                    </dd>
+                                </dl>
                             </div>
                         </div>
                     </div>

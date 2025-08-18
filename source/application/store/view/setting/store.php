@@ -244,7 +244,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 <div class="am-u-sm-9">
                                     <select id="selectize-tags-1" onclick="changeorder()" onchange="changeorder()" name="store[orderno][default]" multiple="" class="tag-gradient-success">
                                         <?php if (isset($values['orderno']['model']) && isset($values['orderno']['default'])): foreach ($values['orderno']['default'] as $key =>$item): ?>
-                                            <option value="<?= $item ?>" selected ><?= $values['orderno']['model'][$item] ?></option>
+                                            <option value="<?= $item ?>" selected ><?= isset($values['orderno']['model'][$item])?$values['orderno']['model'][$item]:$item ?></option>
                                         <?php endforeach; endif; ?>
                                         
                                         <?php if (isset($values['orderno']['model']) && isset($values['orderno']['default'])): foreach ($values['orderno']['model'] as $key =>$items): ?>
