@@ -1118,6 +1118,53 @@ class Index extends Controller
         return $this->renderSuccess('修改提交成功');
     }
     
+    /**
+     * 修改包裹所属用户
+     * 
+     * */
+    public function changepackageuser(){
+        $params = $this->request->param();
+        $User = new User();
+        $storesetting = setting::getItem('store');
+        if($storesetting['usercode_mode']['is_show']==0){
+            $userresult = $User::detail($params['user_id']);
+            if($userresult){
+                $user_id = $params['user_id'];
+            }else{
+                return $this->renderError('用户不存在');
+            }
+        }
+        if($storesetting['usercode_mode']['is_show']==1){
+            $userresult = $User->where('user_code|user_id',$params['user_id'])->where('is_delete',0)->find();
+            if($userresult){
+                $user_id = $userresult['user_id'];
+            }else{
+                return $this->renderError('用户不存在');
+            }
+        }
+        
+        $res = (new Package())->whereIn("id",$params['package_id'])->update(['member_id'=>$user_id,'is_take'=>2,'updated_time'=>getTime()]);
+        if (!$res){
+            return $this->renderError('修改提交失败');
+        }
+        return $this->renderSuccess('修改提交成功');
+    }
+    
+    
+    
+    /**
+     * 根据图片修改归属用户
+     * 
+     * */
+    public function getPackageImages(){
+        $ids = $this->request->param()['ids'];
+        $idsArr = explode(',',$ids);
+        $result = (new PackageImage())->with(['file','package'])->whereIn("package_id",$idsArr)->select();
+        // dump($result->toArray());die;
+        return $this->renderSuccess('修改提交成功','',$result);
+    }
+    
+    
     // 批量修改货架
     public function changeShelf(){
         $ids = $this->postData('selectIds')[0];

@@ -30,5 +30,14 @@ class PackageImage extends BaseModel
     {
         return $this->belongsTo('UploadFile', 'image_id', 'file_id');
     }
+    
+    /**
+     * 关联文件库
+     * @return \think\model\relation\BelongsTo
+     */
+    public function package()
+    {
+        return $this->belongsTo('Package', 'package_id', 'id');
+    }
 
 }

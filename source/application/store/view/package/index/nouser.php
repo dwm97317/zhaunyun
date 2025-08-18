@@ -63,6 +63,9 @@
                         <?php if (checkPrivilege('package.index/changeShelf')): ?>
                         <button type="button" id="j-change" class="am-btn am-btn-warning am-radius"><i class="iconfont icon-dingwei "></i> 修改包裹位置</button>
                         <?php endif;?>
+                        <?php if (checkPrivilege('package.index/changepackageuser')): ?>
+                        <button type="button" id="j-changepackageuser" class="am-btn am-btn-danger  am-radius"><i class="iconfont icon-dingwei "></i> 补齐包裹所属用户</button>
+                        <?php endif;?>
                     </div>
                     <div class="am-scrollable-horizontal am-u-sm-12">
                         <table width="100%" class="am-table am-table-compact am-table-striped
@@ -253,6 +256,537 @@
         </form>
     </div>
 </script>
+
+<script id="tpl-package-images" type="text/template">
+    <div class="fullscreen-image-form-container">
+        <!-- 进度信息 -->
+        <div class="progress-info">
+            共 {{ totalImages }} 张图片，当前处理第 {{ currentIndex + 1 }} 张
+        </div>
+        
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <!-- 左侧：全屏图片 -->
+            <div class="image-section">
+                                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img id="current-image" src="" alt="包裹图片" class="zoomable-image">
+                            <div class="image-controls">
+                                <button type="button" class="zoom-btn zoom-in" onclick="zoomImage(1.2)" title="放大">
+                                    <i class="am-icon-plus"></i>
+                                </button>
+                                <button type="button" class="zoom-btn zoom-out" onclick="zoomImage(0.8)" title="缩小">
+                                    <i class="am-icon-minus"></i>
+                                </button>
+                                <button type="button" class="zoom-btn zoom-reset" onclick="resetZoom()" title="重置">
+                                    <i class="am-icon-refresh"></i>
+                                </button>
+                                <button type="button" class="zoom-btn rotate-left" onclick="rotateImage(-90)" title="向左旋转">
+                                    <i class="am-icon-rotate-left"></i>
+                                </button>
+                                <button type="button" class="zoom-btn rotate-right" onclick="rotateImage(90)" title="向右旋转">
+                                    <i class="am-icon-rotate-right"></i>
+                                </button>
+                                <button type="button" class="zoom-btn move-left" onclick="moveImage('left')" title="向左移动">
+                                    <i class="am-icon-arrow-left"></i>
+                                </button>
+                                <button type="button" class="zoom-btn move-right" onclick="moveImage('right')" title="向右移动">
+                                    <i class="am-icon-arrow-right"></i>
+                                </button>
+                                <button type="button" class="zoom-btn move-up" onclick="moveImage('up')" title="向上移动">
+                                    <i class="am-icon-arrow-up"></i>
+                                </button>
+                                <button type="button" class="zoom-btn move-down" onclick="moveImage('down')" title="向下移动">
+                                    <i class="am-icon-arrow-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="image-info">
+                            快递单号: <span id="current-express-num"></span>
+                        </div>
+                        <div class="zoom-tips">
+                            <small>💡 提示：图片已自动放大 | 滚轮缩放 | 按钮移动 | 双击重置 | 悬停显示控制按钮</small>
+                        </div>
+                    </div>
+            </div>
+            
+            <!-- 右侧：表单区域 -->
+            <div class="form-section">
+                <div class="form-content">
+                    <h4 class="form-title">用户绑定</h4>
+                    
+                    <div class="form-group">
+                        <label class="form-label">输入用户编号</label>
+                        <input type="text" id="user-id-input" class="form-input" placeholder="请输入用户编号">
+                        <button type="button" class="search-user-btn" onclick="doSelectUser()">
+                            <i class="am-icon-search"></i> 搜索用户
+                        </button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">选择用户</label>
+                        <div class="user-list-container">
+                            <div class="user-list uploader-list am-cf">
+                            </div>
+                            <div class="help-text">
+                                <small>选择后不可更改</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="confirm-btn" class="action-btn confirm-btn" onclick="confirmUserBinding()">
+                            <i class="am-icon-check"></i> 确认绑定
+                        </button>
+                        <button type="button" id="skip-btn" class="action-btn skip-btn" onclick="skipCurrentImage()">
+                            <i class="am-icon-forward"></i> 跳过
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+
+
+
+<script id="tpl-inpack" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包裹数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'> 共选中 {{ selectCount }} 包裹</p>
+                    </div>
+                </div>
+            </div>
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择线路
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                     <select name="inpack[line_id]"
+                                data-am-selected="{btnSize: 'sm', placeholder: '请选择线路'}">
+                        <option value="">请选择线路</option>
+                    </select>
+                    </div>
+                </div>
+            </div>
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包装服务
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                      <select name="inpack[id]" data-am-selected="{btnSize: 'sm', placeholder: '请选择包装服务'}">
+                        <option value="">请选择包装服务</option>
+                    </select>
+                    </div>
+                </div>
+            </div>
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择用户地址
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                      <select id="storeAddress" name="inpack[address_id]"
+                                data-am-selected="{btnSize: 'sm', placeholder: '请选择自提点'}">
+                                <option value="-1">不选择则使用用户自填的默认地址</option>
+                            </select>
+                        <div class="am-block">
+                            <small><a target="_blank" href="<?= url('store/user/address') ?>">新增用户地址</a></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label"> 管理员备注 </label>
+                    <div class="am-u-sm-8 am-u-end">
+                                <textarea rows="2" name="grade[remark]" placeholder="请输入管理员备注"
+                                          class="am-field-valid"></textarea>
+                    </div>
+                </div>
+        </form>
+    </div>
+</script>
+<style>
+/* 全屏图片表单容器 */
+.fullscreen-image-form-container {
+    width: 100%;
+    height: 100%;
+    background: #fff;
+}
+
+/* 进度信息 */
+.progress-info {
+    background: #e3f2fd;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: bold;
+    color: #1976d2;
+    font-size: 16px;
+}
+
+/* 主要内容区域 */
+.main-content {
+    display: flex;
+    height: calc(100vh - 200px);
+    gap: 20px;
+}
+
+/* 左侧图片区域 */
+.image-section {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.image-container {
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.image-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: default;
+    will-change: transform;
+}
+
+.zoomable-image {
+    transform-origin: center center;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* 图片控制按钮 */
+.image-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-wrapper:hover .image-controls {
+    opacity: 1;
+}
+
+.zoom-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+.zoom-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+.zoom-in {
+    background: rgba(40, 167, 69, 0.8);
+}
+
+.zoom-in:hover {
+    background: rgba(40, 167, 69, 1);
+}
+
+.zoom-out {
+    background: rgba(108, 117, 125, 0.8);
+}
+
+.zoom-out:hover {
+    background: rgba(108, 117, 125, 1);
+}
+
+.zoom-reset {
+    background: rgba(255, 193, 7, 0.8);
+}
+
+.zoom-reset:hover {
+    background: rgba(255, 193, 7, 1);
+}
+
+.rotate-left {
+    background: rgba(40, 167, 69, 0.8);
+}
+
+.rotate-left:hover {
+    background: rgba(40, 167, 69, 1);
+}
+
+.rotate-right {
+    background: rgba(40, 167, 69, 0.8);
+}
+
+.rotate-right:hover {
+    background: rgba(40, 167, 69, 1);
+}
+
+.move-left, .move-right, .move-up, .move-down {
+    background: rgba(0, 123, 255, 0.8);
+}
+
+.move-left:hover, .move-right:hover, .move-up:hover, .move-down:hover {
+    background: rgba(0, 123, 255, 1);
+}
+
+
+
+.zoom-tips {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #999;
+    text-align: center;
+    background: rgba(255,255,255,0.6);
+    padding: 6px 12px;
+    border-radius: 12px;
+    backdrop-filter: blur(5px);
+}
+
+.image-info {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #666;
+    background: rgba(255,255,255,0.9);
+    padding: 8px 16px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.package-info {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #888;
+    background: rgba(255,255,255,0.8);
+    padding: 6px 12px;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+}
+
+/* 右侧表单区域 */
+.form-section {
+    flex: 0 0 280px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    padding: 15px;
+    max-width: 280px;
+}
+
+.form-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-title {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #555;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.search-user-btn {
+    margin-top: 6px;
+    width: 100%;
+    padding: 6px 10px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.search-user-btn:hover {
+    background: #5a6268;
+}
+
+.user-list-container {
+    margin-top: 8px;
+}
+
+.help-text {
+    margin-top: 6px;
+    color: #6c757d;
+    font-size: 11px;
+    text-align: center;
+}
+
+/* 操作按钮 */
+.form-actions {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+.action-btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 8px;
+}
+
+.confirm-btn {
+    background: #28a745;
+    color: white;
+    margin-left: 0px;
+}
+
+.confirm-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+.skip-btn {
+    background: #6c757d;
+    color: white;
+}
+
+.skip-btn:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+
+
+.user-list-container {
+    margin-top: 10px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .image-section {
+        flex: none;
+        height: 300px;
+        margin-bottom: 15px;
+    }
+    
+    .form-section {
+        flex: none;
+        max-width: none;
+        width: 100%;
+    }
+    
+    .progress-info {
+        font-size: 14px;
+        padding: 12px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .image-section {
+        height: 250px;
+        padding: 12px;
+    }
+    
+    .form-section {
+        padding: 12px;
+    }
+    
+    .form-title {
+        font-size: 15px;
+    }
+    
+    .action-btn {
+        padding: 8px;
+        font-size: 12px;
+    }
+}
+</style>
+
+
+
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
     var _render = false;
@@ -298,6 +832,41 @@
         })
     }
     
+
+    // 图片浏览和用户绑定相关变量
+    var translateX = 0, translateY = 0; // 图片移动位置变量
+    
+    var imageProcessor = {
+        images: [],
+        currentIndex: 0,
+        currentModal: null,
+        init: function() {
+            this.images = [];
+            this.currentIndex = 0;
+        },
+        setImages: function(images) {
+            this.images = images;
+            this.currentIndex = 0;
+        },
+        getCurrentImage: function() {
+            return this.images[this.currentIndex];
+        },
+        nextImage: function() {
+            this.currentIndex++;
+            if (this.currentIndex >= this.images.length) {
+                // 所有图片处理完成
+                this.complete();
+                return false;
+            }
+            return true;
+        },
+        complete: function() {
+            if (this.currentModal) {
+                this.currentModal.modal('close');
+            }
+            layer.msg('所有包裹图片处理完成！', {icon: 1});
+        }
+    };
 
     $(function () {
         checker = {
@@ -457,6 +1026,45 @@
             });
         });
 
+        /**
+         * 补齐包裹所属用户
+         */
+        $('#j-changepackageuser').on('click', function () {
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length == 0) {
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            
+            // 获取包裹图片
+            $.ajax({
+                type: 'GET',
+                url: '<?= url('store/package.index/getPackageImages') ?>',
+                data: {ids: selectIds.join(',')},
+                dataType: 'json',
+                success: function(res) {
+                    if (res.code == 1) {
+                        if (res.data.length == 0) {
+                            layer.alert('选中的包裹没有图片', {icon: 5});
+                            return;
+                        }
+                        
+                        // 初始化图片处理器
+                        imageProcessor.init();
+                        imageProcessor.setImages(res.data);
+                        
+                        // 显示图片处理模态框
+                        showImageProcessingModal();
+                    } else {
+                        layer.alert(res.msg || '获取包裹图片失败', {icon: 5});
+                    }
+                },
+                error: function() {
+                    layer.alert('网络错误，请重试', {icon: 5});
+                }
+            });
+        });
+
     });
     
      function doSelectUser(){
@@ -468,8 +1076,311 @@
                 done: function (data) {
                     var user = [data[0]];
                     $userList.html(template('tpl-user-item', user));
+                    
+                    // 如果是在图片处理模态框中，自动填充用户编号
+                    if (imageProcessor.currentModal) {
+                        $('#user-id-input').val(data[0].user_id);
+                    }
                 }
             });
     }
+
+    /**
+     * 显示图片处理模态框
+     */
+    function showImageProcessingModal() {
+        var currentImage = imageProcessor.getCurrentImage();
+        var data = {
+            totalImages: imageProcessor.images.length,
+            currentIndex: imageProcessor.currentIndex
+        };
+        
+        $.showModal({
+            title: '补齐包裹所属用户 - 图片处理',
+            area: '90%',
+            content: template('tpl-package-images', data),
+            uCheck: true,
+            success: function ($content) {
+                imageProcessor.currentModal = $content;
+                updateCurrentImage();
+            }
+        });
+    }
+
+    /**
+     * 更新当前显示的图片
+     */
+    function updateCurrentImage() {
+        var currentImage = imageProcessor.getCurrentImage();
+        if (!currentImage) return;
+        
+        $('#current-image').attr('src', currentImage.file_path);
+        $('#current-express-num').text(currentImage.package.express_num);
+        $('#user-id-input').val('');
+        $('.user-list').html('');
+        
+        // 初始化图片状态
+        window.currentImageRotation = 0;
+        window.currentImageScale = 1;
+        translateX = 0;
+        translateY = 0;
+        
+        // 图片加载完成后自动放大到合适尺寸
+        $('#current-image').on('load', function() {
+            // 延迟一点时间确保图片完全加载
+            setTimeout(function() {
+                autoZoomImage();
+            }, 100);
+        });
+        
+        // 如果图片已经加载完成（缓存的情况）
+        if ($('#current-image')[0].complete) {
+            setTimeout(function() {
+                autoZoomImage();
+            }, 100);
+        }
+    }
+
+    /**
+     * 确认用户绑定
+     */
+    function confirmUserBinding() {
+        var currentImage = imageProcessor.getCurrentImage();
+        var userId = $('#user-id-input').val().trim();
+        
+        if (!userId) {
+            layer.alert('请输入用户编号', {icon: 5});
+            return;
+        }
+        
+        // 调用绑定接口
+        $.ajax({
+            type: 'POST',
+            url: '<?= url('store/package.index/changepackageuser') ?>',
+            data: {
+                package_id: currentImage.package_id,
+                user_id: userId
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.code == 1) {
+                    layer.msg('绑定成功！', {icon: 1});
+                    
+                    // 处理下一张图片
+                    if (imageProcessor.nextImage()) {
+                        updateCurrentImage();
+                    }
+                } else {
+                    layer.alert(res.msg || '绑定失败', {icon: 5});
+                }
+            },
+            error: function() {
+                layer.alert('网络错误，请重试', {icon: 5});
+            }
+        });
+    }
+
+    /**
+     * 跳过当前图片
+     */
+    function skipCurrentImage() {
+        if (imageProcessor.nextImage()) {
+            updateCurrentImage();
+        }
+    }
+
+    /**
+     * 图片放大
+     */
+    function zoomImage(scale) {
+        var $img = $('#current-image');
+        
+        // 获取当前状态
+        var currentRotation = window.currentImageRotation || 0;
+        var currentScale = window.currentImageScale || 1;
+        
+        var newScale = currentScale * scale;
+        
+        // 限制缩放范围
+        if (newScale < 0.5) newScale = 0.5;
+        if (newScale > 5) newScale = 5;
+        
+        // 更新全局状态
+        window.currentImageScale = newScale;
+        
+        // 应用变换：旋转 + 缩放 + 平移
+        var transform = `rotate(${currentRotation}deg) scale(${newScale}) translate(${translateX}px, ${translateY}px)`;
+        $img.css('transform', transform);
+        
+        // 调试信息
+        console.log('缩放操作:', scale, '新缩放:', newScale, '旋转:', currentRotation, '位置:', translateX, translateY);
+        console.log('完整transform:', transform);
+    }
+
+    /**
+     * 自动缩放图片到合适尺寸
+     */
+    function autoZoomImage() {
+        var $img = $('#current-image');
+        var $container = $('.image-section');
+        var containerWidth = $container.width() - 40; // 减去padding
+        var containerHeight = $container.height() - 80; // 减去padding和底部信息区域
+        
+        // 获取图片的原始尺寸
+        var imgWidth = $img[0].naturalWidth;
+        var imgHeight = $img[0].naturalHeight;
+        
+        if (imgWidth && imgHeight) {
+            // 计算合适的缩放比例，让图片填满容器
+            var scaleX = containerWidth / imgWidth;
+            var scaleY = containerHeight / imgHeight;
+            var scale = Math.min(scaleX, scaleY) * 1.2; // 稍微放大一点，让图片更清晰
+            
+            // 限制最小和最大缩放
+            if (scale < 1) scale = 1; // 至少保持原始大小
+            if (scale > 4) scale = 4; // 最大放大4倍
+            
+            // 更新全局状态
+            window.currentImageScale = scale;
+            window.currentImageRotation = 0;
+            
+            // 重置移动位置
+            translateX = 0;
+            translateY = 0;
+            
+            // 应用变换：旋转 + 缩放
+            var transform = `rotate(0deg) scale(${scale})`;
+            $img.css('transform', transform);
+            
+            console.log('自动缩放完成 - 缩放:', scale, '旋转: 0');
+            console.log('完整transform:', transform);
+        }
+    }
+
+    /**
+     * 重置图片缩放
+     */
+    function resetZoom() {
+        // 重置所有状态
+        window.currentImageRotation = 0;
+        window.currentImageScale = 1;
+        translateX = 0;
+        translateY = 0;
+        
+        // 应用重置后的变换
+        var transform = 'scale(1)';
+        $('#current-image').css('transform', transform);
+        
+        console.log('重置完成 - 缩放: 1, 旋转: 0, 位置: 0,0');
+        console.log('完整transform:', transform);
+    }
+
+    /**
+     * 鼠标滚轮缩放
+     */
+    var wheelThrottle = 0;
+    $(document).on('wheel', '.image-wrapper', function(e) {
+        e.preventDefault();
+        
+        // 节流处理，防止滚轮事件过于频繁
+        var now = Date.now();
+        if (now - wheelThrottle < 50) return; // 50ms节流
+        wheelThrottle = now;
+        
+        var delta = e.originalEvent.deltaY > 0 ? 0.9 : 1.1;
+        
+        // 使用requestAnimationFrame确保流畅性
+        requestAnimationFrame(function() {
+            zoomImage(delta);
+        });
+    });
+
+
+
+
+
+    /**
+     * 双击重置缩放
+     */
+    $(document).on('dblclick', '.zoomable-image', function() {
+        resetZoom();
+    });
+
+    /**
+     * 图片旋转
+     */
+    function rotateImage(degrees) {
+        var $img = $('#current-image');
+        
+        // 获取当前状态
+        var currentRotation = window.currentImageRotation || 0;
+        var currentScale = window.currentImageScale || 1;
+        
+        // 计算新的旋转角度
+        var newRotation = currentRotation + degrees;
+        
+        // 标准化旋转角度到0-360度范围
+        newRotation = ((newRotation % 360) + 360) % 360;
+        
+        // 更新全局状态
+        window.currentImageRotation = newRotation;
+        window.currentImageScale = currentScale;
+        
+        // 应用变换：旋转 + 缩放 + 平移
+        var transform = `rotate(${newRotation}deg) scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
+        $img.css('transform', transform);
+        
+        // 调试信息
+        console.log('旋转角度:', newRotation, '缩放:', currentScale, '位置:', translateX, translateY);
+        console.log('完整transform:', transform);
+    }
+
+    /**
+     * 图片移动
+     */
+    function moveImage(direction) {
+        var $img = $('#current-image');
+        
+        // 获取当前状态
+        var currentRotation = window.currentImageRotation || 0;
+        var currentScale = window.currentImageScale || 1;
+        
+        // 移动步长
+        var step = 50;
+        
+        // 根据方向计算新的位置
+        switch (direction) {
+            case 'left':
+                translateX -= step;
+                break;
+            case 'right':
+                translateX += step;
+                break;
+            case 'up':
+                translateY -= step;
+                break;
+            case 'down':
+                translateY += step;
+                break;
+        }
+        
+        // 限制移动范围，防止图片移动过远
+        var maxTranslate = 300;
+        if (Math.abs(translateX) > maxTranslate) {
+            translateX = translateX > 0 ? maxTranslate : -maxTranslate;
+        }
+        if (Math.abs(translateY) > maxTranslate) {
+            translateY = translateY > 0 ? maxTranslate : -maxTranslate;
+        }
+        
+        // 应用变换：旋转 + 缩放 + 平移
+        var transform = `rotate(${currentRotation}deg) scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
+        $img.css('transform', transform);
+        
+        // 调试信息
+        console.log('移动方向:', direction, '旋转角度:', currentRotation, '缩放:', currentScale, '位置:', translateX, translateY);
+        console.log('完整transform:', transform);
+    }
+
 </script>
 

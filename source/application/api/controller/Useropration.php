@@ -836,6 +836,7 @@ class Useropration extends Controller
             ->field('id,express_num,order_sn,member_id,storage_id,status,width,height,weight,length,remark,admin_remark')
             ->with(['storage','packageimage.filepackage'])
             ->find();
+            //  dump($res->toArray());die;
         if ($res) {  // 确保 $res 不是 null
             $res->ismorepack = 0;  // 如果是对象
             // 或者 $res['ismorepack'] = 0; 如果是数组
@@ -844,7 +845,7 @@ class Useropration extends Controller
         //当查询不到包裹时，尝试查询是否是集运单的国际单号；
         //当查询是JD包裹时，可以用原来的单号再查询一遍
         $tyoi = stripos($post, "JD");
-        
+      
         if(empty($res) && $tyoi==0){
             $ex = explode('-',$post);
             $post = $ex[0];
@@ -860,9 +861,9 @@ class Useropration extends Controller
                 $res->ismorepack = 1;  // 如果是对象
                 // 或者 $res['ismorepack'] = 0; 如果是数组
             }
-           
+                // dump($res);die;
         }
-      
+    
         if(empty($res) && !$tyoi){
       
             $Inpack = new Inpack();
@@ -870,6 +871,7 @@ class Useropration extends Controller
             $mapss['t_order_sn'] = $post; 
                     //   dump($maps);die;
             $inpackres = $Inpack->where($mapss)->with('storage')->find();
+           
             $where = ['user_id'=>$inpackres['member_id']];
             $userdata = UserModel::detail($where,$with=[]);
             if(!empty($userdata)){
@@ -882,7 +884,7 @@ class Useropration extends Controller
                 return $this->renderSuccess($clerk);
             }
         }
-       
+     
         $where = ['user_id'=>$res['member_id']];
         $userdata = UserModel::detail($where,$with=[]);
         !empty($userdata) && $res['user_code'] =  $userdata['user_code'];
