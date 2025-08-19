@@ -3,6 +3,8 @@ namespace app\store\controller\apps\sharing;
 use app\store\controller\Controller;
 use app\store\model\sharing\SharingUser;
 use app\store\model\User as UserModel;
+use app\store\model\Setting;
+
 class Verify extends Controller{
     
     public function index(){
@@ -13,7 +15,8 @@ class Verify extends Controller{
     
     public function list(){
         $list = (new SharingUser())->getListX();
-        return $this->fetch('list',compact('list'));
+        $set = Setting::detail('store')['values']['usercode_mode'];
+        return $this->fetch('list',compact('list','set'));
     }
     
     /**

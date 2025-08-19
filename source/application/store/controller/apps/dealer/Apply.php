@@ -4,7 +4,7 @@ namespace app\store\controller\apps\dealer;
 
 use app\store\controller\Controller;
 use app\store\model\dealer\Apply as ApplyModel;
-
+use app\store\model\Setting;
 /**
  * 分销商申请
  * Class Setting
@@ -23,6 +23,7 @@ class Apply extends Controller
         $model = new ApplyModel;
         return $this->fetch('index', [
             'list' => $model->getList($search),
+            'set' =>  Setting::detail('store')['values']['usercode_mode']
         ]);
     }
 

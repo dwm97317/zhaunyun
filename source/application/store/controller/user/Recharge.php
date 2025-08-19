@@ -4,6 +4,7 @@ namespace app\store\controller\user;
 
 use app\store\controller\Controller;
 use app\store\model\recharge\Order as OrderModel;
+use app\store\model\Setting;
 
 /**
  * 余额记录
@@ -25,6 +26,8 @@ class Recharge extends Controller
             'list' => $model->getList($this->request->param()),
             // 属性集
             'attributes' => $model::getAttributes(),
+             // 设置
+            'set' =>  Setting::detail('store')['values']['usercode_mode']
         ]);
     }
 

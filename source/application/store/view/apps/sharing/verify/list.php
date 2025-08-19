@@ -66,8 +66,15 @@
                                             <img src="<?= $item['user']['avatarUrl'] ?>" alt="">
                                         </div>
                                         <div class="goods-info">
-                                            <p class="goods-title">用户ID：<?= $item['user']['user_id'] ?></p>
                                             <p class="goods-spec am-link-muted">用户名：<?= $item['user']['nickName'] ?></p>
+                                            <p class="am-link-muted">
+                                            <?php if($set['is_show']==0) :?>
+                                            (用户ID：<?= $item['user']['user_id'] ?>)
+                                            <?php endif;?>
+                                            <?php if($set['is_show']==1) :?>
+                                                  (用户编号：<?= $item['user']['user_code'] ?>)
+                                            <?php endif;?>
+                                        </p>
                                         </div>
                                     </td>
                                     <td class="am-text-middle">

@@ -8,6 +8,7 @@ use app\store\model\dealer\User as UserModel;
 use app\store\model\dealer\Referee as RefereeModel;
 use app\store\model\dealer\Setting as SettingModel;
 use app\store\model\dealer\Rating as RatingModel;
+use app\store\model\Setting;
 
 /**
  * 分销商管理
@@ -61,6 +62,7 @@ class User extends Controller
             'list' => $model->getList($search),
             'gradeList' => $gradeList,
             'basicSetting' => SettingModel::getItem('basic'),
+            'set' =>  Setting::detail('store')['values']['usercode_mode']
         ]);
     }
     

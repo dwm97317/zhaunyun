@@ -4,6 +4,7 @@ namespace app\store\controller\user;
 
 use app\store\controller\Controller;
 use app\store\model\user\BalanceLog as BalanceLogModel;
+use app\store\model\Setting;
 
 /**
  * 余额明细
@@ -25,6 +26,8 @@ class Balance extends Controller
             'list' => $model->getList($this->request->param()),
             // 属性集
             'attributes' => $model::getAttributes(),
+            // 设置
+            'set' =>  Setting::detail('store')['values']['usercode_mode']
         ]);
     }
 

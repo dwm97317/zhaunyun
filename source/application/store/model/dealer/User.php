@@ -23,7 +23,7 @@ class User extends UserModel
     {
         // 构建查询规则
         $this->alias('dealer')
-            ->field('dealer.*, user.nickName, user.avatarUrl')
+            ->field('dealer.*, user.nickName, user.avatarUrl,user.user_code')
             ->with(['referee'])
             ->join('user', 'user.user_id = dealer.user_id')
             ->where('dealer.is_delete', '=', 0)

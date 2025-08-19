@@ -77,7 +77,14 @@
                                     </td>
                                     <td class="am-text-middle">
                                         <p class=""><?= $item['user']['nickName'] ?></p>
-                                        <p class="am-link-muted">(用户ID：<?= $item['user']['user_id'] ?>)</p>
+                                        <p class="am-link-muted">
+                                            <?php if($set['is_show']==0) :?>
+                                            (用户ID：<?= $item['user']['user_id'] ?>)
+                                            <?php endif;?>
+                                            <?php if($set['is_show']==1) :?>
+                                                  (用户编号：<?= $item['user']['user_code'] ?>)
+                                            <?php endif;?>
+                                        </p>
                                     </td>
                                     <td class="am-text-middle">
                                         <span class="am-badge am-badge-secondary"><?= $item['scene']['text'] ?></span>

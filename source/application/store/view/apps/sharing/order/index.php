@@ -142,9 +142,11 @@
                                
                                     </td>
                                     <td class="am-text-middle">
+                                        <?php if($setcode['is_show']==0) :?> 
                                         用户ID:<?= $item['member_id']; ?> </br> 
-                                        <?php if($setcode['is_show']!=0) :?> 
-                                        <span>用户Code:<?= $item['user']['user_code']; ?></span></br>
+                                        <?php endif;?>
+                                        <?php if($setcode['is_show']==1) :?> 
+                                        <span>用户编号:<?= $item['user']['user_code']; ?></span></br>
                                         <?php endif;?>
                                         用户昵称:<?= $item['user']['nickName']; ?>
                                     </td>

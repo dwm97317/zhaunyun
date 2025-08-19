@@ -23,7 +23,7 @@ class Apply extends ApplyModel
     {
         // 构建查询规则
         $this->alias('apply')
-            ->field('apply.*, user.nickName, user.avatarUrl')
+            ->field('apply.*, user.nickName, user.avatarUrl,user.user_code')
             ->with(['referee'])
             ->join('user', 'user.user_id = apply.user_id')
             ->order(['apply.create_time' => 'desc']);
