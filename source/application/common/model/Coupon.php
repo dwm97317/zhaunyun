@@ -20,6 +20,15 @@ class Coupon extends BaseModel
     protected $append = [
         'state'
     ];
+    
+    /**
+     * 关联商品图片表
+     * @return \think\model\relation\HasMany
+     */
+    public function coupongoods()
+    {
+        return $this->hasMany('CouponGoods')->order(['id' => 'asc']);
+    }
 
     /**
      * 优惠券状态 (是否可领取)
@@ -102,7 +111,7 @@ class Coupon extends BaseModel
     {
         return helper::bcmul($value, 10, 0);
     }
-
+    
     /**
      * 优惠券详情
      * @param $coupon_id
@@ -111,7 +120,7 @@ class Coupon extends BaseModel
      */
     public static function detail($coupon_id)
     {
-        return self::get($coupon_id);
+        return self::get($coupon_id,['coupongoods']);
     }
 
 }

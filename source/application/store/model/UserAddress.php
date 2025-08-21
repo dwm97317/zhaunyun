@@ -43,6 +43,18 @@ class UserAddress extends UserAddressModel
             ]);
     }
     
+    /**
+     * 获取列表记录
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getAllDsList()
+    {
+        return $this->with(['countrydata'])
+            ->where('address_type',2)//获取代收点的地址
+            ->select();
+    }
+    
     
     /**
      * 获取列表记录

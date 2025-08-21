@@ -4,7 +4,7 @@ namespace app\api\model;
 
 use app\common\library\helper;
 use app\common\model\UserCoupon as UserCouponModel;
-
+use app\common\model\CouponGoods as CouponGoodsModel;
 /**
  * 用户优惠券模型
  * Class UserCoupon
@@ -30,7 +30,7 @@ class UserCoupon extends UserCouponModel
             ->where('is_expire', '=', $is_expire ? 1 : 0)
             ->select();
     }
-
+    
     /**
      * 获取用户优惠券总数量(可用)
      * @param $user_id
@@ -210,7 +210,7 @@ class UserCoupon extends UserCouponModel
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public static function getUserCouponList($user_id, $orderPayPrice)
+    public static function getUserCouponList($user_id, $orderPayPrice,$line_id)
     {
         // todo: 新增筛选条件: 最低消费金额
         // 获取用户可用的优惠券列表
@@ -219,6 +219,24 @@ class UserCoupon extends UserCouponModel
         foreach ($list as $coupon) {
             // 最低消费金额
             if ($orderPayPrice < $coupon['min_price']) continue;
+            // 当线路id不为空时候
+            if(!empty($line_id)){
+                //根据订单的线路找是否对
+                $result = (new CouponGoodsModel())->where('coupon_id',$coupon['coupon_id'])->field('goods_id')->select();
+                $lineids = [];
+                if(count($result)>0){
+                   foreach ($result as $v){
+                       if($line_id == $v['goods_id']){
+                            $lineids[] = $v['goods_id'];
+                       }
+                   }
+                   if(!in_array($line_id,$lineids)){
+                     continue;  
+                   }
+                }
+            }
+            
+            
             
             // 有效期范围内
             if ($coupon['start_time']['value'] > time()) continue;

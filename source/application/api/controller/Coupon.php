@@ -44,8 +44,9 @@ class Coupon extends Controller
     
     public function enablecoupon(){
         $free = input('total_free');
+        $line_id = input('line_id');
         $model = new UserCoupon;
-        $list = $model->getUserCouponList($this->getUser(false)['user_id'],$free);
+        $list = $model->getUserCouponList($this->getUser(false)['user_id'],$free,$line_id);
         return $this->renderSuccess(compact('list'));
     }
 

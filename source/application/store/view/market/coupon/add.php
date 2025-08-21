@@ -137,6 +137,22 @@
                                     <small>限制领取的优惠券数量，-1为不限制</small>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 指定集运线路 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="coupon[line_ids][]" multiple
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'所有线路', maxHeight: 400}">
+                                            <option value=""></option>
+                                        <?php if (isset($linelist) && !$linelist->isEmpty()):
+                                            foreach ($linelist as $item): ?>
+                                                <option value="<?= $item['id'] ?>"><?= $item['name'] ?></option>
+                                            <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>可以设置多个集运线路</small>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="am-form-group" data-x-switch>
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">领取限制 </label>
                                 <div class="am-u-sm-9 am-u-end">

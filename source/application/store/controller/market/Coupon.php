@@ -7,6 +7,9 @@ use app\store\model\Coupon as CouponModel;
 use app\store\model\UserCoupon as UserCouponModel;
 use app\common\model\Setting;
 use app\store\model\Setting as SettingModel;
+use app\store\model\Line as LineModel;
+
+
 /**
  * 优惠券管理
  * Class Coupon
@@ -48,7 +51,8 @@ class Coupon extends Controller
     public function add()
     {
         if (!$this->request->isAjax()) {
-            return $this->fetch('add');
+            $linelist = (new LineModel())->getListAll();
+            return $this->fetch('add',compact("linelist"));
         }
         // 新增记录
         if ($this->model->add($this->postData('coupon'))) {
@@ -85,8 +89,17 @@ class Coupon extends Controller
     {
         // 优惠券详情
         $model = CouponModel::detail($coupon_id);
+        $couponIds = [];
+        if (count($model['coupongoods'])>0) {
+           foreach ($model['coupongoods'] as $item) {
+                $couponIds[] = $item['goods_id'];
+            }
+        }
+        $model['line_ids'] = $couponIds;
+        // dump($couponIds);die;
         if (!$this->request->isAjax()) {
-            return $this->fetch('edit', compact('model'));
+            $linelist = (new LineModel())->getListAll();
+            return $this->fetch('edit', compact('model','linelist'));
         }
         // 更新记录
         if ($model->edit($this->postData('coupon'))) {

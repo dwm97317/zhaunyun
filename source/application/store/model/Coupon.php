@@ -3,7 +3,7 @@
 namespace app\store\model;
 
 use app\common\model\Coupon as CouponModel;
-
+use app\store\model\CouponGoods;
 /**
  * 优惠券模型
  * Class Coupon
@@ -68,6 +68,15 @@ class Coupon extends CouponModel
             $data['start_time'] = strtotime($data['start_time']);
             $data['end_time'] = strtotime($data['end_time']);
         }
+        if(isset($data['line_ids'])){
+            foreach ($data['line_ids'] as $v){
+               (new CouponGoods())->add([
+                    'coupon_id'=>$data['coupon_id'],
+                    'goods_id'=>$v,
+                    'type'=>10
+                ]); 
+            }
+        }
         return $this->allowField(true)->save($data);
     }
 
@@ -81,6 +90,16 @@ class Coupon extends CouponModel
         if ($data['expire_type'] == '20') {
             $data['start_time'] = strtotime($data['start_time']);
             $data['end_time'] = strtotime($data['end_time']);
+        }
+        (new CouponGoods())->where('coupon_id',$this->coupon_id)->delete();
+        if(isset($data['line_ids'])){
+            foreach ($data['line_ids'] as $v){
+               (new CouponGoods())->add([
+                    'coupon_id'=>$this->coupon_id,
+                    'goods_id'=>$v,
+                    'type'=>10
+                ]); 
+            }
         }
         return $this->allowField(true)->save($data) !== false;
     }

@@ -24,30 +24,6 @@
                                     <input type="text" class="tpl-form-input" name="line[name]" value="<?= $model['name'] ?>" required>
                                 </div>
                             </div>
-                            <!--<div class="am-form-group">-->
-                            <!--    <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 运输形式 </label>-->
-                            <!--    <div class="am-u-sm-9 am-u-end">-->
-                            
-                            <!--        <label class="am-radio-inline">-->
-                            <!--            <input type="radio" name="line[line_category]"  value="10" data-am-ucheck <?= $model['line_category'] == 10 ? 'checked' : '' ?>>-->
-                            <!--            海运-->
-                            <!--        </label>-->
-                            <!--        <label class="am-radio-inline">-->
-                            <!--            <input type="radio" name="line[line_category]"  value="20" data-am-ucheck <?= $model['line_category'] == 20 ? 'checked' : '' ?>>-->
-                            <!--            空运-->
-                            <!--        </label>-->
-                            <!--        <label class="am-radio-inline">-->
-                            <!--            <input type="radio" name="line[line_category]"  value="30" data-am-ucheck <?= $model['line_category'] == 30 ? 'checked' : '' ?>>-->
-                            <!--            陆运-->
-                            <!--        </label>-->
-                                 
-                            <!--        <label class="am-radio-inline">-->
-                            <!--            <input type="radio" name="line[line_category]"  value="40" data-am-ucheck <?= $model['line_category'] == 40 ? 'checked' : '' ?>>-->
-                            <!--            铁运-->
-                            <!--        </label>-->
-                            
-                            <!--    </div>-->
-                            <!--</div>-->
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 运输形式 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -434,7 +410,8 @@
                                      </div>
                                      
                                        <div class="am-form-up" id="hunhe_mode_unit" <?= in_array($model['free_mode'],[5]) ? 'style="display: block;"' : '' ?>>
-                                          <div class="am-form-title" style="height:40px; line-height:35px;">混合计费规则 
+                                          <div class="am-form-title" style="height:40px; line-height:35px;">混合计费规则
+                                          <span style="color:#ff6600;" onclick="addshouxuzhong(this)">新增首续重计费</span>
                                           <span style="color:#ff6600;" onclick="addqujian(this)">新增区间计费</span>
                                           <span style="color:#ff6600;" onclick="addweightqujian(this)">新增重量区间计费</span>
                                           </div>
@@ -461,7 +438,7 @@
                                                         <td>首重费用<input type="number" min="0" class="tpl-form-input" name="line[5][first_price]" value="<?= $item5['first_price']; ?>" placeholder="输入首重费用"  required></td>
                                                         <td>续重<input type="number" min="0" class="tpl-form-input" name="line[5][next_weight]" value="<?= $item5['next_weight']; ?>" placeholder="输入续重"  required></td>
                                                         <td>续重费用<input type="number" min="0" class="tpl-form-input" name="line[5][next_price]" value="<?= $item5['next_price']; ?>" placeholder="输入续重费用"  required></td>
-                                                        <td onclick=""></td>
+                                                        <td onclick="deleteshouxuzhong(this)">删除</td>
                                                     </tr>
                                                     <?php endif; ?>
                                                     <?php if ($item5['type']==2): ?> 
@@ -925,7 +902,7 @@
         amformItem.appendChild(Item1);
     }
     
-        function addqujian(){
+    function addqujian(){
         var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
             console.log(amformItem)
         var Item1 = document.createElement('tr');
@@ -935,6 +912,28 @@
     
         amformItem.appendChild(Item1);
     }
+    
+    
+    function addshouxuzhong(){
+        var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+            console.log(amformItem)
+        var Item1 = document.createElement('tr');
+        
+        var _html = '<input type="hidden" class="tpl-form-input" name="line[5][type]" value="1" placeholder="首续重"  required><td>起始重量<input type="text" name="line[5][weight_start]" class="" id="doc-ipt-start-1" placeholder="输入起始重量" value=""></td><td>结束重量<input type="text" name="line[5][weight_max]" class="" id="doc-ipt-end-1" placeholder="输入结束重量" value=""></td><td>首重<input type="number" min="0" class="tpl-form-input" name="line[5][first_weight]" value="" placeholder="输入首重"  required></td><td>首重费用<input type="number" min="0" class="tpl-form-input" name="line[5][first_price]" value="" placeholder="输入首重费用"  required></td><td>续重<input type="number" min="0" class="tpl-form-input" name="line[5][next_weight]" value="" placeholder="输入续重"  required></td><td>续重费用<input type="number" min="0" class="tpl-form-input" name="line[5][next_price]" value="" placeholder="输入续重费用"  required></td><td onclick="deleteshouxuzhong(this)">删除</td>';
+        Item1.innerHTML = _html;
+    
+        amformItem.appendChild(Item1);
+    }
+    
+    
+        // 删除
+    function deleteshouxuzhong(_this){
+       var amformItem = document.getElementsByClassName('hunhe_mode_unit')[0];
+       var parent = _this.parentNode;
+       amformItem.removeChild(parent);
+    }
+
+    
     
         // 删除
     function deletequjian(_this){

@@ -551,7 +551,7 @@ class Index extends Controller
            $category = $Category->getListTopChild($map2['top_id'])->toArray()['data']; 
         }
         //获取代收点的
-        $storeAddress =(new UserAddress())->getDsList();
+        $storeAddress =(new UserAddress())->getAllDsList();
    
         $packlist = []; 
         $packlists = '';

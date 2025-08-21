@@ -28,57 +28,67 @@ class WechatMenu extends BaseModel
     }
     
     public static function formatForWechat($menus) {
-    $formatted = ['button' => []];
-    foreach ($menus as $menu) {
-        $item = ['name' => $menu['name']];
-        
-        if (!empty($menu['sub_button'])) {
-            // 有子菜单时不设置type
-            $item['sub_button'] = [];
-            foreach ($menu['sub_button'] as $subMenu) {
-                $subItem = [
-                    'type' => $subMenu['type'],
-                    'name' => $subMenu['name']
-                ];
-                
-                // 根据类型设置不同字段
-                switch ($subMenu['type']) {
+        $formatted = ['button' => []];
+        foreach ($menus as $menu) {
+            $item = ['name' => $menu['name']];
+            
+            if (!empty($menu['sub_button'])) {
+                // 有子菜单时不设置type
+                $item['sub_button'] = [];
+                foreach ($menu['sub_button'] as $subMenu) {
+                    $subItem = [
+                        'type' => $subMenu['type'],
+                        'name' => $subMenu['name']
+                    ];
+                    
+                    // 根据类型设置不同字段
+                    switch ($subMenu['type']) {
+                        case 'click':
+                            $subItem['key'] = $subMenu['key'];
+                            break;
+                        case 'view':
+                            $subItem['url'] = $subMenu['url'];
+                            break;
+                        case 'miniprogram':
+                            $subItem['url'] = $subMenu['url'];
+                            $subItem['appid'] = $subMenu['appid'];
+                            $subItem['pagepath'] = $subMenu['pagepath'];
+                            break;
+                    }
+                    
+                    $item['sub_button'][] = $subItem;
+                }
+            } else {
+                // 没有子菜单时必须设置type
+                $item['type'] = $menu['type'];
+                switch ($menu['type']) {
                     case 'click':
-                        $subItem['key'] = $subMenu['key'];
+                        $item['key'] = $menu['key'];
                         break;
                     case 'view':
-                        $subItem['url'] = $subMenu['url'];
+                        $item['url'] = $menu['url'];
                         break;
                     case 'miniprogram':
-                        $subItem['url'] = $subMenu['url'];
-                        $subItem['appid'] = $subMenu['appid'];
-                        $subItem['pagepath'] = $subMenu['pagepath'];
+                        $item['url'] = $menu['url'];
+                        $item['appid'] = $menu['appid'];
+                        $item['pagepath'] = $menu['pagepath'];
                         break;
                 }
-                
-                $item['sub_button'][] = $subItem;
             }
-        } else {
-            // 没有子菜单时必须设置type
-            $item['type'] = $menu['type'];
-            switch ($menu['type']) {
-                case 'click':
-                    $item['key'] = $menu['key'];
-                    break;
-                case 'view':
-                    $item['url'] = $menu['url'];
-                    break;
-                case 'miniprogram':
-                    $item['url'] = $menu['url'];
-                    $item['appid'] = $menu['appid'];
-                    $item['pagepath'] = $menu['pagepath'];
-                    break;
-            }
+            
+            $formatted['button'][] = $item;
         }
         
-        $formatted['button'][] = $item;
+        return $formatted;
     }
     
-    return $formatted;
-}
+    /**
+     * 转义链接
+     * @param $value
+     * @return mixed
+     */
+    public function getUrlAttr($value)
+    {
+        return htmlspecialchars_decode($value);
+    }
 }
