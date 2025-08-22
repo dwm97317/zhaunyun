@@ -468,6 +468,7 @@
                     </label>
                     <div class="am-u-sm-8 am-u-end">
                       <select name="inpack[id]" data-am-selected="{btnSize: 'sm', placeholder: '请选择线路'}">
+                       <option value="">-- 请选择包装服务 --</option>
                         <?php foreach ($packageService as $item): ?>
                                 <option value="<?= $item['id'] ?>"><?= $item['name'] ?></option>
                             <?php endforeach; ?>

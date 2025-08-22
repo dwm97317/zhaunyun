@@ -3,7 +3,7 @@
 namespace app\common\model;
 
 use app\common\library\helper;
-
+use app\common\model\CouponGoods;
 /**
  * 优惠券模型
  * Class Coupon

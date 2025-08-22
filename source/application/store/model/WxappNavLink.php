@@ -12,10 +12,10 @@ use app\common\model\wxapp\Navlink;
 class WxappNavLink extends Navlink
 {
     public function getList($query=[]){
-        return $this->setListQueryWhere($query)
+        return $this
         ->alias('a')
         ->with('image')
-        ->order('sort','asc')
+        ->order(['sort asc','id desc'])
         ->paginate(10,false,[
             'query'=>\request()->request()
         ]);
