@@ -357,14 +357,14 @@ class Inpack extends InpackModel
             $data['status'] = 2;
             $data['pick_time'] = getTime();
             //发送订阅消息以及模板消息,包裹查验完成，等待支付
-            $noticesetting = SettingModel::getItem('notice');
+            $noticesetting = SettingModel::getItem('notice',$pack['wxapp_id']);
             //根据设置内容，判断是否需要发送通知；
             $pack['remark']= $noticesetting['check']['describe'];
             $pack['total_free'] = $pack['free']+$pack['other_free']+$pack['pack_free'];
             //生成物流轨迹信息
             Logistics::addInpackLogs($pack['order_sn'],$noticesetting['check']['describe']);
             //获取模板消息设置，根据设置选择调用的函数
-            $tplmsgsetting = SettingModel::getItem('tplMsg');
+            $tplmsgsetting = SettingModel::getItem('tplMsg',$pack['wxapp_id']);
             if($tplmsgsetting['is_oldtps']==1){
                   //发送旧版本订阅消息以及模板消息
                   $res =$this->sendEnterMessage([$pack],'payment');
@@ -374,7 +374,7 @@ class Inpack extends InpackModel
                   Message::send('package.payorder',$pack);
             }
             //发送邮件通知
-            $email = SettingModel::getItem('email');
+            $email = SettingModel::getItem('email',$pack['wxapp_id']);
             if($email['is_enable']==1 && (isset($pack['member_id']) || !empty($pack['member_id']))){
                 $EmailUser = UserModel::detail($pack['member_id']);
                 $EmailData['code'] = $data['id'];
@@ -628,18 +628,19 @@ class Inpack extends InpackModel
         $Line = new Line();
         $field = ['line_id','length','width','height','weight','verify','free','pack_free','cale_weight','volume','other_free','remark','t_number','t_name','t_order_sn'];
         $update = [];
-        //物流模板设置
-        $noticesetting = SettingModel::getItem('notice');
-        $tplmsgsetting = SettingModel::getItem('tplMsg');
+        
         foreach ($field as $v){
             if (isset($data[$v]))
                $update[$v] = $data[$v];
         }
-        $update['updated_time'] = getTime();
+            $update['updated_time'] = getTime();
             $update['status'] = '6';
             $update['sendout_time'] = getTime();
              // 更新查验物流信息
             $pack = $this->where(['id'=>$data['id']])->find();
+            //物流模板设置
+            $noticesetting = SettingModel::getItem('notice',$pack['wxapp_id']);
+            $tplmsgsetting = SettingModel::getItem('tplMsg',$pack['wxapp_id']);
             $useraddress = UserAddress::detail($pack['address_id']);
             // dump(substr($useraddress['phone'],-4));die;
             $userData = (new UserModel)->where('user_id',$pack['member_id'])->find();
