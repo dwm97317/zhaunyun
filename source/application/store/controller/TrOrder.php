@@ -42,6 +42,7 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 use app\common\library\Ditch\Hualei;
 use app\store\model\Countries;
+use app\store\model\LineService;
 
 /**
  * 订单管理
@@ -1463,7 +1464,7 @@ class TrOrder extends Controller
             $weigthV = ceil($weigthV);
         }
         // 取两者中 较重者 
-        // dump($data['weight']);die;
+        
         $oWeigth = ($weigthV >= ($data['weight']*$line['volumeweight_weight'])) ? $weigthV:$data['weight'];
         if($line['line_type']==1){
             $oWeigth = $data['weight'];
@@ -1471,11 +1472,14 @@ class TrOrder extends Controller
       
         //关税和增值服务费用
         //计算所有的箱子的超长超重费；
+        $boxes = [];
+        if (!empty($data['boxes'])) {
+            $boxes = json_decode(html_entity_decode($data['boxes']),true);
+        }
         
-        // $otherfree = $line['service_route'];
-        // $long = max($data['length'],$data['width'],$data['height']);
-        // $otherfree = getServiceFree($line['services_require'],$oWeigth,$long);
-        $otherfree = 0;
+        $otherfree = ( new LineService())->getserviceFree($oWeigth,$pakdata['country_id'],$line['line_category'],$pakdata['address']['code'],$boxes,$line['services_require']);
+        
+        
         $insure_free = $pakdata['insure_free'];
         $reprice=0;
          //单位转化
@@ -1753,7 +1757,14 @@ class TrOrder extends Controller
         if($settingdata['is_auto_free']==0){
            $lines['predict']['price'] = 0;
         }
-        return $this->renderSuccess(['oWeigth'=>$oWeigth,'price'=>str_replace(',','',$lines['predict']['price']),'weightV'=>$weigthV,'packfree'=>$pricethree,'insure_free'=>$insure_free]);
+        return $this->renderSuccess([
+            'oWeigth'=>$oWeigth,
+            'price'=>str_replace(',','',$lines['predict']['price']),
+            'weightV'=>$weigthV,
+            'packfree'=>$pricethree,
+            'insure_free'=>$insure_free,
+            'otherfree'=>$otherfree
+        ]);
     }
     
     /**

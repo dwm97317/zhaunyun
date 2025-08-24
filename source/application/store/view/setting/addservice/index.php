@@ -50,7 +50,7 @@
                                             <?php if (isset($item['rule']) && !empty($item['rule'])) : ?>
                                                     <?php foreach (json_decode($item['rule'], true) as $item4) : ?>
                                                         <?php echo ($item['type'] == 10 ? "重量" : "长度") . 
-                                                              "在" . $item4['weight'][0] . " - " . $item4['weight'][1] . 
+                                                              "在" . $item4['weight_start'] . " - " . $item4['weight_max'] . 
                                                               " 收费:" . $item4['weight_price'] . "<br>" ; ?>
                                                     <?php endforeach; ?>
                                             <?php endif; ?>

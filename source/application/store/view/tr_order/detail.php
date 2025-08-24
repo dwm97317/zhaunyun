@@ -622,6 +622,7 @@ function calefreeforvol(){
                 $('#price').val(res.msg.price);
                 $('#pack_free').val(res.msg.packfree);
                 $('#lineweight').val(res.msg.oWeigth);
+                $('#other_free').val(res.msg.otherfree);
                 MathFree();
             } else {
                 $priceField.val(originalPrice);
@@ -661,6 +662,7 @@ function calefree(){
                 $('#price').val(res.msg.price);
                 $('#pack_free').val(res.msg.packfree);
                 $('#lineweight').val(res.msg.oWeigth);
+                $('#other_free').val(res.msg.otherfree);
                 MathFree();
             } else {
                 $priceField.val(originalPrice);
@@ -675,12 +677,9 @@ function calefree(){
         }
     });
 }
-    
-// 运费计算函数
 function caleAmount() {
-    console.log(666666);
-    // if(isCalculating) return;
-     
+    console.log("计算运费（使用分箱数据）");
+    
     const is_pay = <?= $detail['is_pay'] ?>;
     const is_auto_free = <?= $is_auto_free ?>;
    
@@ -689,9 +688,41 @@ function caleAmount() {
     }
     
     const line_id = $('select[name="data[line_id]"]').val();
-    const cale_weight = parseFloat($('#oWei').val()) || 0;
+    if(!line_id) {
+        alert('请先选择集运线路');
+        return false;
+    }
     
-    if(!line_id || cale_weight <= 0) {
+    // 收集所有分箱数据
+    const boxData = [];
+    let hasValidBox = false;
+    
+    $('.step_mode > div').each(function() {
+        // 跳过添加按钮的行
+        if ($(this).find('button').length > 0) return;
+        
+        const $row = $(this);
+        const length = parseFloat($row.find('.vlength').val()) || 0;
+        const width = parseFloat($row.find('.vwidth').val()) || 0;
+        const height = parseFloat($row.find('.vheight').val()) || 0;
+        const weight = parseFloat($row.find('.weight').val()) || 0;
+        const quantity = parseFloat($row.find('.num').val()) || 1;
+        
+        // 只有当有有效数据时才添加到请求中
+        if((length > 0 && width > 0 && height > 0) || weight > 0) {
+            boxData.push({
+                length: length,
+                width: width,
+                height: height,
+                weight: weight,
+                quantity: quantity
+            });
+            hasValidBox = true;
+        }
+    });
+    
+    if(!hasValidBox) {
+        alert('请至少填写一个有效的分箱数据');
         return false;
     }
     
@@ -701,13 +732,15 @@ function caleAmount() {
     isCalculating = true;
     $priceField.val('计算中...').prop('disabled', true);
     
+    // 发送AJAX请求，包含分箱数据
     $.ajax({
         type: "POST",
         url: "<?= url('store/trOrder/caleAmount')?>",
         data: {
             pid: $('input[name="data[id]"]').val(),
             line_id: line_id,
-            weight: cale_weight
+            weight: parseFloat($('#oWei').val()) || 0, // 保留原计费重量
+            boxes: JSON.stringify(boxData) // 新增分箱数据
         },
         dataType: 'json',
         success: function(res) {
@@ -715,13 +748,16 @@ function caleAmount() {
                 $('#price').val(res.msg.price);
                 $('#pack_free').val(res.msg.packfree);
                 $('#lineweight').val(res.msg.oWeigth);
+                $('#other_free').val(res.msg.otherfree);
                 MathFree();
             } else {
                 $priceField.val(originalPrice);
+                alert(res.msg || '计算运费失败');
             }
         },
         error: function() {
             $priceField.val(originalPrice);
+            alert('网络错误，请重试');
         },
         complete: function() {
             isCalculating = false;

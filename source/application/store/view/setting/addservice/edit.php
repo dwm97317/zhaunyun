@@ -84,13 +84,13 @@
                                         </thead>
                                         <tbody class="area_mode">
                                             <?php 
-                                            if(isset($model['rule']) && isset($model['rule']['weight_rules'])) {
-                                                foreach($model['rule']['weight_rules'] as $item) : 
+                                            if(isset($model['rule']) && isset($model['rule'])) {
+                                                foreach($model['rule'] as $item) : 
                                             ?>
                                                 <tr>
-                                                    <td><input type="text" name="line[weight_start][]" placeholder="输入起始值" value="<?= $item['start'] ?? '' ?>"></td>
-                                                    <td><input type="text" name="line[weight_max][]" placeholder="输入结束值" value="<?= $item['end'] ?? '' ?>"></td>
-                                                    <td><input type="text" name="line[weight_price][]" placeholder="输入所需费用" value="<?= $item['price'] ?? '' ?>"></td>
+                                                    <td><input type="text" name="line[weight_start][]" placeholder="输入起始值" value="<?= $item['weight_start'] ?? '' ?>"></td>
+                                                    <td><input type="text" name="line[weight_max][]" placeholder="输入结束值" value="<?= $item['weight_max'] ?? '' ?>"></td>
+                                                    <td><input type="text" name="line[weight_price][]" placeholder="输入所需费用" value="<?= $item['weight_price'] ?? '' ?>"></td>
                                                     <td>
                                                         <button type="button" class="am-btn am-btn-xs am-btn-danger" onclick="freeRuleDelarea(this)">删除</button>
                                                     </td>
@@ -117,17 +117,11 @@
                             <!-- 偏远地区设置（仅偏远模式显示） -->
                             <div class="am-form-group" id="remote_mode" style="<?= $model['type'] != 30 ? 'display:none;' : '' ?>">
                                 <div class="am-u-sm-9 am-u-end ">
-                                    <?php
-                                    $remoteData = [];
-                                    if($model['type'] == 30 && isset($model['rule'])) {
-                                        $remoteData = $model['rule'];
-                                    }
-                                    ?>
                                     <div class="am-form-group">
                                         <label class="am-u-sm-3 am-u-lg-3 am-form-label form-require">偏远地区列表</label>
                                         <div class="am-u-sm-9 am-u-end">
                                             <textarea class="tpl-form-input" name="line[remote_areas]" rows="5" 
-                                                      placeholder="请输入偏远地区列表，每行一个地区" required><?= isset($remoteData['remote_areas']) ? $remoteData['remote_areas'] : '' ?></textarea>
+                                                      placeholder="请输入偏远地区列表，每行一个地区" required><?= isset($model['remote_areas']) ? $model['remote_areas'] : '' ?></textarea>
                                             <small class="am-text-warning">每行输入一个偏远地区名称</small>
                                         </div>
                                     </div>

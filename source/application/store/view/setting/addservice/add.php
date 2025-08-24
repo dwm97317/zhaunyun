@@ -44,7 +44,7 @@
                                 <div class="am-u-sm-9 am-u-end">
                                     <?php if (count($linecategory)>0): foreach ($linecategory as $key =>$item): ?>
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="line[line_category]"  value="<?= $item['category_id'] ?>" data-am-ucheck  <?= $key==0?'checked':'' ?>>
+                                        <input type="radio" name="line[line_category_id]"  value="<?= $item['category_id'] ?>" data-am-ucheck  <?= $key==0?'checked':'' ?>>
                                         <?= $item['name'] ?>
                                     </label>
                                     <?php endforeach; endif; ?>
@@ -54,7 +54,7 @@
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">归属国家 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                    <select name="data[country]"
+                                    <select name="line[country_id]"
                                             data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" >
                                         <option value=""></option>
                                         <?php if (isset($countryList) && !$countryList->isEmpty()):

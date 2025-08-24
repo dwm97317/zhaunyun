@@ -7,6 +7,7 @@ use app\api\model\Article as ArticleModel;
 use app\api\model\dealer\Setting;
 use app\api\model\Setting as SettingModel;
 use app\api\model\Line;
+use app\api\model\LineService;
 use app\api\model\Bank;
 use app\common\model\Batch;
 use app\api\model\Batch as BatchModel;
@@ -1262,10 +1263,10 @@ class Page extends Controller
                break;
            }
             $pricetwo = $pricethree = $lines[$key]['sortprice'];
+            //计算打包费
             if($service){
               $servicelist = explode(',',$service);
               $servicelist = array_unique($servicelist);
-            //   dump($servicelist);die;
               foreach ($servicelist as $val){
                   $servicedetail = $PackageService::detail($val);
                   if($servicedetail['type']==0){
@@ -1278,6 +1279,8 @@ class Page extends Controller
                   }
               }
             }
+            
+            
             $lines[$key]['sortprice'] = number_format(floatval($pricethree),2);
        }
        

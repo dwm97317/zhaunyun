@@ -22,6 +22,7 @@ class Addservice extends Controller
      */
     public function index(){
         $list = (new LineService())->getList([]);
+        // dump($list->toArray());die;
         return $this->fetch('index', compact('list'));
     }
 
@@ -36,7 +37,6 @@ class Addservice extends Controller
         }
         // 新增记录
         $model = new LineService();
-       
         if ($model->add($this->postData('line'))) {
             return $this->renderSuccess('添加成功', url('setting.addservice/index'));
         }
@@ -54,6 +54,7 @@ class Addservice extends Controller
         if (!$this->request->isAjax()) {
             $linecategory = LineCategoryModel::getALL();
             $countryList = (new Countries())->getListAll();
+            // dump($model);die;
             return $this->fetch('edit', compact('model','linecategory','countryList'));
         }
         // 更新记录
