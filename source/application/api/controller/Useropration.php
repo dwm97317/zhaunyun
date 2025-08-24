@@ -3105,6 +3105,7 @@ class Useropration extends Controller
             $packData['remark']= $noticesetting['check']['describe'];
             $packData['total_free'] = $packData['free']+$packData['other_free']+$packData['pack_free'];
             Message::send('order.payment',$packData);
+            Message::send('order.payorder',$packData);
             Logistics::addrfidLog($packData['order_sn'],$noticesetting['check']['describe'],getTime(),$clerkdd['clerk_id']);
             //发送邮件通知
             if(isset($packData['member_id']) || !empty($packData['member_id'])){
