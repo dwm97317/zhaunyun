@@ -2778,7 +2778,7 @@ class Package extends Controller
             'line_weight'=>$line_weight
         ]);
         if($settingdata['is_auto_free']==1){
-            getpackfree($param['id']);   
+            getpackfree($param['id'],$param['sonlist']);   
         }
          return $this->renderSuccess("添加成功");
      }
