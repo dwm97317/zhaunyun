@@ -500,6 +500,7 @@ class Useropration extends Controller
         unset($indata['vwimageIds']);
         unset($indata['vwdeleteIds']);
         unset($indata['consumables']);
+        unset($indata['boxes']);
         $inpack = new Inpack();
         $settingkeeper  = SettingModel::getItem('keeper');
         if($settingkeeper['shopkeeper']['is_rfid']==1 && !empty($data['rfid_id'])){
@@ -557,7 +558,11 @@ class Useropration extends Controller
         $settingdata  = SettingModel::getItem('store');
         
         if($settingdata['is_auto_free']==1){
-            getpackfree($data['id']);   
+            $boxes = [];
+            if (!empty($data['boxes'])) {
+                $boxes = $data['boxes'];
+            }
+            getpackfree($data['id'],$boxes);   
         }
         // dump($settingkeeper);die;
         

@@ -1603,7 +1603,7 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
     * 不确定路线查询运费
     * 最全运费查询
     */
- function getpackfree($id){
+ function getpackfree($id,$boxes){
     $Inpack = new Inpack();
     $Line = new Line();
     $User = new User;
