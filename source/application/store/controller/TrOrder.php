@@ -1542,7 +1542,7 @@ class TrOrder extends Controller
                   }
                   $lines['predict'] = [
                     'weight' => $oWeigth,
-                    'price' => ($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0]+$otherfree)*$value['discount'],
+                    'price' => ($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0])*$value['discount'],
                     'rule' => $free_rule,
                     'service' =>0,
                   ];         
@@ -1565,7 +1565,7 @@ class TrOrder extends Controller
                     }
                     $lines['predict'] = [
                       'weight' => $oWeigth,
-                      'price' => ($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'],
+                      'price' => ($v['first_price']+ $ww*$v['next_price'])*$value['discount'],
                       'rule' => $v,
                       'service' =>0,
                     ];   
@@ -1579,7 +1579,7 @@ class TrOrder extends Controller
                       if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
                           $lines['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => ($v['weight_price'] + $otherfree)*$value['discount'],
+                              'price' => $v['weight_price']*$value['discount'],
                               'rule' => $v,
                               'service' =>0,
                           ];   
@@ -1605,7 +1605,7 @@ class TrOrder extends Controller
                           !isset($v['weight_unit']) && $v['weight_unit']=1;
                           $lines['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => (floatval($v['weight_price']) * $ww + floatval($otherfree))*$value['discount'],
+                              'price' => (floatval($v['weight_price']) * $ww)*$value['discount'],
                               'rule' => $v,
                               'service' =>0,
                           ]; 
@@ -1630,10 +1630,10 @@ class TrOrder extends Controller
                     }
                    
                     if ($oWeigth >= $vv['first_weight']){
-                          $lines['sortprice'] =($vv['first_price']+ $ww*$vv['next_price'] + $otherfree)*$value['discount'];
+                          $lines['sortprice'] =($vv['first_price']+ $ww*$vv['next_price'])*$value['discount'];
                           $lines['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => number_format(($vv['first_price']+ $ww*$vv['next_price'] + $otherfree)*$value['discount'],2),
+                              'price' => number_format(($vv['first_price']+ $ww*$vv['next_price'])*$value['discount'],2),
                               'rule' => $vv,
                               'service' =>0,
                           ]; 
@@ -1641,7 +1641,7 @@ class TrOrder extends Controller
                       $lines['sortprice'] = $vv['first_price'];
                       $lines['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => number_format(($vv['first_price']+ $otherfree)*$value['discount'],2),
+                              'price' => number_format(($vv['first_price'])*$value['discount'],2),
                               'rule' => $vv,
                               'service' =>0,
                           ]; 
@@ -1652,10 +1652,10 @@ class TrOrder extends Controller
            
                        if ($oWeigth >= $vv['weight'][0]){
                           if (isset($vv['weight'][1]) && $oWeigth<=$vv['weight'][1]){
-                              $lines['sortprice'] =(floatval($vv['weight_price']) + $otherfree)*$value['discount'] ;
+                              $lines['sortprice'] =floatval($vv['weight_price'])*$value['discount'] ;
                               $lines['predict'] = [
                                   'weight' => $oWeigth,
-                                  'price' => number_format((floatval($vv['weight_price']) + $otherfree)*$value['discount'],2),
+                                  'price' => number_format((floatval($vv['weight_price']))*$value['discount'],2),
                                   'rule' => $vv,
                                   'service' =>0,
                               ];   
@@ -1674,10 +1674,10 @@ class TrOrder extends Controller
                    if ($oWeigth >= $vv['weight'][0]){
                       if (isset($vv['weight'][1]) && $oWeigth<=$vv['weight'][1]){
                           !isset($vv['weight_unit']) && $vv['weight_unit']=1;
-                          $lines['sortprice'] =(floatval($vv['weight_price']) *$ww  + floatval($otherfree))*$value['discount'] ;
+                          $lines['sortprice'] =(floatval($vv['weight_price']) *$ww)*$value['discount'] ;
                           $lines['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => number_format((floatval($vv['weight_price']) * $ww + floatval($otherfree))*$value['discount'],2),
+                              'price' => number_format((floatval($vv['weight_price']) * $ww)*$value['discount'],2),
                               'rule' => $vv,
                               'service' =>0,
                           ]; 
@@ -1701,17 +1701,17 @@ class TrOrder extends Controller
                             }
                        
                            if ($oWeigth >= $v['first_weight']){
-                                  $lines['sortprice'] =($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'];
+                                  $lines['sortprice'] =($v['first_price']+ $ww*$v['next_price'])*$value['discount'];
                                   $lines['predict'] = [
                                       'weight' => $oWeigth,
-                                      'price' => number_format(($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'],2),
+                                      'price' => number_format(($v['first_price']+ $ww*$v['next_price'])*$value['discount'],2),
                                       'rule' => $v
                                   ]; 
                             }else{
                               $lines['sortprice'] = $v['first_price'];
                               $lines['predict'] = [
                                       'weight' => $oWeigth,
-                                      'price' => number_format(($v['first_price']+ $otherfree)*$value['discount'],2),
+                                      'price' => number_format(($v['first_price'])*$value['discount'],2),
                                       'rule' => $v
                                   ]; 
                           }

@@ -1626,8 +1626,8 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
     $free_rule = json_decode($packData['line']['free_rule'],true);//运费规则
     // $otherfree = $packData['line']['service_route']; //路线的增值服务费用；
     $long = max($packData['length'],$packData['width'],$packData['height']);
-    $otherfree = getServiceFree($packData['line']['services_require'],$oWeigth,$long);
-    
+    // $otherfree = getServiceFree($packData['line']['services_require'],$oWeigth,$long);
+    $otherfree = (new LineService())->getserviceFree($oWeigth,$packData['country_id'],$packData['line']['line_category'],$packData['address']['code'],$boxes,$packData['line']['services_require']);
     $setting = SettingModel::getItem('store',$packData['wxapp_id']);
     switch ($setting['weight_mode']['mode']) {
        case '10':
