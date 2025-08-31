@@ -1419,6 +1419,11 @@ class TrOrder extends Controller
         $volumn = 0;
         $setting = SettingModel::getItem('store',$pakdata['wxapp_id']);
         $weigthV = $pakdata['volume'];
+        if (isset($data['boxes']) && !empty($data['boxes'])) {
+            foreach ($boxes as $v){
+                $weigthV += $v['length']*$v['width']*$v['height'];
+            }
+        }
         if($setting['is_discount']==1){
             $UserLine =  (new UserLine());
             $linedata= $UserLine->where('user_id',$pakdata['member_id'])->where('line_id',$line['id'])->find();
@@ -1457,22 +1462,6 @@ class TrOrder extends Controller
             $data['weight'] = ceil($data['weight']);
         }
         // 计算体检重
-        
-        //关税和增值服务费用
-        //计算所有的箱子的超长超重费；
-        $boxes = [];
-        if (isset($data['boxes']) && !empty($data['boxes'])) {
-            $boxes = json_decode(html_entity_decode($data['boxes']),true);
-            $otherfree = ( new LineService())->getserviceFree($oWeigth,$pakdata['country_id'],$line['line_category'],$pakdata['address']['code'],$boxes,$line['services_require']);
-            foreach ($boxes as $v){
-                $weigthV += $v['length']*$v['width']*$v['height'];
-            }
-        }else{
-            $otherfree = 0;
-        }
-        
-        
-        
         if(!empty($data['length']) && !empty($data['width']) && !empty($data['height']) && $line['volumeweight_type']==20){
             $weigthV = round(($data['weight'] + (($data['length']*$data['width']*$data['height'])/$line['volumeweight'] - $data['weight'])*$line['bubble_weight']/100),2);
         }
@@ -1486,8 +1475,15 @@ class TrOrder extends Controller
         if($line['line_type']==1){
             $oWeigth = $data['weight'];
         }
-      
-        
+        //关税和增值服务费用
+        //计算所有的箱子的超长超重费；
+        $boxes = [];
+        if (isset($data['boxes']) && !empty($data['boxes'])) {
+            $boxes = json_decode(html_entity_decode($data['boxes']),true);
+            $otherfree = ( new LineService())->getserviceFree($oWeigth,$pakdata['country_id'],$line['line_category'],$pakdata['address']['code'],$boxes,$line['services_require']);
+        }else{
+            $otherfree = 0;
+        }
      
         $insure_free = $pakdata['insure_free'];
         $reprice=0;
