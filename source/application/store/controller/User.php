@@ -28,9 +28,10 @@ class User extends Controller
      */
     public function index($nickName = '', $gender = null, $grade = null,$user_code = '',$user_id= '',$service_id=null)
     {
+        $param = $this->request->param();
         $model = new UserModel;
         $Clerk = new Clerk;
-        $list = $model->getList($nickName, $gender, $grade,$user_code,$user_id,$service_id);
+        $list = $model->getList($nickName, $gender, $grade,$user_code,$user_id,$service_id,$param);
         // dump($list->toArray());die;
         // 会员等级列表
         $gradeList = GradeModel::getUsableList();

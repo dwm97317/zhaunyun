@@ -1418,7 +1418,7 @@ class TrOrder extends Controller
         $caleWeigth = 0;
         $volumn = 0;
         $setting = SettingModel::getItem('store',$pakdata['wxapp_id']);
-        
+        $weigthV = $pakdata['volume'];
         if($setting['is_discount']==1){
             $UserLine =  (new UserLine());
             $linedata= $UserLine->where('user_id',$pakdata['member_id'])->where('line_id',$line['id'])->find();
@@ -1444,8 +1444,10 @@ class TrOrder extends Controller
                     if($countorder>1){
                         $value['discount'] = $suer['grade']['equity']*0.1;
                     }
+                    if($value['discount']==0){
+                        $value['discount'] = 1;
+                    }
                 }
-                //   dump($value['discount']);die;
         }else{
             $value['discount'] =1;
         }
@@ -1455,7 +1457,22 @@ class TrOrder extends Controller
             $data['weight'] = ceil($data['weight']);
         }
         // 计算体检重
-        $weigthV = $pakdata['volume'];
+        
+        //关税和增值服务费用
+        //计算所有的箱子的超长超重费；
+        $boxes = [];
+        if (isset($data['boxes']) && !empty($data['boxes'])) {
+            $boxes = json_decode(html_entity_decode($data['boxes']),true);
+            $otherfree = ( new LineService())->getserviceFree($oWeigth,$pakdata['country_id'],$line['line_category'],$pakdata['address']['code'],$boxes,$line['services_require']);
+            foreach ($boxes as $v){
+                $weigthV += $v['length']*$v['width']*$v['height'];
+            }
+        }else{
+            $otherfree = 0;
+        }
+        
+        
+        
         if(!empty($data['length']) && !empty($data['width']) && !empty($data['height']) && $line['volumeweight_type']==20){
             $weigthV = round(($data['weight'] + (($data['length']*$data['width']*$data['height'])/$line['volumeweight'] - $data['weight'])*$line['bubble_weight']/100),2);
         }
@@ -1470,16 +1487,8 @@ class TrOrder extends Controller
             $oWeigth = $data['weight'];
         }
       
-        //关税和增值服务费用
-        //计算所有的箱子的超长超重费；
-        $boxes = [];
-        if (!empty($data['boxes'])) {
-            $boxes = json_decode(html_entity_decode($data['boxes']),true);
-        }
         
-        $otherfree = ( new LineService())->getserviceFree($oWeigth,$pakdata['country_id'],$line['line_category'],$pakdata['address']['code'],$boxes,$line['services_require']);
-        
-        
+     
         $insure_free = $pakdata['insure_free'];
         $reprice=0;
          //单位转化
@@ -1519,7 +1528,7 @@ class TrOrder extends Controller
           }
          
           $oWeigth = round($oWeigth,2);
-
+  
         $lines['predict'] = [
               'weight' => $oWeigth,
               'price' => '包裹重量超限',
@@ -1563,14 +1572,16 @@ class TrOrder extends Controller
                     }else{
                         $ww = ($oWeigth-$v['first_weight'])/$v['next_weight'];
                     }
+                         
                     $lines['predict'] = [
                       'weight' => $oWeigth,
                       'price' => ($v['first_price']+ $ww*$v['next_price'])*$value['discount'],
                       'rule' => $v,
                       'service' =>0,
-                    ];   
+                    ];
+                    // dump($value['discount']);die;
                }
-          
+       
                 break;
             case '3':
                 $free_rule = json_decode($line['free_rule'],true);
@@ -1729,7 +1740,7 @@ class TrOrder extends Controller
             $formatted = number_format($floatValue, 2);
             $lines['predict']['price'] = $formatted;
         } 
-        
+       
         $pricetwo = str_replace(',','',$lines['predict']['price']);
         //   dump($lines['predict']['price']);
         if(count($pakdata['inpackservice'])>0){

@@ -49,7 +49,7 @@ class User extends UserModel
      * @return \think\Paginator
      * @throws \think\exception\DbException
      */
-    public function getList($nickName = '', $gender = -1, $grade = null,$user_code='',$user_id='',$service_id=null)
+    public function getList($nickName = '', $gender = -1, $grade = null,$user_code='',$user_id='',$service_id=null,$param)
     {
    
         // 检索：微信昵称
@@ -59,6 +59,23 @@ class User extends UserModel
         !empty($user_code) && $this->where('user_code', 'like', "%$user_code%");
         !empty($user_id) && $this->where('user_id', 'like', "%$user_id%");
         !empty($service_id) && $this->where('service_id', '=', $service_id);
+        // 生日范围查询
+        if (!empty($param['start_time']) && !empty($param['end_time'])) {
+             // 忽略年份：比较月-日，支持跨年
+                $startMd = date('m-d', strtotime($param['start_time']));
+                $endMd   = date('m-d', strtotime($param['end_time']));
+        
+                if ($startMd <= $endMd) {
+                    // 同年区间
+                    $this->where("DATE_FORMAT(birthday, '%m-%d') BETWEEN :s AND :e")
+                         ->bind(['s' => $startMd, 'e' => $endMd]);
+                } else {
+                    // 跨年区间
+                    $this->where("(DATE_FORMAT(birthday, '%m-%d') >= :s OR DATE_FORMAT(birthday, '%m-%d') <= :e)")
+                         ->bind(['s' => $startMd, 'e' => $endMd]);
+                }
+        }
+        
         // 检索：性别
         if ($gender !== '' && $gender > -1) {
             $this->where('gender', '=', (int)$gender);

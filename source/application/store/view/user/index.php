@@ -58,15 +58,27 @@
                                             <?php endforeach; endif; ?>
                                         </select>
                                     </div>
-                                    <div class="am-form-group am-fl">
+                                    <div class="am-form-group tpl-form-border-form am-fl">
+                                        <input style="padding:6px 5px;" autocomplete="off" type="text" name="start_time"
+                                               class="am-form-field"
+                                               value="<?= $request->get('start_time') ?>" placeholder="请选择起始日期"
+                                               data-am-datepicker>
+                                    </div>
+                                    <div class="am-form-group tpl-form-border-form am-fl">
+                                        <input style="padding:6px 5px;" autocomplete="off" type="text" name="end_time"
+                                               class="am-form-field"
+                                               value="<?= $request->get('end_time') ?>" placeholder="请选择截止日期"
+                                               data-am-datepicker>
+                                    </div>
+                                    <div class="am-form-group am-fl" style="padding:1px 0px;">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
-                                            <input type="text" class="am-form-field" name="user_id"
+                                            <input  type="text" class="am-form-field" name="user_id"
                                                    placeholder="请输入用户ID" value="<?= $request->get('user_id') ?>">
                                         </div>
                                     </div>
-                                    <div class="am-form-group am-fl">
+                                    <div class="am-form-group am-fl" style="padding:1px 0px;">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
-                                            <input type="text" class="am-form-field" name="user_code"
+                                            <input  type="text" class="am-form-field" name="user_code"
                                                    placeholder="请输入用户编号" value="<?= $request->get('user_code') ?>">
                                         </div>
                                     </div>

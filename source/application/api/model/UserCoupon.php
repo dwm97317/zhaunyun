@@ -235,9 +235,6 @@ class UserCoupon extends UserCouponModel
                    }
                 }
             }
-            
-            
-            
             // 有效期范围内
             if ($coupon['start_time']['value'] > time()) continue;
             $key = $coupon['user_coupon_id'];
