@@ -1420,6 +1420,7 @@ class TrOrder extends Controller
         $setting = SettingModel::getItem('store',$pakdata['wxapp_id']);
         $weigthV = $pakdata['volume'];
         if (isset($data['boxes']) && !empty($data['boxes'])) {
+            $boxes = json_decode(html_entity_decode($data['boxes']),true);
             foreach ($boxes as $v){
                 $weigthV += $v['length']*$v['width']*$v['height'];
             }
