@@ -1422,7 +1422,10 @@ class TrOrder extends Controller
         if (isset($data['boxes']) && !empty($data['boxes'])) {
             $boxes = json_decode(html_entity_decode($data['boxes']),true);
             foreach ($boxes as $v){
-                $weigthV += $v['length']*$v['width']*$v['height'];
+                // 计算体检重
+                if(!empty($v['length']) && !empty($v['width']) && !empty($v['height']) && $line['volumeweight_type']==20){
+                    $weigthV = round(($data['weight'] + (($v['length']*$v['width']*$v['height'])/$line['volumeweight'] - $data['weight'])*$line['bubble_weight']/100),2);
+                }
             }
         }
         if($setting['is_discount']==1){
@@ -1462,10 +1465,7 @@ class TrOrder extends Controller
         if($line['weight_integer']==1 && $line['line_type']==0){
             $data['weight'] = ceil($data['weight']);
         }
-        // 计算体检重
-        if(!empty($data['length']) && !empty($data['width']) && !empty($data['height']) && $line['volumeweight_type']==20){
-            $weigthV = round(($data['weight'] + (($data['length']*$data['width']*$data['height'])/$line['volumeweight'] - $data['weight'])*$line['bubble_weight']/100),2);
-        }
+        
         //根据是否体积重取整
         if($line['weightvol_integer']==1){
             $weigthV = ceil($weigthV);
