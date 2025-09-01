@@ -123,8 +123,9 @@ final class Image implements ImageInterface {
         if ( ! file_exists( $imageFile ) ) {
             throw new \Exception( sprintf( 'Could not open "%s". File does not exist.', $imageFile ) );
         }
-
+    
         $type = self::_guessType( $imageFile );
+       
         if ( ImageType::GIF == $type ) {
 
             return self::_createGif( $imageFile );

@@ -124,8 +124,8 @@ class Poster extends Base
         $editor->text($backdropImage,$nickName, $fontSize, $fontX, $fontY, $Color, $fontPath);
 
         // 保存图片
-        $editor->save($backdropImage, $this->getPosterPath());
-        return $this->getPosterUrl();
+        $editor->save($backdropImage, $this->getclerkPosterPath());
+        return $this->getClerkPosterUrl();
     }
     /**
      * 海报图文件路径
@@ -138,6 +138,18 @@ class Poster extends Base
         !is_dir($tempPath) && mkdir($tempPath, 0755, true);
         return $tempPath . $this->getPosterName();
     }
+    
+     /**
+     * 海报图文件路径
+     * @return string
+     */
+    private function getclerkPosterPath()
+    {
+        // 保存路径
+        $tempPath = WEB_PATH . 'temp' . DS . $this->dealer['wxapp_id'] . DS;
+        !is_dir($tempPath) && mkdir($tempPath, 0755, true);
+        return $tempPath . $this->getClerkPosterName();
+    }
 
     /**
      * 海报图文件名称
@@ -147,6 +159,15 @@ class Poster extends Base
     {
         return md5('poster_' . $this->dealer['user_id']) . '.png';
     }
+    
+    /**
+     * 海报图文件名称
+     * @return string
+     */
+    private function getClerkPosterName()
+    {
+        return md5('posterclerk_' . $this->dealer['user_id']) . '.png';
+    }
 
     /**
      * 海报图url
@@ -155,6 +176,15 @@ class Poster extends Base
     private function getPosterUrl()
     {
         return \base_url() . 'temp/' . $this->dealer['wxapp_id'] . '/' . $this->getPosterName() . '?t=' . time();
+    }
+    
+    /**
+     * 海报图url
+     * @return string
+     */
+    private function getClerkPosterUrl()
+    {
+        return \base_url() . 'temp/' . $this->dealer['wxapp_id'] . '/' . $this->getClerkPosterName() . '?t=' . time();
     }
 
     /**
