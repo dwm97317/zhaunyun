@@ -2712,7 +2712,7 @@ class Package extends Controller
      public function packdetails(){
         $field_group = [
            'edit' => [
-              'id,is_need_insure,order_sn,pack_ids,storage_id,free,insure_free,pack_free,other_free,address_id,weight,cale_weight,volume,length,width,height,status,line_id,remark,country_id,t_order_sn,user_coupon_id,user_coupon_money,pay_type,is_pay,is_pay_type'
+              'id,line_weight,is_need_insure,order_sn,pack_ids,storage_id,free,insure_free,pack_free,other_free,address_id,weight,cale_weight,volume,length,width,height,status,line_id,remark,country_id,t_order_sn,user_coupon_id,user_coupon_money,pay_type,is_pay,is_pay_type'
            ],
         ];
         $id = \request()->post('id');
