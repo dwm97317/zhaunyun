@@ -1510,6 +1510,8 @@ class Package extends Controller
         $pack_ids = $this->postData('pack_ids')[0];
         $address_id = $this->postData('address_id')[0];
         $waitreceivedmoney = $this->postData('waitreceivedmoney')[0];
+        $total_goods_value = $this->postData('total_goods_value')[0];
+       
         $remark = $this->postData('remark')[0];
         if (!$ids){
             return $this->renderError('请选择要打包的包裹');
@@ -1552,6 +1554,7 @@ class Package extends Controller
           'remark' =>$remark,
           'pack_ids' => $ids,
           'waitreceivedmoney'=>$waitreceivedmoney,
+          'total_goods_value'=>$total_goods_value,
           'pack_services_id' => $pack_ids, ///此值可作废
           'storage_id' => $pack[0]['storage_id'],
           'address_id' => $address_id,
@@ -1571,12 +1574,13 @@ class Package extends Controller
           'line_id' => $line_id,
           'wxapp_id' => \request()->get('wxapp_id'),
         ];
-        // dump($inpackOrder);die;
+       
         $user_id =$this->user['user_id'];
         if($storesetting['usercode_mode']['is_show']==1){
            $member =  (new User())->where('user_id',$this->user['user_id'])->find();
            $user_id = $member['user_code'];
         }
+    
         $createSnfistword = $storesetting['createSnfistword'];
         $xuhao = ((new Inpack())->where(['member_id'=>$this->user['user_id'],'is_delete'=>0])->count()) + 1;
         $shopname = ShopModel::detail($pack[0]['storage_id']);     
@@ -1592,8 +1596,6 @@ class Package extends Controller
         if(!empty($pack_ids)){
              (new InpackServiceModel())->doservice($inpack,$pack_ids);
         }
-       
-        
         $res = (new PackageModel())->whereIn('id',$idsArr)->update(
             [
                 'status'=>5,
@@ -1623,11 +1625,10 @@ class Package extends Controller
         }
          //计算费用
          if($storesetting['is_auto_free']==1 && $allWeigth>0){
-             getpackfree($inpackdate['id']); 
+             getpackfree($inpackdate['id'],[]); 
          }
         
-         
-         $this->user = $this->getUser();
+        
          $clerk = (new Clerk())->where('shop_id',$pack[0]['storage_id'])->where('mes_status',0)->where('is_delete',0)->select();
           
          if(!empty($clerk)){
@@ -2712,7 +2713,7 @@ class Package extends Controller
      public function packdetails(){
         $field_group = [
            'edit' => [
-              'id,line_weight,is_need_insure,order_sn,pack_ids,storage_id,free,insure_free,pack_free,other_free,address_id,weight,cale_weight,volume,length,width,height,status,line_id,remark,country_id,t_order_sn,user_coupon_id,user_coupon_money,pay_type,is_pay,is_pay_type'
+              'id,total_goods_value,line_weight,is_need_insure,order_sn,pack_ids,storage_id,free,insure_free,pack_free,other_free,address_id,weight,cale_weight,volume,length,width,height,status,line_id,remark,country_id,t_order_sn,user_coupon_id,user_coupon_money,pay_type,is_pay,is_pay_type'
            ],
         ];
         $id = \request()->post('id');

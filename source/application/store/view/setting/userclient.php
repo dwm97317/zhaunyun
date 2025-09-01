@@ -1505,7 +1505,28 @@
                                     </div>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否需要填写物品总价值
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[packit][is_allprice]" value="1"
+                                               data-am-ucheck  <?= $values['packit']['is_allprice'] == 1 ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[packit][is_allprice]" value="0"
+                                               data-am-ucheck <?= $values['packit']['is_allprice'] == 0 ? 'checked' : '' ?>>
+                                        不开启
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="userclient[packit][is_allprice_force]" value="1" data-am-ucheck
+                                            <?= $values['packit']['is_allprice_force']==1?'checked' : '' ?>>
+                                        是否必填
+                                    </label>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
                                     是否在提交打包前可以填写代收款（代收货款）

@@ -535,6 +535,8 @@ class Setting extends BaseModel
                         'is_packagestation'=>1,//开启自提点
                         'is_todoor'=>1,//开启送货上门
                         'is_image'=>0,//是否开启打包页面包裹图片展示
+                        'is_allprice'=>0,//是否填写总价值
+                        'is_allprice_force'=>0, // 是否强制填写总价值
                     ],
                     'loginsetting'=>[
                         'is_passwordlogin'=>0, //在小程序或公众号模式中是否开启账号密码登录方式;
