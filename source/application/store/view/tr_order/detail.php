@@ -183,6 +183,13 @@
                             </div>
                              <?php endif ;?>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">总货值</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="data[total_goods_value]"
+                                           value="<?= $detail['total_goods_value']??'' ;?>" placeholder="总货值" >
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">包裹图片 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="am-form-file">

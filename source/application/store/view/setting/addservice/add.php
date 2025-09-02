@@ -82,7 +82,7 @@
                                             <tr>
                                                 <th>开始值</th>
                                                 <th>结束值</th>
-                                                <th <th id="fee_header">费用</th>>费用</th>
+                                                <th <th id="fee_header">费用</th>
                                                 <th>操作</th>
                                             </tr>
                                         </thead>
