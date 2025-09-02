@@ -186,7 +186,7 @@
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">总货值</label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="data[total_goods_value]"
-                                           value="<?= $detail['total_goods_value']??'' ;?>" placeholder="总货值" >
+                                           onchange="saveGoodsValue(this.value)" value="<?= $detail['total_goods_value']??'' ;?>" placeholder="总货值" >
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -745,6 +745,48 @@ function calefree(){
         }
     });
 }
+
+function saveGoodsValue(value) {
+    // 获取订单ID
+    const orderId = $('input[name="data[id]"]').val();
+    
+    // 验证输入是否为有效数字
+    if(!value || isNaN(parseFloat(value))) {
+        layer.alert('请输入有效的货值');
+        return;
+    }
+    
+    // 显示保存状态
+    const originalValue = value;
+    
+    // 发送AJAX请求保存货值
+    $.ajax({
+        type: "POST",
+        url: "<?= url('store/trOrder/saveGoodsValue')?>",
+        data: {
+            order_id: orderId,
+            goods_value: value
+        },
+        dataType: 'json',
+        success: function(res) {
+            if (res.code == 1) {
+                // 保存成功提示
+                layer.alert('货值已保存');
+            } else {
+                // 保存失败提示
+                layer.alert(res.msg || '保存货值失败');
+                // 恢复原值
+                $('input[name="data[total_goods_value]"]').val(originalValue);
+            }
+        },
+        error: function() {
+            layer.alert('网络错误，请重试');
+            // 恢复原值
+            $('input[name="data[total_goods_value]"]').val(originalValue);
+        }
+    });
+}
+
 function caleAmount() {
     console.log("计算运费（使用分箱数据）");
     

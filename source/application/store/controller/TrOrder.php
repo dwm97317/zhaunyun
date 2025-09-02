@@ -1053,8 +1053,15 @@ class TrOrder extends Controller
         $data = $Inpack->getlog($param);
         return $this->renderSuccess('操作成功','',compact('data'));
     }
-
-
+    
+    //保存总货值
+    public function savegoodsvalue(){
+        $Inpack = new Inpack();
+        $param = $this->request->param();
+        $model = $Inpack::details($param['order_id']);
+        $model->save(['total_goods_value'=>$param['goods_value']]);
+        return $this->renderSuccess('保存成功');
+    }
     /**
      * 订单详情
      * @param $order_id
