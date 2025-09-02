@@ -28,7 +28,7 @@ class LineService extends BaseModel
         return $this->belongsTo('Countries','country_id');
     }
     
-    public function getserviceFree($weight,$country_id,$line_category_id,$post,$boxes,$services_require){
+    public function getserviceFree($weight,$country_id,$line_category_id,$post,$boxes,$services_require,$total_goods_value=0){
         $price = 0;
         if(empty($services_require)){
             return $price;
@@ -72,6 +72,14 @@ class LineService extends BaseModel
                             $price += $v['weight_price'];
                         }
                    }
+               }
+            }
+            //税费模式
+            if($value['type']==40){
+               foreach (json_decode($value['rule'],true) as $v){
+                    if($weight > $v['weight_start'] && $weight < $v['weight_max']){
+                        $price += $v['weight_price']*$total_goods_value*0.01;
+                    }
                }
             }
         }

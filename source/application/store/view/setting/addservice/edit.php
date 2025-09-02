@@ -38,6 +38,10 @@
                                         <input type="radio" name="line[type]" value="30" <?= $model['type'] == 30 ? 'checked' : '' ?> data-am-ucheck>
                                         偏远模式
                                     </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[type]" value="40" <?= $model['type'] == 40 ? 'checked' : '' ?> data-am-ucheck>
+                                        税费模式
+                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -78,19 +82,20 @@
                                             <tr>
                                                 <th>开始</th>
                                                 <th>结束</th>
-                                                <th>费用</th>
+                                                <th id="fee_header"><?= $model['type'] == 40 ? '货值百分比(%)' : '费用' ?></th>
                                                 <th>操作</th>
                                             </tr>
                                         </thead>
                                         <tbody class="area_mode">
                                             <?php 
                                             if(isset($model['rule']) && isset($model['rule'])) {
+                                                $placeholder = $model['type'] == 40 ? '输入货值百分比' : '输入所需费用';
                                                 foreach($model['rule'] as $item) : 
                                             ?>
                                                 <tr>
                                                     <td><input type="text" name="line[weight_start][]" placeholder="输入起始值" value="<?= $item['weight_start'] ?? '' ?>"></td>
                                                     <td><input type="text" name="line[weight_max][]" placeholder="输入结束值" value="<?= $item['weight_max'] ?? '' ?>"></td>
-                                                    <td><input type="text" name="line[weight_price][]" placeholder="输入所需费用" value="<?= $item['weight_price'] ?? '' ?>"></td>
+                                                    <td><input type="text" name="line[weight_price][]" placeholder="<?= $placeholder ?>" value="<?= $item['weight_price'] ?? '' ?>"></td>
                                                     <td>
                                                         <button type="button" class="am-btn am-btn-xs am-btn-danger" onclick="freeRuleDelarea(this)">删除</button>
                                                     </td>
@@ -98,11 +103,12 @@
                                             <?php 
                                                 endforeach;
                                             } else {
+                                                $placeholder = $model['type'] == 40 ? '输入货值百分比' : '输入所需费用';
                                             ?>
                                                 <tr>
                                                     <td><input type="text" name="line[weight_start][]" placeholder="输入起始值"></td>
                                                     <td><input type="text" name="line[weight_max][]" placeholder="输入结束值"></td>
-                                                    <td><input type="text" name="line[weight_price][]" placeholder="输入所需费用"></td>
+                                                    <td><input type="text" name="line[weight_price][]" placeholder="<?= $placeholder ?>"></td>
                                                     <td>
                                                         <button type="button" class="am-btn am-btn-xs am-btn-danger" onclick="freeRuleDelarea(this)">删除</button>
                                                     </td>
@@ -158,9 +164,13 @@
         var amformItem = document.getElementsByClassName('area_mode')[0];
         var Item1 = document.createElement('tr');
         
+        // 根据当前选择的类型设置占位符
+        var selectedType = $('input[name="line[type]"]:checked').val();
+        var placeholder = selectedType == '40' ? '输入货值百分比' : '输入所需费用';
+        
         var _html = '<td><input type="text" name="line[weight_start][]" placeholder="输入起始值"></td>' +
                     '<td><input type="text" name="line[weight_max][]" placeholder="输入结束值"></td>' +
-                    '<td><input type="text" name="line[weight_price][]" placeholder="输入所需费用"></td>' +
+                    '<td><input type="text" name="line[weight_price][]" placeholder="' + placeholder + '"></td>' +
                     '<td>' +
                     '<button type="button" class="am-btn am-btn-xs am-btn-danger" onclick="freeRuleDelarea(this)">删除</button>' +
                     '</td>';
@@ -176,17 +186,37 @@
     }
     
     $(function () {
+        // 页面加载时根据当前类型设置显示
+        var currentType = $('input[name="line[type]"]:checked').val();
+        updateFormByType(currentType);
+        
         // 监听服务类型变化
         $('input[name="line[type]"]').change(function() {
-            if ($(this).val() == '30') {
+            var selectedValue = $(this).val();
+            updateFormByType(selectedValue);
+        });
+        
+        // 根据类型更新表单显示
+        function updateFormByType(type) {
+            // 更新费用列标题和占位符
+            if (type == '40') {
+                // 税费模式 - 显示货值百分比
+                $('#fee_header').text('货值百分比(%)');
+                $('input[name^="line[weight_price]"]').attr('placeholder', '输入货值百分比');
+            } else {
+                // 其他模式 - 显示费用
+                $('#fee_header').text('费用');
+                $('input[name^="line[weight_price]"]').attr('placeholder', '输入所需费用');
+            }
+            
+            if (type == '30') {
                 // 偏远模式 - 显示偏远地区设置
                 $('#remote_mode').show();
             } else {
-                // 重量模式或长度模式 - 隐藏偏远地区设置
+                // 其他模式 - 隐藏偏远地区设置
                 $('#remote_mode').hide();
             }
-            // 区间计费规则在所有模式下都显示
-        });
+        }
         
         // 表单验证提交
         $('#my-form').superForm({

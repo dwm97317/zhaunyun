@@ -1627,7 +1627,7 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
     // $otherfree = $packData['line']['service_route']; //路线的增值服务费用；
     $long = max($packData['length'],$packData['width'],$packData['height']);
     // $otherfree = getServiceFree($packData['line']['services_require'],$oWeigth,$long);
-    $otherfree = (new LineService())->getserviceFree($oWeigth,$packData['country_id'],$packData['line']['line_category'],$packData['address']['code'],$boxes,$packData['line']['services_require']);
+    $otherfree = (new LineService())->getserviceFree($oWeigth,$packData['country_id'],$packData['line']['line_category'],$packData['address']['code'],$boxes,$packData['line']['services_require'],$packData['total_goods_value']);
     $setting = SettingModel::getItem('store',$packData['wxapp_id']);
     switch ($setting['weight_mode']['mode']) {
        case '10':
@@ -1698,17 +1698,17 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                            break;
                       }
                   }
-                  $data['sortprice'] = ($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0]+$otherfree)*$discount;
+                  $data['sortprice'] = ($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0])*$discount;
                   $data['predict'] = [
                     'weight' => $oWeigth,
-                    'price' => ($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0]+$otherfree)*$discount,
+                    'price' => ($reprice+ $free_rule[0]['weight_price']*$free_rule[0]['weight'][0])*$discount,
                     'rule' => $free_rule
                   ];         
                }else{
-                    $data['sortprice'] = $free_rule[0]['weight_price']+$otherfree;
+                    $data['sortprice'] = $free_rule[0]['weight_price'];
                     $data['predict'] = [
                     'weight' => $oWeigth,
-                    'price' =>  $free_rule[0]['weight_price']+$otherfree,
+                    'price' =>  $free_rule[0]['weight_price'],
                     'rule' => $free_rule
                   ];        
                     break;
@@ -1725,10 +1725,10 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                         $ww = ($oWeigth-$v['first_weight'])/$v['next_weight'];
                     }
                    
-                          $data['sortprice'] =($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$discount;
+                          $data['sortprice'] =($v['first_price']+ $ww*$v['next_price'])*$discount;
                           $data['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => ($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$discount,
+                              'price' => ($v['first_price']+ $ww*$v['next_price'])*$discount,
                               'rule' => $v
                           ];   
                }
@@ -1738,10 +1738,10 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                foreach ($free_rule as $k => $v) {
                    if ($oWeigth >= $v['weight'][0]){
                       if (isset($v['weight'][1]) && $oWeigth<$v['weight'][1]){
-                          $data['sortprice'] = ($oWeigth*$v['weight_price'] + $otherfree)*$discount ;
+                          $data['sortprice'] = ($oWeigth*$v['weight_price'])*$discount ;
                           $data['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => ($oWeigth*$v['weight_price'] + $otherfree)*$discount,
+                              'price' => ($oWeigth*$v['weight_price'])*$discount,
                               'rule' => $v
                           ];   
                       }
@@ -1758,10 +1758,10 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                     }
                    if ($oWeigth > $v['weight'][0]){
                       if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
-                          $data['sortprice'] = ($v['weight_price']*$ww + $otherfree)*$discount ;
+                          $data['sortprice'] = ($v['weight_price']*$ww)*$discount ;
                           $data['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => ($v['weight_price']*$ww + $otherfree)*$discount,
+                              'price' => ($v['weight_price']*$ww)*$discount,
                               'rule' => $v
                           ];   
                       }
@@ -1781,10 +1781,10 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                     }
                    
                     if ($oWeigth >= $vv['first_weight']){
-                          $data['sortprice'] =($vv['first_price']+ $ww*$vv['next_price'] + $otherfree)*$discount;
+                          $data['sortprice'] =($vv['first_price']+ $ww*$vv['next_price'])*$discount;
                           $data['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => number_format(($vv['first_price']+ $ww*$vv['next_price'] + $otherfree)*$discount,2),
+                              'price' => number_format(($vv['first_price']+ $ww*$vv['next_price'])*$discount,2),
                               'rule' => $vv,
                               'service' =>0,
                           ]; 
@@ -1792,7 +1792,7 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                       $data['sortprice'] = $vv['first_price'];
                       $data['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => number_format(($vv['first_price']+ $otherfree)*$discount,2),
+                              'price' => number_format(($vv['first_price'])*$discount,2),
                               'rule' => $vv,
                               'service' =>0,
                           ]; 
@@ -1803,10 +1803,10 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
            
                        if ($oWeigth >= $vv['weight'][0]){
                           if (isset($vv['weight'][1]) && $oWeigth<=$vv['weight'][1]){
-                              $data['sortprice'] =(floatval($vv['weight_price']) + $otherfree)*$discount ;
+                              $data['sortprice'] =(floatval($vv['weight_price']))*$discount ;
                               $data['predict'] = [
                                   'weight' => $oWeigth,
-                                  'price' => number_format((floatval($vv['weight_price']) + $otherfree)*$discount,2),
+                                  'price' => number_format((floatval($vv['weight_price']))*$discount,2),
                                   'rule' => $vv,
                                   'service' =>0,
                               ];   
@@ -1825,10 +1825,10 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                    if ($oWeigth >= $vv['weight'][0]){
                       if (isset($vv['weight'][1]) && $oWeigth<=$vv['weight'][1]){
                           !isset($vv['weight_unit']) && $vv['weight_unit']=1;
-                          $data['sortprice'] =(floatval($vv['weight_price']) *$ww  + floatval($otherfree))*$discount ;
+                          $data['sortprice'] =(floatval($vv['weight_price']) *$ww  )*$discount ;
                           $data['predict'] = [
                               'weight' => $oWeigth,
-                              'price' => number_format((floatval($vv['weight_price']) * $ww + floatval($otherfree))*$discount,2),
+                              'price' => number_format((floatval($vv['weight_price']) * $ww)*$discount,2),
                               'rule' => $vv,
                               'service' =>0,
                           ]; 
@@ -1850,17 +1850,17 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
                             }
                        
                            if ($oWeigth >= $v['first_weight']){
-                                  $data['sortprice'] =($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$discount;
+                                  $data['sortprice'] =($v['first_price']+ $ww*$v['next_price'])*$discount;
                                   $data['predict'] = [
                                       'weight' => $oWeigth,
-                                      'price' => number_format(($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$discount,2),
+                                      'price' => number_format(($v['first_price']+ $ww*$v['next_price'])*$discount,2),
                                       'rule' => $v
                                   ]; 
                             }else{
                               $data['sortprice'] = $v['first_price'];
                               $data['predict'] = [
                                       'weight' => $oWeigth,
-                                      'price' => number_format(($v['first_price']+ $otherfree)*$discount,2),
+                                      'price' => number_format(($v['first_price'])*$discount,2),
                                       'rule' => $v
                                   ]; 
                           }
@@ -1884,7 +1884,7 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
             }
         }
         
-        $packD['other_free'] = $otherfree + $packData['other_free'];
+        $packD['other_free'] = $otherfree;
         $packD['pack_free'] = $packfree;
         $packD['free'] = $data['sortprice'];
         $resin = $Inpack->where('id',$id)->update($packD);

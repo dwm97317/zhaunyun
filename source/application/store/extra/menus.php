@@ -980,6 +980,15 @@ return [
                             'setting.consumables/edit',
                             ],
                         ],
+                        [
+                          'name' => '货币管理',
+                          'index' => 'setting.currency/index',
+                          'uris' => [
+                              'setting.currency/index',
+                              'setting.currency/add',
+                              'setting.currency/edit',
+                          ],
+                        ],
                 ]
             ],
             [

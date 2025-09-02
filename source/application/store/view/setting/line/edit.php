@@ -117,6 +117,21 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 多个箱子/订单时体积重和实重取值 </label>
+                                <div class="am-u-sm-9 am-u-end" >
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[billing_method]"  <?= $model['billing_method'] == 10 ? 'checked' : '' ?> value="10" data-am-ucheck
+                                               checked>
+                                        A:按单个箱子的体积重和实重比大小
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[billing_method]"  <?= $model['billing_method'] == 20 ? 'checked' : '' ?> value="20" data-am-ucheck>
+                                        B:按汇总的体积重跟实重比大小
+                                    </label>
+                                    <div class="help-block"><small>当一个订单有多个箱子，比如箱子1体积重=5.4，实重=4；箱子2体积重为5.6，实重为6.如果按A则取每个箱子的最大值，计费重量=5.4+6=11.4。如果按B则体积重之和=5.4+5.6=11，实重之和=4+6=10，取大值后计费重量就是11</small></div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 线路重量单位 </label>
                                 <div class="am-u-sm-9 am-u-end">
                             

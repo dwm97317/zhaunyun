@@ -3,18 +3,23 @@
         <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
             <div class="widget am-cf">
                 <div class="widget-head am-cf">
-                    <div class="widget-title am-cf">增值服务<small style="padding-left:10px;color:#1686ef">(增值服务是需要跟集运路线进行绑定的，绑定了增值服务的路线在计算时将会额外计算增值服务中的费用,增值服务是管理员设置的，用户无法选择，打包服务用户可以自行选择，请区分清晰后自行设置)</small></div>
+                    <div class="widget-title am-cf">货币列表</div>
                 </div>
                 <div class="widget-body am-fr">
                     <div class="am-u-sm-12 am-u-md-6 am-u-lg-6">
                         <div class="am-form-group">
                             <div class="am-btn-toolbar">
-                                <?php if (checkPrivilege('setting.addservice/add')): ?>
+                                <?php if (checkPrivilege('setting.currency/add')): ?>
                                     <div class="am-btn-group am-btn-group-xs">
                                         <a class="am-btn am-btn-default am-btn-success am-radius"
-                                           href="<?= url('setting.addservice/add') ?>">
+                                           href="<?= url('setting.currency/add') ?>">
                                             <span class="am-icon-plus"></span> 新增
                                         </a>
+                                    </div>
+                                <?php endif; ?>
+                                 <?php if (checkPrivilege('setting.country/copy')): ?>
+                                    <div class="am-btn-group am-btn-group-xs">
+                                        <button type="button" id="j-copycontry" class="am-btn am-btn-warning am-radius">一键复用预设货币</button>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -25,48 +30,40 @@
                             <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>增值服务名称</th>
-                                <th>增值服务描述</th>
-                                <th>归属国家</th>
-                                <th>运输方式</th>
-                                <th>增值服务模式</th>
-                                <th>计费规则/偏远邮编</th>
+                                <th>货币名称</th>
+                                <th>货币符号</th>
+                                <th>货币英文缩写</th>
+                                <th>兑人民币汇率</th>
+                                <th>状态</th>
+                                <th>默认</th>
+                                <th>排序</th>
                                 <th>操作</th>
-
                             </tr>
                             </thead>
                             <tbody>
-                            <?php $type = [10=>'重量模式',20=>'长度模式',30=>'偏远模式',40=>"税费模式"]; ?>    
                             <?php if (!$list->isEmpty()): ?>
                                 <?php foreach ($list as $item): ?>
                                     <tr>
-                                        <td class="am-text-middle"><?= $item['service_id'] ?></td>
-                                        <td class="am-text-middle"><?= $item['name'] ?></td>
-                                        <td class="am-text-middle"><?= $item['desc'] ?></td>
-                                        <td class="am-text-middle"><?= $item['country']['title'] ?></td>
-                                        <td class="am-text-middle"><?= $item['linecategory']['name'] ?></td>
-                                        <td class="am-text-middle"><?= $type[$item['type']] ?></td>
-                                        <td class="am-text-middle">
-                                            <?php if (isset($item['rule']) && !empty($item['rule'])) : ?>
-                                                    <?php foreach (json_decode($item['rule'], true) as $item4) : ?>
-                                                        <?php echo ($item['type'] == 10 ? "重量" : "长度") . 
-                                                              "在" . $item4['weight_start'] . " - " . $item4['weight_max'] . 
-                                                              " 收费:" . $item4['weight_price'] . "<br>" ; ?>
-                                                    <?php endforeach; ?>
-                                            <?php endif; ?>
-                                        </td>
+                                        <td class="am-text-middle"><?= $item['id'] ?></td>
+                                        <td class="am-text-middle"><?= $item['currency_name'] ?></td>
+                                        <td class="am-text-middle"><?= $item['currency_symbol'] ?></td>
+                                        <td class="am-text-middle"><?= $item['currency_en'] ?></td>
+                                        <td class="am-text-middle"><?= $item['exchange_rate'] ?></td>
+                                        <td class="am-text-middle"><?= $item['status']==0?"启用":"禁用" ?></td>
+                                        <td class="am-text-middle"><?= $item['is_default']==1?"默认":"--" ?></td>
+                                        <td class="am-text-middle"><?= $item['sort'] ?></td>
                                         <td class="am-text-middle">
                                             <div class="tpl-table-black-operation">
-                                                <?php if (checkPrivilege('setting.addservice/edit')): ?>
-                                                    <a href="<?= url('setting.addservice/edit',
-                                                        ['id' => $item['service_id']]) ?>">
+                                                <?php if (checkPrivilege('setting.currency/edit')): ?>
+                                                    <a href="<?= url('setting.currency/edit',
+                                                        ['id' => $item['id']]) ?>">
                                                         <i class="am-icon-pencil"></i> 编辑
                                                     </a>
                                                 <?php endif; ?>
-                                                <?php if (checkPrivilege('setting.addservice/delete')): ?>
+                                                <?php if (checkPrivilege('setting.currency/delete')): ?>
                                                     <a href="javascript:;"
                                                        class="item-delete tpl-table-black-operation-del"
-                                                       data-id="<?= $item['service_id'] ?>" >
+                                                       data-id="<?= $item['id'] ?>">
                                                         <i class="am-icon-trash"></i> 删除
                                                     </a>
                                                 <?php endif; ?>
@@ -96,8 +93,25 @@
 <script>
     $(function () {
 // 删除元素
-        var url = "<?= url('store/setting.addservice/delete') ?>";
+        var url = "<?= url('store/setting.currency/delete') ?>";
         $('.item-delete').delete('id', url);
+        /**
+         * 批量手动更新物流信息
+         */
+        $('#j-copycontry').on('click', function () {
+            $.ajax({
+                type:"POST",
+                url:'<?= url('store/setting.currency/copy') ?>',
+                data:{},
+                dataType:"JSON",
+                success:function(result){
+                    layer.alert(result.msg)
+                    location.reload();
+                }
+            })
+            
+        });
     });
+    
 </script>
 

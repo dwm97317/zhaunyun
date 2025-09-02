@@ -29,6 +29,7 @@ use app\api\model\LogisticsTrack;
 use app\api\model\WxappMenus;
 use app\api\model\Insure;
 use app\api\model\Consumables;
+use app\api\model\Currency;
 /**
  * 页面控制器
  * Class Index
@@ -339,6 +340,18 @@ class Page extends Controller
         $store = (new SettingModel())->where(['key' => 'store'])->field('values')->find()->toArray();
         if(!empty($store['values']['cover_id'])){
              $store['values']['file_path'] = UploadFile::detail($store['values']['cover_id'])['file_path'];
+        }
+        $currencydetail = (new Currency())->queryTopCountry();
+        if(!empty($currencydetail)){
+            $store['values']['price_mode'] = [
+                'unit'=>$currencydetail['currency_symbol'],
+                'unit_name'=>$currencydetail['currency_name']
+            ];
+        }else{
+            $store['values']['price_mode'] = [
+                'unit'=>'¥',
+                'unit_name'=>'元'
+            ];
         }
         $store["country"] = (new Country())->queryTopCountry();
         $store["sendcountry"] = (new Country())->querySendCountry();

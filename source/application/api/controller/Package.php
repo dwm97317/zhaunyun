@@ -2773,7 +2773,14 @@ class Package extends Controller
         $cale_weight = $InpackItem->where('inpack_id',$param['id'])->sum('cale_weight'); //合并计费重量
         $line_weight = $InpackItem->where('inpack_id',$param['id'])->sum('line_weight'); //合并计费重量
         $volume_weight = $InpackItem->where('inpack_id',$param['id'])->sum('volume_weight'); //合并体积重
-        (new Inpack())->where('id',$param['id'])->update([
+        
+        $inpackdetail = (new Inpack())->getDetails($param['id'],'*');
+        //默认按每个箱子的重量跟体积重比大小，20=总订单的实重跟体积重比较
+        if($inpackdetail['line']['billing_method']==20){
+            $cale_weight = $oWeigth>$volume_weight?$oWeigth:$volume_weight;
+        }
+        
+        $inpackdetail->save([
             'cale_weight'=>$cale_weight,
             'weight'=>$oWeigth,
             'volume'=>$volume_weight,

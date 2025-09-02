@@ -37,6 +37,10 @@
                                         <input type="radio" name="line[type]" value="30" data-am-ucheck>
                                         偏远模式
                                     </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[type]" value="40" data-am-ucheck>
+                                        税费模式
+                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -78,7 +82,7 @@
                                             <tr>
                                                 <th>开始值</th>
                                                 <th>结束值</th>
-                                                <th>费用</th>
+                                                <th <th id="fee_header">费用</th>>费用</th>
                                                 <th>操作</th>
                                             </tr>
                                         </thead>
@@ -140,23 +144,38 @@
     // 根据选择的类型显示不同的表单部分
     $('input[name="line[type]"]').change(function() {
         var selectedValue = $(this).val();
+        
+        // 更新费用列标题和占位符
+        if (selectedValue == '40') {
+            // 税务模式 - 显示货值百分比
+            $('#fee_header').text('货值百分比(%)');
+            $('input[name^="line[weight_price]"]').attr('placeholder', '输入货值百分比');
+        } else {
+            // 其他模式 - 显示费用
+            $('#fee_header').text('费用');
+            $('input[name^="line[weight_price]"]').attr('placeholder', '输入所需费用');
+        }
+        
         if (selectedValue == '30') {
             // 偏远模式 - 显示偏远地区设置
             $('#remote_mode').show();
         } else {
-            // 重量模式或长度模式 - 隐藏偏远地区设置
+            // 其他模式 - 隐藏偏远地区设置
             $('#remote_mode').hide();
         }
-        // 区间计费规则在所有模式下都显示
     });
 
     function addfreeRulearea(){
         var amformItem = document.getElementsByClassName('area_mode')[0];
         var Item1 = document.createElement('tr');
         
+        // 根据当前选择的类型设置占位符
+        var selectedType = $('input[name="line[type]"]:checked').val();
+        var placeholder = selectedType == '40' ? '输入货值百分比' : '输入所需费用';
+        
         var _html = '<td><input type="text" name="line[weight_start][]" placeholder="输入起始值"></td>' +
                     '<td><input type="text" name="line[weight_max][]" placeholder="输入结束值"></td>' +
-                    '<td><input type="text" name="line[weight_price][]" placeholder="输入所需费用"></td>' +
+                    '<td><input type="text" name="line[weight_price][]" placeholder="' + placeholder + '"></td>' +
                     '<td>' +
                     '<button type="button" class="am-btn am-btn-xs am-btn-danger" onclick="freeRuleDelarea(this)">删除</button>' +
                     '</td>';

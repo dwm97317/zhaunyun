@@ -1481,7 +1481,7 @@ class TrOrder extends Controller
         $boxes = [];
         if (isset($data['boxes']) && !empty($data['boxes'])) {
             $boxes = json_decode(html_entity_decode($data['boxes']),true);
-            $otherfree = ( new LineService())->getserviceFree($oWeigth,$pakdata['country_id'],$line['line_category'],$pakdata['address']['code'],$boxes,$line['services_require']);
+            $otherfree = ( new LineService())->getserviceFree($oWeigth,$pakdata['country_id'],$line['line_category'],$pakdata['address']['code'],$boxes,$line['services_require'],$pakdata['total_goods_value']);
         }else{
             $otherfree = 0;
         }

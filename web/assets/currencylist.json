@@ -1,0 +1,122 @@
+[
+    {
+        "currency_name": "元",
+        "exchange_rate": 1.0,
+        "currency_en": "CNY",
+        "currency_symbol": "¥"
+    },
+    {
+        "currency_name": "美元",
+        "exchange_rate": 7.23,
+        "currency_en": "USD",
+        "currency_symbol": "$"
+    },
+    {
+        "currency_name": "欧元",
+        "exchange_rate": 7.75,
+        "currency_en": "EUR",
+        "currency_symbol": "€"
+    },
+    {
+        "currency_name": "日元",
+        "exchange_rate": 0.048,
+        "currency_en": "JPY",
+        "currency_symbol": "¥"
+    },
+    {
+        "currency_name": "英镑",
+        "exchange_rate": 9.15,
+        "currency_en": "GBP",
+        "currency_symbol": "£"
+    },
+    {
+        "currency_name": "澳元",
+        "exchange_rate": 4.75,
+        "currency_en": "AUD",
+        "currency_symbol": "A$"
+    },
+    {
+        "currency_name": "加元",
+        "exchange_rate": 5.30,
+        "currency_en": "CAD",
+        "currency_symbol": "C$"
+    },
+    {
+        "currency_name": "瑞士法郎",
+        "exchange_rate": 8.05,
+        "currency_en": "CHF",
+        "currency_symbol": "CHF"
+    },
+    {
+        "currency_name": "港元",
+        "exchange_rate": 0.92,
+        "currency_en": "HKD",
+        "currency_symbol": "HK$"
+    },
+    {
+        "currency_name": "新加坡元",
+        "exchange_rate": 5.35,
+        "currency_en": "SGD",
+        "currency_symbol": "S$"
+    },
+    {
+        "currency_name": "韩元",
+        "exchange_rate": 0.0055,
+        "currency_en": "KRW",
+        "currency_symbol": "₩"
+    },
+    {
+        "currency_name": "印度卢比",
+        "exchange_rate": 0.087,
+        "currency_en": "INR",
+        "currency_symbol": "₹"
+    },
+    {
+        "currency_name": "俄罗斯卢布",
+        "exchange_rate": 0.080,
+        "currency_en": "RUB",
+        "currency_symbol": "₽"
+    },
+    {
+        "currency_name": "巴西雷亚尔",
+        "exchange_rate": 1.45,
+        "currency_en": "BRL",
+        "currency_symbol": "R$"
+    },
+    {
+        "currency_name": "南非兰特",
+        "exchange_rate": 0.39,
+        "currency_en": "ZAR",
+        "currency_symbol": "R"
+    },
+    {
+        "currency_name": "墨西哥比索",
+        "exchange_rate": 0.43,
+        "currency_en": "MXN",
+        "currency_symbol": "$"
+    },
+    {
+        "currency_name": "瑞典克朗",
+        "exchange_rate": 0.68,
+        "currency_en": "SEK",
+        "currency_symbol": "kr"
+    },
+    {
+        "currency_name": "挪威克朗",
+        "exchange_rate": 0.68,
+        "currency_en": "NOK",
+        "currency_symbol": "kr"
+    },
+    {
+        "currency_name": "丹麦克朗",
+        "exchange_rate": 1.04,
+        "currency_en": "DKK",
+        "currency_symbol": "kr"
+    },
+    {
+        "currency_name": "土耳其里拉",
+        "exchange_rate": 0.22,
+        "currency_en": "TRY",
+        "currency_symbol": "₺"
+    }
+]

@@ -310,9 +310,9 @@ let lastLineId = <?= $detail['line_id'] ?>;
 let weightvol_integer = <?= $detail['line']['weightvol_integer'] ?>;
 let volumeweight_weight = <?= $detail['line']['volumeweight_weight'] ?? 1 ?>;
 let volumeweight_type = <?= $detail['line']['volumeweight_type'] ?>;
+let billing_method = <?= $detail['line']['billing_method'] ?>;
 let bubble_weight = <?= $detail['line']['bubble_weight'] ?>;
 let lastChargeableWeight = 0;
-console.log(volumeweight_weight,99887112334)
 
 $(function () {
     // 初始化
@@ -388,14 +388,16 @@ function updateAllVolWeights() {
         const weight = parseFloat($row.find('.weight').val()) || 0;
         const quantity = parseFloat($row.find('.num').val()) || 1;
         
-     
         if(length > 0 && width > 0 && height > 0) {
-            if(volumeweight_type==20){
-                let volWeight = (weight + ((length * width * height / currentVolRatio) - weight)*bubble_weight)  * quantity; // 先计算数字
-            }else{
-                let volWeight = length * width * height / currentVolRatio * quantity; // 先计算数字
+            let volWeight; // 在这里声明变量
+            
+            if(volumeweight_type == 20){
+                volWeight = (weight + ((length * width * height / currentVolRatio) - weight) * bubble_weight / 100) * quantity;
+            } else {
+                volWeight = length * width * height / currentVolRatio * quantity;
             }
-            console.log(volWeight,645)
+            
+            console.log(volWeight, 645);
             volWeight = parseFloat(volWeight.toFixed(2)); // 保留 2 位小数并转回数字
             if (weightvol_integer == 1) {
                 volWeight = Math.ceil(volWeight); // 可以重新赋值，因为用 let
@@ -423,38 +425,51 @@ function updateAllVolWeights() {
 // }
 
 // 修改后的updateAllWeights函数
+// 修改后的updateAllWeights函数
 function updateAllWeights() {
-    // if(isCalculating) return;
-    // isCalculating = true;
-    console.log(777);
+    console.log('updateAllWeights 被调用');
     let totalActualWeight = 0;
     let totalVolWeight = 0;
     let hasValidInputs = false;
+    let allBoxesComplete = true;
+    let hasValidBoxes = false; // 新增：是否有有效的分箱数据
     
     // 1. 计算所有分箱的重量
     $('.step_mode > div').each(function() {
+        // 跳过添加按钮的行
+        if ($(this).find('button').length > 0) return;
+        
         const $row = $(this);
         const length = parseFloat($row.find('.vlength').val()) || 0;
         const width = parseFloat($row.find('.vwidth').val()) || 0;
         const height = parseFloat($row.find('.vheight').val()) || 0;
         const weight = parseFloat($row.find('.weight').val()) || 0;
         const quantity = parseFloat($row.find('.num').val()) || 1;
-        console.log(currentVolRatio,8877666)
+        
+        console.log('分箱数据:', {length, width, height, weight, quantity});
+        
+        // 检查分箱数据是否完整
         if(length > 0 && width > 0 && height > 0) {
+            hasValidBoxes = true;
             let volWeight = (length * width * height / currentVolRatio) * quantity;
-            console.log(volWeight,8877667)
-             console.log(bubble_weight,645)
-            if(volumeweight_type==20){
-                 volWeight = (weight + ((length * width * height / currentVolRatio) - weight)*bubble_weight/100)  * quantity; // 先计算数字
-            }
-            console.log(volWeight,685)
-            if (weightvol_integer == 1) {
-                volWeight = Math.ceil(volWeight); // 可以重新赋值，因为用 let
+            console.log('体积重计算:', volWeight);
+            
+            if(volumeweight_type == 20){
+                volWeight = (weight + ((length * width * height / currentVolRatio) - weight) * bubble_weight / 100) * quantity;
             }
             
-            $row.find('.volume_weight').val(Math.ceil(volWeight * 100) / 100);
+            if (weightvol_integer == 1) {
+                volWeight = Math.ceil(volWeight);
+            }
+            
+            const finalVolWeight = Math.ceil(volWeight * 100) / 100;
+            $row.find('.volume_weight').val(finalVolWeight);
             totalVolWeight += volWeight;
             hasValidInputs = true;
+        } else {
+            // 如果长宽高不完整，标记为不完整
+            allBoxesComplete = false;
+            console.log('分箱数据不完整:', {length, width, height});
         }
         
         if(weight > 0) {
@@ -463,11 +478,47 @@ function updateAllWeights() {
         }
     });
     
+    console.log('数据完整性检查:', {allBoxesComplete, hasValidBoxes, hasValidInputs});
+    
     // 2. 更新汇总数据
     if(hasValidInputs) {
         const newActualWeight = totalActualWeight.toFixed(2);
         const newVolWeight = totalVolWeight.toFixed(2);
-        let newChargeableWeight = Math.max(totalActualWeight*volumeweight_weight, totalVolWeight).toFixed(2);
+        
+        // 根据billing_method计算计费重量
+        let newChargeableWeight;
+        if (billing_method == 10) {
+            // billing_method=10: 每个分箱的重量跟体积重比较，将大的数据加起来
+            let totalChargeableWeight = 0;
+            $('.step_mode > div').each(function() {
+                if ($(this).find('button').length > 0) return;
+                
+                const $row = $(this);
+                const weight = parseFloat($row.find('.weight').val()) || 0;
+                const quantity = parseFloat($row.find('.num').val()) || 1;
+                const volWeight = parseFloat($row.find('.volume_weight').val()) || 0;
+                
+                if (weight > 0 || volWeight > 0) {
+                    const actualWeight = weight * quantity;
+                    const volumeWeight = volWeight;
+                    totalChargeableWeight += Math.max(actualWeight, volumeWeight);
+                }
+            });
+            newChargeableWeight = totalChargeableWeight;
+        } else {
+            // billing_method=20: 重量之和跟体积重之和比较大小，大的作为计费重量
+            newChargeableWeight = Math.max(totalActualWeight * volumeweight_weight, totalVolWeight);
+        }
+        
+        newChargeableWeight = newChargeableWeight.toFixed(2);
+        
+        console.log('计算结果:', {
+            newActualWeight, 
+            newVolWeight, 
+            newChargeableWeight,
+            currentOWei: $('#oWei').val()
+        });
+        
         // 只有当值真正变化时才更新DOM
         if($('input[name="data[weight]"]').val() !== newActualWeight) {
             $('input[name="data[weight]"]').val(newActualWeight);
@@ -475,12 +526,22 @@ function updateAllWeights() {
         if($('#weigthV').val() !== newVolWeight) {
             $('#weigthV').val(newVolWeight);
         }
-        if($('#oWei').val() !== newChargeableWeight/volumeweight_weight) {
+        
+        const newOWeiValue = newChargeableWeight/volumeweight_weight;
+        if($('#oWei').val() !== newOWeiValue.toString()) {
+            console.log('计费重量发生变化，更新为:', newOWeiValue);
+            $('#oWei').val(newOWeiValue);
             
-            console.log(volumeweight_weight,123456)
-            $('#oWei').val(newChargeableWeight/volumeweight_weight);
-            // 3. 关键修改：计费重量变化时强制计算运费
-            caleAmount();
+            // 3. 关键修改：只有当所有分箱数据完整且有有效分箱时才触发运费计算
+            if (allBoxesComplete && hasValidBoxes) {
+                console.log('触发运费计算 caleAmount');
+                caleAmount();
+            } else {
+                console.log('不触发运费计算，原因:', {
+                    allBoxesComplete, 
+                    hasValidBoxes
+                });
+            }
         }
     }
     
