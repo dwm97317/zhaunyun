@@ -673,6 +673,35 @@ class TrOrder extends Controller
        return $this->renderSuccess('更新成功');
     }
     
+    
+    /**
+     * 批量发送支付的模板消息
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function sendpaymess(){
+       $params = $this->request->param();
+       if(count($params['selectIds'])==0){
+           return $this->renderError('请选择订单');
+       }
+       $idsArr = $params['selectIds'];
+       $model = new Inpack();
+       foreach ($idsArr as $v){
+           $order =  $model->where(['id'=>$v])->find();
+           $userData = (new User())->where('user_id',$order['member_id'])->find();
+
+           //处理模板消息
+           $data['id'] = $order['id'];
+           $data['order_sn'] = $order['order_sn'];
+           $data['member_id'] = $order['member_id'];
+           $data['total_free'] = $order['free'];
+           $data['weight'] = $order['cale_weight'];
+
+           Message::send('package.payorder',$data);
+       }    
+        return $this->renderSuccess('发送成功');
+    }
+    
    /**
      * 已完成订单列表
      * @return mixed

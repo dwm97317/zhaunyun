@@ -112,6 +112,8 @@ class Setting extends BaseModel
                     'name' => $storeName ?: '小思集运',
                     'title' =>$storeName?:"小思集运",
                     'desc' => "让每个包裹都能安全到达",
+                    'service_type'=>10, //20=悬浮客服 10=列表客服
+                    'service_id' => '', //客服图标ID
                     'is_getphone' => 0, //强制授权手机号
                     'checkphone'=> 10, //10是验证邮箱，20是验证手机号
                     'cover_id' => '',

@@ -66,7 +66,7 @@ class Payorder extends Basics
         }
         // 获取订阅消息配置
         $template = SettingModel::getItem('tplMsg',$this->getMinidByUserId($this->param['member_id']))['payorder'];
-      
+   
         $noticesetting = SettingModel::getItem('notice');
         $storesetting = SettingModel::getItem('store');
           

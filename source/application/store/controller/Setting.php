@@ -259,6 +259,9 @@ class Setting extends Controller
             if(isset($vars['values']['cover_id'])){
                 $vars['values']['file_path'] = UploadFile::detail($vars['values']['cover_id'])['file_path'];
             }
+            if(isset($vars['values']['service_id'])){
+                $vars['values']['service_file_path'] = UploadFile::detail($vars['values']['service_id'])['file_path'];
+            }
             return $this->fetch($key, $vars);
         }
         $model = new SettingModel;

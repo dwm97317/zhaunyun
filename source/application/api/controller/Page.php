@@ -341,6 +341,9 @@ class Page extends Controller
         if(!empty($store['values']['cover_id'])){
              $store['values']['file_path'] = UploadFile::detail($store['values']['cover_id'])['file_path'];
         }
+        if(!empty($store['values']['service_id'])){
+             $store['values']['service_file_path'] = UploadFile::detail($store['values']['service_id'])['file_path'];
+        }
         $currencydetail = (new Currency())->queryTopCountry();
         if(!empty($currencydetail)){
             $store['values']['price_mode'] = [

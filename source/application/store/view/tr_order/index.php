@@ -292,6 +292,10 @@
                                     <a id="changeLine" class="am-dropdown-item" 
                                        href="javascript:;">批量修改集运路线</a>
                                 </li>
+                                <li>
+                                    <a id="sendpaymess" class="am-dropdown-item" 
+                                       href="javascript:;">批量发送支付通知</a>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -1509,12 +1513,13 @@
 				
 				
 				/**
-				 * 导出集运清关文件
+				 * 修改集运路线
 				 */
 				$('#changeLine').on('click', function() {
 					var $tabs, data = $(this).data();
 					var selectIds = checker.getCheckSelect();
-				
+				    data.selectId = selectIds.join(',');
+                    data.selectCount = selectIds.length;
 					if (selectIds.length == 0) {
 						layer.alert('请先选择集运订单', {
 							icon: 5
@@ -1522,7 +1527,7 @@
 						return;
 					}
 					$.showModal({
-                        title: '将包裹加入到批次中'
+                        title: '修改集运订单集运路线'
                         , area: '460px'
                         , content: template('tpl-line',data)
                         , uCheck: true
@@ -1538,6 +1543,28 @@
                     });
 					
 				});
+				
+				/**
+         * 合并订单
+         */
+        $('#sendpaymess').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            var hedanurl = "<?= url('store/trOrder/sendpaymess') ?>";
+            if (selectIds.length==0){
+                layer.alert('请先选择集运单', {icon: 5});
+                return;
+            }
+            console.log(selectIds,99);
+            layer.confirm('请确定是否批量发送支付通知', {title: '批量发送支付通知'}
+                    , function (index) {
+                        $.post(hedanurl, {selectIds}, function (result) {
+                            result.code === 1 ? $.show_success(result.msg, result.url)
+                                : $.show_error(result.msg);
+                        });
+                        layer.close(index);
+                    });
+        });
         
         
         /**

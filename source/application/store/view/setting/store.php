@@ -758,6 +758,47 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
+                                    客服样式模式
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[service_type]" value="10"
+                                               data-am-ucheck
+                                            <?= $values['service_type'] == '10' ? 'checked' : '' ?>
+                                               required>
+                                        列表展示
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[service_type]" value="20"
+                                               data-am-ucheck
+                                            <?= $values['service_type'] == '20' ? 'checked' : '' ?>>
+                                        悬浮客服
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-form-label form-require">悬浮客服 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <button type="button"
+                                                class="uploadser-file am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择图片
+                                        </button>
+                                        <div class="uploader-list am-cf">
+                                                <div class="file-item">
+                                                    <a href="<?= isset($values['image'])?$values['service_file_path']:'' ?>"
+                                                       title="点击查看大图" target="_blank">
+                                                        <img src="<?= isset($values['service_file_path'])?$values['service_file_path']:'' ?>">
+                                                    </a>
+                                                    <input type="hidden" name="store[cover_id]" value="<?= $values['cover_id'] ?>">
+                                                    <i class="iconfont icon-shanchu file-item-delete"></i>
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
                                     是否开启电话客服
                                 </label>
                                 <div class="am-u-sm-9">
@@ -2030,6 +2071,10 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
          // 选择图片
         $('.upload-file').selectImages({
             name: 'store[cover_id]'
+        });
+         // 选择图片
+        $('.uploadser-file').selectImages({
+            name: 'store[service_id]'
         });
         /**
          * 表单验证提交
