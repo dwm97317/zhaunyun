@@ -628,6 +628,11 @@
                                                 <i class="iconfont icon-daochu"></i> 导出INVOICE
                                             </a>
                                         </div>
+                                        <div class="tpl-table-black-operation" style="margin-top:10px">
+                                            <a class='tpl-table-black-operation-del j-cancel' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
+                                                <i class="iconfont icon-daochu"></i> 取消订单
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr>

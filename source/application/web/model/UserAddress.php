@@ -155,6 +155,33 @@ class UserAddress extends UserAddressModel
         $user['address_id'] == $this['address_id'] && $user->save(['address_id' => 0]);
         return $this->delete();
     }
+    
+        /**
+     * 地区名称
+     * @param $value
+     * @param $data
+     * @return array
+     */
+    public function getChineseRegionAttr($value, $data)
+    {
+        if(!empty($value)){
+            $setting = SettingModel::getItem('store',self::$wxapp_id);
+            $detail = $data['country'];
+            if($setting['address_setting']['is_province']==1){
+                $detail = $detail.$data['province'];
+            }
+            if($setting['address_setting']['is_city']==1){
+                $detail = $detail.$data['city'];
+            }
+            if($setting['address_setting']['is_region']==1){
+                $detail = $detail.$data['region'];
+            }
+            if($setting['address_setting']['is_detail']==1){
+                $detail = $detail.$data['detail'];
+            }
+            return $detail;
+        }
+    }
 
     /**
      * 收货地址详情
