@@ -23,11 +23,12 @@ class Bank extends Controller
           $postData = $this->postData('bank_setting');
           $model2 = new setting();
           $model2->edit('bank',$postData);
+         
           return $this->renderSuccess('修改成功');
         }
         $list = $model->getList();
         $values = setting::getItem('bank',$this->store['wxapp']['wxapp_id']);
-     
+    //   dump($values);die;
         return $this->fetch('index', compact('list','values'));
     }
 

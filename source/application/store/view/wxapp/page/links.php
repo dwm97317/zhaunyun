@@ -8,6 +8,16 @@
                     </div>
                     <div class="link-list">
                         <ul class="" style='display: inline-block;'>
+                           
+                            <li class="link-item">
+                                <div class="row page-name">购买会员</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/pages/mys/userVip/userVip</span>
+                                    </div>
+                                </div>
+                            </li>
                             <li class="link-item">
                                 <div class="row page-name">邀请有礼</div>
                                 <div class="row am-cf">
@@ -16,7 +26,7 @@
                                         <span class="x-color-green">/subPackage/pages/invitedetail</span>
                                     </div>
                                 </div>
-                            </li>
+                            </li>/pages/mys/userVip/userVip
                             <li class="link-item">
                                 <div class="row page-name">积分兑换</div>
                                 <div class="row am-cf">
@@ -275,6 +285,15 @@
                                     <div class="am-fl">地址：</div>
                                     <div class="am-fl">
                                         <span class="x-color-green">/pages/indexs/cangkudizhi_list/cangkudizhi_list</span>
+                                    </div>
+                                </div>
+                            </li>
+                             <li class="link-item">
+                                <div class="row page-name">仓库详情</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/pages/indexs/cangkudizhi/cangkudizhi?id=仓库ID</span>
                                     </div>
                                 </div>
                             </li>

@@ -96,7 +96,7 @@
                                 <div class="am-u-sm-9 am-u-end">
                                      <!-- 加载编辑器的容器 -->
                                      <textarea id="container" name="bank_setting[setting]"
-                                              type="text/plain"><?= $values['setting'] ?></textarea>
+                                              type="text/plain"><?= isset($values['setting'])?$values['setting']:'' ?></textarea>
                                 </div>
                             </div>
                             <div class="am-form-group">
