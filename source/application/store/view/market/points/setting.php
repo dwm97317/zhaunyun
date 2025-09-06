@@ -70,6 +70,25 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="am-form-group am-padding-top">
+                                <label class="am-u-sm-3  am-u-lg-2 am-form-label form-require"> 集运送积分范围 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="points[is_logistics_area]" value="10" data-am-ucheck
+                                            <?= $values['is_logistics_area']==10 ? 'checked' : '' ?>> 所有用户
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="points[is_logistics_area]" value="20" data-am-ucheck
+                                            <?= $values['is_logistics_area']==20 ? 'checked' :''  ?>> 会员VIP用户
+                                    </label>
+                                    <div class="help-block">
+                                        <small>注：如开启则集运订单完成后赠送用户积分</small>
+                                    </div>
+                                    <div class="help-block am-padding-top-xs">
+                                        <small>积分赠送规则：1.集运订单确认签收或超过时效自动完成时</small>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 积分赠送比例 </label>
                                 <div class="am-u-sm-9 am-u-md-6 am-u-lg-5 am-u-end">

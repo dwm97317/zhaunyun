@@ -3265,15 +3265,22 @@ class Package extends Controller
          if (!$up){
           return $this->renderError('签收失败');
          }
-        
+        $userresult = (new User())->where(['user_id' => $pack['member_id']])->where('is_delete',0)->find();
+        if(empty($userresult)){
+            return $this->renderError('用户信息错误');
+        }
         // 处理积分赠送,给用户增加积分，生成一条积分增加记录；
-        //根据积分设置的百分比来计算出需要赠送的积分数量
+        //根据积分设置的百分比来计算出需要赠送的积分数量，根据is_logistics_area来决定使用的用户范围，10所有人，20grade会员
         $setting = SettingModel::getItem('points');
         if($setting['is_open']==1 && $setting['is_logistics_gift']==1){
-            $giftpoint = floor($pack['real_payment']*$setting['logistics_gift_ratio']/100);
+            if($setting['is_logistics_area']==20 && $userresult['grade_id']>0){
+                $giftpoint = floor($pack['real_payment']*$setting['logistics_gift_ratio']/100);
+            }else if($setting['is_logistics_area']==10){
+                $giftpoint = floor($pack['real_payment']*$setting['logistics_gift_ratio']/100);
+            }
         }
 
-        (new User())->where(['user_id' => $pack['member_id']])->setInc('points',$giftpoint);
+        $userresult->setInc('points',$giftpoint);
         // 新增积分变动记录
         PointsLogModel::add([
             'user_id' => $pack['member_id'],

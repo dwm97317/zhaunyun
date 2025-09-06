@@ -1223,6 +1223,7 @@ class Setting extends BaseModel
                     'is_open' => '0',         // 积分是否开启
                     'points_name' => '积分',         // 积分名称自定义
                     'is_logistics_gift'=>'0',       // 是否开启集运送积分
+                    'is_logistics_area'=> '20', //10=所有用户,20=会员用户
                     'logistics_gift_ratio' => '100',           // 是否开启集运送积分 
                     'is_shopping_gift' => '0',      // 是否开启购物送积分
                     'gift_ratio' => '100',            // 是否开启购物送积分

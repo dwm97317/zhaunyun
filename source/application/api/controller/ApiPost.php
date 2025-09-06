@@ -31,6 +31,7 @@ use app\common\model\AiLog;
 use app\common\service\Message;
 use app\common\model\LogisticsTrack;
 use app\common\model\Logistics;
+use app\common\service\package\Printer;
 
 /**
  * 页面控制器
@@ -133,10 +134,10 @@ class ApiPost extends Controller
                 ];
                 (new PackageImage())->save($imgdata);
             }
-            $tplmsgsetting = SettingModel::getItem('tplMsg');
+            $tplmsgsetting = SettingModel::getItem('tplMsg',$param['wxapp_id']);
             if($tplmsgsetting['is_oldtps']==1){
               //发送旧版本订阅消息以及模板消息
-              $sub = $this->sendEnterMessage([$result]);
+              $sub = (new Package())->sendEnterMessage([$result]);
             }else{
               //发送新版本订阅消息以及模板消息
               Message::send('package.inwarehouse',$result);
@@ -233,10 +234,10 @@ class ApiPost extends Controller
                 ];
                 (new PackageImage())->save($imgdata);
             }
-            $tplmsgsetting = SettingModel::getItem('tplMsg');
+            $tplmsgsetting = SettingModel::getItem('tplMsg',$param['wxapp_id']);
             if($tplmsgsetting['is_oldtps']==1){
               //发送旧版本订阅消息以及模板消息
-              $sub = $this->sendEnterMessage([$result]);
+              $sub = (new Package())->sendEnterMessage([$result]);
             }else{
               //发送新版本订阅消息以及模板消息
               Message::send('package.inwarehouse',$result);
@@ -294,10 +295,10 @@ class ApiPost extends Controller
                 'volume'=>$param['volume'],
                 'entering_warehouse_time'=>getTime()
             ]);
-            $tplmsgsetting = SettingModel::getItem('tplMsg');
+            $tplmsgsetting = SettingModel::getItem('tplMsg',$param['wxapp_id']);
             if($tplmsgsetting['is_oldtps']==1){
               //发送旧版本订阅消息以及模板消息
-              $sub = $this->sendEnterMessage([$result]);
+              $sub = (new Package())->sendEnterMessage([$result]);
             }else{
               //发送新版本订阅消息以及模板消息
               Message::send('package.inwarehouse',$result);
@@ -522,10 +523,10 @@ class ApiPost extends Controller
                 ];
                 (new PackageImage())->save($imgdata);
             }
-            $tplmsgsetting = SettingModel::getItem('tplMsg');
+            $tplmsgsetting = SettingModel::getItem('tplMsg',$param['wxapp_id']);
             if($tplmsgsetting['is_oldtps']==1){
               //发送旧版本订阅消息以及模板消息
-              $sub = $this->sendEnterMessage([$result]);
+              $sub = (new Package())->sendEnterMessage([$result]);
             }else{
               //发送新版本订阅消息以及模板消息
               Message::send('package.inwarehouse',$result);

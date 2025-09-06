@@ -59,21 +59,28 @@ class User extends UserModel
         !empty($user_code) && $this->where('user_code', 'like', "%$user_code%");
         !empty($user_id) && $this->where('user_id', 'like', "%$user_id%");
         !empty($service_id) && $this->where('service_id', '=', $service_id);
-        // 生日范围查询
+        // 创建时间范围查询
         if (!empty($param['start_time']) && !empty($param['end_time'])) {
-             // 忽略年份：比较月-日，支持跨年
-                $startMd = date('m-d', strtotime($param['start_time']));
-                $endMd   = date('m-d', strtotime($param['end_time']));
+            $startTimestamp = strtotime($param['start_time']);
+            $endTimestamp = strtotime($param['end_time'] . ' 23:59:59');
+            $this->where('create_time', 'between', [$startTimestamp, $endTimestamp]);
+        }
         
-                if ($startMd <= $endMd) {
-                    // 同年区间
-                    $this->where("DATE_FORMAT(birthday, '%m-%d') BETWEEN :s AND :e")
-                         ->bind(['s' => $startMd, 'e' => $endMd]);
-                } else {
-                    // 跨年区间
-                    $this->where("(DATE_FORMAT(birthday, '%m-%d') >= :s OR DATE_FORMAT(birthday, '%m-%d') <= :e)")
-                         ->bind(['s' => $startMd, 'e' => $endMd]);
-                }
+        // 生日范围查询（新增功能）
+        if (!empty($param['birthday_start']) && !empty($param['birthday_end'])) {
+            // 从日期选择器的值中提取月日信息
+            $startMd = date('m-d', strtotime($param['birthday_start']));
+            $endMd = date('m-d', strtotime($param['birthday_end']));
+            
+            if ($startMd <= $endMd) {
+                // 同年区间
+                $this->where("DATE_FORMAT(birthday, '%m-%d') BETWEEN :bs AND :be")
+                     ->bind(['bs' => $startMd, 'be' => $endMd]);
+            } else {
+                // 跨年区间
+                $this->where("(DATE_FORMAT(birthday, '%m-%d') >= :bs OR DATE_FORMAT(birthday, '%m-%d') <= :be)")
+                     ->bind(['bs' => $startMd, 'be' => $endMd]);
+            }
         }
         
         // 检索：性别

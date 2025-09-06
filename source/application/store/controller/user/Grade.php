@@ -37,10 +37,27 @@ class Grade extends Controller
      */
     public function order()
     {
+        // 获取筛选参数
+        $param = $this->request->param();
+        $grade_id = $param['grade_id'] ?? '';
+        $nickName = $param['nickName'] ?? '';
+        $user_id = $param['user_id'] ?? '';
+        $user_code = $param['user_code'] ?? '';
+        $start_date = $param['start_date'] ?? '';
+        $end_date = $param['end_date'] ?? '';
+        $effect_start_date = $param['effect_start_date'] ?? '';
+        $effect_end_date = $param['effect_end_date'] ?? '';
+        $is_expired = $param['is_expired'] ?? '';
+        
         $model = new UserGradeOrderModel;
-        $list = $model->getList();
+        $list = $model->getList($grade_id, $nickName, $user_id, $user_code, $start_date, $end_date, $effect_start_date, $effect_end_date, $is_expired);
+        // dump($list->toArray());die;
         $storesetting = SettingModel::getItem('store');
-        return $this->fetch('order', compact('list','storesetting'));
+        
+        // 获取会员等级列表用于下拉选择
+        $gradeList = GradeModel::getUsableList();
+        
+        return $this->fetch('order', compact('list','storesetting','gradeList'));
     }
     
     

@@ -61,13 +61,25 @@
                                     <div class="am-form-group tpl-form-border-form am-fl">
                                         <input style="padding:6px 5px;" autocomplete="off" type="text" name="start_time"
                                                class="am-form-field"
-                                               value="<?= $request->get('start_time') ?>" placeholder="请选择起始日期"
+                                               value="<?= $request->get('start_time') ?>" placeholder="注册起始日期"
                                                data-am-datepicker>
                                     </div>
                                     <div class="am-form-group tpl-form-border-form am-fl">
                                         <input style="padding:6px 5px;" autocomplete="off" type="text" name="end_time"
                                                class="am-form-field"
-                                               value="<?= $request->get('end_time') ?>" placeholder="请选择截止日期"
+                                               value="<?= $request->get('end_time') ?>" placeholder="注册截止日期"
+                                               data-am-datepicker>
+                                    </div>
+                                    <div class="am-form-group tpl-form-border-form am-fl">
+                                        <input style="padding:6px 5px;" autocomplete="off" type="text" name="birthday_start"
+                                               class="am-form-field"
+                                               value="<?= $request->get('birthday_start') ?>" placeholder="请选择生日起始日期"
+                                               data-am-datepicker>
+                                    </div>
+                                    <div class="am-form-group tpl-form-border-form am-fl">
+                                        <input style="padding:6px 5px;" autocomplete="off" type="text" name="birthday_end"
+                                               class="am-form-field"
+                                               value="<?= $request->get('birthday_end') ?>" placeholder="请选择生日结束日期"
                                                data-am-datepicker>
                                     </div>
                                     <div class="am-form-group am-fl" style="padding:1px 0px;">
@@ -988,5 +1000,6 @@
         
         
     });
+    
 </script>
 
