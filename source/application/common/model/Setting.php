@@ -63,17 +63,40 @@ class Setting extends BaseModel
      * @param null $wxapp_id
      * @return array|mixed
      */
+    // public static function getAll($wxapp_id = null)
+    // {
+    //     $static = new static;
+   
+    //     is_null($wxapp_id) && $wxapp_id = $static::$wxapp_id;
+    // //   Cache::tag('cache')->set('setting_' . $wxapp_id, '');
+    //     if (!$data = Cache::get('setting_' . $wxapp_id)) {
+    //         $setting = $static::all(compact('wxapp_id'));
+    //         $data = empty($setting) ? [] : array_column(collection($setting)->toArray(), null, 'key');
+     
+    //         Cache::tag('cache')->set('setting_' . $wxapp_id, $data);
+    //     }
+    //     return $static->getMergeData($data);
+    // }
     public static function getAll($wxapp_id = null)
     {
         $static = new static;
-   
         is_null($wxapp_id) && $wxapp_id = $static::$wxapp_id;
-    //   Cache::tag('cache')->set('setting_' . $wxapp_id, '');
+        
         if (!$data = Cache::get('setting_' . $wxapp_id)) {
             $setting = $static::all(compact('wxapp_id'));
             $data = empty($setting) ? [] : array_column(collection($setting)->toArray(), null, 'key');
-     
             Cache::tag('cache')->set('setting_' . $wxapp_id, $data);
+        } else {
+            // 如果缓存数据损坏，重新从数据库获取
+            try {
+                $data = $data; // 尝试访问缓存数据
+            } catch (Exception $e) {
+                // 缓存数据损坏，清除缓存并重新获取
+                Cache::tag('cache')->rm('setting_' . $wxapp_id);
+                $setting = $static::all(compact('wxapp_id'));
+                $data = empty($setting) ? [] : array_column(collection($setting)->toArray(), null, 'key');
+                Cache::tag('cache')->set('setting_' . $wxapp_id, $data);
+            }
         }
         return $static->getMergeData($data);
     }
