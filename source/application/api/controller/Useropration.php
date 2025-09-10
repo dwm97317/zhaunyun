@@ -30,7 +30,7 @@ use app\api\model\Barcode;
 use app\api\model\PackageClaim;
 use app\api\model\ConsumablesLog;
 use app\api\model\Consumables;
-
+use app\api\model\user\PointsLog as PointsLogModel;
 /**
  * 用户管理
  * Class User
@@ -344,7 +344,7 @@ class Useropration extends Controller
         $this->inorderImages($packData['id'],$imageIds,$wxapp_id);
         $settingdata  = SettingModel::getItem('store');
         if($settingdata['is_auto_free']==1){
-            getpackfree($id);   
+            // getpackfree($id);   
         }
         //存入货架信息
         $takecode = rand(100000,999999);
@@ -777,6 +777,26 @@ class Useropration extends Controller
         !empty($userInfo['email']) && (new Email())->sendemail($userInfo,$logis,$type=1);
         //5、清空货架数据
         (new ShelfUnitItem())->where(['pack_id'=>$packData['order_sn']])->delete();
+        //6、发送积分
+        $setting = SettingModel::getItem('points');
+        if($setting['is_open']==1 && $setting['is_logistics_gift']==1){
+            if($setting['is_logistics_area']==20 && $userInfo['grade_id']>0){
+                $giftpoint = floor($packData['real_payment']*$setting['logistics_gift_ratio']/100);
+            }else if($setting['is_logistics_area']==10){
+                $giftpoint = floor($packData['real_payment']*$setting['logistics_gift_ratio']/100);
+            }
+        }
+
+        $userInfo->setInc('points',$giftpoint);
+        // 新增积分变动记录
+        PointsLogModel::add([
+            'user_id' => $packData['member_id'],
+            'value' => $giftpoint,
+            'type' => 1,
+            'describe' => "订单".$packData['order_sn']."赠送积分".$giftpoint,
+            'remark' => "积分来自集运订单:".$packData['order_sn'],
+        ]);
+        
         return $this->renderSuccess('',"操作成功");
     }
     
@@ -3089,7 +3109,7 @@ class Useropration extends Controller
         if($count>0){
             return $this->renderError('还有包裹未扫描');
         }
-        $res = $inpack->where('id',$id)->update(['status' => $status,'pick_time' => getTime()]);
+        $res = $inpack->where('id',$id)->update(['status' => $status,'pick_time' => getTime(),'print_status_jhd'=>1]);
         if($res){
         //进行通知打包员
         $clerkdd = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();

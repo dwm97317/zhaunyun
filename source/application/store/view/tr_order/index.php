@@ -526,12 +526,14 @@
                                             </a>
                                             <?php endif; ?>
                                             <!--删除-->
+                                            <?php if($dataType=='complete'): ?>
                                             <?php if (checkPrivilege('tr_order/orderdelete')): ?>
                                             <a href="javascript:void(0);"
                                                class="item-delete tpl-table-black-operation-del"
                                                data-id="<?= $item['id'] ?>">
                                                 <i class="am-icon-trash"></i> 删除
                                             </a>
+                                            <?php endif; ?>
                                             <?php endif; ?>
                                         </div>
                                         <div class="tpl-table-black-operation" style="margin-top:10px">
@@ -628,11 +630,13 @@
                                                 <i class="iconfont icon-daochu"></i> 导出INVOICE
                                             </a>
                                         </div>
+                                        <?php if (in_array($item['status'],[1,2,3,4,5,6,7])): ?>
                                         <div class="tpl-table-black-operation" style="margin-top:10px">
                                             <a class='tpl-table-black-operation-del j-cancel' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
                                                 <i class="iconfont icon-daochu"></i> 取消订单
                                             </a>
                                         </div>
+                                        <?php endif ;?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1193,10 +1197,26 @@
           }
        }
        
+        $('.j-cancel').on('click', function () {
+            var $tabs, data = $(this).data();
+            console.log(data,7656);
+            var hedanurl = "<?= url('store/trOrder/cancelorder') ?>";
+            layer.confirm('请确定是否取消订单，取消订单后订单中的包裹单号将回退到待打包状态', {title: '取消订单'}
+                    , function (index) {
+                        $.post(hedanurl, {id:data.id}, function (result) {
+                            result.code === 1 ? $.show_success(result.msg, result.url)
+                                : $.show_error(result.msg);
+                        });
+                        layer.close(index);
+                    });
+        });
+       
        checker.init();
         // 删除元素
         var url = "<?= url('store/trOrder/orderdelete') ?>";
         $('.item-delete').delete('id', url);
+
+        
 
         /**
          * 注册操作事件
@@ -1633,6 +1653,8 @@
                
            })
         }); 
+        
+       
        
         
         //打印拣货单

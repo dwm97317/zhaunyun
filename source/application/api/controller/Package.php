@@ -3259,8 +3259,9 @@ class Package extends Controller
          $up = (new PackageModel())->where('inpack_id',$id)->update(['status'=>10]);
          
          $inpacklist =  (new PackageModel())->where('inpack_id',$id)->where('is_delete',0)->select();
+        //  dump($inpacklist);die;
          foreach($inpacklist as $v){
-            Logistics::add($v['express_num'],'包裹已经本人签收,如有问题,请联系客服');
+            Logistics::add($v['id'],'包裹已经本人签收,如有问题,请联系客服');
          }
          if (!$up){
           return $this->renderError('签收失败');
@@ -3269,6 +3270,7 @@ class Package extends Controller
         if(empty($userresult)){
             return $this->renderError('用户信息错误');
         }
+       
         // 处理积分赠送,给用户增加积分，生成一条积分增加记录；
         //根据积分设置的百分比来计算出需要赠送的积分数量，根据is_logistics_area来决定使用的用户范围，10所有人，20grade会员
         $setting = SettingModel::getItem('points');
@@ -3286,7 +3288,7 @@ class Package extends Controller
             'user_id' => $pack['member_id'],
             'value' => $giftpoint,
             'type' => 1,
-            'describe' => "用户签收赠送积分",
+            'describe' => "订单".$pack['order_sn']."赠送积分".$giftpoint,
             'remark' => "积分来自集运订单:".$pack['order_sn'],
         ]);
         

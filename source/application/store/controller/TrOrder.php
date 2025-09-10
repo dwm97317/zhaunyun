@@ -43,6 +43,7 @@ use Dompdf\Options;
 use app\common\library\Ditch\Hualei;
 use app\store\model\Countries;
 use app\store\model\LineService;
+use app\store\model\user\PointsLog as PointsLogModel;
 
 /**
  * 订单管理
@@ -669,7 +670,32 @@ class TrOrder extends Controller
            $data['order']['remark'] = $status_remark[$status];
            Logistics::addInpackLogs($order['order_sn'],$status_remark[$status]);
            Message::send('order.payment',$data);
-       }    
+           //处理积分赠送
+           //6、发送积分
+            $setting = SettingModel::getItem('points',$order['wxapp_id']);
+            $giftpoint = 0;
+            // dump($setting);die;
+            if($setting['is_open']==1 && $setting['is_logistics_gift']==1){
+                if($setting['is_logistics_area']==20 && $userData['grade_id']>0){
+                    $giftpoint = floor($order['real_payment']*$setting['logistics_gift_ratio']/100);
+                }else if($setting['is_logistics_area']==10){
+                    $giftpoint = floor($order['real_payment']*$setting['logistics_gift_ratio']/100);
+                }
+            }
+            
+            if($giftpoint>0 && $status==8){
+                $userData->setInc('points',$giftpoint);
+                // 新增积分变动记录
+                PointsLogModel::add([
+                    'user_id' => $order['member_id'],
+                    'value' => $giftpoint,
+                    'type' => 1,
+                    'describe' => "订单".$order['order_sn']."赠送积分".$giftpoint,
+                    'remark' => "积分来自集运订单:".$order['order_sn'],
+                ]);
+            }
+            
+           }    
        return $this->renderSuccess('更新成功');
     }
     
@@ -1198,18 +1224,27 @@ class TrOrder extends Controller
     //问题件删除
     public function orderdelete($id){
         $model = Inpack::details($id);
-        (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>null]);
+        (new Package())->where('inpack_id',$model['id'])->update(['is_delete' => 1]);
         if ($model->removedelete($id)) {
             return $this->renderSuccess('删除成功');
         }
         return $this->renderError($model->getError() ?: '删除失败');
     }
     
+    // 取消订单
+    public function cancelorder($id){
+        $model = Inpack::details($id);
+        (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>null,'is_scan'=>1]);
+        if ($model->removedelete($id)) {
+            return $this->renderSuccess('取消成功');
+        }
+        return $this->renderError($model->getError() ?: '取消失败');
+    }
+    
      //集运单删除
     public function delete($id){
         $model = Inpack::details($id);
-        //找到集运单所有的包裹单号，循环设置状态为2；
-        (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>null]);
+        (new Package())->where('inpack_id',$model['id'])->update(['is_delete' => 1]);
         if ($model->removedelete($id)) {
             return $this->renderSuccess('删除成功');
         }
