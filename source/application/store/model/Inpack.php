@@ -722,25 +722,131 @@ class Inpack extends InpackModel
     }
     
     // 添加包裹
+    // public function appendData($data){
+    //     //$pack : 要插入的快递信息
+    //     //$inpack : 被插入的集运单
+    //     $inpack = (new Inpack())->find($data['id']);    
+    //     if (!$pack = (new Package())->where(['express_num'=>$data['express_num'],'is_delete'=>0])->find()){
+    //         $resl =  (new Package())->where(['inpack_id'=>$data['id'],'is_delete'=>0])->find();
+    //         // dump($data);die;
+    //         if(empty($resl)){
+    //             $this->error = '该包裹不在库中';
+    //             return false;
+    //         }
+    //         unset($resl['id']);
+    //         $resl['express_num'] = $data['express_num'];
+    //         $resl['entering_warehouse_time'] = getTime();
+    //         $resl['updated_time'] = getTime();
+    //         $resl['created_time'] = getTime();
+    //         $newid = (new Package())->insertGetId($resl->toArray());
+    //         $inpack->save(['pack_ids'=>$inpack['pack_ids'].','.$newid]);
+    //     }
+    //     // 判断包裹是否已经在其他集运包裹中；如果不在，则可以添加进来；
+    //     if(in_array($pack['status'],[5,6,7,8,9,10,11])){
+    //         $this->error = '该包裹已在集运单中';
+    //         return false;
+    //     }
+        
+    //     //判断需要插入的快递单号是否被领取，如果领取memberid不存在，则设置为集运单的memberid；并修改状态为已认领；
+    //     if(!$pack['member_id']){
+    //       (new Package())->where(['id'=>$pack['id']])->update(['member_id'=>$inpack['member_id'],'is_take' => 2]);
+    //     }
+    //     $packages = explode(',',$inpack['pack_ids']);
+    //     $packages[] = $pack['id'];
+    //     $inpackData['pack_ids'] = implode(',',$packages);
+    //     $res = $this->where(['id'=>$data['id']])->update($inpackData);
+    //     (new Package())->where(['id'=>$pack['id']])->update(['status'=>5,'inpack_id'=>$data['id']]);
+    //     if ($res){
+    //         return true;
+    //     }
+    //     $this->error = '包裹添加失败';
+    //     return false;
+    // }
+      
+    
+    // 添加包裹
     public function appendData($data){
+        // 解析多个快递单号（支持逗号和换行分隔）
+        $express_nums = $this->parseExpressNums($data['express_num']);
+        
+        if (empty($express_nums)) {
+            $this->error = '请输入有效的快递单号';
+            return false;
+        }
+        
+        $success_count = 0;
+        $error_msgs = [];
+        
+        // 循环处理每个快递单号
+        foreach ($express_nums as $express_num) {
+            $result = $this->appendSingleExpressNum($data['id'], $express_num);
+            if ($result) {
+                $success_count++;
+            } else {
+                $error_msgs[] = "快递单号 {$express_num}: " . $this->getError();
+            }
+        }
+        
+        if ($success_count > 0) {
+            if (count($error_msgs) > 0) {
+                $this->error = "成功添加 {$success_count} 个包裹。失败的包裹：" . implode('; ', $error_msgs);
+            }
+            return true;
+        } else {
+            $this->error = '所有包裹添加失败：' . implode('; ', $error_msgs);
+            return false;
+        }
+    }
+    
+    /**
+     * 解析快递单号字符串（支持逗号和换行分隔）
+     */
+    private function parseExpressNums($express_num_str) {
+        if (empty($express_num_str)) {
+            return [];
+        }
+        
+        // 先按换行分隔，再按逗号分隔
+        $lines = preg_split('/[\r\n]+/', trim($express_num_str));
+        $express_nums = [];
+        
+        foreach ($lines as $line) {
+            $nums = explode(',', $line);
+            foreach ($nums as $num) {
+                $num = trim($num);
+                if (!empty($num)) {
+                    $express_nums[] = $num;
+                }
+            }
+        }
+        
+        // 去重
+        return array_unique($express_nums);
+    }
+    
+    /**
+     * 处理单个快递单号
+     */
+    private function appendSingleExpressNum($inpack_id, $express_num) {
         //$pack : 要插入的快递信息
         //$inpack : 被插入的集运单
-        $inpack = (new Inpack())->find($data['id']);    
-        if (!$pack = (new Package())->where(['express_num'=>$data['express_num'],'is_delete'=>0])->find()){
-            $resl =  (new Package())->where(['inpack_id'=>$data['id'],'is_delete'=>0])->find();
-            // dump($data);die;
+        $inpack = (new Inpack())->find($inpack_id);    
+        if (!$pack = (new Package())->where(['express_num'=>$express_num,'is_delete'=>0])->find()){
+            $resl =  (new Package())->where(['inpack_id'=>$inpack_id,'is_delete'=>0])->find();
             if(empty($resl)){
                 $this->error = '该包裹不在库中';
                 return false;
             }
             unset($resl['id']);
-            $resl['express_num'] = $data['express_num'];
+            $resl['express_num'] = $express_num;
             $resl['entering_warehouse_time'] = getTime();
             $resl['updated_time'] = getTime();
             $resl['created_time'] = getTime();
             $newid = (new Package())->insertGetId($resl->toArray());
             $inpack->save(['pack_ids'=>$inpack['pack_ids'].','.$newid]);
+            return true;
         }
+        
         // 判断包裹是否已经在其他集运包裹中；如果不在，则可以添加进来；
         if(in_array($pack['status'],[5,6,7,8,9,10,11])){
             $this->error = '该包裹已在集运单中';
@@ -754,15 +860,14 @@ class Inpack extends InpackModel
         $packages = explode(',',$inpack['pack_ids']);
         $packages[] = $pack['id'];
         $inpackData['pack_ids'] = implode(',',$packages);
-        $res = $this->where(['id'=>$data['id']])->update($inpackData);
-        (new Package())->where(['id'=>$pack['id']])->update(['status'=>5,'inpack_id'=>$data['id']]);
+        $res = $this->where(['id'=>$inpack_id])->update($inpackData);
+        (new Package())->where(['id'=>$pack['id']])->update(['status'=>5,'inpack_id'=>$inpack_id]);
         if ($res){
             return true;
         }
         $this->error = '包裹添加失败';
         return false;
     }
-      
     
     //获取集运单的相关信息->with(['line','storage','inpackimage.file'])
     public static function details($id){

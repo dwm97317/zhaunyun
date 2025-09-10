@@ -1445,13 +1445,35 @@ class TrOrder extends Controller
         $model = $Inpack::details($order_id);
 
         if (!$this->request->isAjax()){
-            return $this->fetch('appendchild', compact('model'));
+            // 查询该用户待打包的包裹列表
+            $pending_packages = $this->getPendingPackages($model['member_id']);
+            return $this->fetch('appendchild', compact('model', 'pending_packages'));
         }
     
         if ($Inpack->appendData($this->postData('delivery'))) {
             return $this->renderSuccess('修改成功','javascript:history.back(1)');
         }
         return $this->renderError($Inpack->getError() ?: '修改失败');
+    }
+    
+    /**
+     * 获取用户待打包的包裹列表
+     */
+    private function getPendingPackages($member_id) {
+        if (empty($member_id)) {
+            return [];
+        }
+        
+        $Package = new Package();
+        return $Package->alias('p')
+            ->field('p.id, p.express_num, p.weight, p.length, p.width, p.height, p.entering_warehouse_time, p.remark, p.usermark')
+            ->where('p.member_id', $member_id)
+            ->where('p.status','in',[2]) // 待打包状态
+            ->where('p.is_delete', 0)
+            ->where('p.inpack_id', null) // 未分配到任何集运单
+            ->order('p.entering_warehouse_time', 'desc')
+            ->select()
+            ->toArray();
     }
     
         

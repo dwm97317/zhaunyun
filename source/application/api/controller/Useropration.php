@@ -344,7 +344,7 @@ class Useropration extends Controller
         $this->inorderImages($packData['id'],$imageIds,$wxapp_id);
         $settingdata  = SettingModel::getItem('store');
         if($settingdata['is_auto_free']==1){
-            // getpackfree($id);   
+            getpackfree($id,[]);   
         }
         //存入货架信息
         $takecode = rand(100000,999999);

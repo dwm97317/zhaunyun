@@ -1756,9 +1756,7 @@
         
         function PrintDiv(content) {
             var win = window.open("");
-            win.document.write('<html><head></head><body>'
-                + content + '</body>'
-                + "</html>");
+            win.document.write(content);
             win.document.close();
             //Chrome
             if (navigator.userAgent.indexOf("Chrome") != -1) {
@@ -1971,9 +1969,7 @@
         
     function PrintDiv(content) {
             var win = window.open("");
-            win.document.write('<html><head></head><body>'
-                + content + '</body>'
-                + "</html>");
+            win.document.write(content );
             win.document.close();
             //Chrome
             if (navigator.userAgent.indexOf("Chrome") != -1) {
