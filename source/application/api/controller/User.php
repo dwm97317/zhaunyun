@@ -48,6 +48,24 @@ class User extends Controller
         return $this->renderSuccess($model->loginphoneTogetOpenid($this->getUser(),$this->request->post()));
     }
     
+    // 用户自行修改密码
+    public function changePassword()
+    {
+        $this->user = $this->getUser();
+        $param = $this->request->param();
+        if($param['new_password'] != $param['confirm_password']){
+            return $this->renderError("新输入的密码不一致");
+        }
+        if($this->user['password'] != yoshop_hash($param['old_password'])){
+            return $this->renderError("原始密码不正确");
+        }
+        if(yoshop_hash($param['new_password']) == yoshop_hash($param['old_password'])){
+            return $this->renderError("新旧密码不能一样");
+        }
+        $this->user->save(['password'=> yoshop_hash($param['new_password'])]);
+        return $this->renderSuccess("修改成功");
+    }
+    
         
     //获取用户唛头
     public function getusermark(){
