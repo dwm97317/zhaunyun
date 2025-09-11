@@ -14,7 +14,7 @@ class WxappNavLink extends Navlink
         return $this
         ->with('image')
         ->where('is_use',0)
-        ->order('sort','asc')
+        ->order(['sort'=>'asc','create_time'=>'asc'])
         ->select();
     }
 }
