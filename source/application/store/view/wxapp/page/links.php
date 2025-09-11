@@ -26,7 +26,7 @@
                                         <span class="x-color-green">/subPackage/pages/invitedetail</span>
                                     </div>
                                 </div>
-                            </li>/pages/mys/userVip/userVip
+                            </li>
                             <li class="link-item">
                                 <div class="row page-name">积分兑换</div>
                                 <div class="row am-cf">
