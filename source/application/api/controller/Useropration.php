@@ -342,8 +342,8 @@ class Useropration extends Controller
         }
         //存储上传的图片
         $this->inorderImages($packData['id'],$imageIds,$wxapp_id);
-        $settingdata  = SettingModel::getItem('store');
-        if($settingdata['is_auto_free']==1){
+        $settingdata  = SettingModel::getItem('keeper',$wxapp_id);
+        if(isset($settingdata['shopkeeper']) && $settingdata['shopkeeper']['is_auto_free_reach']==1){
             getpackfree($id,[]);   
         }
         //存入货架信息
@@ -555,18 +555,14 @@ class Useropration extends Controller
             }
         }
         //完成集运单价格的计算；
-        $settingdata  = SettingModel::getItem('store');
-        
-        if($settingdata['is_auto_free']==1){
+        $settingdata  = SettingModel::getItem('keeper');
+        if(isset($settingdata['shopkeeper']) && $settingdata['shopkeeper']['is_auto_free_edit']==1){
             $boxes = [];
             if (!empty($data['boxes'])) {
                 $boxes = $data['boxes'];
             }
             getpackfree($data['id'],$boxes);   
         }
-        // dump($settingkeeper);die;
-        
-        
         if($res || $resimg || $resdeleteimg){
             return $this->renderSuccess('编辑成功');
         }

@@ -314,6 +314,40 @@
                                     </label>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    打包完成，输入尺寸重量后是否自动计算费用
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_auto_free_edit]" value="1"
+                                               data-am-ucheck  <?= $values['shopkeeper']['is_auto_free_edit'] == 1 ? 'checked' : '' ?>>
+                                        计算
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_auto_free_edit]" value="0"
+                                               data-am-ucheck <?= $values['shopkeeper']['is_auto_free_edit'] == 0 ? 'checked' : '' ?>>
+                                        不计算
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    到达扫码入库时，是否重新计算费用
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_auto_free_reach]" value="1"
+                                               data-am-ucheck  <?= $values['shopkeeper']['is_auto_free_reach'] == 1 ? 'checked' : '' ?>>
+                                        计算
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_auto_free_reach]" value="0"
+                                               data-am-ucheck <?= $values['shopkeeper']['is_auto_free_reach'] == 0 ? 'checked' : '' ?>>
+                                        不计算
+                                    </label>
+                                </div>
+                            </div>
                             
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
