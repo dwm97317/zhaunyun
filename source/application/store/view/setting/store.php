@@ -790,7 +790,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                                        title="点击查看大图" target="_blank">
                                                         <img src="<?= isset($values['service_file_path'])?$values['service_file_path']:'' ?>">
                                                     </a>
-                                                    <input type="hidden" name="store[cover_id]" value="<?= $values['cover_id'] ?>">
+                                                    <input type="hidden" name="store[service_id]" value="<?= $values['service_id'] ?>">
                                                     <i class="iconfont icon-shanchu file-item-delete"></i>
                                                 </div>
                                         </div>

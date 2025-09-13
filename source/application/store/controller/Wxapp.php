@@ -247,7 +247,7 @@ class Wxapp extends Controller
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true); // 创建目录，并设置权限
         }
-        $res = file_put_contents('lang/'.$wxappId.'/'.$param['lang'].'.json', json_encode($data));
+        $res = file_put_contents('lang/'.$wxappId.'/'.$param['lang'].'.json', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
         if ($res) {
             return $this->renderSuccess('更新成功');
         }
@@ -297,7 +297,7 @@ class Wxapp extends Controller
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true); // 创建目录，并设置权限
         }
-        file_put_contents('lang/'.$wxappId.'/'.$param['lang'].'.json', json_encode($data));
+        $res = file_put_contents('lang/'.$wxappId.'/'.$param['lang'].'.json', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
         return $this->renderSuccess('更新成功');
    
     }

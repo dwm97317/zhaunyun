@@ -29,7 +29,8 @@
                                 <td>
                                     平台单号：<?= $detail['order_sn'] ?><br>
                                     支付单号：<?= $detail['pay_order'] ?><br>
-                                    集运单号：<?= $detail['t_order_sn'] ?><br>
+                                    
+                                    物流单号：<?= $detail['t_order_sn'] ?><br>
                                     
                                 </td>
                                 <td>

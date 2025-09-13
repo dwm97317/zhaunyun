@@ -11,21 +11,20 @@
                                         <div class="widget-title am-fl">请将中文翻译成<?= $language ?></div>
                                     </div>
                                     <?php if (isset($lang)): foreach ($lang as $key =>$value): ?>
-                                    <?php if (isset($zhHans[$key])): foreach ($zhHans[$key] as $k =>$v): ?>
                                     <div class="am-form-group">
                                         
                                         <label class="am-u-sm-4 am-form-label form-require">
-                                            <?= $v ?>
+                                            <?= $value ?>
                                         </label>
                                         <div class="am-u-sm-8">
                                             <input type="text" class="tpl-form-input"
-                                                   name="lang[<?= $key ?>][<?= $k ?>]"
-                                                   value="<?= $lang[$key]?$lang[$key][$k]:'' ?>"
+                                                   name="lang[<?= $key ?>]"
+                                                   value="<?= $lang[$key]?$lang[$key]:'' ?>"
                                                    required>
                                         </div>
                                         
                                     </div>
-                                    <?php endforeach; endif; ?>
+                                
                                     <?php endforeach; endif; ?>
 
                                 </div>

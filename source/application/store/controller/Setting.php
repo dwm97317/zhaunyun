@@ -265,6 +265,7 @@ class Setting extends Controller
             return $this->fetch($key, $vars);
         }
         $model = new SettingModel;
+        // dump($this->postData($key));die;
         if ($model->edit($key, $this->postData($key))) {
             return $this->renderSuccess('操作成功');
         }
