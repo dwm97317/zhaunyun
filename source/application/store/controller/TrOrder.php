@@ -1456,6 +1456,146 @@ class TrOrder extends Controller
         return $this->renderError($Inpack->getError() ?: '修改失败');
     }
     
+    
+    /**
+     * 审核订单
+     * @param $id
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function auditOrder($id)
+    {
+        $model = Inpack::details($id);
+        if (!$model) {
+            return $this->renderError('订单不存在');
+        }
+        
+        $auditStatus = $this->request->param('audit_status');
+        $auditRemark = $this->request->param('audit_remark', '');
+        
+        if ($auditStatus == '1') {
+            // 审核通过 - 调用现金支付接口
+            return $this->auditPass($model, $auditRemark);
+        } else {
+            // 审核不通过 - 修改订单支付状态为未支付
+            return $this->auditReject($model, $auditRemark);
+        }
+    }
+    
+    /**
+     * 审核通过处理
+     * @param $model
+     * @param $remark
+     * @return array
+     */
+    private function auditPass($model, $remark)
+    {
+        try {
+            // 更新订单备注（包含审核信息）
+            $auditInfo = '【审核通过】' . date('Y-m-d H:i:s') . ' ' . $remark;
+            $newRemark = $model['remark'] ? $model['remark'] . "\n" . $auditInfo : $auditInfo;
+            
+            $model->save([
+                'remark' => $newRemark
+            ]);
+            
+            // 调用现金支付接口
+            $result = $this->callCashPayment($model);
+            
+            if ($result['code'] == 1) {
+                return $this->renderSuccess('审核通过，现金支付成功');
+            } else {
+                return $this->renderError('审核通过，但现金支付失败：' . $result['msg']);
+            }
+        } catch (\Exception $e) {
+            return $this->renderError('审核失败：' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * 审核不通过处理
+     * @param $model
+     * @param $remark
+     * @return array
+     */
+    private function auditReject($model, $remark)
+    {
+        try {
+            // 更新订单备注（包含审核信息），修改支付状态为未支付
+            $auditInfo = '【审核不通过】' . date('Y-m-d H:i:s') . ' ' . $remark;
+            $newRemark = $model['remark'] ? $model['remark'] . "\n" . $auditInfo : $auditInfo;
+            
+            $model->save([
+                'remark' => $newRemark,
+                'is_pay' => 2  // 2表示未支付
+            ]);
+            
+            return $this->renderSuccess('审核不通过，订单状态已更新为未支付');
+        } catch (\Exception $e) {
+            return $this->renderError('审核失败：' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * 调用现金支付接口
+     * @param $model
+     * @return array
+     */
+    private function callCashPayment($model)
+    {
+        try {
+            $Package = new Package();
+            $user = new UserModel();
+            $inpackdata = $model;
+            $userdata = User::detail($model['member_id']);
+
+            $payprice = $inpackdata['free'] + $inpackdata['pack_free'] + $inpackdata['other_free'] + $inpackdata['insure_free'] - $inpackdata['user_coupon_money'];
+            if($payprice == 0){
+                return [
+                    'code' => 0,
+                    'msg' => '订单金额为0，请先设置订单金额'
+                ];
+            }
+            
+            //扣除余额，并产生一天用户的消费记录；减少用户余额；
+            $res = $user->logUpdate(0, $model['member_id'], $payprice, date("Y-m-d H:i:s").',集运单'.$inpackdata['order_sn'].'使用现金支付'.$payprice.'（现金支付不改变用户余额）');
+            if(!$res){
+                return [
+                    'code' => 0,
+                    'msg' => $user->getError() ?: '操作失败'
+                ];
+            }
+                  
+            //累计消费金额
+            $userdata->setIncPayMoney($payprice);
+            $this->dealerData(['amount'=>$payprice,'order_id'=>$model['id']], $userdata);
+            
+            //修改集运单状态和支付状态
+            if($inpackdata['status'] == 2){
+                $inpackdata->where('id', $model['id'])->update(['real_payment'=>$payprice,'status'=>3,'is_pay'=>1,'is_pay_type'=>5,'pay_time'=>date('Y-m-d H:i:s',time())]);
+            }else{
+                $inpackdata->where('id', $model['id'])->update(['real_payment'=>$payprice,'is_pay'=>1,'is_pay_type'=>5,'pay_time'=>date('Y-m-d H:i:s',time())]);
+            }
+            $Package->where('inpack_id', $model['id'])->update(['status'=>6,'is_pay'=>1]);
+            
+            //更新支付后的物流轨迹
+            $noticesetting = Setting::detail('notice')['values'];
+            if($noticesetting['ispay']['is_enable'] == 1){
+                Logistics::addLog($inpackdata['order_sn'], $noticesetting['ispay']['describe'], date("Y-m-d H:i:s",time()));
+            }
+            
+            return [
+                'code' => 1,
+                'msg' => '现金支付成功'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'code' => 0,
+                'msg' => $e->getMessage()
+            ];
+        }
+    }
+    
     /**
      * 获取用户待打包的包裹列表
      */

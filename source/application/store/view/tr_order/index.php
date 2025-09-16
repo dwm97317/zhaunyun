@@ -630,13 +630,20 @@
                                                 <i class="iconfont icon-daochu"></i> 导出INVOICE
                                             </a>
                                         </div>
-                                        <?php if (in_array($item['status'],[1,2,3,4,5,6,7])): ?>
+                                        
                                         <div class="tpl-table-black-operation" style="margin-top:10px">
+                                            <?php if (checkPrivilege('tr_order/cancelorder') && in_array($item['status'],[1,2,3,4,5,6,7])): ?>
                                             <a class='tpl-table-black-operation-del j-cancel' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
                                                 <i class="iconfont icon-daochu"></i> 取消订单
                                             </a>
+                                            <?php endif ;?>
+                                            <?php if (checkPrivilege('tr_order/auditorder') && $item['is_pay']==3): ?>
+                                            <a class='tpl-table-black-operation-green j-audit-order' href="javascript:void(0);" data-id="<?= $item['id'] ?>" style="margin-left:5px;">
+                                                <i class="iconfont icon-shenhe"></i> 线下支付审核 
+                                            </a>
+                                            <?php endif ;?>
                                         </div>
-                                        <?php endif ;?>
+                                        
                                     </td>
                                 </tr>
                                 <tr>
@@ -1139,6 +1146,58 @@
             }
         })
     }
+    
+    
+    // 审核订单功能
+    $('.j-audit-order').on('click', function () {
+        var data = $(this).data();
+        var auditUrl = "<?= url('store/trOrder/auditOrder') ?>";
+        
+        layer.open({
+            type: 1,
+            title: '审核订单',
+            area: ['400px', '300px'],
+            content: '<div style="padding: 20px;">' +
+                '<div class="am-form-group">' +
+                '<label class="am-form-label">审核状态：</label>' +
+                '<select id="audit-status" class="am-form-field">' +
+                '<option value="1">审核通过</option>' +
+                '<option value="0">审核不通过</option>' +
+                '</select>' +
+                '</div>' +
+                '<div class="am-form-group">' +
+                '<label class="am-form-label">审核备注：</label>' +
+                '<textarea id="audit-remark" class="am-form-field" rows="3" placeholder="请输入审核备注"></textarea>' +
+                '</div>' +
+                '</div>',
+            btn: ['确定', '取消'],
+            yes: function(index, layero) {
+                var auditStatus = $('#audit-status').val();
+                var auditRemark = $('#audit-remark').val();
+                
+                if (auditStatus == '1' && !auditRemark.trim()) {
+                    layer.msg('审核通过时请输入审核备注');
+                    return false;
+                }
+                
+                $.post(auditUrl, {
+                    id: data.id,
+                    audit_status: auditStatus,
+                    audit_remark: auditRemark
+                }, function(result) {
+                    if (result.code === 1) {
+                        $.show_success(result.msg, result.url);
+                        layer.close(index);
+                    } else {
+                        $.show_error(result.msg);
+                    }
+                });
+            },
+            btn2: function(index) {
+                layer.close(index);
+            }
+        });
+    });
 
     $(function () {
        checker = {
