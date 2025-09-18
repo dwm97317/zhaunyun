@@ -56,11 +56,6 @@ class Coupon extends CouponModel
     }
     
 
-    /**
-     * 添加新记录
-     * @param $data
-     * @return false|int
-     */
     public function add($data)
     {
         $data['wxapp_id'] = self::$wxapp_id;
@@ -68,18 +63,20 @@ class Coupon extends CouponModel
             $data['start_time'] = strtotime($data['start_time']);
             $data['end_time'] = strtotime($data['end_time']);
         }
+        $this->allowField(true)->save($data);
         if(isset($data['line_ids'])){
             foreach ($data['line_ids'] as $v){
                (new CouponGoods())->add([
-                    'coupon_id'=>$data['coupon_id'],
+                    'coupon_id'=>$this->coupon_id,
                     'goods_id'=>$v,
                     'type'=>10
                 ]); 
             }
         }
-        return $this->allowField(true)->save($data);
+        return true;
     }
-
+    
+    
     /**
      * 更新记录
      * @param $data
