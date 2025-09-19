@@ -376,7 +376,7 @@ class Checkout
         if (!$this->checkoutRule['is_coupon']) {
             return [];
         }
-        return UserCouponModel::getUserCouponList($this->user['user_id'], $orderTotalPrice);
+        return UserCouponModel::getUserCouponList($this->user['user_id'], $orderTotalPrice,0);
     }
 
     /**
