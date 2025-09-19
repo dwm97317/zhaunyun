@@ -1112,7 +1112,7 @@ class Page extends Controller
                     }else{
                         $ww = ($oWeigth-$v['first_weight'])/$v['next_weight'];
                     }
-                   
+               
                   if ($oWeigth >= $v['first_weight']){
                           $lines[$key]['sortprice'] =($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'];
                           $lines[$key]['predict'] = [
@@ -1121,6 +1121,7 @@ class Page extends Controller
                               'rule' => $v
                           ]; 
                   }else{
+                        
                       $lines[$key]['sortprice'] = $v['first_price'];
                       $lines[$key]['predict'] = [
                               'weight' => $oWeigth,
@@ -1167,6 +1168,14 @@ class Page extends Controller
                               'service' =>0,
                           ]; 
                       }
+                   }else{
+                       $lines[$key]['sortprice'] =(floatval($v['weight_price']) *$v['weight'][0]  + floatval($otherfree))*$value['discount'] ;
+                       $lines[$key]['predict'] = [
+                          'weight' => $oWeigth,
+                          'price' => number_format((floatval($v['weight_price']) * $v['weight'][0] + floatval($otherfree))*$value['discount'],2),
+                          'rule' => $v,
+                          'service' =>0,
+                       ]; 
                    }
                }
                

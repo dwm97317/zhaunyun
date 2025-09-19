@@ -155,6 +155,7 @@
                                <option value="th">泰语</option>
                                <option value="vie">越南语</option>
                                <option value="ru">俄语</option>
+                               <option value="spa">西班牙语</option>
                         </select>
                         <div class="help-block">
                             <small>注：其他语音请联系客服，或自行翻译</small>

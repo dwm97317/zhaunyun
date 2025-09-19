@@ -863,7 +863,7 @@ class Package extends PackageModel
         }
         return $this->setListQueryWhere($query)
             ->alias('a')
-            ->with(['categoryAttr','inpack'])
+            ->with(['categoryAttr','Member','country','storage','inpack','packageimage.file','batch','shelfunititem.shelfunit.shelf','address'])
             // ->with(['categoryAttr','categoryAttr' => function($quer) use($query) {
             //     $quer->where('class_id','=',$query['category_id']);
             // }])
