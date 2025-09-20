@@ -1881,6 +1881,26 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 增值服务别名 </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="userclient[line][service_othername]"
+                                           value="<?= $values['line']['service_othername']??'' ?>" required>
+                                            <div class="help-block">
+                                                 <small>默认为增值服务，你可以更名为打包服务或其他</small>
+                                            </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require"> 增值服务描述 </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="userclient[line][service_des]"
+                                           value="<?= $values['line']['service_des']??'' ?>" required>
+                                            <div class="help-block">
+                                                 <small>默认:运输只能够不包破损，建议选择合适的包装方式，可多选，超特大件另议非要。打包后重量会有所增加，实际重量以出货后置！</small>
+                                            </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3  am-form-label form-require"> 运费查询排序方式 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <select name="userclient[line][sort_mode]"

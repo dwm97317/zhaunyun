@@ -560,49 +560,8 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                             </div>
                                 </div>
                             </div>
-                           <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require">
-                                    运费查询界面是否开启增值服务
-                                </label>
-                                <div class="am-u-sm-9">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_service]" value="1"
-                                               data-am-ucheck
-                                            <?= $values['is_service'] == '1' ? 'checked' : '' ?>
-                                               required>
-                                        开启
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_service]" value="0"
-                                               data-am-ucheck
-                                            <?= $values['is_service'] == '0' ? 'checked' : '' ?>>
-                                        关闭
-                                    </label>
-                                    <div class="help-block">
-                                        <small>开启增值服务后，用户选择增值服务，能够查询到更加接近真实运费的结果</small>
-                                    </div>
-                                </div>
-                            </div> 
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 增值服务别名 </label>
-                                <div class="am-u-sm-9">
-                                     <input type="text" class="tpl-form-input" name="store[service_othername]"
-                                           value="<?= $values['service_othername']??'' ?>" required>
-                                            <div class="help-block">
-                                                 <small>默认为增值服务，你可以更名为打包服务或其他</small>
-                                            </div>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require"> 增值服务描述 </label>
-                                <div class="am-u-sm-9">
-                                     <input type="text" class="tpl-form-input" name="store[service_des]"
-                                           value="<?= $values['service_des']??'' ?>" required>
-                                            <div class="help-block">
-                                                 <small>默认:运输只能够不包破损，建议选择合适的包装方式，可多选，超特大件另议非要。打包后重量会有所增加，实际重量以出货后置！</small>
-                                            </div>
-                                </div>
-                            </div>
+                           
+                            
                             
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">用户编号设置</div>

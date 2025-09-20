@@ -191,10 +191,6 @@ class Setting extends BaseModel
                     'emailname' =>"客服邮箱",
                     'kefuemail' =>"sllowly@sllowly.com",
                     'is_focus_savaimage'=> 1, //海外派件，是否强制要求上传图片才可以完成
-                    'is_service' => 0, //查询运费时是否启用增值服务项目
-                    'service_othername'=>'增值服务',
-                    'service_des' => '运输只能够不包破损，建议选择合适的包装方式，可多选，超特大件另议非要。打包后重量会有所增加，实际重量以出货后置！',
-                    
                     "height_banner"=> 180,
                     'is_pinglun' => 1,
                     'is_line' => 1,
@@ -580,6 +576,8 @@ class Setting extends BaseModel
                         'sort_mode'=>10, //运费查询排序方式
                         'is_discount'=>1, //是否开启路线折扣
                         'is_service' => 0, //查询运费时是否启用增值服务项目
+                        'service_othername'=>'增值服务',
+                        'service_des' => '运输只能够不包破损，建议选择合适的包装方式，可多选，超特大件另议非要。打包后重量会有所增加，实际重量以出货后置！',
                         'is_chargeunit'=>1, //是否显示计费单位
                         'is_shippingfee'=>1,//是否显示运输方式
                     ],
