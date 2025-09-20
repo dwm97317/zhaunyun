@@ -480,6 +480,7 @@ class Setting extends BaseModel
                         'is_expressname_force' => 1,
                         'is_category' => 1,
                         'is_category_force' => 1,
+                        'is_category_choose'=>1,
                         'is_price' => 1,
                         'is_price_force' => 1,
                         'is_remark' => 1,

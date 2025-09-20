@@ -71,7 +71,9 @@ class Cart
         if (empty($cartIds)) return $this->cart;
         $cartList = [];
         $indexArr = (strpos($cartIds, ',') !== false) ? explode(',', $cartIds) : [$cartIds];
+        
         foreach ($indexArr as $index) {
+         
             isset($this->cart[$index]) && $cartList[$index] = $this->cart[$index];
         }
         return $cartList;

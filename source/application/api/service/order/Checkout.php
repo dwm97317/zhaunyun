@@ -503,7 +503,7 @@ class Checkout
                 $discountRatio = helper::bcdiv($goods['alone_grade_equity'][$this->user['grade_id']], 10);
             } else {
                 // 折扣比例
-                $discountRatio = helper::bcdiv($this->user['grade']['equity']['discount'], 10);
+                $discountRatio = helper::bcdiv($this->user['grade']['equity'], 10);
             }
             if ($discountRatio > 0) {
                 // 会员折扣后的商品总金额

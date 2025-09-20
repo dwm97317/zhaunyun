@@ -197,7 +197,23 @@
                                     </label>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    类目单选还是多选
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[yubao][is_category_choose]" value="1"
+                                               data-am-ucheck  <?= $values['yubao']['is_category_choose'] == 1 ? 'checked' : '' ?>>
+                                        多选
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[yubao][is_category_choose]" value="0"
+                                               data-am-ucheck <?= $values['yubao']['is_category_choose'] == 0 ? 'checked' : '' ?>>
+                                        单选
+                                    </label>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
                                     是否需要填写唛头

@@ -109,10 +109,12 @@ class Order extends Controller
         $params = $Checkout->setParam($this->getParam([
             'cart_ids' => '',
         ]));
+        
         // 商品结算信息
         $CartModel = new CartModel($this->user);
         // 购物车商品列表
         $goodsList = $CartModel->getList($params['cart_ids']);
+       
         // 获取订单结算信息
         $orderInfo = $Checkout->onCheckout($this->user, $goodsList);
         // dump($orderInfo);die;

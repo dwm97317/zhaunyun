@@ -395,8 +395,10 @@ class Package extends Controller
          $classItems = [];
          $barcodelist = [];
          $class_ids = $post['class_ids'];
+       
          if ($class_ids || $goodslist){
              $classItem = $this->parseClass($class_ids);
+            //   DUMP($classItem);DIE;
                 foreach ($goodslist as $k => $val){
                      $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['pinming'];
                      $classItems[$k]['class_id'] = !empty($classItem)?$classItem[0]['category_id']:0;
@@ -454,34 +456,6 @@ class Package extends Controller
          if($packres && ($packres['is_take']==2)){
              return $this->renderError('快递单号已被预报');
          }
-         
-        //  else{
-             
-        //      $express_num = $post['express_sn'];
-        //      $selectData = $packModel->where('express_num','like','%'.$express_num.'%')->where('is_delete',0)->where('status','<',6)->select();
-        //      $skey = 0;
-        //     if(count($selectData)==1){
-        //         $post['express_num'] = $selectData[0]['express_num'];
-        //         $packres =  $selectData[0];
-               
-        //         $packModel->where('express_num',$post['express_num'])->update(['express_num'=>$express_num]);
-        //          //图片id
-     
-        //     }elseif(count($selectData)>1){
-        //         //如果查出多个类似的包裹，则选择匹配度最长的；
-        //         for ($i = 1; $i < count($selectData); $i++) {
-        //             if($selectData[$i]>$selectData[$i-1]){
-        //                 $skey = $i; 
-        //             }else{
-        //                 $skey = $i+1; 
-        //             }
-        //         }
-        //         $post['express_num'] = $selectData[$skey]['express_num'];
-        //         $packres =  $selectData[$skey];
-        //         $packModel->where('express_num',$post['express_num'])->update(['express_num'=>$express_num]);
-        //     }
-        //  }
-     
    
          // 开启事务
          Db::startTrans();
@@ -503,7 +477,8 @@ class Package extends Controller
                'member_id'=>$user['user_id'],
                'member_name'=>$user['nickName'],
                'storage_id'=>isset($post['storage_id'])?$post['storage_id']:$packres['storage_id'],
-               'is_take'=>2
+               'is_take'=>2,
+               'class_ids'=>$class_ids
                ]);
 
             if (!$resup){

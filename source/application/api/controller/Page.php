@@ -211,14 +211,17 @@ class Page extends Controller
     //获取语言包
     public function getLangPackage(){
         $data = $this->request->param();
-        $track = getFileDataForLang('lang/'.$this->wxapp_id.'/'.$data['type'].'.json');
-        if(count($track)==0){
-            $track = getFileDataForLang('lang/10001/'.$data['type'].'.json');
-            $track['common'] = getFileDataForLang('lang/10001/new_'.$data['type'].'.json');
+        if(in_array($this->wxapp_id,[10001,10002])){
+            $track['common'] = getFileDataForLang('lang/'.$this->wxapp_id.'/new_'.$data['type'].'.json');
         }else{
-            $track['common'] = getFileDataForLang('lang/10001/new_'.$data['type'].'.json');
+            $track = getFileDataForLang('lang/'.$this->wxapp_id.'/'.$data['type'].'.json');
+            if(count($track)==0){
+                $track = getFileDataForLang('lang/10001/'.$data['type'].'.json');
+                $track['common'] = getFileDataForLang('lang/10001/new_'.$data['type'].'.json');
+            }else{
+                $track['common'] = getFileDataForLang('lang/10001/new_'.$data['type'].'.json');
+            }
         }
-        
         return $this->renderSuccess($track);
     }
     

@@ -21,11 +21,12 @@ class PackageItem extends PackageItemModel
     // 批量保存
     public function saveAllData($data,$id){
         $wxapp_id = self::$wxapp_id;
+        
         foreach ($data as $k => $v){
             $data[$k]['order_id'] = $id;
             $data[$k]['wxapp_id'] = $wxapp_id;
         }
-        // dump($data);die;
+       
         return $this->allowField(true)->insertAll($data); 
     }
 }

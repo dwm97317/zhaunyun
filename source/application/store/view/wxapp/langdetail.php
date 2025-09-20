@@ -14,7 +14,7 @@
                                     <div class="am-form-group">
                                         
                                         <label class="am-u-sm-4 am-form-label form-require">
-                                            <?= $value ?>
+                                            <?= $key ?>
                                         </label>
                                         <div class="am-u-sm-8">
                                             <input type="text" class="tpl-form-input"

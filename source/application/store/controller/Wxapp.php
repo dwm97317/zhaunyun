@@ -226,15 +226,15 @@ class Wxapp extends Controller
         // $languages = ['zhHans' =>'简体','en' =>'英文','zhHant' =>'繁体','thai' =>'泰文','vietnam' =>'越南文'];
         $language = $languages[$param['lang']];
        
-        $lang = getFileDataForLang('lang/'.$wxappId.'/'.$param['lang'].'.json');
-        $zhHans = getFileDataForLang('lang/'.$wxappId.'/zhHans.json');
+        $lang = getFileDataForLang('lang/'.$wxappId.'/new_'.$param['lang'].'.json');
+        $zhHans = getFileDataForLang('lang/'.$wxappId.'/new_zhHans.json');
          
         
         if(count($zhHans)==0){
-            $zhHans = getFileDataForLang('lang/10001/zhHans.json');
+            $zhHans = getFileDataForLang('lang/10001/new_zhHans.json');
         }
         if(count($lang)==0){
-            $lang = getFileDataForLang('lang/10001/zhHans.json');
+            $lang = getFileDataForLang('lang/10001/new_zhHans.json');
         }
        
             // dump($lang);die;
@@ -253,6 +253,7 @@ class Wxapp extends Controller
         }
         return $this->renderError($SettingModel->getError() ?: '更新失败');
     }
+    
     
     public function ailang(){
         $SettingModel = new SettingModel;
