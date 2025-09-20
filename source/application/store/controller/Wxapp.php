@@ -309,11 +309,11 @@ class Wxapp extends Controller
         $SettingModel = new SettingModel;
         $lang = $SettingModel::getItem("lang");
         $list = [];
-         
+        $lang['langlist']['zhHans'] = json_encode(['name'=>'zhHans','enname'=>'zhHans','langto'=>'zhHans','status'=>1]);
+        $lang['langlist']['zhHant'] = json_encode(['name'=>'zhHant','enname'=>'zhHant','langto'=>'zhHant','status'=>1]);
         foreach ($lang['langlist'] as $key=>$val){
                 $list[] = json_decode($val,true);
         }
-        // dump($list);die;
         if (!$this->request->isAjax()) {
             return $this->fetch('lang', compact('lang','list'));
         }
@@ -326,12 +326,10 @@ class Wxapp extends Controller
             'langlist' => $datalang,
             'default' => $data['default']
         ];
-        //   dump($datas);die;
         if ($SettingModel->edit("lang",$datas)) {
             return $this->renderSuccess('更新成功');
         }
         return $this->renderError($SettingModel->getError() ?: '更新失败');
-        // dump($data);die;
     }
 
     
