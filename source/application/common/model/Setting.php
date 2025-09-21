@@ -762,13 +762,13 @@ class Setting extends BaseModel
                     'zhHans' => '1', //简体中文
                     'zhHant' => '0', //繁体
                     'langlist'=>[
-                        'zhHans' =>json_encode([
+                        '简体中文' =>json_encode([
                             "name"=>'简体中文',
                             'enname'=>'zhHans',
                             'langto'=>'zhHans',
                             'status'=>1
                         ]),
-                        'zhHant' =>json_encode([
+                        '繁体中文' =>json_encode([
                             "name"=>'繁体中文',
                             'enname'=>'zhHant',
                             'langto'=>'zhHant',

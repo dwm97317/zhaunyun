@@ -309,8 +309,6 @@ class Wxapp extends Controller
         $SettingModel = new SettingModel;
         $lang = $SettingModel::getItem("lang");
         $list = [];
-        $lang['langlist']['zhHans'] = json_encode(['name'=>'zhHans','enname'=>'zhHans','langto'=>'zhHans','status'=>1]);
-        $lang['langlist']['zhHant'] = json_encode(['name'=>'zhHant','enname'=>'zhHant','langto'=>'zhHant','status'=>1]);
         foreach ($lang['langlist'] as $key=>$val){
                 $list[] = json_decode($val,true);
         }
@@ -321,6 +319,7 @@ class Wxapp extends Controller
         foreach ($lang['langlist'] as $k =>$v){
             $datalang[$k] = $lang['langlist'][$k];
         }
+     
         $data = $this->postData('lang');
         $datas = [
             'langlist' => $datalang,

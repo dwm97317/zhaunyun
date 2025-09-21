@@ -13,16 +13,6 @@
                                     默认语言
                                 </label>
                                 <div class="am-u-sm-9">
-                                    <label class="am-checkbox-inline">
-                                        <input type="radio" name="lang[default]" value="zhHans"
-                                               data-am-ucheck <?= $lang['default'] == 'zhHans' ? 'checked' : '' ?>>
-                                        简体中文
-                                    </label>
-                                    <label class="am-checkbox-inline">
-                                        <input type="radio" name="lang[default]" value="zhHant"
-                                               data-am-ucheck <?= $lang['default'] == 'zhHant' ? 'checked' : '' ?>>
-                                        繁体中文
-                                    </label>
                                     <?php if (isset($list)): foreach ($list as $key =>$item): ?>
                                     <label class="am-checkbox-inline">
                                         <input type="radio" name="lang[default]" value="<?= $item['enname'] ?>"
