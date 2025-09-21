@@ -48,19 +48,7 @@ class Menus extends Controller
         $model = new WxappMenusModel;
         $SettingModel = new SettingModel;
         $lang = $SettingModel::getItem("lang");
-        $langlist = [
-            0 =>[
-                "name"=>'简体中文',
-                'enname'=>'zhHans'
-            ],
-            2 =>[
-                "name"=>'繁体中文',
-                'enname'=>'zhHant'
-            ]
-        ];
-        foreach ($lang['langlist'] as $key=>$val){
-            $langlist[] = json_decode($val,true);
-        }
+        $langlist = array_map(function($json) {return json_decode($json, true);}, $lang['langlist']);
         if (!$this->request->isAjax()) {
             // 获取所有地区
             $list = $model->getList();
@@ -82,23 +70,11 @@ class Menus extends Controller
     public function edit($id)
     {
         // 模板详情
+        $SettingModel = new SettingModel;
         $model = WxappMenusModel::get($id, ['image']);
         if (!$this->request->isAjax()) {
-            $SettingModel = new SettingModel;
             $lang = $SettingModel::getItem("lang");
-            $langlist = [
-                0 =>[
-                    "name"=>'简体中文',
-                    'enname'=>'zhHans'
-                ],
-                2 =>[
-                    "name"=>'繁体中文',
-                    'enname'=>'zhHant'
-                ]
-            ];
-            foreach ($lang['langlist'] as $key=>$val){
-                $langlist[] = json_decode($val,true);
-            }
+            $langlist = array_map(function($json) {return json_decode($json, true);}, $lang['langlist']);
             $list = $model->getList();
             return $this->fetch('edit', compact('model','list','langlist'));
         }

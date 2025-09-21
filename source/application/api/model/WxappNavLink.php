@@ -10,7 +10,9 @@ use app\common\model\wxapp\Navlink;
  */
 class WxappNavLink extends Navlink
 {
-    public function getList(){
+    public function getList($params){
+        isset($params['lang']) && $this->where('lang_type',$params['lang']);
+       
         return $this
         ->with('image')
         ->where('is_use',0)

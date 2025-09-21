@@ -40,6 +40,21 @@
                                     </small>
                                 </div>
                             </div>
+                            <div class="am-form-group c" id="c1">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 对应语言 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                     <select name="article[lang_type]" onchange="changeexpress(this)" id="deliveryitem" data-am-selected="{searchBox: 1,maxHeight:300}">
+                                         <option value="">选择语言类型</option>
+                                     <?php if (isset($langlist)):
+                                            foreach ($langlist as $item): ?>
+                                                <option value="<?= $item['enname'] ?>" <?= $item['enname'] == $model['lang_type']?"selected":'' ?>><?= $item['name'] ?>-<?= $item['enname'] ?></option>
+                                            <?php endforeach; endif; ?>
+                                     </select>
+                                     <div class="help-block">
+                                        <small>注：请选择对应的语言，如果需要多套语言，请添加多个</small>
+                                </div>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-2 am-form-label form-require"> 列表显示方式 </label>
                                 <div class="am-u-sm-10">

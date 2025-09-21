@@ -187,11 +187,6 @@ class Page extends Controller
     public function getLangSetting(){
         $SettingModel = new SettingModel();
         $lang = $SettingModel::getItem("lang");
-  
-        $zhHans=[
-            ['name' =>'简体','type' => 'zhHans'],
-            ['name' =>'繁体','type' => 'zhHant']
-        ];
         $i = 0;
         $data = [];
         foreach($lang['langlist'] as $val){
@@ -202,7 +197,6 @@ class Page extends Controller
                 $i ++;
             }
         }
-        $data = array_merge($zhHans,$data);
         $langs['data'] =$data;
         $langs['default'] = $lang['default'];
         return $this->renderSuccess($langs);
@@ -2002,15 +1996,27 @@ class Page extends Controller
     
     /*新手问题*/
     public function problem(){
-        $param =input();
-        $list= (new ArticleModel())->getProblemList($limit = 15);
+        $param = $this->request->param();
+        $param['limit'] = 15;
+        $list= (new ArticleModel())->getProblemList($param);
+        if(count($list)==0){
+            $param['lang']= "";
+            $list= (new ArticleModel())->getProblemList($param);
+        }
         return $this->renderSuccess($list);
     }
     
     /*违禁物品*/
     public function ban(){
-        $param =input();
-        $list= (new ArticleModel())->getBanList($limit = 15);
+        $param = $this->request->param();
+        $param['limit'] = 15;
+        $list= (new ArticleModel())->getBanList($param);
+        
+        if(count($list)==0){
+            $param['lang']= "";
+            $list= (new ArticleModel())->getProblemList($param);
+        }
+        
         return $this->renderSuccess($list);
     }
     

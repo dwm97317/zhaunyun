@@ -28,6 +28,7 @@
                                 <th>文章ID</th>
                                 <th>文章标题</th>
                                 <th>封面图</th>
+                                <th>语言类型</th>
                                 <th>文章分类</th>
                                 <th>实际阅读量</th>
                                 <th>文章排序</th>
@@ -50,6 +51,7 @@
                                             <img src="<?= $item['image']['file_path'] ?>" height="72" alt="">
                                         </a>
                                     </td>
+                                    <td class="am-text-middle"><?= $item['lang_type']  ?></td>
                                     <td class="am-text-middle"><?= $item['category']['name'] ?></td>
                                     <td class="am-text-middle"><?= $item['actual_views'] ?></td>
                                     <td class="am-text-middle"><?= $item['article_sort'] ?></td>

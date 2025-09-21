@@ -39,15 +39,16 @@ class Article extends ArticleModel
      * @return \think\Paginator
      * @throws \think\exception\DbException
      */
-    public function getProblemList($limit)
+    public function getProblemList($param)
     {
+        isset($param['lang']) && $this->where('lang_type',$param['lang']);
         return $this->with('image')
             ->alias('a')-> join('article_category b ','b.category_id= a.category_id','LEFT')
             ->where('b.belong',2)   
             ->where('a.article_status', '=', 1)
             ->where('a.is_delete', '=', 0)
             ->order(['a.article_sort' => 'asc', 'a.create_time' => 'desc'])
-            ->paginate($limit, false, [
+            ->paginate($param['limit'], false, [
                 'query' => \request()->request()
             ]);
     }
@@ -59,14 +60,15 @@ class Article extends ArticleModel
      * @return \think\Paginator
      * @throws \think\exception\DbException
      */
-    public function getBanList($limit)
+    public function getBanList($param)
     {
-        return $this->alias('a')-> join('article_category b ','b.category_id= a.category_id','LEFT')
+        isset($param['lang']) && $this->where('a.lang_type',$param['lang']);
+        return $this->alias('a')->join('article_category b ','b.category_id= a.category_id','LEFT')
             ->where('b.belong',1)   
             ->where('a.article_status', '=', 1)
             ->where('a.is_delete', '=', 0)
             ->order(['a.article_sort' => 'asc', 'a.create_time' => 'desc'])
-            ->paginate($limit, false, [
+            ->paginate($param['limit'], false, [
                 'query' => \request()->request()
             ]);
     }

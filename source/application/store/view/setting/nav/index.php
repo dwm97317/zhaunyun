@@ -30,6 +30,7 @@
                                 <th>导航名称</th>
                                 <th>导航图标</th>
                                 <th>链接类型</th>
+                                <th>语言类型</th>
                                 <th>链接</th>
                                 <th>是否启用</th>
                                 <th>排序</th>
@@ -45,6 +46,7 @@
                                         <td class="am-text-middle"><?= $item['name'] ?></td>
                                         <td class="am-text-middle"><img width='50' src='<?= $item['image']['file_path'] ?>'/></td>
                                         <td class="am-text-middle"><?= $linktype[$item['nav_linktype']]  ?></td>
+                                        <td class="am-text-middle"><?= $item['lang_type']  ?></td>
                                         <td class="am-text-middle"><?= $item['nav_link'] ?></td>
                                         <td class="am-text-middle"><?= $usetype[$item['is_use']] ?></td>
                                         <td class="am-text-middle"><?= $item['sort'] ?></td>

@@ -57,6 +57,22 @@
                                     <small>注意：小程序内部链接使用链接库中的<a target="_blank" href="index.php?s=/store/wxapp.page/links">点击打开链接库</a></small>
                                 </div>
                             </div>
+                            <div class="am-form-group c" id="c1">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 对应语言 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                     <select name="nav[lang_type]"  data-am-selected="{searchBox: 1,maxHeight:300}">
+                                         <option value="">选择语言类型</option>
+                                     <?php if (isset($langlist)):
+                                            foreach ($langlist as $key =>$item): ?>
+                                                <? json_decode($item,true); ?>
+                                                <option value="<?= $item['enname'] ?>"><?= $item['name'] ?>-<?= $item['enname'] ?></option>
+                                            <?php endforeach; endif; ?>
+                                     </select>
+                                     <div class="help-block">
+                                        <small>注：请选择对应的语言，如果需要多套语言，请添加多个</small>
+                                </div>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否显示 </label>
                                 <div class="am-u-sm-9 am-u-end">

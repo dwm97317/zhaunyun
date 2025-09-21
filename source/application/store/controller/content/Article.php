@@ -5,6 +5,7 @@ namespace app\store\controller\content;
 use app\store\controller\Controller;
 use app\store\model\Article as ArticleModel;
 use app\store\model\article\Category as CategoryModel;
+use app\store\model\Setting as SettingModel;
 
 /**
  * 文章管理控制器
@@ -44,10 +45,12 @@ class Article extends Controller
     public function add()
     {
         $model = new ArticleModel;
+        $SettingModel = new SettingModel;
         if (!$this->request->isAjax()) {
-            // 文章分类
+            $lang = $SettingModel::getItem("lang");
+            $langlist = array_map(function($json) {return json_decode($json, true);}, $lang['langlist']);
             $catgory = CategoryModel::getAll();
-            return $this->fetch('add', compact('catgory'));
+            return $this->fetch('add', compact('catgory','langlist'));
         }
         // 新增记录
         if ($model->add($this->postData('article'))) {
@@ -65,11 +68,13 @@ class Article extends Controller
     public function edit($article_id)
     {
         // 文章详情
+        $SettingModel = new SettingModel;
         $model = ArticleModel::detail($article_id);
         if (!$this->request->isAjax()) {
-            // 文章分类
+            $lang = $SettingModel::getItem("lang");
+            $langlist = array_map(function($json) {return json_decode($json, true);}, $lang['langlist']);
             $catgory = CategoryModel::getAll();
-            return $this->fetch('edit', compact('model', 'catgory'));
+            return $this->fetch('edit', compact('model', 'catgory','langlist'));
         }
         // 更新记录
         $data =$this->postData('article');

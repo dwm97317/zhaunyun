@@ -3,6 +3,8 @@ namespace app\store\controller\setting;
 
 use app\store\controller\Controller;
 use app\store\model\WxappNavLink as WxappNavLinkModel;
+use app\store\model\Setting as SettingModel;
+
 
 /**
  * 小程序导航
@@ -45,10 +47,12 @@ class Nav extends Controller
     public function add()
     {
         $model = new WxappNavLinkModel;
+        $SettingModel = new SettingModel;
         if (!$this->request->isAjax()) {
-            // 获取所有地区
+            $lang = $SettingModel::getItem("lang");
+            $langlist = array_map(function($json) {return json_decode($json, true);}, $lang['langlist']);
             $list = $model->getList();
-            return $this->fetch('add', compact('list'));
+            return $this->fetch('add', compact('list','langlist'));
         }
         // 新增记录
         if ($model->add($this->postData('nav'))) {
@@ -67,9 +71,12 @@ class Nav extends Controller
     {
         // 模板详情
         $model = WxappNavLinkModel::get($id, ['image']);
+        $SettingModel = new SettingModel;
         if (!$this->request->isAjax()) {
+            $lang = $SettingModel::getItem("lang");
+            $langlist = array_map(function($json) {return json_decode($json, true);}, $lang['langlist']);
             $list = $model->getList();
-            return $this->fetch('edit', compact('model', 'list'));
+            return $this->fetch('edit', compact('model', 'list','langlist'));
         }
         // 更新记录
         if ($model->edit($this->postData('nav'))) {

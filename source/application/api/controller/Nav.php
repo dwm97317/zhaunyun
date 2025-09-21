@@ -19,8 +19,14 @@ class Nav extends Controller
      */
     public function lists()
     {
+        $params = $this->request->param();
         $model = new WxappNavLink;
-        $list = $model->getList();
+        $list = $model->getList($params);
+        if(count($list)==0){
+            $params['lang'] = "";
+            $list = $model->getList($params);
+        }
+       
         foreach ($list as $k =>$v){
             $list[$k]['nav_link'] = html_entity_decode($v['nav_link']);
         }

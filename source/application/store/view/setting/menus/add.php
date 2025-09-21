@@ -73,10 +73,11 @@
                             <div class="am-form-group c" id="c1">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 对应语言 </label>
                                 <div class="am-u-sm-9 am-u-end">
-                                     <select name="nav[lang_type]" onchange="changeexpress(this)" id="deliveryitem" data-am-selected="{searchBox: 1,maxHeight:300}">
+                                     <select name="nav[lang_type]"  data-am-selected="{searchBox: 1,maxHeight:300}">
                                          <option value="">选择语言类型</option>
                                      <?php if (isset($langlist)):
-                                            foreach ($langlist as $item): ?>
+                                            foreach ($langlist as $key =>$item): ?>
+                                                <? json_decode($item,true); ?>
                                                 <option value="<?= $item['enname'] ?>"><?= $item['name'] ?>-<?= $item['enname'] ?></option>
                                             <?php endforeach; endif; ?>
                                      </select>
