@@ -1428,7 +1428,7 @@ class Useropration extends Controller
              ];  
              $shelfunit->post($shelf);
          }else{
-             $this->fenpeihuowei($user_id,$res,$express_num,$clerk['wxapp_id']);
+             $this->fenpeihuowei($user_id,$id,$express_num,$clerk['wxapp_id']);
          }
          
        
@@ -1539,17 +1539,22 @@ class Useropration extends Controller
         }
 
         
-        // 6. 分配货位
-        $shelfData = [
-            'pack_id' => $pack_id,
-            'wxapp_id' => $wxapp_id,
-            'express_num' => $express_num,
-            'user_id' => $member_id,
-            'shelf_unit_id' => $selectedShelfUnitId,
-            'created_time' => getTime()
-        ];
-        
-        (new ShelfUnitItem())->save($shelfData);
+        $resultpack = (new ShelfUnitItem())->where('pack_id',$pack_id)->find();
+        if(empty($resultpack)){
+            // 6. 分配货位
+            $shelfData = [
+                'pack_id' => $pack_id,
+                'wxapp_id' => $wxapp_id,
+                'express_num' => $express_num,
+                'user_id' => $member_id,
+                'shelf_unit_id' => $selectedShelfUnitId,
+                'created_time' => getTime()
+            ];
+            
+            (new ShelfUnitItem())->save($shelfData);
+        }else{
+            $resultpack->save(['shelf_unit_id' => $selectedShelfUnitId]);
+        }
         return true;
     }
     
