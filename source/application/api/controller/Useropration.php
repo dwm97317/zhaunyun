@@ -1306,6 +1306,8 @@ class Useropration extends Controller
                     'shelf_unit' => $shelf_unit,
                  ];  
                  $shelfunit->post($shelf);
+            }else{
+                $this->fenpeihuowei($user_id,$restwo,$express_num,$clerk['wxapp_id']);
             }
              
             //邮件通知
@@ -1425,6 +1427,8 @@ class Useropration extends Controller
                 'shelf_unit' => $shelf_unit,
              ];  
              $shelfunit->post($shelf);
+         }else{
+             $this->fenpeihuowei($user_id,$res,$express_num,$clerk['wxapp_id']);
          }
          
        
@@ -1498,7 +1502,138 @@ class Useropration extends Controller
        
     }
     
+     //分配货位
+    public function fenpeihuowei($member_id,$pack_id,$express_num,$wxapp_id){
+        $selectedShelfUnitId = null;
+        
+        // 1. 检查包裹是否有归属用户
+        if(!empty($member_id)){
+            $userShelfUnits = $this->getUserBindShelfUnits($member_id, $wxapp_id);
+            if(!empty($userShelfUnits)){
+                $selectedShelfUnitId = $userShelfUnits['shelf_unit_id'];
+            }else{
+                // 2. 如果有归属用户，查询该用户的其他包裹存放的货位
+                $userShelfUnits = $this->getUserOtherPackagesShelfUnits($member_id, $wxapp_id, 1);
+                if(!empty($userShelfUnits) && count($userShelfUnits)>0){
+                    // 找到用户其他包裹的货位，优先分配
+                    $selectedShelfUnitId = $userShelfUnits[0]['shelf_unit_id'];
+                }
+            }
+        }
+        
+        // 2. 如果还是没有货位，就从未设置专属货位的货位中随机一个空的
+        // 如果没有归属用户或没有找到用户其他包裹的货位，优先分配空货位
+        if(empty($selectedShelfUnitId)){
+            $emptyShelfUnits = $this->getEmptyShelfUnits($wxapp_id, 1);
+            if(!empty($emptyShelfUnits)){
+                $selectedShelfUnitId = $emptyShelfUnits[0]['shelf_unit_id'];
+            }
+        }
+        
+        // 4. 如果没有空货位，找到包裹数量最少的货位分配
+        if(empty($selectedShelfUnitId)){
+            $leastPackagesShelfUnits = $this->getLeastPackagesShelfUnits($wxapp_id, 1);
+            if(!empty($leastPackagesShelfUnits)){
+                $selectedShelfUnitId = $leastPackagesShelfUnits[0]['shelf_unit_id'];
+            }
+        }
+
+        
+        // 6. 分配货位
+        $shelfData = [
+            'pack_id' => $pack_id,
+            'wxapp_id' => $wxapp_id,
+            'express_num' => $express_num,
+            'user_id' => $member_id,
+            'shelf_unit_id' => $selectedShelfUnitId,
+            'created_time' => getTime()
+        ];
+        
+        (new ShelfUnitItem())->save($shelfData);
+        return true;
+    }
     
+    public function getUserBindShelfUnits($member_id, $wxapp_id) {
+        return (new ShelfUnit())->field('shelf_unit_id, COUNT(*) as usage_count')
+                    ->where('wxapp_id', $wxapp_id)
+                    ->where('user_id', $member_id)
+                    ->find();
+    }
+    
+    /**
+     * 获取用户其他包裹存放的货位
+     * @param int $member_id
+     * @param int $wxapp_id
+     * @param int $limit
+     * @return array
+     */
+    public function getUserOtherPackagesShelfUnits($member_id, $wxapp_id, $limit = 1) {
+        return (new ShelfUnitItem())->field('shelf_unit_id, COUNT(*) as usage_count')
+                    ->where('wxapp_id', $wxapp_id)
+                    ->where('user_id', $member_id)
+                    ->where('shelf_unit_id', '<>', 0)
+                    ->group('shelf_unit_id')
+                    ->order('usage_count ASC, shelf_unit_id ASC')
+                    ->limit($limit)
+                    ->select();
+    }
+    
+    /**
+     * 获取包裹数量最少的货位
+     * @param int $wxapp_id
+     * @param int $limit
+     * @return array
+     */
+    public function getLeastPackagesShelfUnits($wxapp_id, $limit = 1) {
+        return (new ShelfUnitItem())->alias('sf')
+                    ->field('sf.shelf_unit_id, COUNT(*) as usage_count')
+                    ->join('shelf_unit su', 'su.shelf_unit_id = sf.shelf_unit_id',"LEFT")
+                    ->where('su.user_id', 0)
+                    ->where('sf.wxapp_id', $wxapp_id)
+                    ->where('sf.shelf_unit_id', '<>', 0)
+                    ->group('sf.shelf_unit_id')
+                    ->order('usage_count ASC, sf.shelf_unit_id ASC')
+                    ->limit($limit)
+                    ->select();
+    }
+    
+    /**
+     * 获取空货位（没有任何包裹的货位）
+     * @param int $wxapp_id
+     * @param int $limit
+     * @return array
+     */
+    public function getEmptyShelfUnits($wxapp_id, $limit = 1) {
+        // 获取所有货位ID
+        $allShelfUnits = (new ShelfUnit())->field('shelf_unit_id')->where('user_id',0)->select();
+        $allShelfUnitIds = array_column($allShelfUnits->toArray(), 'shelf_unit_id');
+        if (empty($allShelfUnitIds)) {
+            return [];
+        }
+        
+        // 获取已有包裹的货位ID
+        $usedShelfUnits = (new ShelfUnitItem())->field('shelf_unit_id')
+                    ->where('wxapp_id', $wxapp_id)
+                    ->group('shelf_unit_id')
+                    ->select();
+        $usedShelfUnitIds = array_column($usedShelfUnits->toArray(), 'shelf_unit_id');
+        
+        // 找出空货位
+        $emptyShelfUnitIds = array_diff($allShelfUnitIds, $usedShelfUnitIds);
+        
+        if (empty($emptyShelfUnitIds)) {
+            return [];
+        }
+        
+        // 随机选择空货位
+        $selectedIds = array_slice(array_values($emptyShelfUnitIds), 0, $limit);
+        
+        return array_map(function($id) {
+            return ['shelf_unit_id' => $id];
+        }, $selectedIds);
+    }
+    
+
     
     /**
      * 仓管端直邮入库

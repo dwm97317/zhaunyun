@@ -26,10 +26,16 @@
                                             <?php endforeach; endif; ?>
                                         </select>
                                     </div>
-                                     <div class="am-form-group am-fl">
+                                    <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input type="text" class="am-form-field" name="express_num"
                                                    placeholder="请输入快递单号" value="<?= $request->get('express_num') ?>">
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" class="am-form-field" name="user_id"
+                                                   placeholder="请输入用户ID" value="<?= $request->get('user_id') ?>">
                                         </div>
                                     </div>
                                     <div class="am-form-group am-fl">
@@ -327,9 +333,7 @@
         
         function PrintDiv(content) {
             var win = window.open("");
-            win.document.write('<html><head></head><body>'
-                + content + '</body>'
-                + "</html>");
+            win.document.write(content);
             win.document.close();
             //Chrome
             if (navigator.userAgent.indexOf("Chrome") != -1) {

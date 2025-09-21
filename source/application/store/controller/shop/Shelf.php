@@ -76,7 +76,6 @@ class Shelf extends Controller
     public function editshelfunit($shelf_unit_id){
         // 模板详情
         $model = (new ShelfUnitModel())->details($shelf_unit_id);
-        // dump($model->toArray());die;
         if (!$this->request->isAjax()) {
             $shelfList = (new ShelfModel)->getAllList([]);
             return $this->fetch('shelfunitedit', compact('model','shelfList'));
@@ -197,7 +196,15 @@ class Shelf extends Controller
     public function dataShelfUnit(){
        $set = Setting::detail('store')['values'];
        $params = $this->request->param();
+       if(isset($params['user_id']) && $set['usercode_mode']['is_show']==0){
+           $params['user_id'] = $params['user_id'];
+       }
+       if(isset($params['user_id']) && $set['usercode_mode']['is_show']==1){
+           $params['user_code'] = $params['user_id'];
+           unset($params['user_id']);
+       }
        $params['ware_no'] = $this->store['user']['shop_id'];
+       
        $data = (new ShelfUnit())->getAllList($params);
        return $this->fetch('datashelfunit', compact('data','set'));
     }
