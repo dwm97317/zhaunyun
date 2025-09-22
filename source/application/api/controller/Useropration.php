@@ -1536,7 +1536,7 @@ class Useropration extends Controller
         // 4. 如果没有空货位，找到包裹数量最少的货位分配
         if(empty($selectedShelfUnitId)){
             $leastPackagesShelfUnits = $this->getLeastPackagesShelfUnits($wxapp_id, 1);
-            if(!empty($leastPackagesShelfUnits)){
+            if(!empty($leastPackagesShelfUnits) && count($leastPackagesShelfUnits)>0){
                 $selectedShelfUnitId = $leastPackagesShelfUnits[0]['shelf_unit_id'];
             }
         }
