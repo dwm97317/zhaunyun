@@ -1986,25 +1986,7 @@ function PrintDiv(content) {
             }
 
             // 构建打印文档结构
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>打印预览</title>
-                    <meta charset="UTF-8">
-                    <style>
-                        @media print {
-                            body { margin: 0; padding: 0; }
-                            .no-print { display: none !important; }
-                        }
-                        @page { size: auto; margin: 0mm; }
-                    </style>
-                </head>
-                <body onload="window.focus();">
-                    ${typeof content === 'string' ? content : content.html()}
-                </body>
-                </html>
-            `);
+            printWindow.document.write(content);
             printWindow.document.close();
 
             // 浏览器兼容性处理
