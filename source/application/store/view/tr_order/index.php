@@ -386,36 +386,36 @@
                                         <span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['name'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         
                                         电话:<?= $item['address']['phone'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['phone'];?>" onclick="copyUrl2(this)">[复制]</span></br>
-                                        <?php if ($set['address_setting']['is_identitycard']==1): ?> 
+                                        <?php if ($userclient['address']['reciveaddress_setting']['is_identitycard']==1): ?> 
                                         身份证:<?= $item['address']['identitycard'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['identitycard'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         <?php endif ;?>
-                                        <?php if ($set['address_setting']['is_clearancecode']==1): ?> 
+                                        <?php if ($userclient['address']['reciveaddress_setting']['is_clearancecode']==1): ?> 
                                         通关代码:<?= $item['address']['clearancecode'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['clearancecode'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         <?php endif ;?>
                                         地址:国家/地区：<?= $item['address']['country'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['country'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         
-                                        <?php if ($set['address_setting']['is_province']==1): ?> 
+                                        <?php if ($userclient['address']['reciveaddress_setting']['is_province']==1): ?> 
                                         省/州：<?= $item['address']['province'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['province'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         <?php endif ;?>
-                                        <?php if ($set['address_setting']['is_city']==1): ?> 
+                                        <?php if ($userclient['address']['reciveaddress_setting']['is_city']==1): ?> 
                                         市：<?= $item['address']['city'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['city'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         <?php endif ;?>
                                         <!--区：<?= $item['address']['region']=='0'?'未填':$item['address']['region']?></br>-->
-                                        <?php if ($set['address_setting']['is_street']==1): ?>
+                                        <?php if ($userclient['address']['reciveaddress_setting']['is_street']==1): ?>
                                         街道：<?= $item['address']['street']=='0'?'未填':$item['address']['street']?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['street'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         <?php endif ;?>
-                                        <?php if ($set['address_setting']['is_door']==1): ?> 
+                                        <?php if ($userclient['address']['reciveaddress_setting']['is_door']==1): ?> 
                                         门牌：<?= $item['address']['door'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['door'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                          <?php endif ;?>
-                                        <?php if ($set['address_setting']['is_detail']==1): ?> 
+                                        <?php if ($userclient['address']['reciveaddress_setting']['is_detail']==1): ?> 
                                         详细地址：<?= $item['address']['detail'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['detail'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         拼接详细地址：<span style="word-break:break-all;"><?= $item['address']['chineseregion'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['chineseregion'];?>" onclick="copyUrl2(this)">[复制]</span></span></br>
                                         <?php endif ;?>
                                         
-                                        <?php if ($set['address_setting']['is_code']==1): ?> 
+                                        <?php if ($userclient['address']['reciveaddress_setting']['is_code']==1): ?> 
                                         邮编：<?= $item['address']['code']==''?'未填': $item['address']['code']?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['code'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         <?php endif ;?>
-                                        <?php if ($set['address_setting']['is_email']==1): ?> 
+                                        <?php if ($userclient['address']['reciveaddress_setting']['is_email']==1): ?> 
                                         邮箱：<?= !isset($item['address']['email'])?'未填':$item['address']['email'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['email'];?>" onclick="copyUrl2(this)">[复制]</span>
                                         <?php endif ;?>
                                     </td>

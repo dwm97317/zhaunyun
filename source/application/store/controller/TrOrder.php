@@ -589,8 +589,9 @@ class TrOrder extends Controller
         //获取子订单记录
         $detail['sonitem'] = (new InpackItem())->where('inpack_id',$detail['id'])->select();
         $set = Setting::detail('store')['values'];
+        $userclient =  Setting::detail('userclient')['values'];
         return $this->fetch('orderdetail', compact(
-            'detail','line','package','packageItem','packageService','set'
+            'detail','line','package','packageItem','packageService','set','userclient'
         ));
     }
     
