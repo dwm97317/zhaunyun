@@ -255,7 +255,8 @@
                                     <td class="am-text-middle"><?= $item['service']['type']==0?'固定金额':'运费百分比' ?></td>
                                     <td class="am-text-middle"><?= $item['service']['type']==0?$item['service']['price']:$item['service']['percentage'] ?></td>
                                     <td class="am-text-middle"><?= $item['service_sum'] ?></td>
-                                    <td class="am-text-middle"><?= $item['service']['type']==0?$item['service_sum']*$item['service']['type']==0?$item['service']['price']:$item['service']['percentage']:'' ?></td>
+                                    <td class="am-text-middle">
+                                        <?= $item['service']['type']==0?$item['service_sum']*$item['service']['type']==0?$item['service_sum']*$item['service']['price']:$item['service']['percentage']:'' ?></td>
                                     <td class="am-text-middle"><a href="javascript:void(0);" class="item-deletet tpl-table-black-operation-del" data-id="<?= $item['id'] ?>" ><i class="am-icon-trash"></i> 删除</a></td>
                                 </tr>
                             <?php endforeach?>

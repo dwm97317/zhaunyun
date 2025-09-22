@@ -1980,12 +1980,11 @@ class TrOrder extends Controller
               $servicedetail = $PackageService::detail($val['service_id']);
             //   dump($servicedetail);die;
               if($servicedetail['type']==0){
-                  $lines['predict']['service'] = $lines['predict']['service'] + $servicedetail['price'];
-                  $pricethree = floatval($pricethree) + floatval($servicedetail['price']);
+                  $lines['predict']['service'] = $lines['predict']['service']*$val['service_sum'] + $servicedetail['price'];
+                  $pricethree = floatval($pricethree) + floatval($servicedetail['price']*$val['service_sum']);
               }
               
               if($servicedetail['type']==1){
-                  
                   $lines['predict']['service'] = floatval($pricetwo)*floatval($servicedetail['percentage'])/100 + floatval($lines['predict']['service']);
                   $pricethree = floatval($pricetwo)* floatval($servicedetail['percentage'])/100 + floatval($pricethree);
               }
