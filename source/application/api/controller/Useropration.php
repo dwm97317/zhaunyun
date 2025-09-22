@@ -1504,8 +1504,11 @@ class Useropration extends Controller
     
      //分配货位
     public function fenpeihuowei($member_id,$pack_id,$express_num,$wxapp_id){
+        $resultshelfunit = (new ShelfUnit())->where('wxapp_id',$wxapp_id)->select();
+        if(empty($resultshelfunit) && count($resultshelfunit)==0){
+            return false;
+        }
         $selectedShelfUnitId = null;
-        
         // 1. 检查包裹是否有归属用户
         if(!empty($member_id)){
             $userShelfUnits = $this->getUserBindShelfUnits($member_id, $wxapp_id);
