@@ -130,6 +130,12 @@
                             <i class="iconfont icon-youhuiquan"></i> 设置用户默认支付方式
                         </button>
                         <?php endif;?>
+                        <!--批量设置客服-->
+                        <?php if (checkPrivilege('user/setservice')): ?>
+                        <button type="button" id="j-setservice" class="am-btn am-btn-warning am-radius">
+                            <i class="iconfont icon-service"></i> 批量设置客服
+                        </button>
+                        <?php endif;?>
                     </div>
                     <div class="am-scrollable-horizontal am-u-sm-12">
                         <table width="100%" class="am-table am-table-compact am-table-striped
@@ -501,6 +507,38 @@
                         <input type="text" name="mark[markdes]" value="" placeholder="请输入唛头用途">
                     </div>
                 </div>
+            </div>
+        </form>
+    </div>
+</script>
+<!-- 模板：批量设置客服 -->
+<script id="tpl-setservice" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择用户数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'> 共选中 {{ selectCount }} 用户</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择专属客服
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="service_id"
+                                data-am-selected="{btnSize: 'sm', placeholder: '请选择专属客服'}">
+                                <option value="">无专属客服</option>
+                                <?php if (isset($servicelist)): foreach ($servicelist as $item): ?>
+                                    <option value="<?= $item['clerk_id'] ?>"><?= $item['real_name'] ?></option>
+                                <?php endforeach; endif; ?>
+                        </select>
+                    </div>
+                </div>
+                
             </div>
         </form>
     </div>
@@ -948,7 +986,36 @@
             });
         });
         
-
+        /**
+         * 批量设置客服
+         */
+        $('#j-setservice').on('click', function(){
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择用户', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            $.showModal({
+                title: '批量设置客服'
+                , area: '460px'
+                , content: template('tpl-setservice', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('store/user/setservice') ?>',
+                        data: {
+                            user_id:data.selectId
+                        }
+                    });
+                    return true;
+                }
+            });
+        });
         
         /**
          * 修改会员折扣

@@ -429,5 +429,35 @@ class User extends Controller
         }
         return $this->renderSuccess('批量设置成功');
     }
+    
+     /**
+     * 批量设置客服
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function setservice(){
+        $param = $this->request->param();
+        $userid = explode(',',$param['user_id']);
+        
+        // 验证客服ID是否存在（如果不为空）
+        if (!empty($param['service_id'])) {
+            $clerk = new Clerk();
+            $serviceExists = $clerk->where('clerk_id', $param['service_id'])
+                                 ->where('is_delete', 0)
+                                 ->find();
+            if (!$serviceExists) {
+                return $this->renderError('指定的客服不存在');
+            }
+        }
+        
+        // 批量更新用户的客服ID
+        foreach ($userid as $val){
+            $user = UserModel::detail($val);
+            if ($user) {
+                $user->save(['service_id' => $param['service_id']]);
+            }
+        }
+        return $this->renderSuccess('批量设置客服成功');
+    }
 
 }

@@ -37,11 +37,12 @@ class LineService extends BaseModel
         if(count($services)==0){
             return $price;
         }
-      
+        //   dump($country_id);die;
         $list = $this->where('service_id','in',$services)->where('country_id',$country_id)->where('line_category_id',$line_category_id)->select();
         if(count($list)==0){
             return $price;
         }
+     
         foreach ($list as $value){
             //重量模式
             if($value['type']==10){
@@ -82,8 +83,20 @@ class LineService extends BaseModel
                     }
                }
             }
+            //周长模式
+            if($value['type']==50){
+               
+               foreach ($boxes as $g){
+                    $long = $g['length'] + $g['width'] + $g['height'];
+                    foreach (json_decode($value['rule'],true) as $v){
+                        if($long > $v['weight_start'] && $long < $v['weight_max']){
+                            $price += $v['weight_price'];
+                        }
+                   }
+                }
+            }
         }
-      
+     
         return $price;
     }
 }

@@ -728,6 +728,10 @@ class Setting extends BaseModel
                     ],
                     'insure'=>[
                         'is_insure_open'=>0, //是否开启保险费用    
+                    ],
+                    'other'=>[
+                        'inpack_cancel_button_chayan'=>1, // 待查验
+                        'inpack_cancel_button_fahuo'=>1, // 待发货
                     ]
                 ]
             ],

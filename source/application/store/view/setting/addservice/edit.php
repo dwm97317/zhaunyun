@@ -42,6 +42,10 @@
                                         <input type="radio" name="line[type]" value="40" <?= $model['type'] == 40 ? 'checked' : '' ?> data-am-ucheck>
                                         税费模式
                                     </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[type]" value="50" <?= $model['type'] == 50 ? 'checked' : '' ?> data-am-ucheck>
+                                        周长模式
+                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -166,7 +170,12 @@
         
         // 根据当前选择的类型设置占位符
         var selectedType = $('input[name="line[type]"]:checked').val();
-        var placeholder = selectedType == '40' ? '输入货值百分比' : '输入所需费用';
+        var placeholder = '输入所需费用';
+        if (selectedType == '40') {
+            placeholder = '输入货值百分比';
+        } else if (selectedType == '50') {
+            placeholder = '输入周长费用';
+        }
         
         var _html = '<td><input type="text" name="line[weight_start][]" placeholder="输入起始值"></td>' +
                     '<td><input type="text" name="line[weight_max][]" placeholder="输入结束值"></td>' +
@@ -203,6 +212,10 @@
                 // 税费模式 - 显示货值百分比
                 $('#fee_header').text('货值百分比(%)');
                 $('input[name^="line[weight_price]"]').attr('placeholder', '输入货值百分比');
+            } else if (type == '50') {
+                // 周长模式 - 显示周长费用
+                $('#fee_header').text('周长费用');
+                $('input[name^="line[weight_price]"]').attr('placeholder', '输入周长费用');
             } else {
                 // 其他模式 - 显示费用
                 $('#fee_header').text('费用');

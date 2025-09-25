@@ -2507,7 +2507,43 @@
                                     </label>
                                 </div>
                             </div>
-                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">其他功能设置</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    待查验状态是否显示取消订单按钮
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[other][inpack_cancel_button_chayan]" value="1"
+                                               data-am-ucheck  <?= $values['other']['inpack_cancel_button_chayan'] == 1 ? 'checked' : '' ?>>
+                                        显示
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[other][inpack_cancel_button_chayan]" value="0"
+                                               data-am-ucheck <?= $values['other']['inpack_cancel_button_chayan'] == 0 ? 'checked' : '' ?>>
+                                        不显示
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    待发货状态是否显示取消订单按钮
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[other][inpack_cancel_button_fahuo]" value="1"
+                                               data-am-ucheck  <?= $values['other']['inpack_cancel_button_fahuo'] == 1 ? 'checked' : '' ?>>
+                                        显示
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[other][inpack_cancel_button_fahuo]" value="0"
+                                               data-am-ucheck <?= $values['other']['inpack_cancel_button_fahuo'] == 0 ? 'checked' : '' ?>>
+                                        不显示
+                                    </label>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
