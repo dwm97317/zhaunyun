@@ -372,6 +372,36 @@ class Inpack extends BaseModel
     }
     
     /**
+     * 计费重量
+     * @param $value
+     * @return mixed
+     */
+    public function getCaleWeightAttr($value)
+    {
+        return number_format($value,2);
+    }
+    
+    /**
+     * 线路重量
+     * @param $value
+     * @return mixed
+     */
+    public function getLineWeightAttr($value)
+    {
+        return number_format($value,2);
+    }
+    
+    /**
+     * 体积重
+     * @param $value
+     * @return mixed
+     */
+    public function getVolumeAttr($value)
+    {
+        return number_format($value,2);
+    }
+   
+    /**
      * 显示支付方式
      * @param $value
      * @return mixed

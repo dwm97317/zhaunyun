@@ -236,10 +236,10 @@ class User extends Controller
         $model = new UserMarkModel;
         $UserModel = new UserModel;
         $param = $this->request->param();
-        $user = $UserModel->where(['user_code'=>$param['member_id'],'is_delete'=>0])->find();
+        $user = $UserModel->where(['user_code'=>$param['usercode'],'is_delete'=>0])->find();
         $list = [];
         if(!empty($user)){
-             $param['member_id'] = $user['user_id'];
+             $param['usercode'] = $user['user_id'];
              $list = $model->getList($param);
         }
        

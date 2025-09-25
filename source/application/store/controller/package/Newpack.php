@@ -170,13 +170,12 @@ class Newpack extends Controller
     public function newsavepackage(){
         $param = $this->request->param();
         $param = $param['data'];
+        // dump($param);die;
         $express_num=[];
         if(!empty($param['express_num'])){
             $express_num = str_replace("\r\n","\n",trim($param['express_num']));
             $express_num = explode("\n",$express_num);
-            // $express_num = implode(',',$express_num);
         }
-        // dump($param);die;
         $Package = new Package;
         $noticesetting = SettingModel::getItem('notice');
         $User = new User;
@@ -190,7 +189,7 @@ class Newpack extends Controller
             $param['member_id'] = $userData['user_id'];
         }
         $set = Setting::detail('store')['values'];
-        // dump($set);die;
+   
         foreach ($express_num as $v){
             $detail = $Package->getNumber($v);
             $num = 0;
@@ -204,6 +203,7 @@ class Newpack extends Controller
                  $data['is_take'] = $param['member_id']?2:1;  //
                  $data['source'] = 2; //电脑后台录入
                  $data['entering_warehouse_time'] = getTime();
+                 $data['pack_type']= $param['mode_type']==10?0:1;
                  $data['created_time'] = getTime();
                  $data['updated_time'] = getTime();
                  $data['wxapp_id'] = $this->getWxappId();
@@ -268,6 +268,7 @@ class Newpack extends Controller
                          $data['status'] = 2;  //已入库
                          $data['is_take'] = $param['member_id']?2:1;  //已入库
                          $data['source'] = 2; //电脑后台录入
+                         $data['pack_type']= $param['mode_type']==10?0:1;
                          $data['entering_warehouse_time'] = getTime();
                          $data['created_time'] = getTime();
                          $data['updated_time'] = getTime();
@@ -329,8 +330,7 @@ class Newpack extends Controller
             }
         }
         
-        
-        //   dump($set);die;
+       
 
         //如果是直邮模式，包裹状态变更为
          if($set['moren']['is_zhiyou_pack']==1){

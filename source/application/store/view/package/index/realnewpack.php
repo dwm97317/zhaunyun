@@ -675,6 +675,12 @@
     
     function findusercode(){
         var usercode = $("#user_code")[0].value;
+        
+        // 如果usercode为空，则不发送请求
+        if (!usercode || usercode.trim() === '') {
+            return;
+        }
+        
          $.ajax({
                type:'post',
                url:"<?= url('store/user/findusercode') ?>",

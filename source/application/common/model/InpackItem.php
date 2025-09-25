@@ -15,4 +15,14 @@ class InpackItem extends BaseModel
     public function details($id){
         return $this->find($id);
     }
+    
+    /**
+     * 体积重
+     * @param $value
+     * @return mixed
+     */
+    public function getLineWeightAttr($value)
+    {
+        return number_format($value,2);
+    }
 }
