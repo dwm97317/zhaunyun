@@ -416,7 +416,7 @@ class Batch extends Controller
             }
             $packdata = $package->where('batch_id',$batch_id)->where('is_delete',0)->find();
             if(!empty($packdata)){
-                $package->where('batch_id',$batch_id)->update(['status'=>11]);
+                $package->where('batch_id',$batch_id)->update(['status'=>10]);
             }
         }
         // 新增记录

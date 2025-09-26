@@ -175,7 +175,12 @@ class Package extends PackageModel
         
         if(isset($where['status']) && $where['status']==10){
             unset($where['status']);
-            $this->whereIn('status',[10,11]);
+            $this->whereIn('status',[10]);
+        }
+        
+        if(isset($where['status']) && $where['status']==11){
+            unset($where['status']);
+            $this->whereIn('status',[11]);
         }
         return  $this->where($where)->with(['country','storage','packageimage.file','inpack'])->field($field)->Order('created_time DESC')->paginate(15);
     }
@@ -287,10 +292,13 @@ class Package extends PackageModel
             return  $this->where($where)->Order('created_time DESC')->count();
         }
         if($status==10){
-            $this->whereIn('status',[10,11]);
+            $this->whereIn('status',[10]);
             return  $this->where($where)->Order('created_time DESC')->count();
         }
-        
+        if($status==11){
+            $this->whereIn('status',[11]);
+            return  $this->where($where)->Order('created_time DESC')->count();
+        }
         
         return  $this->where($where)->where('status',$status)->Order('created_time DESC')->count();
     }
