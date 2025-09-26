@@ -374,6 +374,13 @@ class TrOrder extends Controller
         $settingDate = SettingModel::getItem('adminstyle',$this->getWxappId());
         $detail = Inpack::details($param['id']);
         $shopname = ShopModel::detail($detail['storage_id']);
+        
+        $storesetting = SettingModel::getItem('store',$this->getWxappId());
+        if($storesetting['usercode_mode']['is_show']!=0){
+              $member = UserModel::detail($detail['member_id']);
+              $detail['member_id'] = $member['user_code'];
+           }
+        
         $address = (new UserAddress())->where(['address_id'=>$detail['address_id']])->find();
         // dump($address);die;
         $xuhao = ((new Inpack())->where(['member_id'=>$detail['member_id'],'is_delete'=>0])->count()) + 1;
