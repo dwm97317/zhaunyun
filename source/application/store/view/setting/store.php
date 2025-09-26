@@ -659,10 +659,10 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 <div class="am-u-sm-9 am-u-end">
                                     <select name="store[link_mode]"
                                             data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
-                                            <option value="10" <?= $values['link_mode']== 10 ? 'selected' : '' ?>>仓库名+UID</option>
-                                            <option value="20" <?= $values['link_mode'] == 20 ? 'selected' : '' ?>>仓库联系人+UID</option>
-                                            <option value="30" <?= $values['link_mode'] == 30 ? 'selected' : '' ?>>用户昵称+UID</option>
-                                            <option value="40" <?= $values['link_mode'] == 40 ? 'selected' : '' ?>>仓库简称+UID</option>
+                                            <option value="10" <?= $values['link_mode']== 10 ? 'selected' : '' ?>>仓库名+用户ID</option>
+                                            <option value="20" <?= $values['link_mode'] == 20 ? 'selected' : '' ?>>仓库联系人+用户ID</option>
+                                            <option value="30" <?= $values['link_mode'] == 30 ? 'selected' : '' ?>>用户昵称+用户ID</option>
+                                            <option value="40" <?= $values['link_mode'] == 40 ? 'selected' : '' ?>>仓库简称+用户ID</option>
                                             <option value="50" <?= $values['link_mode'] == 50 ? 'selected' : '' ?>>用户昵称</option>
                                             <option value="60" <?= $values['link_mode'] == 60 ? 'selected' : '' ?>>仓库名</option>
                                             <option value="70" <?= $values['link_mode'] == 70 ? 'selected' : '' ?>>仓库简称(用户昵称)</option>
@@ -678,9 +678,9 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     <select name="store[address_mode]"
                                             data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
                                             <option value="10" <?= $values['address_mode']== 10 ? 'selected' : '' ?>>纯仓库地址</option>
-                                            <option value="20" <?= $values['address_mode'] == 20 ? 'selected' : '' ?>>地址+UID</option>
-                                            <option value="30" <?= $values['address_mode'] == 30 ? 'selected' : '' ?>>地址+UID+室</option>
-                                            <option value="40" <?= $values['address_mode'] == 40 ? 'selected' : '' ?>>地址+UID+室+客服</option>
+                                            <option value="20" <?= $values['address_mode'] == 20 ? 'selected' : '' ?>>地址+用户ID</option>
+                                            <option value="30" <?= $values['address_mode'] == 30 ? 'selected' : '' ?>>地址+用户ID+室</option>
+                                            <option value="40" <?= $values['address_mode'] == 40 ? 'selected' : '' ?>>地址+用户ID+室+客服</option>
                                     </select>
                                     <div class="help-block">
                                         <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
@@ -689,7 +689,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
-                                    复制仓库地址时，UID是否修改为xxxx室
+                                    复制仓库地址时，用户ID是否修改为xxxx室
                                 </label>
                                 <div class="am-u-sm-9">
                                     <label class="am-radio-inline">
@@ -706,11 +706,20 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                         关闭
                                     </label>
                                     <div class="help-block">
-                                        <small>此方法可以避免被电商平台隐私打**码，导致的UID看不到</small>
+                                        <small>此方法可以避免被电商平台隐私打**码，导致用户ID看不到</small>
                                     </div>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label"> 上面的"室"替换成下面的文字 </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="store[is_room_alias]"
+                                           value="<?= $values['is_room_alias']??'' ?>">
+                                           <div class="help-block">
+                                        <small>一般可以使用的"室"，"库"，"仓"，"房"，"楼"，"号"等，你也可以自行填写</small>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">客服设置</div>

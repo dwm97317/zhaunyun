@@ -225,6 +225,7 @@ class Setting extends BaseModel
                     'link_mode'=>10, //联系人的模式
                     'address_mode'=>10,//10=纯地址，20=地址+UID:ID 30=地址+ID+室  40=地址+ID+室+客服名
                     "is_change_uid"=>0, //是否更改UID显示为xxx室
+                    "is_room_alias"=>"", //“室”字替换成的文字
                     'is_auto_free' => 1, //0不自动计算费用，1自动计算费用
                     'retention_day'=> 7, //滞留件时效天数，超过这个天数则再次通知用户领取
                     'is_ren_image' =>1, //0 不开启

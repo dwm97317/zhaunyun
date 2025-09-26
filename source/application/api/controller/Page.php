@@ -395,9 +395,15 @@ class Page extends Controller
       //获取设置信息
       $setting = CommonSetting::getItem('store',input('wxapp_id'));
        if($setting['is_change_uid']==1){
-          ($this->user)['user_code'] = ($this->user)['user_code'].'室';
-          ($this->user)['user_id'] = ($this->user)['user_id'].'室';
+           if(!empty($setting['is_room_alias'])){
+              ($this->user)['user_code'] = ($this->user)['user_code'].$setting['is_room_alias'];
+              ($this->user)['user_id'] = ($this->user)['user_id'].$setting['is_room_alias'];
+           }else{
+              ($this->user)['user_code'] = ($this->user)['user_code'].'室';
+              ($this->user)['user_id'] = ($this->user)['user_id'].'室';
+           }
        }
+       
        $aiidentify = CommonSetting::getItem('aiidentify',input('wxapp_id'));
        if($aiidentify['is_enable']==1){
            ($this->user)['user_code'] = $aiidentify['keyword1'].($this->user)['user_code'].$aiidentify['keyword2'];
@@ -586,9 +592,15 @@ class Page extends Controller
         
        
        if($setting['is_change_uid']==1){
-          ($this->user)['user_code'] = ($this->user)['user_code'].'室';
-          ($this->user)['user_id'] = ($this->user)['user_id'].'室';
+           if(!empty($setting['is_room_alias'])){
+              ($this->user)['user_code'] = ($this->user)['user_code'].$setting['is_room_alias'];
+              ($this->user)['user_id'] = ($this->user)['user_id'].$setting['is_room_alias'];
+           }else{
+              ($this->user)['user_code'] = ($this->user)['user_code'].'室';
+              ($this->user)['user_id'] = ($this->user)['user_id'].'室';
+           }
        }
+       
        $aiidentify = CommonSetting::getItem('aiidentify',input('wxapp_id'));
        if($aiidentify['is_enable']==1){
            ($this->user)['user_code'] = $aiidentify['keyword1'].($this->user)['user_code'].$aiidentify['keyword2'];
