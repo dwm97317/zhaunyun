@@ -415,18 +415,18 @@ class Page extends Controller
                 }
                 if($v['type']==1){
                     if($setting['link_mode'] == 10){
-                     $data[$k]['linkman'] =$data[$k]['shop_name'].'-CODE:'.($this->user)['user_code'];
+                     $data[$k]['linkman'] =$data[$k]['shop_name'].'-'.($this->user)['user_code'];
                     }
                     if($setting['link_mode'] == 20){
-                         $data[$k]['linkman'] =$data[$k]['linkman'].'-CODE:'.($this->user)['user_code'];
+                         $data[$k]['linkman'] =$data[$k]['linkman'].'-'.($this->user)['user_code'];
                     }
                     if($setting['link_mode'] == 30){
-                         $data[$k]['linkman'] =($this->user)['nickName'].'-CODE:'.($this->user)['user_code'];
+                         $data[$k]['linkman'] =($this->user)['nickName'].'-'.($this->user)['user_code'];
                     }
                     if($setting['link_mode'] == 40){
-                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].'-CODE:'.($this->user)['user_code'];
+                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].'-'.($this->user)['user_code'];
                     }
-                    $data[$k]['address'] = 'CODE:'.$this->user['user_code'].'-'.$v['address'];
+                    $data[$k]['address'] = $this->user['user_code'].'-'.$v['address'];
                     if($setting['link_mode'] == 50){
                         $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
                         $data[$k]['linkman'] = ($this->user)['nickName'];
@@ -437,18 +437,18 @@ class Page extends Controller
                     }
                 }else{
                     if($setting['link_mode'] == 10){
-                     $data[$k]['linkman'] =$data[$k]['shop_name'].'-CODE:'.($this->user)['user_code'];
+                     $data[$k]['linkman'] =$data[$k]['shop_name'].'-'.($this->user)['user_code'];
                     }
                     if($setting['link_mode'] == 20){
-                         $data[$k]['linkman'] =$data[$k]['linkman'].'-CODE:'.($this->user)['user_code'];
+                         $data[$k]['linkman'] =$data[$k]['linkman'].'-'.($this->user)['user_code'];
                     }
                     if($setting['link_mode'] == 30){
-                         $data[$k]['linkman'] =($this->user)['nickName'].'-CODE:'.($this->user)['user_code'];
+                         $data[$k]['linkman'] =($this->user)['nickName'].'-'.($this->user)['user_code'];
                     }
                     if($setting['link_mode'] == 40){
-                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].'-CODE:'.($this->user)['user_code'];
+                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].'-'.($this->user)['user_code'];
                     }
-                    $data[$k]['address'] = $v['address'].'(CODE:'.$this->user['user_code'].')';
+                    $data[$k]['address'] = $v['address'].$this->user['user_code'];
                     if($setting['link_mode'] == 50){
                        $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
                         $data[$k]['linkman'] = ($this->user)['nickName'];
