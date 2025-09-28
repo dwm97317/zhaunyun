@@ -237,25 +237,31 @@ class Index extends Controller
     public function doclaim(){
         $packageModel = new PackageClaim();
         $map = \request()->param();
+        
         $detail = $packageModel->where('id',$map['id'])->find();
+        if(empty($detail)){
+            return $this->renderError('认领任务不存在');
+        }
         if($map['status']==1){
-            (new Package())->where('id',$map['id'])->update([
+            (new Package())->where('id',$detail['package_id'])->update([
                 'member_id'=>$detail['user_id'],
                 'is_take'=>2,
                 'updated_time'=>getTime()
             ]);
-        }
-        
-        if(!empty($detail)){
-            $detail->save([
-                'status'=>$map['status'],
-                'clerk_remark'=>$map['remark'],
-                'clerk_name'=>$this->store['user']['user_name'],
-                'clerk_time'=>time(),
+        }else{
+            $res=(new Package())->where('id',$detail['package_id'])->update([
+                'member_id'=>0,
+                'is_take'=>1,
+                'updated_time'=>getTime()
             ]);
-            return $this->renderSuccess("处理成功");
         }
-        return $this->renderError('认领任务不存在');
+        $detail->save([
+            'status'=>$map['status'],
+            'clerk_remark'=>$map['remark'],
+            'clerk_name'=>$this->store['user']['user_name'],
+            'clerk_time'=>time(),
+        ]);
+        return $this->renderSuccess("处理成功");
     }
     
     //获取包裹的统计数据

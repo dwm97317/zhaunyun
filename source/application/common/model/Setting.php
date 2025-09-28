@@ -733,6 +733,7 @@ class Setting extends BaseModel
                     'other'=>[
                         'inpack_cancel_button_chayan'=>1, // 待查验
                         'inpack_cancel_button_fahuo'=>1, // 待发货
+                        'is_packreport_verity'=>0, //预报认领是否需要审核
                     ]
                 ]
             ],

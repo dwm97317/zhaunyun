@@ -2545,6 +2545,23 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    用户认领包裹是否需要审核
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[other][is_packreport_verity]" value="1"
+                                               data-am-ucheck  <?= $values['other']['is_packreport_verity'] == 1 ? 'checked' : '' ?>>
+                                        需要
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="userclient[other][is_packreport_verity]" value="0"
+                                               data-am-ucheck <?= $values['other']['is_packreport_verity'] == 0 ? 'checked' : '' ?>>
+                                        不需要
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
                                     </button>
