@@ -1976,7 +1976,7 @@ class Package extends Controller
             $packItemRes = $packItemModel->saveAllData($classItem,$package['id']);
         }
         //根据设置，决定是否需要认领审核
-        $setting = SettingModel::detail("userclient")['values'];
+        $setting = SettingModel::detail("userclient",$package['wxapp_id'])['values'];
         if($setting['other']['is_packreport_verity']==1){
             (new PackageClaim())->saveData([
                 'package_id'=>$package['id'],
