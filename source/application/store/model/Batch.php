@@ -90,12 +90,12 @@ class Batch extends BatchModel
      */
     private function createData($data)
     {
-        if($data['transfer']==1){
-            $data['express'] = $data['tt_number'];
-            $data['express_no'] = $data['express_no'];
-        }else{
-            $data['express'] = $data['t_number'];
-        }
+        // if(isset($data['transfer']) && $data['transfer']==1){
+        //     $data['express'] = $data['tt_number'];
+        //     $data['express_no'] = $data['express_no'];
+        // }else{
+        //     $data['express'] = $data['t_number'];
+        // }
         $data['wxapp_id'] = Session::get('yoshop_store')['wxapp']['wxapp_id'];
          
         return $data;

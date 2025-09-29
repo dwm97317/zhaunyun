@@ -64,56 +64,6 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                 </div>
                                 </div>
                             </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 运输方式 </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="batch[transfer]" value="1" data-am-ucheck checked onchange="onChange('c1')"
-                                               >
-                                        运输商
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="batch[transfer]" value="0" data-am-ucheck   onchange="onChange('c2')">
-                                        自有物流
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="am-form-group c" id="c1">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 承运商 </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                     <select name="batch[tt_number]" id="" data-am-selected="{searchBox: 1,maxHeight:300}">
-                                         <option value="">选择承运商</option>
-                                     <?php if (isset($track)):
-                                            foreach ($track as $item): ?>
-                                                <option value="<?= $item['express_code'] ?>"><?= $item['express_name'] ?>-<?= $item['express_code'] ?></option>
-                                            <?php endforeach; endif; ?>
-                                     </select>
-                                     <div class="help-block">
-                                        <small>注：选择自有物流17track不可查，请选择正确的物流商，否则国际单号无法查询；</small>
-                                </div>
-                                </div>
-                                
-                            </div>
-                            
-                            <div class="am-form-group c" id="c2" style="display: none;">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 承运商 </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <select name="batch[t_number]" id="" data-am-selected="{searchBox: 1,maxHeight:300}">
-                                         <option value="">选择承运商</option>
-                                     <?php if (isset($ditchlist)):
-                                            foreach ($ditchlist as $item): ?>
-                                                <option value="<?= $item['ditch_id'] ?>"><?= $item['ditch_name'] ?>-<?= $item['ditch_no'] ?></option>
-                                            <?php endforeach; endif; ?>
-                                     </select>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 运单号 </label>
-                                <div class="am-u-sm-3 am-u-end">
-                                    <input type="text" class="tpl-form-input" name="batch[express_no]"
-                                           placeholder="请输入运单号" >
-                                </div>
-                            </div>
                              <div class="am-form-group">
                                         <label class="am-u-sm-3 am-u-lg-2 am-form-label">长宽高体积重</label>
                                         <div class="am-u-sm-9 am-u-end" style="position: relative">

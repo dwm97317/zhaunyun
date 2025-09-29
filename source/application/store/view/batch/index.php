@@ -38,6 +38,7 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                 <th>批次名称</th>
                                 <th>批次类型</th>
                                 <th>装箱代码</th>
+                                <th>发货单号</th>
                                 <th>目标仓库</th>
                                 <th>物流模板</th>
                                 <th>批次信息(长/宽/高/重/体积)</th>
@@ -53,6 +54,7 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                     <td class="am-text-middle"><?= $item['batch_name'] ?></td>
                                     <td class="am-text-middle"><?= BatchTypeEnum::data()[$item['batch_type']]['name'] ?></td>
                                     <td class="am-text-middle"><?= $item['batch_no'] ?></td>
+                                    <td class="am-text-middle"><?= $item['express_no'] ?></td>
                                     <td class="am-text-middle"><?= $item['shop']['shop_name'] ?></td>
                                     <td class="am-text-middle"><?= $item['template']['template_name']?$item['template']['template_name']:'未选择' ?></td>
                                     <td class="am-text-middle">
@@ -86,6 +88,18 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                             <?php if (checkPrivilege('batch/logistics')): ?>
                                             <a href="javascript:void(0);" class="j-wuliu tpl-table-black-operation-green " data-id="<?= $item['batch_id'] ?>"> 
                                                 <i class="iconfont icon-755danzi "></i> 物流更新
+                                            </a>
+                                            <?php endif; ?>
+                                            
+                                            <?php if (checkPrivilege('batch/statuschange')): ?>
+                                            <a href="javascript:void(0);" class="j-status-change tpl-table-black-operation-blue" data-id="<?= $item['batch_id'] ?>" data-status="<?= $item['status'] ?>"> 
+                                                <i class="am-icon-edit"></i> 状态变更
+                                            </a>
+                                            <?php endif; ?>
+                                            
+                                            <?php if (checkPrivilege('batch/shipment') && $item['status'] == 0): ?>
+                                            <a href="javascript:void(0);" class="j-shipment tpl-table-black-operation-green" data-id="<?= $item['batch_id'] ?>"> 
+                                                <i class="am-icon-truck"></i> 发货
                                             </a>
                                             <?php endif; ?>
                                             
@@ -165,6 +179,89 @@ use app\common\enum\BatchType as BatchTypeEnum;
                     </label>
                     <div class="am-u-sm-8 am-u-end">
                         <input type="text"  name="created_time" placeholder="请选择起始日期" value="<?php echo date("Y-m-d H:i:s",time()) ?>" id="datetimepicker" class="am-form-field">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
+<script id="tpl-status-change" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label">当前状态</label>
+                    <div class="am-u-sm-9 am-u-end">
+                        <span class="am-badge am-badge-warning" id="current-status-text">待发货</span>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label">选择新状态</label>
+                    <div class="am-u-sm-9 am-u-end">
+                        <select name="status" id="status-select" data-am-selected="{searchBox: 0,maxHeight:200}">
+                            <option value="0">待发货</option>
+                            <option value="1">运送中</option>
+                            <option value="2">已到达</option>
+                        </select>
+                        <div class="help-block">
+                            <small>请选择要变更到的状态</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
+<script id="tpl-shipment" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-u-lg-2 am-form-label">运输方式</label>
+                    <div class="am-u-sm-9 am-u-end">
+                        <label class="am-radio-inline">
+                            <input type="radio" name="transfer" value="1" data-am-ucheck checked onchange="onChangeShipment('c1')">
+                            运输商
+                        </label>
+                        <label class="am-radio-inline">
+                            <input type="radio" name="transfer" value="0" data-am-ucheck onchange="onChangeShipment('c2')">
+                            自有物流
+                        </label>
+                    </div>
+                </div>
+                <div class="am-form-group c" id="c1">
+                    <label class="am-u-sm-3 am-u-lg-2 am-form-label">承运商</label>
+                    <div class="am-u-sm-9 am-u-end">
+                        <select name="tt_number" data-am-selected="{searchBox: 1,maxHeight:300}">
+                            <option value="">选择承运商</option>
+                            <?php if (isset($track) && !$track->isEmpty()):
+                                foreach ($track as $item): ?>
+                                    <option value="<?= $item['express_code'] ?>"><?= $item['express_name'] ?>-<?= $item['express_code'] ?></option>
+                                <?php endforeach; endif; ?>
+                        </select>
+                        <div class="help-block">
+                            <small>注：选择自有物流17track不可查，请选择正确的物流商，否则国际单号无法查询；</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="am-form-group c" id="c2" style="display: none;">
+                    <label class="am-u-sm-3 am-u-lg-2 am-form-label">承运商</label>
+                    <div class="am-u-sm-9 am-u-end">
+                        <select name="t_number" data-am-selected="{searchBox: 1,maxHeight:300}">
+                            <option value="">选择承运商</option>
+                            <?php if (isset($ditchlist) && !$ditchlist->isEmpty()):
+                                foreach ($ditchlist as $item): ?>
+                                    <option value="<?= $item['ditch_id'] ?>"><?= $item['ditch_name'] ?>-<?= $item['ditch_no'] ?></option>
+                                <?php endforeach; endif; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-u-lg-2 am-form-label">运单号</label>
+                    <div class="am-u-sm-3 am-u-end">
+                        <input type="text" class="tpl-form-input" name="express_no" placeholder="请输入运单号" required>
                     </div>
                 </div>
             </div>
@@ -276,18 +373,110 @@ use app\common\enum\BatchType as BatchTypeEnum;
                 });
                 return true;
             }
+        });
     });
     
-   
+    /**
+     * 状态变更
+     */
+    $('.j-status-change').on('click', function () {
+        var $tabs, data = $(this).data();
+        var statusMap = {0: '待发货', 1: '运送中', 2: '已到达'};
+        
+        $.showModal({
+            title: '批次状态变更'
+            , area: '400px'
+            , content: template('tpl-status-change', data)
+            , uCheck: true
+            , success: function ($content) {
+                // 设置当前状态显示
+                $('#current-status-text').text(statusMap[data.status]);
+                // 设置当前状态为选中
+                $('#status-select').val(data.status);
+            }
+            , yes: function ($content) {
+                var newStatus = $content.find('#status-select').val();
+                if (newStatus == data.status) {
+                    $.msg('请选择不同的状态', 'error');
+                    return false;
+                }
+                
+                $content.find('form').myAjaxSubmit({
+                    url: '<?= url('store/batch/statuschange') ?>',
+                    data: {
+                        batch_id: data.id,
+                        status: newStatus
+                    }
+                });
+                return true;
+            }
+        });
+    });
+    
     $('#datetimepicker').datetimepicker({
       format: 'yyyy-mm-dd hh:ii'
     });
     
-    
     $('#datetimepicker').datetimepicker().on('changeDate', function(ev){
         $('#datetimepicker').datetimepicker('hide');
-      });
-        
     });
+    
+    /**
+     * 发货功能
+     */
+    $('.j-shipment').on('click', function () {
+        var $tabs, data = $(this).data();
+        
+        $.showModal({
+            title: '批次发货'
+            , area: '500px'
+            , content: template('tpl-shipment', data)
+            , uCheck: true
+            , success: function ($content) {
+                // 初始化运输方式切换
+                onChangeShipment('c1');
+            }
+            , yes: function ($content) {
+                var transfer = $content.find('input[name="transfer"]:checked').val();
+                var expressNo = $content.find('input[name="express_no"]').val();
+                
+                if (!expressNo) {
+                    $.msg('请输入运单号', 'error');
+                    return false;
+                }
+                
+                var carrierValue = '';
+                if (transfer == 1) {
+                    carrierValue = $content.find('select[name="tt_number"]').val();
+                } else {
+                    carrierValue = $content.find('select[name="t_number"]').val();
+                }
+                
+                if (!carrierValue) {
+                    $.msg('请选择承运商', 'error');
+                    return false;
+                }
+                
+                $content.find('form').myAjaxSubmit({
+                    url: '<?= url('store/batch/shipment') ?>',
+                    data: {
+                        batch_id: data.id,
+                        transfer: transfer,
+                        carrier_value: carrierValue,
+                        express_no: expressNo
+                    }
+                });
+                return true;
+            }
+        });
+    });
+    
+    /**
+     * 发货弹窗运输方式切换
+     */
+    function onChangeShipment(tab) {
+        $('.c').hide();
+        $('#' + tab).show();
+    }
 </script>
 

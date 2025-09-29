@@ -30,14 +30,18 @@ class Batch extends Controller
     {
         // 当前用户菜单url
         $model = new BatchModel;
+        $ExpressModel = new ExpressModel();
         $BatchTemplateModel = new BatchTemplateModel;
         $templatelist = $BatchTemplateModel->getAllList();
+        $track = $ExpressModel->getTypeList($type = 1);
+        $DitchModel = new DitchModel();
         $tracklist = (new Track())->getAllList();
+        $ditchlist = $DitchModel->getAll();
         $param = $this->request->param();
         $param['status'] = 0;
         $list = $model->getList($param);
         $type = 0;
-        return $this->fetch('index', compact('list','type','templatelist','tracklist'));
+        return $this->fetch('index', compact('list','type','templatelist','tracklist','ditchlist','track'));
     }
     
     /**
@@ -396,29 +400,7 @@ class Batch extends Controller
              return $this->fetch('edit',compact('list','detail','set','track','ditchlist','templatelist'));
         }
         $param = $this->postData('batch');
-        // dump($param);die;
-        //将集运单和包裹都设置为已发货状态
-        if($param['status']==1){
-            $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
-            if(!empty($inpackdata)){
-                $Inpack->where('batch_id',$batch_id)->update(['status'=>6]);
-            }
-            $packdata = $package->where('batch_id',$batch_id)->where('is_delete',0)->find();
-            if(!empty($packdata)){
-                $package->where('batch_id',$batch_id)->update(['status'=>9]);
-            }
-          
-        }elseif($param['status']==2){
-        //将集运单和包裹都设置为已到货状态
-            $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
-            if(!empty($inpackdata)){
-                $Inpack->where('batch_id',$batch_id)->update(['status'=>7]);
-            }
-            $packdata = $package->where('batch_id',$batch_id)->where('is_delete',0)->find();
-            if(!empty($packdata)){
-                $package->where('batch_id',$batch_id)->update(['status'=>10]);
-            }
-        }
+       
         // 新增记录
         if ($detail->editbatch($param)){
             return $this->renderSuccess('修改成功', url('index'));
@@ -437,6 +419,128 @@ class Batch extends Controller
             return $this->renderError($model->getError() ?: '删除失败');
         }
         return $this->renderSuccess('删除成功');
+    }
+    
+    /**
+     * 状态变更
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function statuschange(){
+        $param = $this->request->param();
+        $batch_id = $param['batch_id'];
+        $status = $param['status'];
+        
+        // 验证参数
+        if (empty($batch_id) || !is_numeric($status) || $status < 0 || $status > 2) {
+            return $this->renderError('参数错误');
+        }
+        
+        $model = BatchModel::detail($batch_id);
+        if (!$model) {
+            return $this->renderError('批次不存在');
+        }
+        
+        // 检查状态是否相同
+        if ($model['status'] == $status) {
+            return $this->renderError('状态未发生变化');
+        }
+        
+        $Inpack = new Inpack;
+        $Package = new Package;
+        
+        // 根据新状态更新相关订单和包裹状态
+        if($status == 1){
+            // 运送中：将集运单和包裹都设置为已发货状态
+            $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($inpackdata)){
+                $Inpack->where('batch_id',$batch_id)->update(['status'=>6]);
+            }
+            $packdata = $Package->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($packdata)){
+                $Package->where('batch_id',$batch_id)->update(['status'=>9]);
+            }
+        }elseif($status == 2){
+            // 已到达：将集运单和包裹都设置为已到货状态
+            $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($inpackdata)){
+                $Inpack->where('batch_id',$batch_id)->update(['status'=>7]);
+            }
+            $packdata = $Package->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($packdata)){
+                $Package->where('batch_id',$batch_id)->update(['status'=>10]);
+            }
+        }
+        
+        // 更新批次状态
+        if ($model->save(['status' => $status])) {
+            $statusMap = [0 => '待发货', 1 => '运送中', 2 => '已到达'];
+            return $this->renderSuccess('状态已更新为：' . $statusMap[$status]);
+        }
+        
+        return $this->renderError('状态更新失败');
+    }
+    
+    /**
+     * 批次发货
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function shipment(){
+        $param = $this->request->param();
+        $batch_id = $param['batch_id'];
+        $transfer = $param['transfer'];
+        $carrier_value = $param['carrier_value'];
+        $express_no = $param['express_no'];
+        
+        // 验证参数
+        if (empty($batch_id) || empty($express_no) || empty($carrier_value)) {
+            return $this->renderError('参数不完整');
+        }
+        
+        $model = BatchModel::detail($batch_id);
+        if (!$model) {
+            return $this->renderError('批次不存在');
+        }
+        
+        // 检查批次状态
+        if ($model['status'] != 0) {
+            return $this->renderError('只有待发货状态的批次才能发货');
+        }
+        
+        $Inpack = new Inpack;
+        $Package = new Package;
+        
+        // 更新批次信息
+        $updateData = [
+            'transfer' => $transfer,
+            'express_no' => $express_no,
+            'status' => 1  // 更新为运送中状态
+        ];
+        
+        // 根据运输方式设置承运商信息
+        if ($transfer == 1) {
+            $updateData['express'] = $carrier_value;
+        } else {
+            $updateData['express'] = $carrier_value;
+        }
+        
+        // 更新批次
+        if ($model->save($updateData)) {
+            // 将集运单和包裹都设置为已发货状态
+            $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($inpackdata)){
+                $Inpack->where('batch_id',$batch_id)->update(['status'=>6]);
+            }
+            $packdata = $Package->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($packdata)){
+                $Package->where('batch_id',$batch_id)->update(['status'=>9]);
+            }
+            
+            return $this->renderSuccess('发货成功，批次状态已更新为运送中');
+        }
+        
+        return $this->renderError('发货失败');
     }
     
     /**
