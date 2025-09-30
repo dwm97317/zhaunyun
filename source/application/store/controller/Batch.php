@@ -517,12 +517,16 @@ class Batch extends Controller
             'express_no' => $express_no,
             'status' => 1  // 更新为运送中状态
         ];
-        
+        $t_name = "";
         // 根据运输方式设置承运商信息
         if ($transfer == 1) {
             $updateData['express'] = $carrier_value;
+            $express = (new ExpressModel())->where('express_code',$carrier_value)->find();
+            $t_name =  $express['express_name'];
         } else {
             $updateData['express'] = $carrier_value;
+            $ditchdetail = DitchModel::detail($carrier_value);
+            $t_name = $ditchdetail['ditch_name'];
         }
         
         // 更新批次
@@ -530,7 +534,13 @@ class Batch extends Controller
             // 将集运单和包裹都设置为已发货状态
             $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
             if(!empty($inpackdata)){
-                $Inpack->where('batch_id',$batch_id)->update(['status'=>6]);
+                $Inpack->where('batch_id',$batch_id)->update([
+                    'status'=>6,
+                    't_order_sn'=>$express_no,
+                    't_name'=>$t_name,
+                    't_number'=>$carrier_value,
+                    'transfer'=>$transfer
+                ]);
             }
             $packdata = $Package->where('batch_id',$batch_id)->where('is_delete',0)->find();
             if(!empty($packdata)){

@@ -73,7 +73,8 @@ class Auth
         'package.newpack/newsavepackage',
         'package.index/gettotal',
         'tr_order/alluserlist',
-        'package.index/userindex'
+        'package.index/userindex',
+        'logistics/delete'
     ];
 
     /** @var array $accessUrls 商家用户权限url */

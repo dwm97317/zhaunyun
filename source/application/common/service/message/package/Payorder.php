@@ -28,7 +28,7 @@ class Payorder extends Basics
      * @var array
      */
     private $pageUrl = [
-        OrderTypeEnum::MASTER => 'pages/indexs/dairuku_xq/dairuku_xq',
+        OrderTypeEnum::MASTER => 'pages/indexs/my_dingdan_details/my_dingdan_details',
         OrderTypeEnum::SHARING => 'pages/sharing/order/detail/detail',
     ];
 
