@@ -1646,6 +1646,7 @@ class TrOrder extends Controller
     // 计算价格
     public function caleamount(){
         $data = $this->postData();
+     
         $line_id = $data['line_id'];
         $pakdata = Inpack::details($data['pid']);
         $line = (new Line())->find($line_id);
@@ -1666,6 +1667,9 @@ class TrOrder extends Controller
                 // 计算体检重
                 if(!empty($v['length']) && !empty($v['width']) && !empty($v['height']) && $line['volumeweight_type']==20){
                     $weigthV = round(($data['weight'] + (($v['length']*$v['width']*$v['height'])/$line['volumeweight'] - $data['weight'])*$line['bubble_weight']/100),2);
+                }
+                if(!empty($v['length']) && !empty($v['width']) && !empty($v['height']) && $line['volumeweight_type']==10){
+                    $weigthV = round($v['length']*$v['width']*$v['height']/$line['volumeweight'],2);
                 }
             }
         }
@@ -1706,17 +1710,19 @@ class TrOrder extends Controller
         if($line['weight_integer']==1 && $line['line_type']==0){
             $data['weight'] = ceil($data['weight']);
         }
-        
+       
         //根据是否体积重取整
         if($line['weightvol_integer']==1){
             $weigthV = ceil($weigthV);
         }
         // 取两者中 较重者 
-        
+          
         $oWeigth = ($weigthV >= ($data['weight']*$line['volumeweight_weight'])) ? $weigthV:$data['weight'];
+       
         if($line['line_type']==1){
             $oWeigth = $data['weight'];
         }
+       
         //关税和增值服务费用
         //计算所有的箱子的超长超重费；
         $boxes = [];
@@ -1764,7 +1770,7 @@ class TrOrder extends Controller
                     }
                   break;
           }
-         
+   
           $oWeigth = round($oWeigth,2);
   
         $lines['predict'] = [

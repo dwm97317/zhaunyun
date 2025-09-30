@@ -495,7 +495,7 @@ function updateAllWeights() {
         // 根据billing_method计算计费重量
         let newChargeableWeight;
         if (billing_method == 10) {
-            // billing_method=10: 每个分箱的重量跟体积重比较，将大的数据加起来
+            // billing_method=10: 每个分箱的 (重量*系数) 跟体积重比较，取大值后累加
             let totalChargeableWeight = 0;
             $('.step_mode > div').each(function() {
                 if ($(this).find('button').length > 0) return;
@@ -506,14 +506,14 @@ function updateAllWeights() {
                 const volWeight = parseFloat($row.find('.volume_weight').val()) || 0;
                 
                 if (weight > 0 || volWeight > 0) {
-                    const actualWeight = weight * quantity;
+                    const actualWeightWithRatio = weight * quantity * volumeweight_weight;
                     const volumeWeight = volWeight;
-                    totalChargeableWeight += Math.max(actualWeight, volumeWeight);
+                    totalChargeableWeight += Math.max(actualWeightWithRatio, volumeWeight);
                 }
             });
             newChargeableWeight = totalChargeableWeight;
         } else {
-            // billing_method=20: 重量之和跟体积重之和比较大小，大的作为计费重量
+            // billing_method=20: 总重量*系数 跟 总体积重 比较大小，大的作为计费重量
             newChargeableWeight = Math.max(totalActualWeight * volumeweight_weight, totalVolWeight);
         }
         
@@ -534,8 +534,9 @@ function updateAllWeights() {
             $('#weigthV').val(newVolWeight);
         }
         
-        const newOWeiValue = newChargeableWeight/volumeweight_weight;
-        if($('#oWei').val() !== newOWeiValue.toString()) {
+        // 两种模式都需要除以volumeweight_weight来得到最终的计费重量显示值（保留两位小数）
+        const newOWeiValue = (newChargeableWeight / volumeweight_weight).toFixed(2);
+        if($('#oWei').val() !== newOWeiValue) {
             console.log('计费重量发生变化，更新为:', newOWeiValue);
             $('#oWei').val(newOWeiValue);
             
