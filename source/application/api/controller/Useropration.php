@@ -1504,6 +1504,11 @@ class Useropration extends Controller
     
      //分配货位
     public function fenpeihuowei($member_id,$pack_id,$express_num,$wxapp_id){
+        $keepersetting = SettingModel::getItem('keeper',$wxapp_id);
+        if(isset($keepersetting['shopkeeper']['is_auto_shelfunit']) && $keepersetting['shopkeeper']['is_auto_shelfunit']==0){
+            return false;
+        }
+        
         $resultshelfunit = (new ShelfUnit())->where('wxapp_id',$wxapp_id)->select();
         if(empty($resultshelfunit) && count($resultshelfunit)==0){
             return false;

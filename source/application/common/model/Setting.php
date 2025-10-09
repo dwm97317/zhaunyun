@@ -389,6 +389,7 @@ class Setting extends BaseModel
                         'is_sacn_shelf' => 0,
                         'is_auto_free_edit'=>1, //打包完成后是否自动计费
                         'is_auto_free_reach'=>0, //到货入库是否自动计费
+                        'is_auto_shelfunit'=>0, // 是否自动分配货位
                     ]
                 ]
             ],

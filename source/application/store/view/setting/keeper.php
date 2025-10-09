@@ -348,7 +348,23 @@
                                     </label>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    包裹入库时，如果没有选择货位，是否自动分配货位
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_auto_shelfunit]" value="1"
+                                               data-am-ucheck  <?= $values['shopkeeper']['is_auto_shelfunit'] == 1 ? 'checked' : '' ?>>
+                                        分配
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_auto_shelfunit]" value="0"
+                                               data-am-ucheck <?= $values['shopkeeper']['is_auto_shelfunit'] == 0 ? 'checked' : '' ?>>
+                                        不分配
+                                    </label>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交

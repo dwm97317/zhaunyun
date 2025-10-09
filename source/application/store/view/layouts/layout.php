@@ -182,6 +182,32 @@
     <script src="assets/store/css/app_shu1/jiyunbg.js"></script>
     <script src="assets/store/css/app_shu1/jiyunApp.js"></script>
     <?php endif; ?>
+<script>
+// 菜单链接打开方式：一级当前页，二级三级新标签
+$(document).ready(function() {
+    // 一级菜单：在当前页面跳转
+    $('.sidebar-nav a').on('click', function(e) {
+        var href = $(this).attr('href');
+        // 如果不是 javascript:void(0) 这样的伪链接
+        if (href && href !== 'javascript:void(0);' && href.indexOf('javascript:') !== 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.href = href; // 当前页面跳转
+        }
+    });
+    
+    // 二级、三级菜单：在新标签页打开
+    $('.left-sidebar-second a').on('click', function(e) {
+        var href = $(this).attr('href');
+        // 如果不是 javascript:void(0) 这样的伪链接
+        if (href && href !== 'javascript:void(0);' && href.indexOf('javascript:') !== 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.open(href, '_blank'); // 新标签页打开
+        }
+    });
+});
+</script>
 </body>
 
 </html>
