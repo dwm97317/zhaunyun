@@ -114,7 +114,7 @@ class BaseModel extends Model
                 $query->whereIn($query->getTable() . '.storage_id', explode(',',self::$shop_id));
             }
         }
-        if (isset(self::$clerk_id) && self::$clerk_id !== '0') {
+        if (isset(self::$clerk_id) && self::$clerk_id !== '0' && self::$clerk_id !== '') {
             if($query->getTable() == 'yoshop_user'){
                 $query->whereIn($query->getTable() . '.service_id', explode(',',self::$clerk_id));
             }

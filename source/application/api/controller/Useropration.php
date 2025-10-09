@@ -563,6 +563,25 @@ class Useropration extends Controller
             }
             getpackfree($data['id'],$boxes);   
         }
+        
+        //根据设置内容，判断是否需要发送通知；
+        
+        $packData = $inpack::detail($data['id']);
+        $noticesetting = SettingModel::getItem('notice',$packData['wxapp_id']);
+        $tplmsgsetting = SettingModel::getItem('tplmsg',$packData['wxapp_id']);
+        $userData = (new UserModel)->where('user_id',$packData['member_id'])->find();
+        $packData['userName']=$userData['nickName'];
+        $packData['order'] = $packData;
+        $packData['order_type'] = 10;
+        $packData['remark']= $noticesetting['check']['describe'];
+        $packData['total_free'] = $packData['total_free'];
+        if($tplmsgsetting['is_oldtps']==1){
+          //发送旧版本订阅消息以及模板消息
+          Message::send('order.payment',$packData);
+        }else{
+          //发送新版本订阅消息以及模板消息
+          Message::send('package.payorder',$packData);
+        }
         if($res || $resimg || $resdeleteimg){
             return $this->renderSuccess('编辑成功');
         }
@@ -3266,15 +3285,7 @@ class Useropration extends Controller
             //通知用户付款
             $noticesetting = SettingModel::getItem('notice');
             // dump($noticesetting);die;
-           //根据设置内容，判断是否需要发送通知；
-            $userData = (new UserModel)->where('user_id',$packData['member_id'])->find();
-            $packData['userName']=$userData['nickName'];
-            $packData['order'] = $packData;
-            $packData['order_type'] = 10;
-            $packData['remark']= $noticesetting['check']['describe'];
-            $packData['total_free'] = $packData['free']+$packData['other_free']+$packData['pack_free'];
-            Message::send('order.payment',$packData);
-            Message::send('package.payorder',$packData);
+           
             Logistics::addrfidLog($packData['order_sn'],$noticesetting['check']['describe'],getTime(),$clerkdd['clerk_id']);
             //发送邮件通知
             if(isset($packData['member_id']) || !empty($packData['member_id'])){

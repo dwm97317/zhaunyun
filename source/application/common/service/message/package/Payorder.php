@@ -60,13 +60,14 @@ class Payorder extends Basics
     {
         $orderInfo = $this->param;
         $orderType = OrderTypeEnum::MASTER;
+      
         //当入库不存在用户id，则不发送提醒；
         if(!isset($this->param['member_id'])){
              return false;
         }
         // 获取订阅消息配置
-        $template = SettingModel::getItem('tplMsg',$this->getMinidByUserId($this->param['member_id']))['payorder'];
-   
+        $template = SettingModel::getItem('tplMsg',$orderInfo['wxapp_id'])['payorder'];
+    //  DUMP($template);DIE;
         $noticesetting = SettingModel::getItem('notice');
         $storesetting = SettingModel::getItem('store');
           
@@ -77,10 +78,10 @@ class Payorder extends Basics
             return false;
         }
         //判断是否采用H5方式；H5+小程序；
-        // dump($this->param);die;
+ 
         if ($storesetting['client']['mode']==10) {
-            return  $this->sendWxTplMsgForH5($this->getMinidByUserId($this->param['member_id']), [
-            'touser' => $this->getGzhOpenidByUserId($this->param['member_id']),
+            return  $this->sendWxTplMsgForH5(($orderInfo['wxapp_id']), [
+            'touser' => $this->getGzhOpenidByUserId($orderInfo['member_id']),
             'template_id' => $template['template_id'],
             'data' => [
                 $template['keywords'][0] => ['value' => $orderInfo['order_sn']],
@@ -90,8 +91,8 @@ class Payorder extends Basics
             ]
         ]);
         }else{
-            return  $this->sendWxTplMsg($this->getMinidByUserId($this->param['member_id']), [
-            'touser' => $this->getGzhOpenidByUserId($this->param['member_id']),
+            return  $this->sendWxTplMsg(($orderInfo['wxapp_id']), [
+            'touser' => $this->getGzhOpenidByUserId($orderInfo['member_id']),
             'template_id' => $template['template_id'],
             'url' => "{$this->pageUrl[$orderType]}?id={$orderInfo['id']}&rtype=10",
             'miniprogram'=>[
@@ -102,7 +103,7 @@ class Payorder extends Basics
                 $template['keywords'][0] => ['value' => $orderInfo['order_sn']],
                 $template['keywords'][1] => ['value' => $orderInfo['member_id']],
                 $template['keywords'][2] => ['value' => $orderInfo['weight']],
-                $template['keywords'][3] => ['value' => $orderInfo['total_free']],
+                $template['keywords'][3] => ['value' => $orderInfo['free']],
                 $template['keywords'][4] => ['value' => getTime()],
             ]
             ]);
