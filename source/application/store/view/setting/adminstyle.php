@@ -368,7 +368,26 @@
                                     </div>
                                 </div>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    代用户打包是否计算运费
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_auto_free]" value="1"
+                                               data-am-ucheck  <?= $values['is_auto_free'] == 1 ? 'checked' : '' ?>>
+                                        计算
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_auto_free]" value="0"
+                                               data-am-ucheck <?= $values['is_auto_free'] == 0 ? 'checked' : '' ?>>
+                                        不计算
+                                    </label>
+                                    <div class="help-block">
+                                        <small>注意：开启加密后的手机号中间四位数将会被*代替，如180****8550</small>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">排序功能设置</div>
                             </div>

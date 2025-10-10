@@ -965,7 +965,8 @@ class Index extends Controller
           'address_id' => $address_id,
           'free' => 0,
           'weight' => $weight,
-          'cale_weight' =>0,
+          'cale_weight' =>$weight,
+          'line_weight'=>$weight,
           'pay_type'=> !empty($userinfo)?$userinfo['paytype']:0,
           'volume' => $volumnweight, //体积重
           'pack_free' => 0,
@@ -1011,8 +1012,12 @@ class Index extends Controller
         }
          if($noticesetting['packageit']['is_enable']==1){
              Logistics::addInpackLogs($inpackdate['order_sn'],$noticesetting['packageit']['describe']);
-         }
-        
+        }
+        //是否计算运费
+        $settingdata  = setting::getItem('adminstyle',$inpackOrder['wxapp_id']);
+        if(isset($settingdata) && $settingdata['is_auto_free']==1){
+            getpackfree($inpack,[]);   
+        }
         if (!$res){
             return $this->renderError('打包包裹提交失败');
         }

@@ -328,6 +328,7 @@ class Useropration extends Controller
             $order['member_id'] = $user_id;
         }
         $order['weight'] = $weight;
+        
         $order['source'] = 8;
         $order['length'] = $length;
         $order['width'] = $width;
