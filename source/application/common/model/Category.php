@@ -42,7 +42,7 @@ class Category extends BaseModel
     {
         $model = new static;
         if (!Cache::get('category_' . $model::$wxapp_id)) {
-            $data = $model->with(['image'])->order(['sort' => 'asc', 'create_time' => 'asc'])->select();
+            $data = $model->with(['image'])->where('type',10)->order(['sort' => 'asc', 'create_time' => 'asc'])->select();
             $all = !empty($data) ? $data->toArray() : [];
             $tree = [];
             foreach ($all as $first) {
@@ -67,6 +67,41 @@ class Category extends BaseModel
         }
         return Cache::get('category_' . $model::$wxapp_id);
     }
+    
+    /**
+     * 所有分类
+     * @return mixed
+     */
+    public static function getShopALL()
+    {
+        $model = new static;
+        // dump(Cache::get('categoryshop_' . $model::$wxapp_id));die;
+        if (!Cache::get('categoryshop_' . $model::$wxapp_id)) {
+            $data = $model->with(['image'])->where('type',20)->order(['sort' => 'asc', 'create_time' => 'asc'])->select();
+            $all = !empty($data) ? $data->toArray() : [];
+            $tree = [];
+            foreach ($all as $first) {
+                if ($first['parent_id'] != 0) continue;
+                $twoTree = [];
+                foreach ($all as $two) {
+                    if ($two['parent_id'] != $first['category_id']) continue;
+                    $threeTree = [];
+                    foreach ($all as $three)
+                        $three['parent_id'] == $two['category_id']
+                        && $threeTree[$three['category_id']] = $three;
+                    !empty($threeTree) && $two['child'] = $threeTree;
+                    $twoTree[$two['category_id']] = $two;
+                }
+                if (!empty($twoTree)) {
+                    array_multisort(array_column($twoTree, 'sort'), SORT_ASC, $twoTree);
+                    $first['child'] = $twoTree;
+                }
+                $tree[$first['category_id']] = $first;
+            }
+            Cache::tag('cache')->set('categoryshop_' . $model::$wxapp_id, compact('all', 'tree'));
+        }
+        return Cache::get('categoryshop_' . $model::$wxapp_id);
+    }
 
     /**
      * 获取所有分类
@@ -85,7 +120,13 @@ class Category extends BaseModel
     {
         return self::getALL()['tree'];
     }
-
+    
+    public static function getShopCacheTree()
+    {
+        return self::getShopALL()['tree'];
+    }
+    
+    
     /**
      * 获取所有分类(树状结构)
      * @return string

@@ -161,7 +161,7 @@ class Goods extends GoodsModel
             $discountRatio = helper::bcdiv($goods['alone_grade_equity'][$user['grade_id']], 10);
         } else {
             // 折扣比例
-            $discountRatio = helper::bcdiv($user['grade']['equity']['discount'], 10);
+            $discountRatio = helper::bcdiv($user['grade']['equity'], 10);
         }
         if ($discountRatio > 0) {
             // 标记参与会员折扣

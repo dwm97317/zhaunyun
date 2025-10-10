@@ -65,9 +65,10 @@ class Category extends CategoryModel
     public function add($data)
     {
         $data['wxapp_id'] = self::$wxapp_id;
-//        if (!empty($data['image'])) {
-//            $data['image_id'] = UploadFile::getFildIdByName($data['image']);
-//        }
+        if (!empty($data['image'])) {
+            $data['image_id'] = UploadFile::getFildIdByName($data['image']);
+        }
+        $data['type']= 20;
         $this->deleteCache();
         return $this->allowField(true)->save($data);
     }
@@ -111,7 +112,7 @@ class Category extends CategoryModel
      */
     private function deleteCache()
     {
-        return Cache::rm('category_' . static::$wxapp_id);
+        return Cache::rm('categoryshop_' . static::$wxapp_id);
     }
 
 }

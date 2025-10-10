@@ -19,7 +19,7 @@ class Category extends Controller
     public function index()
     {
         $model = new CategoryModel;
-        $list = $model->getCacheTree();
+        $list = $model->getShopCacheTree();
         return $this->fetch('index', compact('list'));
     }
 
@@ -57,7 +57,7 @@ class Category extends Controller
         $model = new CategoryModel;
         if (!$this->request->isAjax()) {
             // 获取所有地区
-            $list = $model->getCacheTree();
+            $list = $model->getShopCacheTree();
             return $this->fetch('add', compact('list'));
         }
         // 新增记录
@@ -79,7 +79,7 @@ class Category extends Controller
         $model = CategoryModel::get($category_id, ['image']);
         if (!$this->request->isAjax()) {
             // 获取所有地区
-            $list = $model->getCacheTree();
+            $list = $model->getShopCacheTree();
             return $this->fetch('edit', compact('model', 'list'));
         }
         // 更新记录

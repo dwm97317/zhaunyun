@@ -24,7 +24,7 @@ class Goods extends Controller
         $model = new GoodsModel;
         $list = $model->getList(array_merge(['status' => -1], $this->request->param()));
         // 商品分类
-        $catgory = CategoryModel::getCacheTree();
+        $catgory = CategoryModel::getShopCacheTree();
         return $this->fetch('index', compact('list', 'catgory'));
     }
 

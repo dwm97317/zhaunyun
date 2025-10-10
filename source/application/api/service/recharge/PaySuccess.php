@@ -59,7 +59,7 @@ class PaySuccess extends Basics
                 $this->model->save([
                         'pay_status' => PayStatusEnum::SUCCESS,
                         'pay_time' => time(),
-                        'transaction_id' => $payData['out_trade_no']
+                        'transaction_id' => $payData['transaction_id']
                 ]);
             }
             

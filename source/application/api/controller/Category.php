@@ -22,7 +22,7 @@ class Category extends Controller
         // 分类模板
         $templet = WxappCategoryModel::detail();
         // 商品分类列表
-        $list = array_values(CategoryModel::getCacheTree());
+        $list = array_values(CategoryModel::getShopCacheTree());
         return $this->renderSuccess(compact('templet', 'list'));
     }
     

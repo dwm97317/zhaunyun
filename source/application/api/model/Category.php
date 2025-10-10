@@ -26,12 +26,12 @@ class Category extends CategoryModel
     
     // 全部分类
     public function getCategoryAll(){
-        return $this->field('category_id,name,parent_id')->select()->toArray();
+        return $this->field('category_id,name,parent_id')->where('type',10)->select()->toArray();
     }
     
     // 全部分类
     public function getParentCategory(){
-        return $this->field('category_id,name,parent_id')->where('parent_id',0)->select()->toArray();
+        return $this->field('category_id,name,parent_id')->where('type',10)->where('parent_id',0)->select()->toArray();
     }
     
     // 获取热门全部分类

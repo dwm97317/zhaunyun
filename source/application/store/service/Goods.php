@@ -27,7 +27,7 @@ class Goods extends GoodsService
     public static function getEditData($model = null, $handle = 'edit')
     {
         // 商品分类
-        $catgory = CategoryModel::getCacheTree();
+        $catgory = CategoryModel::getShopCacheTree();
         // 配送模板
         $delivery = DeliveryModel::getAll();
         // 会员等级列表

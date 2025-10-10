@@ -42,8 +42,8 @@ class Page extends Controller
                 'defaultData' => json_encode($model->getDefaultItems()),
                 'jsonData' => json_encode(['page' => $model->getDefaultPage(), 'items' => []]),
                 'opts' => json_encode([
-                    'catgory' => CategoryModel::getCacheTree(),
-                    // 'sharingCatgory' => SharingCategoryModel::getCacheTree(),
+                    'catgory' => CategoryModel::getShopCacheTree(),
+                    // 'sharingCatgory' => SharingCategoryModel::getShopCacheTree(),
                     'articleCatgory' => ArticleCategoryModel::getALL(),
                 ])
             ]);
@@ -71,8 +71,8 @@ class Page extends Controller
                 'defaultData' => json_encode($model->getDefaultItems()),
                 'jsonData' => json_encode($model['page_data']),
                 'opts' => json_encode([
-                    'catgory' => CategoryModel::getCacheTree(),
-                    // 'sharingCatgory' => SharingCategoryModel::getCacheTree(),
+                    'catgory' => CategoryModel::getShopCacheTree(),
+                    // 'sharingCatgory' => SharingCategoryModel::getShopCacheTree(),
                     'articleCatgory' => ArticleCategoryModel::getALL(),
                 ])
             ]);
