@@ -1401,6 +1401,7 @@ class TrOrder extends Controller
         $model = new Inpack;
         $set = Setting::detail('store')['values'];
         $list = $model->getNoPayList($dataType, $this->request->param());
+        $userclient =  Setting::detail('userclient')['values'];
         foreach ($list as &$value) {
             $value['num'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
@@ -1412,7 +1413,7 @@ class TrOrder extends Controller
            }
         }
 
-        return $this->fetch('index', compact('list','dataType','set'));
+        return $this->fetch('index', compact('list','dataType','set','userclient'));
     }
     
     
