@@ -384,7 +384,7 @@
                                         不计算
                                     </label>
                                     <div class="help-block">
-                                        <small>注意：开启加密后的手机号中间四位数将会被*代替，如180****8550</small>
+                                        <small>注意：开启后会在后台打包时自动计算运费</small>
                                     </div>
                                 </div>
                             </div>
