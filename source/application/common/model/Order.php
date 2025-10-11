@@ -78,7 +78,7 @@ class Order extends BaseModel
     public function extractShop()
     {
         $module = self::getCalledModule() ?: 'common';
-        return $this->belongsTo("app\\{$module}\\model\\store\\Shop", 'extract_shop_id');
+        return $this->belongsTo("app\\{$module}\\model\\UserAddress", 'extract_shop_id');
     }
 
     /**
