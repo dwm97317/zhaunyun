@@ -87,10 +87,55 @@ class Cart extends Controller
      * @param $goods_sku_id (支持字符串ID集)
      * @return array
      */
+    // public function delete($goods_sku_id)
+    // {
+    //     $this->model->delete($goods_sku_id);
+    //     return $this->renderSuccess();
+    // }
+ /**
+     * 删除购物车中指定商品
+     * @param $goods_sku_id (支持字符串ID集，如 "1_10,2_20,3_30")
+     * @return array
+     */
     public function delete($goods_sku_id)
     {
+        // 获取当前用户ID
+        $user_id = $this->getUserId();
+        
+        // 删除指定商品
         $this->model->delete($goods_sku_id);
-        return $this->renderSuccess();
+        
+        // 重新获取购物车数据
+        $cartData = $this->getCartData($user_id);
+        
+        return $this->renderSuccess($cartData, '删除成功');
+    }
+    
+    /**
+     * 获取购物车数据
+     * @param int $user_id 用户ID
+     * @return array
+     */
+    private function getCartData($user_id)
+    {
+        // 获取购物车商品列表
+        $cartList = $this->model->getList($user_id);
+        
+        // 初始化统计数据
+        $cart_total_num = 0;      // 购物车商品总数量
+        $order_total_price = 0;   // 购物车总金额
+        
+        // 统计数据
+        foreach ($cartList as $item) {
+            $cart_total_num += $item['total_num'];
+            $order_total_price += $item['total_price'];
+        }
+        
+        return [
+            'cart_total_num' => $cart_total_num,
+            'order_total_price' => number_format($order_total_price, 2, '.', ''),
+            'goods_list' => $cartList  // 可选：返回商品列表
+        ];
     }
 
 }

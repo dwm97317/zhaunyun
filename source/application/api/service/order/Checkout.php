@@ -693,7 +693,7 @@ class Checkout
      */
     private function validateOrderForm(&$order, $linkman, $phone)
     {
-        // dump($order['address']);die;
+       
         if ($order['delivery'] == DeliveryTypeEnum::EXPRESS) {
             if (empty($order['address'])) {
                 $this->error = '您还没有选择配送地址';
@@ -701,7 +701,7 @@ class Checkout
             }
         }
         if ($order['delivery'] == DeliveryTypeEnum::EXTRACT) {
-            if (empty($order['extract_shop'])) {
+            if (empty($order['address_id'])) {
                 $this->error = '您还没有选择自提门店';
                 return false;
             }
