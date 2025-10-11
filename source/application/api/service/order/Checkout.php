@@ -55,7 +55,7 @@ class Checkout
      */
     private $param = [
         'delivery' => null, // 配送方式
-        'shop_id' => 0,     // 自提门店id
+        'address_id' => 0,     // 自提门店id
         'linkman' => '',    // 自提联系人
         'phone' => '',    // 自提联系电话
         'coupon_id' => 0,    // 优惠券id
@@ -762,7 +762,7 @@ class Checkout
         if ($order['delivery'] == DeliveryTypeEnum::EXPRESS) {
             $data['express_price'] = $order['express_price'];
         } elseif ($order['delivery'] == DeliveryTypeEnum::EXTRACT) {
-            $data['extract_shop_id'] = $order['extract_shop']['shop_id'];
+            $data['extract_shop_id'] = $order['extract_shop']['address_id'];
         }
         // 保存订单记录
         return $this->model->save($data);
