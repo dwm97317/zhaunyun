@@ -203,7 +203,7 @@ class Checkout
            
             $this->setOrderExpress();
         } elseif ($this->param['delivery'] == DeliveryTypeEnum::EXTRACT) {
-            $this->param['shop_id'] > 0 && $this->orderData['extract_shop'] = ShopModel::detail($this->param['shop_id']);
+            $this->param['address_id'] > 0 && $this->orderData['extract_shop'] = UserAddress::detail($this->param['address_id']);
         }
         // 计算订单最终金额
         $this->setOrderPayPrice();
@@ -693,7 +693,7 @@ class Checkout
      */
     private function validateOrderForm(&$order, $linkman, $phone)
     {
-       
+        // dump($order['address']);die;
         if ($order['delivery'] == DeliveryTypeEnum::EXPRESS) {
             if (empty($order['address'])) {
                 $this->error = '您还没有选择配送地址';
@@ -701,7 +701,7 @@ class Checkout
             }
         }
         if ($order['delivery'] == DeliveryTypeEnum::EXTRACT) {
-            if (empty($order['address_id'])) {
+            if (empty($order['extract_shop'])) {
                 $this->error = '您还没有选择自提门店';
                 return false;
             }
