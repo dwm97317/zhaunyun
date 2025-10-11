@@ -203,7 +203,7 @@ class Checkout
            
             $this->setOrderExpress();
         } elseif ($this->param['delivery'] == DeliveryTypeEnum::EXTRACT) {
-            $this->param['address_id'] > 0 && $this->orderData['extract_shop'] = UserAddress::detail($this->param['address_id']);
+            $this->param['address_id'] > 0 && $this->orderData['extract_shop'] = UserAddress::getdetail($this->param['address_id']);
         }
         // 计算订单最终金额
         $this->setOrderPayPrice();
