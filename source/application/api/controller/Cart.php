@@ -99,16 +99,9 @@ class Cart extends Controller
      */
     public function delete($goods_sku_id)
     {
-        // 获取当前用户ID
-        $user_id = $this->getUserId();
-        
         // 删除指定商品
         $this->model->delete($goods_sku_id);
-        
-        // 重新获取购物车数据
-        $cartData = $this->getCartData($user_id);
-        
-        return $this->renderSuccess($cartData, '删除成功');
+        return $this->renderSuccess('删除成功');
     }
     
     /**

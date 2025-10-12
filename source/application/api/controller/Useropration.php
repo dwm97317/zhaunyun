@@ -569,7 +569,7 @@ class Useropration extends Controller
         
         $packData = $inpack::detail($data['id']);
         $noticesetting = SettingModel::getItem('notice',$packData['wxapp_id']);
-        $tplmsgsetting = SettingModel::getItem('tplmsg',$packData['wxapp_id']);
+        $tplmsgsetting = SettingModel::getItem('tplMsg',$packData['wxapp_id']);
         $userData = (new UserModel)->where('user_id',$packData['member_id'])->find();
         $packData['userName']=$userData['nickName'];
         $packData['order'] = $packData;

@@ -2031,7 +2031,6 @@ class TrOrder extends Controller
     {
         $model = new CommentModel;
         $list = $model->getList($type=1);
-        // dump($list->toArray());die;
         foreach ($list as $k =>$v){
               $list[$k]["score"] = json_decode($v['score'],true);
         }
@@ -2050,7 +2049,6 @@ class TrOrder extends Controller
 
         $model = CommentModel::detail($comment_id);
         $model['score']=json_decode($model['score'],true);
-        // dump($model->toArray());die;
         if (!$this->request->isAjax()) {
             return $this->fetch('comment_detail', compact('model'));
         }

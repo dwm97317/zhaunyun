@@ -271,30 +271,20 @@ $detail = isset($detail) ? $detail : null;
                             am-text-nowrap am-margin-bottom-xs">
                                 <tbody>
                                 <tr>
-                                    <th>门店ID</th>
-                                    <th>门店logo</th>
-                                    <th>门店名称</th>
+                                    <th>自提点ID</th>
                                     <th>联系人</th>
                                     <th>联系电话</th>
-                                    <th>门店地址</th>
+                                    <th>自提点地址</th>
                                 </tr>
                                 <tr>
-                                    <td><?= $detail['extract_shop']['shop_id'] ?></td>
-                                    <td>
-                                        <a href="<?= $detail['extract_shop']['logo']['file_path'] ?>" title="点击查看大图"
-                                           target="_blank">
-                                            <img src="<?= $detail['extract_shop']['logo']['file_path'] ?>" height="72"
-                                                 alt="">
-                                        </a>
-                                    </td>
-                                    <td><?= $detail['extract_shop']['shop_name'] ?></td>
-                                    <td><?= $detail['extract_shop']['linkman'] ?></td>
+                                    <td><?= $detail['extract_shop']['address_id'] ?></td>
+                                    <td><?= $detail['extract_shop']['name'] ?></td>
                                     <td><?= $detail['extract_shop']['phone'] ?></td>
                                     <td>
-                                        <?= $detail['extract_shop']['region']['province'] ?>
-                                        <?= $detail['extract_shop']['region']['city'] ?>
-                                        <?= $detail['extract_shop']['region']['region'] ?>
-                                        <?= $detail['extract_shop']['address'] ?>
+                                        <?= $detail['extract_shop']['province'] ?>
+                                        <?= $detail['extract_shop']['city'] ?>
+                                        <?= $detail['extract_shop']['region'] ?>
+                                        <?= $detail['extract_shop']['detail'] ?>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -520,9 +510,9 @@ $detail = isset($detail) ? $detail : null;
                                     </tr>
                                     <tr>
                                         <td>
-                                            <p><?= $detail['extract_shop']['shop_name'] ?></p>
+                                            <p><?= $detail['extract_shop']['name'] ?></p>
                                             <p class="am-link-muted">
-                                                (ID: <?= $detail['extract_shop']['shop_id'] ?>)
+                                                (ID: <?= $detail['extract_shop']['address_id'] ?>)
                                             </p>
                                         </td>
                                         <td>

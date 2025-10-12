@@ -182,21 +182,24 @@ class Comment extends CommentModel
      * @return boolean
      * @throws \Exception
      */
-    public function addForOrder($order, $goodsList, $post)
-    {
+    public function addForOrder($order, $goodsList,$post)
+    { 
         // 生成 formData
         $formData = $this->formatFormData($post);
+       
         // 生成评价数据
         $data = $this->createCommentData($order['user_id'], $order['order_id'], $goodsList, $formData);
+       
         if (empty($data)) {
             $this->error = '没有输入评价内容';
             return false;
         }
+      
         return $this->transaction(function () use ($order, $goodsList, $formData, $data) {
             // 记录评价内容
             $result = $this->isUpdate(false)->saveAll($data);
             // 记录评价图片
-            $this->saveAllImages($result, $formData);
+            $this->saveAllImagestwo($result, $formData);
             // 更新订单评价状态
             $isComment = count($goodsList) === count($data);
             $this->updateOrderIsComment($order, $isComment, $result);
@@ -261,6 +264,8 @@ class Comment extends CommentModel
         $isComment && $order->save(['is_comment' => 1]);
         return (new OrderGoods)->saveAll($orderGoodsData);
     }
+    
+    
 
     /**
      * 生成评价数据
@@ -272,25 +277,25 @@ class Comment extends CommentModel
      * @throws BaseException
      */
     private function createCommentData($user_id, $order_id, $goodsList, $formData)
-    {
+    {   
         $data = [];
+     
         foreach ($goodsList as $goods) {
-            if (!isset($formData[$goods['order_goods_id']])) {
-                throw new BaseException(['msg' => '提交的数据不合法']);
-            }
-            $item = $formData[$goods['order_goods_id']];
+            $data = [];
+            $item = $formData;
             $item['content'] = trim($item['content']);
             !empty($item['content']) && $data[$goods['order_goods_id']] = [
-                'score' => $item['score'],
+                'score' => json_encode($formData['star']),
                 'content' => $item['content'],
                 'is_picture' => !empty($item['uploaded']),
                 'sort' => 100,
                 'status' => 1,
                 'user_id' => $user_id,
                 'order_id' => $order_id,
-                'goods_id' => $item['goods_id'],
-                'order_goods_id' => $item['order_goods_id'],
-                'wxapp_id' => self::$wxapp_id
+                'goods_id' => $goods['goods_id'],
+                'order_goods_id' => $goods['order_goods_id'],
+                'wxapp_id' => self::$wxapp_id,
+                'common_type'=>2
             ];
         }
         return $data;
@@ -333,8 +338,8 @@ class Comment extends CommentModel
      */
     private function formatFormData($post)
     {
-        $formJsonData = htmlspecialchars_decode($post);
-        return helper::arrayColumn2Key(helper::jsonDecode($formJsonData), 'order_goods_id');
+        $post['content'] = htmlspecialchars_decode($post['content']);
+        return $post;
     }
     
      /**
@@ -359,7 +364,6 @@ class Comment extends CommentModel
     {
         // 生成评价图片数据
         $imageData = [];
-        
         foreach ($formData['uploaded'] as $imageId) {
             $imageData[] = [
                 'comment_id' => $commentId,
@@ -372,6 +376,29 @@ class Comment extends CommentModel
         return !empty($imageData) && $model->saveAll($imageData);
     }
     
+    /**
+     * 记录评价图片
+     * @param $commentList
+     * @param $formData
+     * @return bool
+     * @throws \Exception
+     */
+    private function saveAllImagestwo($commentId, $formData)
+    {
+        // 生成评价图片数据
+        $imageData = [];
+        foreach($commentId as $v){
+            foreach ($formData['uploaded'] as $imageId) {
+                $imageData[] = [
+                    'comment_id' => $v['comment_id'],
+                    'image_id' => $imageId,
+                    'wxapp_id' => self::$wxapp_id
+                ];
+            } 
+        }
+        $model = new CommentImage;
+        return !empty($imageData) && $model->saveAll($imageData);
+    }
     
 
 }

@@ -12,6 +12,7 @@ use app\common\enum\order\PayType as PayTypeEnum;
 use app\common\enum\order\PayStatus as PayStatusEnum;
 use app\common\library\helper;
 
+
 /**
  * 订单模型
  * Class Order
@@ -251,7 +252,7 @@ class Order extends BaseModel
         'goods' => ['image'],
         'extract',
         'express',
-        'extract_shop.logo',
+        'extract_shop',
         'extract_clerk'
     ])
     {

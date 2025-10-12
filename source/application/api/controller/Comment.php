@@ -6,6 +6,8 @@ use app\api\model\Comment as CommentModel;
 use app\api\model\Package;
 use app\api\model\UserCoupon;
 use app\common\model\Setting;
+use app\api\model\Order as OrderModel;
+
 /**
  * 商品评价控制器
  * Class Comment
@@ -56,7 +58,8 @@ class Comment extends Controller
                 return $this->renderError($model->getError() ?: '评论创建失败');
             }
         }else{
-            if (!$model->addForOrder($order,$post)){
+            $order = OrderModel::detail($post['order_id']);
+            if (!$model->addForOrder($order,$order['goods'],$post)){
                 return $this->renderError($model->getError() ?: '评论创建失败');
             }
         }

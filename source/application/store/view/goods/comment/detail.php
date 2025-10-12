@@ -32,21 +32,21 @@
                                 </div>
                             </div>
                             <div class="am-form-group am-margin-top-xl">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">评分 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">整体评分 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="comment[score]" value="10" data-am-ucheck
-                                            <?= $model['score'] == 10 ? 'checked' : '' ?> >
+                                        <input type="radio" name="comment[all]" value="5" data-am-ucheck
+                                            <?= $model['score']['all'] >= 4 ? 'checked' : '' ?> >
                                         好评
                                     </label>
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="comment[score]" value="20" data-am-ucheck
-                                            <?= $model['score'] == 20 ? 'checked' : '' ?> >
+                                        <input type="radio" name="comment[all]" value="3" data-am-ucheck
+                                            <?= $model['score']['all'] == 3 ? 'checked' : '' ?> >
                                         中评
                                     </label>
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="comment[score]" value="30" data-am-ucheck
-                                            <?= $model['score'] == 30 ? 'checked' : '' ?> >
+                                        <input type="radio" name="comment[all]" value="2" data-am-ucheck
+                                            <?= $model['score']['all'] <3 ? 'checked' : '' ?> >
                                         差评
                                     </label>
                                 </div>

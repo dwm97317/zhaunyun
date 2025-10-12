@@ -43,9 +43,9 @@
                                         <p class="am-link-muted">(用户id：<?= $item['user']['user_id'] ?>)</p>
                                     </td>
                                     <td class="am-text-middle">
-                                        <?php if ($item['score'] == 10) : ?>
+                                        <?php if ($item['score']['all'] >=4) : ?>
                                             <span class="x-color-green">好评</span>
-                                        <?php elseif ($item['score'] == 20) : ?>
+                                        <?php elseif ($item['score']['all'] == 3) : ?>
                                             <span class="x-color-yellow">中评</span>
                                         <?php else: ?>
                                             <span class="x-color-red">差评</span>

@@ -21,6 +21,9 @@ class Comment extends Controller
     {
         $model = new CommentModel;
         $list = $model->getList($type=2);
+        foreach ($list as $k =>$v){
+              $list[$k]["score"] = json_decode($v['score'],true);
+        }
         return $this->fetch('index', compact('list'));
     }
 
@@ -34,6 +37,7 @@ class Comment extends Controller
     {
         // 评价详情
         $model = CommentModel::detail($comment_id);
+        $model['score']=json_decode($model['score'],true);
         if (!$this->request->isAjax()) {
             return $this->fetch('detail', compact('model'));
         }
