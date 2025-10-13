@@ -159,6 +159,7 @@ class Shelf extends Controller
             	}
             	table.container {
             		width: 375px;
+            		height:200px;
             		border: 1px solid #000;
             		border-bottom: 0
             		text-align:center;
