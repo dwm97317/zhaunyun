@@ -65,7 +65,20 @@
                                     </label>
                                 </div>
                             </div>
-         
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 拼团进度百分比 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                      <label class="am-radio-inline">
+                                        <input type="radio" name="share[sharepredict]" value="10" data-am-ucheck
+                                               <?= $data['sharepredict'] == '10' ? 'checked' : '' ?>>
+                                        按累计重量
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="share[sharepredict]" value="20" data-am-ucheck <?= $data['sharepredict'] == '20' ? 'checked' : '' ?>>
+                                        按人数
+                                    </label>
+                                </div>
+                            </div>  
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 拼团规则 </label>
                                 <div class="am-u-sm-9 am-u-end">

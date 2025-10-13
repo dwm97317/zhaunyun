@@ -877,6 +877,7 @@ class Setting extends BaseModel
                         'is_open' => '0',
                         'value'=>60,
                         'icon'=> base_url()."assets/api/images//dzx_img130.png",
+                        'sort'=>20, //排序
                         'platfrom'=>[
                             'MP-WEIXIN'=>1,
                             'H5-WEIXIN'=>1,

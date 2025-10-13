@@ -23,35 +23,35 @@
                                     </label>
                                 </div>
                             </div>
-                            <div class="am-form-group">
+                            <div class="am-form-group bank-info-fields">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">开户行 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="bank[bank_name]"
                                            placeholder="请输入开户行" value="<?= $model['bank_name'] ?>">
                                 </div>
                             </div>  
-                            <div class="am-form-group am-padding-top">
+                            <div class="am-form-group am-padding-top bank-info-fields">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 开户支行 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="bank[child_bank_name]"
                                            placeholder="请输入开户支行" value="<?= $model['child_bank_name'] ?>">
                                 </div>
                             </div>
-                            <div class="am-form-group">
+                            <div class="am-form-group bank-info-fields">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 银行卡号 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="bank[bank_card]"
                                            placeholder="请输入银行卡号" value="<?= $model['bank_card'] ?>">
                                 </div>
                             </div>
-                            <div class="am-form-group">
+                            <div class="am-form-group bank-info-fields">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 银行行号 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="bank[bank_no]"
                                            placeholder="请输入银行行号" value="<?= $model['bank_no'] ?>">
                                 </div>
                             </div>
-                            <div class="am-form-group">
+                            <div class="am-form-group bank-info-fields">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 开户人 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="bank[open_name]"
@@ -59,7 +59,7 @@
                                     
                                 </div>
                             </div>
-                            <div class="am-form-group">
+                            <div class="am-form-group qrcode-upload-field">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">收款码 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="am-form-file">
@@ -123,9 +123,34 @@
 
     $(function () {
 
-            // 选择图片
+        // 选择图片
         $('.upload-file').selectImages({
             name: 'bank[image_id]'
+        });
+
+        /**
+         * 根据账号类型切换显示字段
+         */
+        function toggleBankFields() {
+            var bankType = $('input[name="bank[bank_type]"]:checked').val();
+            
+            if (bankType == '0') {
+                // 银行账户：显示银行信息，隐藏收款码
+                $('.bank-info-fields').show();
+                $('.qrcode-upload-field').hide();
+            } else if (bankType == '1') {
+                // 收款码：隐藏银行信息，显示收款码
+                $('.bank-info-fields').hide();
+                $('.qrcode-upload-field').show();
+            }
+        }
+        
+        // 页面加载时执行一次
+        toggleBankFields();
+        
+        // 监听账号类型变化
+        $('input[name="bank[bank_type]"]').on('change', function() {
+            toggleBankFields();
         });
 
         /**

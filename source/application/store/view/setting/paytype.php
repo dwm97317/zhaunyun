@@ -342,7 +342,23 @@
                                <label class="am-u-sm-3 am-form-label"></label>
                                     <small>注：线下支付是指用户可以通过银行转行，微信支付宝收款码等方式进行收款</small>
                             </div>
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    线下支付排序
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="paytype[bankimage][sort]" value="10"
+                                               data-am-ucheck  <?= $values['bankimage']['sort'] == 10 ? 'checked' : '' ?>>
+                                        银行账户优先
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="paytype[bankimage][sort]" value="20"
+                                               data-am-ucheck <?= $values['bankimage']['sort'] == 20 ? 'checked' : '' ?>>
+                                        收款码优先
+                                    </label>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交

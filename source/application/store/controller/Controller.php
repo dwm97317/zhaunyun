@@ -11,6 +11,9 @@ use app\common\model\Setting as SettingModel;
 use app\common\model\UploadFile;
 use think\Request;
 use think\Session;
+use app\common\model\Certificate;
+
+
 
 /**
  * 商户后台控制器基类
@@ -101,6 +104,8 @@ private function layout()
            
             $Inpack = new Inpack;
             $storeData['wxapp']['end_time'] = date("Y-m-d",$storeData['wxapp']['end_time']);
+            // 获取待审核凭证数量 (cert_status = 1 表示待审核)
+            $certificateCount = Certificate::where('cert_status', 1)->count();
             // 输出到view
             $this->assign([
                 'base_url' => base_url(),                      // 当前域名
@@ -112,6 +117,7 @@ private function layout()
                 'request' => Request::instance(),              // Request对象
                 'version' => get_version(),                    // 系统版本号
                 'count'=>$Inpack->getExceedCountList('exceed'),
+                'certificate_count' => $certificateCount,      // 待审核凭证数量
             ]);
         }
     }

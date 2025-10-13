@@ -528,8 +528,8 @@ class Package extends Controller
          }
          
          if (isset($post['share_id']) && $post['is_share'] && $post['share_id']){
-                 $post['user_id'] = $user['user_id'];
-                 (new SharingOrderItem())->addItem($post,$res);
+             $post['user_id'] = $user['user_id'];
+             (new SharingOrderItem())->addItemPackage($post,$res);
          }
          if(!empty($post['imageIds'])){
             $this->inImages($res,$post['imageIds'],$wxapp_id);

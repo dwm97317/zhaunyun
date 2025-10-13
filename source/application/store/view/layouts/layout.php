@@ -59,6 +59,13 @@
             <!-- 其它功能-->
             <div class="am-fr tpl-header-navbar">
                 <ul>
+                    <?php if (isset($certificate_count)): ?>
+                    <li  class="am-text-sm tpl-header-navbar-welcome">
+                        <a href="<?= url('setting.certificate/index') ?>" style="color: <?= $certificate_count > 0 ? '#ff0000' : '#929292' ?>;    font-weight: 900;">
+                            <span >汇款凭证审核 (<?= $certificate_count ?>)</span>
+                        </a>
+                    </li>
+                    <?php endif; ?>
                     <li class="am-text-sm tpl-header-navbar-welcome">
                         <a href="<?= url('tools/guide') ?>"><span>使用指南</span></a>
                     </li>
@@ -135,7 +142,8 @@
                             <?php if (!isset($item['submenu'])): ?>
                                 <!-- 二级菜单-->
                                 <a href="<?= url($item['index']) ?>"
-                                   class="<?= (isset($item['active']) && $item['active']) ? 'active' : '' ?>">
+                                   class="<?= (isset($item['active']) && $item['active']) ? 'active' : '' ?>"
+                                   <?= (isset($item['open_new_tab']) && $item['open_new_tab']) ? 'target="_blank"' : '' ?>>
                                     <?= $item['name']; ?>
                                 </a>
                             <?php else: ?>
@@ -150,7 +158,8 @@
                                         <?php foreach ($item['submenu'] as $third) : ?>
                                             <li>
                                                 <a class="<?= $third['active'] ? 'active' : '' ?>"
-                                                   href="<?= url($third['index']) ?>">
+                                                   href="<?= url($third['index']) ?>"
+                                                   <?= (isset($third['open_new_tab']) && $third['open_new_tab']) ? 'target="_blank"' : '' ?>>
                                                     <?= $third['name']; ?></a>
                                             </li>
                                         <?php endforeach; ?>
@@ -183,7 +192,8 @@
     <script src="assets/store/css/app_shu1/jiyunApp.js"></script>
     <?php endif; ?>
 <script>
-// 菜单链接打开方式：一级当前页，二级三级新标签
+// 菜单链接打开方式：根据配置文件中的 open_new_tab 参数决定
+// 如果菜单项设置了 target="_blank"，则在新标签页打开，否则在当前页打开
 $(document).ready(function() {
     // 一级菜单：在当前页面跳转
     $('.sidebar-nav a').on('click', function(e) {
@@ -196,16 +206,8 @@ $(document).ready(function() {
         }
     });
     
-    // 二级、三级菜单：在新标签页打开
-    $('.left-sidebar-second a').on('click', function(e) {
-        var href = $(this).attr('href');
-        // 如果不是 javascript:void(0) 这样的伪链接
-        if (href && href !== 'javascript:void(0);' && href.indexOf('javascript:') !== 0) {
-            e.preventDefault();
-            e.stopPropagation();
-            window.open(href, '_blank'); // 新标签页打开
-        }
-    });
+    // 注意：二级、三级菜单现在由 HTML 的 target 属性控制
+    // 如果菜单配置中有 'open_new_tab' => true，会自动添加 target="_blank"
 });
 </script>
 </body>

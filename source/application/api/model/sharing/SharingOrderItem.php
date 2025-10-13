@@ -13,7 +13,7 @@ class SharingOrderItem extends SharingOrderItemModel {
         $insert['order_id'] = $post['share_id'];
         $insert['package_id'] = $res;
         $insert['status'] = $status;
-        $insert['user_id'] = $post['user_id'];
+        $insert['type'] = 1;
         $insert['wxapp_id'] = self::$wxapp_id;
          // 开启事务
         $this->startTrans();
@@ -24,6 +24,27 @@ class SharingOrderItem extends SharingOrderItemModel {
             return true;
         } catch (\Exception $e) {
             $this->error = $e->getMessage();
+            $this->rollback();
+            return false;
+        }
+    }
+    
+    public function addItemPackage($post,$res){
+        $status = 2;
+        $insert['order_id'] = $post['share_id'];
+        $insert['package_id'] = $res;
+        $insert['status'] = $status;
+        $insert['wxapp_id'] = self::$wxapp_id;
+         // 开启事务
+        $this->startTrans();
+        try {
+            $res =$this->save($insert);
+         
+            $this->commit();
+            return true;
+        } catch (\Exception $e) {
+            $this->error = $e->getMessage();
+            dump($e->getMessage());
             $this->rollback();
             return false;
         }

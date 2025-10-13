@@ -264,6 +264,7 @@ class TrOrder extends Controller
         $model = new Inpack;
         $set = Setting::detail('store')['values'];
         $list = $model->getQuicklypack($dataType, $this->request->param());
+        $userclient =  Setting::detail('userclient')['values'];
         foreach ($list as &$value) {
             $value['num'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
@@ -275,7 +276,7 @@ class TrOrder extends Controller
            }
         }
 
-        return $this->fetch('index', compact('list','dataType','set'));
+        return $this->fetch('index', compact('list','dataType','set','userclient'));
     }
     
     
@@ -312,6 +313,7 @@ class TrOrder extends Controller
         $lineList = $Line->getListAll();
         $set = Setting::detail('store')['values'];
         $list = $model->getExceedList($dataType, $this->request->param());
+        $userclient =  Setting::detail('userclient')['values'];
         foreach ($list as &$value) {
             $value['num'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['sonnum'] =  (new InpackItem())->where(['inpack_id'=>$value['id']])->count();
@@ -319,7 +321,7 @@ class TrOrder extends Controller
             $value['inpack'] = 0;
         }
 
-        return $this->fetch('index', compact('list','dataType','set','lineList'));
+        return $this->fetch('index', compact('list','dataType','set','lineList','userclient'));
     }
     
     /**
@@ -1327,6 +1329,7 @@ class TrOrder extends Controller
         $lineList = $Line->getListAll();
         $list = $model->getnopayorderList([7,8], $this->request->param());
         $pintuanlist = (new SharingOrder())->getList([]);
+        $userclient =  Setting::detail('userclient')['values'];
         $shopList = ShopModel::getAllList();
         foreach ($list as &$value) {
             $value['num'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
@@ -1338,7 +1341,7 @@ class TrOrder extends Controller
            }
         }
 
-        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList'));
+        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList','userclient'));
     }
     
     /**
@@ -1375,6 +1378,7 @@ class TrOrder extends Controller
         $list = $model->getArrearsList([8], $this->request->param());
         $pintuanlist = (new SharingOrder())->getList([]);
         $shopList = ShopModel::getAllList();
+        $userclient =  Setting::detail('userclient')['values'];
         foreach ($list as &$value) {
             $value['num'] = (new Package())->where('inpack_id',$value['id'])->where('is_delete',0)->count();
             $value['down_shelf'] = 0;
@@ -1385,7 +1389,7 @@ class TrOrder extends Controller
            }
         }
 
-        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList'));
+        return $this->fetch('index', compact('list','dataType','set','pintuanlist','shopList','lineList','userclient'));
     }
     
     /**

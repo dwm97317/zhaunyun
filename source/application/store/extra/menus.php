@@ -4,7 +4,8 @@
  *    'home' => [
  *       'name' => '首页',                // 菜单名称
  *       'icon' => 'icon-home',          // 图标 (class)
- *       'index' => 'index/index',         // 链接
+ *       'index' => 'index/index',       // 链接
+ *       'open_new_tab' => true,         // 是否在新标签页打开（可选参数，二级三级菜单适用）
  *     ],
  */
 return [
@@ -22,10 +23,10 @@ return [
               'name' => '后台录入',
               'index' => 'package.index/add',
           ],
-          [
-              'name' => '新后台录入',
-              'index' => 'package.newpack/newadd',
-          ],
+            [
+                'name' => '新后台录入',
+                'index' => 'package.newpack/newadd',
+            ],
           [
               'name' => '一票多件录入',
               'index' => 'package.newpack/addpackage',
@@ -35,13 +36,13 @@ return [
               'index' => 'package.index/adminreport',
           ],
           [
-              'name' => '扫码入库',
-              'index' => 'package.index/scan',
-          ],
-          [
-              'name' => '扫码出库',
-              'index' => 'package.index/scanout',
-          ],
+                'name' => '扫码入库',
+                'index' => 'package.index/scan',
+            ],
+            [
+                'name' => '扫码出库',
+                'index' => 'package.index/scanout',
+            ],
           [
               'name' => '预报包裹',
               'index' => 'package.report/index',
@@ -57,7 +58,9 @@ return [
           [
               'name' => '全部包裹',
               'index' => 'package.index/index',
+              'open_new_tab' => true,
           ],
+          
           [
               'name' => '待打包',
               'index' => 'package.index/uninpack',
@@ -89,46 +92,57 @@ return [
             [
                 'name' => '全部订单',
                 'index' => 'tr_order/all_list',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '待查验',
                 'index' => 'tr_order/verify_list',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '待发货',
                 'index' => 'tr_order/payed_list',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '已发货',
                 'index' => 'tr_order/sending',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '已到货',
                 'index' => 'tr_order/sended',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '已完成',
                 'index' => 'tr_order/complete',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '未支付',
                 'index' => 'tr_order/pay_list',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '问题件',
                 'index' => 'tr_order/cancel_list',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '超时件',
                 'index' => 'tr_order/exceedorder',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '用户评价',
                 'index' => 'tr_order/comment',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '快速打包件',
                 'index' => 'tr_order/quicklypack',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '月结订单',
@@ -137,10 +151,12 @@ return [
                     [
                         'name' => '欠费用户',
                         'index' => 'tr_order/arrearsuser',
+                        'open_new_tab' => true,
                     ],
                     [
                         'name' => '月结订单',
                         'index' => 'tr_order/arrearsorder',
+                        'open_new_tab' => true,
                     ],
                 ]
             ],
@@ -151,10 +167,12 @@ return [
                     [
                         'name' => '欠费用户',
                         'index' => 'tr_order/nopayuser',
+                        'open_new_tab' => true,
                     ],
                     [
                         'name' => '未付订单',
                         'index' => 'tr_order/nopayorder',
+                        'open_new_tab' => true,
                     ],
                 ]
             ]
@@ -647,6 +665,7 @@ return [
             [
                 'name' => '数据大屏',
                 'index' => 'statistics.data/datascreen',
+                'open_new_tab' => true,
             ], 
         ]
     ],
@@ -679,7 +698,8 @@ return [
                     ],
                     [
                         'name' => '网站菜单',
-                        'index' => 'wxapp/webmenu'
+                        'index' => 'wxapp/webmenu',
+                        'open_new_tab' => true,
                     ],
                     [
                         'name' => '友情链接',
@@ -709,6 +729,7 @@ return [
                     [
                         'name' => '页面设计',
                         'index' => 'wxapp.page/index',
+                        'open_new_tab' => true,
                         'uris' => [
                             'wxapp.page/index',
                             'wxapp.page/add',
@@ -1146,10 +1167,12 @@ return [
             [
                 'name' => 'API接口',
                 'index' => 'tools/apipost',
+                'open_new_tab' => true,
             ],
             [
                 'name' => '使用指南',
                 'index' => 'tools/guide',
+                'open_new_tab' => true,
             ],
         ]
     ]

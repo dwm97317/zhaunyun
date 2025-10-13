@@ -87,6 +87,7 @@ class Setting extends BaseModel{
                     'is_verify' => 0, // 拼团活动 是否需要后台审核
                     'is_shenhe' => 1, //用户申请加入拼团是否需要审核
                     'describe' =>"当满足拼团的包裹上限，拼团会自动进行锁团，无法再加入团员，但可找团长进行协商；",
+                    'sharepredict'=>10, // 10=按重量  20=按人数
                     'error' => [
                         'exceed_num' => '已超拼团人数上限',
                         'no_start' => '拼团活动暂未开启，请等待',

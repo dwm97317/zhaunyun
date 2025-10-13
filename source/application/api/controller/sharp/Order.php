@@ -5,6 +5,7 @@ use app\api\model\sharing\SharingOrder;
 use app\api\model\sharing\SharingOrderItem;
 use app\api\model\sharing\SharingOrderAddress;
 use app\api\model\Line;
+use app\api\model\Package;
 use app\api\model\PackageItem;
 use app\common\model\Country;
 use app\api\model\User as UserModel;
@@ -157,17 +158,22 @@ class Order extends Controller
          $userInfo = $this->getUser();
          $model = (new SharingOrder())->detail($id);
          $inpack = new Inpack();
+         $Package = new Package();
          $userModel = new UserModel();
          $model['leader'] =$userModel->find($model['member_id']);
 
-         $orderItem = (new SharingOrderItem())->where(['order_id'=> $id])->select();
+         $orderItem = (new SharingOrderItem())->where(['order_id'=> $id])->where('type',0)->select();
+         $orderItem2 = (new SharingOrderItem())->where(['order_id'=> $id])->where('type',1)->select();
          $userList = [];
          $packageItem = [];
          if($orderItem){
              foreach($orderItem as $key => $val){
-                $packageItem[$key] = $inpack->where('id',$val['package_id'])->find();
+                $packageItem[] = $Package->where('id',$val['package_id'])->find();
              }
-             
+             foreach($orderItem2 as $key => $val){
+                $packageItem[] = $inpack->where('id',$val['package_id'])->find();
+             }
+             $packageItem = array_filter($packageItem);
              foreach($packageItem as $key => $val){
                 $userList[$key] = $userModel->where('user_id',$val['member_id'])->find();
               }
@@ -179,13 +185,19 @@ class Order extends Controller
              $model['address'] = (new SharingOrderAddress())->where($address_where)->find();
          }
          $SharingService = (new SharingOrderService());
-         $model['setting'] =  htmlspecialchars_decode(Setting::getItem('sharp')['describe']);
-        //  dump($setting);die;
-        //  $allWeight = $SharingService->getHasWeight($orderItem);
-        //  $allWeight = $allWeight>$model['predict_weight']?$model['predict_weight']:$allWeight;
-        //  $model['allweight'] = $allWeight;
-         $count = (new SharingOrderItem())->where(['order_id'=> $id])->count();
-         $model['percent'] = (round($count/$model['max_people'],2))*100;
+         $setting = Setting::getItem('sharp');
+         $model['setting'] =  htmlspecialchars_decode($setting['describe']);
+         //根据设置来决定使用什么作为百分比
+         if(isset($setting['sharepredict']) && $setting['sharepredict']==10){
+            $countpackageid = (new SharingOrderItem())->where(['order_id' => $id])->where('type',0)->column('package_id');
+            $countinpackid = (new SharingOrderItem())->where(['order_id' => $id])->where('type',1)->column('package_id');
+            $countweight = $Package->whereIn('id', $countpackageid)->sum('weight');
+            $countinpackweight = $inpack->whereIn('id', $countinpackid)->sum('cale_weight');
+            $model['percent'] = (round(($countweight+$countinpackweight)/$model['predict_weight'],2))*100;   // 使用重量作为进度标准
+         }else{
+            $count = count($userList);
+            $model['percent'] = (round($count/$model['max_people'],2))*100; // 使用人数作为进度标准
+         }
          $model['join_user_list'] = $userList;
          if ($model['line_id']){
              $model['line'] = (new Line())->find($model['line_id']);
@@ -212,6 +224,7 @@ class Order extends Controller
            'create_time' => time(),
            'update_time' => time(),
            'status' => $setting['is_shenhe']==1?2:1,
+           'type'=>1,
            'wxapp_id' => $param['wxapp_id'],
          ];
          if($SharingOrderItem->insert($data)){
