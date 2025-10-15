@@ -23,6 +23,7 @@ class SharingOrderItem extends SharingOrderItemModel {
            $data[$key]['package_id'] = $value;
            $data[$key]['order_id'] = $pintuan_id;
            $data[$key]['status'] = 1;
+           $data[$key]['type'] = 1;
            $data[$key]['wxapp_id'] = self::$wxapp_id;
            $data[$key]['create_time'] = time();
            $data[$key]['update_time'] = time();

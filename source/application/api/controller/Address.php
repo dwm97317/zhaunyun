@@ -1,6 +1,7 @@
 <?php
 namespace app\api\controller;
 use app\api\model\UserAddress;
+use app\api\model\Inpack;
 
 /**
  * 收货地址管理
@@ -176,6 +177,11 @@ class Address extends Controller
     {
         $user = $this->getUser();
         $model = UserAddress::detail($user['user_id'], $address_id);
+        // 状态 1 待查验 2 待支付 3 待发货 4 拣货中 5 已打包  6已发货 7 已到货 8 已完成  9已取消 10草稿
+        $result = (new Inpack())->where('address_id',$address_id)->where('status','in',[2,3,4,5,6,7])->find();
+        if(!empty($result)){
+            return $this->renderError('此地址已被发货中的订单使用，不可修改');
+        }
         if ($model->edit($this->request->post())) {
             return $this->renderSuccess('更新成功');
         }
@@ -210,6 +216,11 @@ class Address extends Controller
     {
         $user = $this->getUser();
         $model = UserAddress::detail($user['user_id'], $address_id);
+        // 状态 1 待查验 2 待支付 3 待发货 4 拣货中 5 已打包  6已发货 7 已到货 8 已完成  9已取消 10草稿
+        $result = (new Inpack())->where('address_id',$address_id)->where('status','in',[2,3,4,5,6,7])->find();
+        if(!empty($result)){
+            return $this->renderError('此地址已被发货中的订单使用，不可删除');
+        }
         if ($model->remove($user)) {
             return $this->renderSuccess('删除成功');
         }

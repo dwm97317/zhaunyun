@@ -27,6 +27,7 @@
                                     <?php endif; ?>
                         <button type="button" id="j-yichu" class="am-btn am-btn-secondary am-radius">批量移出</button>
                         <button type="button" id="j-caihe" class="am-btn am-btn-danger  am-radius">拆包合包</button>
+                        <button type="button" id="j-copy-express" class="am-btn am-btn-primary am-radius">复制快递单号</button>
                         
                     </div>
                     <div class="page_toolbar am-margin-bottom-xs am-cf am-fr" >
@@ -36,11 +37,11 @@
                                         <div class="am-form-group am-fl">
                                         <?php $extractscan = $request->get('is_scan'); ?>
                                         <select name="is_scan"
-                                                    data-am-selected="{btnSize: 'sm', placeholder: '是否查验出库'}">
-                                                <option <?= $extractscan === '' ? 'selected' : '' ?> value="">是否查验出库</option>
+                                                    data-am-selected="{btnSize: 'sm', placeholder: '是否打包出库'}">
+                                                <option <?= $extractscan === '' ? 'selected' : '' ?> value="">是否打包出库</option>
                                                 <option <?= $extractscan === '0' ? 'selected' : '' ?> value="0">全部</option>
-                                                <option <?= $extractscan === '1' ? 'selected' : '' ?> value="1">未查验</option>
-                                                <option <?= $extractscan === '2' ? 'selected' : '' ?> value="2">已查验</option>
+                                                <option <?= $extractscan === '1' ? 'selected' : '' ?> value="1">未打包</option>
+                                                <option <?= $extractscan === '2' ? 'selected' : '' ?> value="2">已打包</option>
                                             </select>
                                         </div>
                                         <div class="am-form-group am-fl">
@@ -82,7 +83,7 @@
                                 <?php foreach ($list as $key=> $item): ?>
                                     <tr id="tr_<?= $item['express_num'] ?>">
                                         <td class="am-text-middle">
-                                             <input name="checkIds" type="checkbox" value="<?= $item['id'];?>" id="<?= $id;?>"> 
+                                             <input name="checkIds" type="checkbox" value="<?= $item['id'];?>" id="<?= $id;?>" data-express="<?= $item['express_num'];?>"> 
                                         </td>
                                         <td class="am-text-middle"><?= $key +1 ?></td>
                                         <td class="am-text-middle"><?= $item['id'] ?></td>
@@ -122,7 +123,7 @@
                                         <td class="am-text-middle">
                                             创建时间：<?= $item['created_time']; ?></br>
                                             <?php if (!empty($item['scan_time'])): ?>
-                                            查验时间：<?= $item['scan_time'] ?></br>
+                                            打包时间：<?= $item['scan_time'] ?></br>
                                             <?php endif; ?>
                                         </td>
                                         <td class="am-text-middle">
@@ -385,6 +386,49 @@
                     });
         });
         
+        /**
+         * 复制快递单号
+         */
+        $('#j-copy-express').on('click', function () {
+            var checkboxes = document.querySelectorAll('input[name="checkIds"]:checked');
+            if (checkboxes.length == 0) {
+                layer.alert('请至少选择一个包裹', {icon: 5});
+                return;
+            }
+            
+            var expressNumbers = [];
+            for (var i = 0; i < checkboxes.length; i++) {
+                var expressNum = checkboxes[i].getAttribute('data-express');
+                if (expressNum) {
+                    expressNumbers.push(expressNum);
+                }
+            }
+            
+            if (expressNumbers.length > 0) {
+                var textToCopy = expressNumbers.join('\n');
+                
+                // 创建临时文本域来复制内容
+                var textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                
+                try {
+                    var successful = document.execCommand('copy');
+                    if (successful) {
+                        layer.msg('已复制 ' + expressNumbers.length + ' 个快递单号', {icon: 1});
+                    } else {
+                        layer.msg('复制失败，请手动复制', {icon: 2});
+                    }
+                } catch (err) {
+                    layer.msg('复制失败，请手动复制', {icon: 2});
+                }
+                
+                document.body.removeChild(textarea);
+            }
+        });
 
     });
     
