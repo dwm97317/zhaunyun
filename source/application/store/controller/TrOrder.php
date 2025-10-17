@@ -722,17 +722,17 @@ class TrOrder extends Controller
        }
        $idsArr = $params['selectIds'];
        $model = new Inpack();
+       
        foreach ($idsArr as $v){
            $order =  $model->where(['id'=>$v])->find();
            $userData = (new User())->where('user_id',$order['member_id'])->find();
-
            //处理模板消息
            $data['id'] = $order['id'];
            $data['order_sn'] = $order['order_sn'];
            $data['member_id'] = $order['member_id'];
-           $data['total_free'] = $order['free'];
+           $data['free'] = $order['total_free'];
            $data['weight'] = $order['cale_weight'];
-
+           $data['wxapp_id'] = $order['wxapp_id'];
            Message::send('package.payorder',$data);
        }    
         return $this->renderSuccess('发送成功');

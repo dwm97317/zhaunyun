@@ -74,7 +74,8 @@ class Auth
         'package.index/gettotal',
         'tr_order/alluserlist',
         'package.index/userindex',
-        'logistics/delete'
+        'logistics/delete',
+        'tr_order/updateprintstatus'
     ];
 
     /** @var array $accessUrls 商家用户权限url */
