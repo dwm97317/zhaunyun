@@ -55,6 +55,12 @@
                                            value="<?= $request->get('end_time') ?>" placeholder="请选择截止日期"
                                            data-am-datepicker>
                                 </div>
+                                <div class="am-form-group am-fl" style="padding:1px 0px;">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input  type="text" class="am-form-field" name="user_code"
+                                                   placeholder="请输入用户编号|用户ID" value="<?= $request->get('user_code') ?>">
+                                        </div>
+                                    </div>
                                 <div class="am-form-group am-fl">
                                     <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                         <input type="text" class="am-form-field" name="search" placeholder="请输入用户昵称/订单号"

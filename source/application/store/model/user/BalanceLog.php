@@ -49,7 +49,7 @@ class BalanceLog extends BalanceLogModel
         // 用户ID
         $params['user_id'] > 0 && $this->where('log.user_id', '=', $params['user_id']);
         // 用户昵称
-        !empty($params['search']) && $this->where('user.nickName', 'like', "%{$params['search']}%");
+        !empty($params['search']) && $this->where('user.nickName|user.user_code|user.user_id', 'like', "%{$params['search']}%");
         // 余额变动场景
         $params['scene'] > -1 && $this->where('log.scene', '=', (int)$params['scene']);
         // 起始时间

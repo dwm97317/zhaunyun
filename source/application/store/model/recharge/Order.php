@@ -41,11 +41,14 @@ class Order extends OrderModel
         // 设置默认的检索数据
         $params = $this->setQueryDefaultValue($query, [
             'user_id' => 0,
+            'user_code'=>0,
             'recharge_type' => '-1',
             'pay_status' => '-1',
         ]);
+        // dump($params);die;
         // 用户ID
         $params['user_id'] > 0 && $this->where('order.user_id', '=', $params['user_id']);
+        !empty($params['user_code'])  && $this->where('user.user_code|user.user_id', 'like', "%{$params['user_code']}%");
         // 用户昵称/订单号
         !empty($params['search']) && $this->where('order.order_no|user.nickName', 'like', "%{$params['search']}%");
         // 充值方式
