@@ -93,7 +93,7 @@ class Certificate extends BaseModel
                 ->where('wxapp_id', '=',self::$wxapp_id)
                 ->where('user_id', '=',$scoreType['member_id'])
                 ->where('cert_status', '=',1)
-                ->order('create_time','desc')
+                ->order(['cert_status'=>'desc','create_time'=>'desc'])
                 ->paginate(15, false, [
                     'query' => request()->request()
                 ]);
@@ -123,7 +123,7 @@ class Certificate extends BaseModel
             default:
                 $res=  $this->with(['user','image.file'])
                 ->where('wxapp_id', '=',self::$wxapp_id)
-                ->order('create_time','desc')
+                ->order(['cert_status'=>'asc','create_time'=>'desc'])
                 ->paginate(15, false, [
                     'query' => request()->request()
                 ]);
