@@ -730,7 +730,7 @@ class TrOrder extends Controller
            $data['id'] = $order['id'];
            $data['order_sn'] = $order['order_sn'];
            $data['member_id'] = $order['member_id'];
-           $data['free'] = $order['total_free'];
+           $data['free'] = $order['free'] + $order['pack_free'] + $order['other_free'] + $order['insure_free'] ;
            $data['weight'] = $order['cale_weight'];
            $data['wxapp_id'] = $order['wxapp_id'];
            Message::send('package.payorder',$data);
