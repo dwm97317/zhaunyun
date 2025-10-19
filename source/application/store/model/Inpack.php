@@ -67,6 +67,60 @@ class Inpack extends InpackModel
             ->order(['pa.status' => 'desc'])
             ->count();
     }
+    
+    /**
+     * 获取待审核订单数量
+     * @return int
+     */
+    public function getPaymentAuditCount()
+    {
+        return $this
+            ->alias('pa')
+            ->where('pa.is_delete',0)
+            ->where('pa.is_pay',3)  // 支付待审核
+            ->where('pa.is_pay_type',6)  // 线下支付
+            ->count();
+    }
+    
+    /**
+     * 订单支付审核列表
+     * @param string $dataType
+     * @param array $query
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getPaymentAuditList($dataType, $query = [])
+    {
+        // 检索查询条件
+        !empty($query) && $this->setWhere($query);
+        !isset($query['limitnum']) && $query['limitnum'] = 10;
+        
+        $setting = SettingModel::detail("adminstyle")['values'];
+        $order = ['pa.updated_time'=>'desc'];
+        if(isset($setting['inpackorderby'])){
+            $order = [$setting['inpackorderby']['order_mode']=>$setting['inpackorderby']['order_type']];
+        }
+        if(isset($query['orderparam']) && !empty($query['orderparam']) && isset($query['descparam'])){
+            $order = [$query['orderparam']=>$query['descparam']];
+        }
+        
+        // 获取待审核的订单：状态为待支付(status=2)且使用线下支付(is_pay_type=6)或者其他需要审核的支付方式
+        $res = $this
+            ->alias('pa')
+            ->field('pa.*,ba.batch_id,ba.batch_name,ba.batch_no,u.nickName')
+            ->with(['line','address','storage','user','shop','usercoupon','packagelist','packageitems'])
+            ->join('user u','u.user_id = pa.member_id','left')
+            ->join('batch ba','ba.batch_id = pa.batch_id','left')
+            ->where('pa.is_delete',0)
+            ->where('pa.is_pay',3)  // 未支付
+            ->where('pa.is_pay_type',6)  // 线下支付
+            ->order($order)
+            ->paginate($query['limitnum'], false, [
+                'query' => \request()->request()
+            ]);
+            
+        return $res;
+    }
      
      /**
      * 订单列表

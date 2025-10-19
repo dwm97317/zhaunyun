@@ -106,6 +106,8 @@ private function layout()
             $storeData['wxapp']['end_time'] = date("Y-m-d",$storeData['wxapp']['end_time']);
             // 获取待审核凭证数量 (cert_status = 1 表示待审核)
             $certificateCount = Certificate::where('cert_status', 1)->count();
+            // 获取待审核订单支付数量
+            $paymentAuditCount = $Inpack->getPaymentAuditCount();
             // 输出到view
             $this->assign([
                 'base_url' => base_url(),                      // 当前域名
@@ -118,6 +120,7 @@ private function layout()
                 'version' => get_version(),                    // 系统版本号
                 'count'=>$Inpack->getExceedCountList('exceed'),
                 'certificate_count' => $certificateCount,      // 待审核凭证数量
+                'payment_audit_count' => $paymentAuditCount,   // 待审核订单支付数量
             ]);
         }
     }

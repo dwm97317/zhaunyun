@@ -59,6 +59,13 @@
             <!-- 其它功能-->
             <div class="am-fr tpl-header-navbar">
                 <ul>
+                    <?php if (isset($payment_audit_count)): ?>
+                    <li  class="am-text-sm tpl-header-navbar-welcome">
+                        <a href="<?= url('tr_order/payment_audit') ?>" style="color: <?= $payment_audit_count > 0 ? '#ff0000' : '#929292' ?>;    font-weight: 900;">
+                            <span >线下支付审核 (<?= $payment_audit_count ?>)</span>
+                        </a>
+                    </li>
+                    <?php endif; ?>
                     <?php if (isset($certificate_count)): ?>
                     <li  class="am-text-sm tpl-header-navbar-welcome">
                         <a href="<?= url('setting.certificate/index') ?>" style="color: <?= $certificate_count > 0 ? '#ff0000' : '#929292' ?>;    font-weight: 900;">

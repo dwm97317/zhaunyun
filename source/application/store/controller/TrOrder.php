@@ -174,6 +174,50 @@ class TrOrder extends Controller
     }
     
     /**
+     * 订单支付审核列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function payment_audit(){
+        return $this->getPaymentAuditList('订单支付审核列表', 'payment_audit');
+    }
+    
+    /**
+     * 获取待审核订单列表
+     * @param string $title
+     * @param string $dataType
+     * @return mixed
+     */
+    private function getPaymentAuditList($title, $dataType)
+    {
+        // 订单列表
+        $model = new Inpack;
+        $Line = new Line;
+        $Clerk = new Clerk;
+        $Track = new Track;
+        $set = Setting::detail('store')['values'];
+        $userclient = Setting::detail('userclient')['values'];
+        $adminstyle = Setting::detail('adminstyle')['values'];
+        $params = $this->request->param();
+        if(!isset($params['limitnum'])){
+            $params['limitnum'] = isset($adminstyle['pageno'])?$adminstyle['pageno']['inpack']:15;
+        }
+        $list = $model->getPaymentAuditList($dataType, $params);
+        
+        $tracklist = $Track->getAllList();
+        $servicelist = $Clerk->where('clerk_authority','like','%is_myuser%')->where('clerk_authority','like','%is_myuserpackage%')->where('is_delete',0)->select();
+        $pintuanlist = (new SharingOrder())->getAllList();
+        $batchlist = (new Batch())->getAllwaitList([]);
+        $shopList = ShopModel::getAllList();
+        $lineList = $Line->getListAll();
+        
+        if(isset($adminstyle['pageno']['inpacktype']) && $adminstyle['pageno']['inpacktype']==20){
+          return $this->fetch('newindex', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));  
+        }
+        return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
+    }
+    
+    /**
      * 删除子订单
      * @param $delivery_id
      * @return array
@@ -2223,7 +2267,6 @@ class TrOrder extends Controller
        
        $data['address']['xiangxi'] = $data['address']['xiangxi'] . $data['address']['detail'];
        
-
        switch ($adminstyle['delivertempalte']['orderface']) {
            case '10':
                echo $this->template10($data);
@@ -3680,7 +3723,7 @@ class TrOrder extends Controller
 			<table class="nob">
 				<tr>
 					<td class="pl" width="65" height="24">件数：</td>
-					<td width="60">1</td>
+					<td width="60">'.count($data['packageitems']).'</td>
 					<td width="80">重：</td>
 					<td>'.$data['cale_weight'].'</td>
 				</tr>
