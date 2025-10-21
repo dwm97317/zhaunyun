@@ -2131,8 +2131,12 @@ class Package extends Controller
         }
         //找到包裹最新的状态，在日志记录中找到最新一条的状态值
         $packageStatus = (new Logistics())->where('express_num',\request()->post('express_num'))->order('id desc')->limit(1)->find();
+        $status = 1;
+        if(!empty($packageStatus)){
+            $status = $packageStatus['status'];
+        }
         //恢复状态为最新的状态
-        $res = (new PackageModel())->where('id',\request()->post('id'))->update(['status' => $packageStatus['status']]);
+        $res = (new PackageModel())->where('id',\request()->post('id'))->update(['status' => $status]);
       
         if(!$res){
             return $this->renderError('恢复问题件失败');

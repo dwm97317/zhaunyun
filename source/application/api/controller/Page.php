@@ -1346,13 +1346,7 @@ class Page extends Controller
         $lines =[];
         $k = 0;
         foreach ($line as $key => $value) {
-      
-           if(isset($value['max_weight']) && isset($value['weight_min'])){
-             if($oWeigth < $value['weight_min']){
-                 $oWeigth = $value['weight_min'];
-             }
-           }
-             
+
            if($setting['is_discount']==1){
             $this->user = $this->getUser();
             $UserLine =  (new UserLine());
@@ -1419,6 +1413,14 @@ class Page extends Controller
                     }
                    break;
            }
+           
+           if(isset($value['max_weight']) && isset($value['weight_min'])){
+             if($oWeigth < $value['weight_min']){
+                 $oWeigth = $value['weight_min'];
+             }
+           }
+           
+           
            $oWeigth = round($oWeigth,2);
           if($value['weight_integer']==1){
               $oWeigth = ceil($oWeigth);
