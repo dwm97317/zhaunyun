@@ -193,7 +193,7 @@ class Order extends Controller
             $countinpackid = (new SharingOrderItem())->where(['order_id' => $id])->where('type',1)->column('package_id');
             $countweight = $Package->whereIn('id', $countpackageid)->sum('weight');
             $countinpackweight = $inpack->whereIn('id', $countinpackid)->sum('cale_weight');
-            $model['percent'] = (round(($countweight+$countinpackweight)/$model['predict_weight'],2))*100;   // 使用重量作为进度标准
+            $model['percent'] = (round(($countweight+$countinpackweight)/$model['predict_weight'],4))*100;   // 使用重量作为进度标准
          }else{
             $count = count($userList);
             $model['percent'] = (round($count/$model['max_people'],2))*100; // 使用人数作为进度标准

@@ -6,6 +6,7 @@ use app\api\model\sharing\SharingOrderItem;
 use app\api\model\sharing\SharingOrderAddress;
 use app\api\model\sharing\Setting as SharingSetting;
 use app\api\model\Package;
+use app\api\model\Inpack;
 
 class SharingOrder extends Basics {
     
@@ -24,9 +25,13 @@ class SharingOrder extends Basics {
         $OrderItem = (new SharingOrderItem());
         foreach ($list as $key => $val){
             $hasWeight = 0;
-            $item = $OrderItem->where(['order_id'=>$val['order_id']])->select();
+            $item = $OrderItem->where(['order_id'=>$val['order_id']])->where('type',0)->select();
             if (!$item->isEmpty()){
                 $hasWeight = $this->getHasWeight($item);
+            }
+            $item1 = $OrderItem->where(['order_id'=>$val['order_id']])->where('type',1)->select();
+            if (!$item1->isEmpty()){
+                $hasWeight += $this->getHasInpackWeight($item1);
             }
             $list[$key]['has_weight'] = $hasWeight;
             $hasWeight = $hasWeight>$val['predict_weight']?$val['predict_weight']:$hasWeight;
@@ -45,6 +50,23 @@ class SharingOrder extends Basics {
              $volumWeight = ($val['length']*$val['width']*$val['height'])/6000;
              // 体积重 和 重量 取重者
              $weight = $volumWeight>$val['weight']?$volumWeight:$val['weight'];
+             $allHeight += $weight;
+         }
+         return $allHeight;
+        //  $setting = (new Setting());
+         
+    }
+    
+    // 获取已团包裹重量    
+    public function getHasInpackWeight($item){
+         $Inpack = (new Inpack());
+         $packIds = array_column($item->toArray(),'package_id');
+         $packlist = $Inpack->where('id','in',$packIds)->select();
+         $allHeight = 0;
+         foreach ($packlist as $val){
+             $volumWeight = ($val['length']*$val['width']*$val['height'])/6000;
+             // 体积重 和 重量 取重者
+             $weight = $volumWeight>$val['cale_weight']?$volumWeight:$val['cale_weight'];
              $allHeight += $weight;
          }
          return $allHeight;
