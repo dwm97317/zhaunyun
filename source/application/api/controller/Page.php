@@ -1387,6 +1387,9 @@ class Page extends Controller
                     if($value['line_type_unit'] == 30){
                         $oWeigth = 0.00220462262185 * $oWeigth;
                     }
+                    if($value['line_type_unit'] == 40){
+                        $oWeigth = 0;
+                    }
                    break;
                case '20':
                     if($value['line_type_unit'] == 10){
@@ -1394,6 +1397,9 @@ class Page extends Controller
                     }
                     if($value['line_type_unit'] == 30){
                         $oWeigth = 2.20462262185 * $oWeigth;
+                    }
+                    if($value['line_type_unit'] == 40){
+                        $oWeigth = 0;
                     }
                    break;
                case '30':
@@ -1403,9 +1409,9 @@ class Page extends Controller
                     if($value['line_type_unit'] == 20){
                         $oWeigth = 0.45359237 * $oWeigth;
                     }
-                   break;
-               case '40':
-                   $oWeigth = 0 * $oWeigth;
+                    if($value['line_type_unit'] == 40){
+                        $oWeigth = 0;
+                    }
                    break;
                default:
                    if($value['line_type_unit'] == 10){
@@ -1418,7 +1424,7 @@ class Page extends Controller
            }
            
            if(isset($value['max_weight']) && isset($value['weight_min'])){
-             if($oWeigth < $value['weight_min']){
+             if($oWeigth < $value['weight_min'] && $oWeigth > 0){
                  $oWeigth = $value['weight_min'];
              }
            }
