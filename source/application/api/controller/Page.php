@@ -1404,6 +1404,9 @@ class Page extends Controller
                         $oWeigth = 0.45359237 * $oWeigth;
                     }
                    break;
+               case '40':
+                   $oWeigth = 0 * $oWeigth;
+                   break;
                default:
                    if($value['line_type_unit'] == 10){
                         $oWeigth = 1000 * $oWeigth;
@@ -1422,9 +1425,9 @@ class Page extends Controller
            
            
            $oWeigth = round($oWeigth,2);
-          if($value['weight_integer']==1){
+           if($value['weight_integer']==1){
               $oWeigth = ceil($oWeigth);
-          }
+           }
       
            switch ($value['free_mode']) {
              case '1':
