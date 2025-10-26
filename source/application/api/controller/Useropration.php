@@ -91,7 +91,82 @@ class Useropration extends Controller
         $userRole['role_name'] = $role_name;
         $userRole['role_type'] = $userInfo['user_type'];
         $this->userRole = $userRole;
-    } 
+    }
+    
+     // 扫码查件
+    public function searchPackInStorage(){
+      // 员工信息
+      $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+      if (!$clerk){
+          return $this->renderError('角色权限非法');
+      }
+      $code = $this->postData('code')[0];
+      $map[] = ['is_delete','=',0];
+      $map[] = ['storage_id','=',$clerk['shop_id']];
+      $map[] = ['express_num','=',$code]; 
+      $res = (new Package())->setQuery($map)->with(['storage','shelfunititem.shelfunit.shelf','member'])->find();
+      if (!$res){
+        return $this->renderError('包裹未查询到');
+      }
+      return $this->renderSuccess($res);
+    }
+    
+    
+    public function getShelfList(){
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        if (!$clerk){
+            return $this->renderError('角色权限非法');
+        }
+        $result = (new shelf())->select();
+        return $this->renderSuccess($result);
+    }
+    
+     //获取货位列表
+    public function getShelfUnitList(){
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        if (!$clerk){
+            return $this->renderError('角色权限非法');
+        }
+        $param = $this->request->param();
+        $result = (new shelfunit())->with(['user'])->where('shelf_id',$param['id'])->select();
+        return $this->renderSuccess($result);
+    }
+    
+    //绑定货位跟用户
+     public function bindShelfUser(){
+        $param = $this->request->param(); 
+        $result = (new shelfunit())->where('shelf_unit_id',$param['shelf_unit_id'])->find();
+        if(empty($result)){
+            return $this->renderError('此货位不存在');
+        }
+        $values = SettingModel::getItem('store');
+        if($values['usercode_mode']['is_show']==1){
+            $userdetail = (new UserModel())->where('user_code', '=',$param['user_id'])->where('is_delete',0)->find();
+        }else{
+            $userdetail = UserModel::detail($param['user_id'],$with=[]);
+        }
+        if(empty($userdetail)){
+            return $this->renderError('此用户不存在');
+        }
+        $result->save(['user_id'=>$userdetail['user_id']]);
+        return $this->renderSuccess("货位绑定成功");
+     }
+     
+     //  清空货架
+     public function clearShelf(){
+        $param = $this->request->param(); 
+        $result = (new shelfunit())->where('shelf_unit_id',$param['shelf_unit_id'])->find();
+        if(empty($result)){
+            return $this->renderError('此货位不存在');
+        }
+        $ress = $result->save(['user_id'=>0]);
+        $res = (new ShelfUnitItem())->where('shelf_unit_id',$param['shelf_unit_id'])->delete();
+        if(!$res && !$ress){
+            return $this->renderError('清除失败');
+        }
+        
+        return $this->renderSuccess("清除成功");
+     }
     
     //获取用户唛头
     public function getusermark(){
@@ -3283,20 +3358,44 @@ class Useropration extends Controller
         
          $packData = $inpack::detail($id);
          $clerk = (new Clerk())->where('shop_id',$packData['storage_id'])->where(['send_status'=>0,'is_delete' => 0])->select();
-            //通知用户付款
-            $noticesetting = SettingModel::getItem('notice');
-            // dump($noticesetting);die;
-           
-            Logistics::addrfidLog($packData['order_sn'],$noticesetting['check']['describe'],getTime(),$clerkdd['clerk_id']);
-            //发送邮件通知
-            if(isset($packData['member_id']) || !empty($packData['member_id'])){
-                $EmailUser = UserModel::detail($packData['member_id']);
-                $EmailData['code'] = $packData['id'];
-                $EmailData['logistics_describe']=$noticesetting['check']['describe'];
-                (new Email())->sendemail($EmailUser,$EmailData,$type=1);
-            }
-            return $this->renderSuccess("包裹已封箱");
-         }
+        //通知用户付款
+        $noticesetting = SettingModel::getItem('notice');
+        // dump($noticesetting);die;
+       
+        Logistics::addrfidLog($packData['order_sn'],$noticesetting['check']['describe'],getTime(),$clerkdd['clerk_id']);
+        //发送邮件通知
+        if(isset($packData['member_id']) || !empty($packData['member_id'])){
+            $EmailUser = UserModel::detail($packData['member_id']);
+            $EmailData['code'] = $packData['id'];
+            $EmailData['logistics_describe']=$noticesetting['check']['describe'];
+            (new Email())->sendemail($EmailUser,$EmailData,$type=1);
+        }
+        
+        // 清理包裹跟货架的关系
+        $packlist = (new Package())->where('inpack_id',$id)->where('is_delete',0)->select();
+        log_write("打包完成订单ID：".$id);
+        foreach ($packlist as $v){
+           $result = (new ShelfUnitItem())->where('pack_id',$v['id'])->select();
+           if(count($result)>0){
+               log_write("统计出货位的数量：".count($result));
+               foreach ($result as &$vv){
+                  $shelf_unit_id = $vv['shelf_unit_id'];
+                  $vv->delete();  //删除货位信息
+                  //如果此货位不为空，则还有包裹在上面，就不请客
+                  $ress = (new ShelfUnitItem())->where('shelf_unit_id',$shelf_unit_id)->find();
+                  if(empty($ress)){
+                      log_write("清空此货位ID：".$shelf_unit_id);
+                      //清理用户跟货位的归属关系
+                      (new shelfunit())->where('shelf_unit_id',$shelf_unit_id)->update(['user_id'=>0]);
+                  }else{
+                      log_write("不清空此货位ID：".$shelf_unit_id);
+                  }
+                  
+               }
+           } 
+        }
+        return $this->renderSuccess("包裹已封箱");
+        }
     }
     
     //点击切换包裹扫描状态

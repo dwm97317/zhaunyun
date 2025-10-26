@@ -27,6 +27,9 @@
                                 <th>货架ID</th>
                                 <th>仓库名称</th>
                                 <th>货架名称</th>
+                                <th>无主货架</th>
+                                <th>普敏货架</th>
+                                <th>货架大小</th>
                                 <th>货架编号</th>
                                 <th>货架行数</th>
                                 <th>货架列数</th>
@@ -41,6 +44,9 @@
                                         <td class="am-text-middle"><?= $item['id'] ?></td>
                                         <td class="am-text-middle"><?= $item['storage']['shop_name'] ?></td>
                                         <td class="am-text-middle"><?= $item['shelf_name'] ?></td>
+                                        <td class="am-text-middle"><?= $item['is_nouser']==0?"专属":"无主" ?></td>
+                                        <td class="am-text-middle"><?= $item['is_normal']==0?"普货":"敏货" ?></td>
+                                        <td class="am-text-middle"><?= $item['is_big']==0?"小货":"大货" ?></td>
                                         <td class="am-text-middle"><?= $item['shelf_no'] ?></td>
                                         <td class="am-text-middle"><?= $item['shelf_column'] ?></td>
                                         <td class="am-text-middle"><?= $item['shelf_row'] ?></td>

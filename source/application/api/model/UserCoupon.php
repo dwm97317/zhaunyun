@@ -188,6 +188,10 @@ class UserCoupon extends UserCouponModel
             $this->error = '优惠券不存在';
             return false;
         }
+        if($coupon['is_vip']==1 && $user['grade_id']==0){
+            $this->error = '此优惠券为VIP专享';
+            return false;
+        }
         if (!$coupon->checkReceive()) {
             $this->error = $coupon->getError();
             return false;

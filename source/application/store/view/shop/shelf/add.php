@@ -66,6 +66,61 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 编号生成模式 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="shelf[number_type]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" data-select_type='number_type'>
+                                                <option value="10">编号-层数-列数（N-01-01）</option>
+                                                <option value="20">编号+数量（如M01,M16）</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>编号+数量模式：编号为M，设置3行3列则生成的编号为M01,M02,M03,M04,M05,M06,M07,M08,M09</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">是否无主货架 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_nouser]" value="0" data-am-ucheck checked>
+                                        专属
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_nouser]" value="1" data-am-ucheck
+                                               >
+                                        无主
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">普敏货架 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                     <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_normal]" value="0" data-am-ucheck checked>
+                                        普货
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_normal]" value="1" data-am-ucheck
+                                               >
+                                        敏货
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">货位大小 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_big]" value="0" data-am-ucheck checked>
+                                        小货
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_big]" value="1" data-am-ucheck
+                                               >
+                                        大货
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">货架状态 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">

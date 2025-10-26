@@ -392,7 +392,7 @@ class User extends Controller
       return $this->fetch('user/address/index', compact('list','set')); 
     }
     
-    /**
+     /**
      * 领取优惠券
      * @param $coupon_id
      * @return array
@@ -400,19 +400,37 @@ class User extends Controller
      */
     public function receive($coupon_id,$user_id)
     {
-        $model = new UserCoupon();
         $user = explode(',',$user_id);
-        if(!empty($user)){
-            foreach ($user as $item){
-                $res = $model->receive($item, $coupon_id);
-            }
+        if(empty($user)){
+            return $this->renderError('请选择用户');
+        }
+        
+        $successCount = 0;
+        $failCount = 0;
+        $errors = [];
+        
+        foreach ($user as $item){
+            $model = new UserCoupon();
+            $res = $model->receive($item, $coupon_id);
             if($res){
-                return $this->renderSuccess('领取成功');
+                $successCount++;
+            } else {
+                $failCount++;
+                $errorMsg = $model->getError() ?: '添加失败';
+                $errors[] = "用户ID {$item}: {$errorMsg}";
             }
         }
-        return $this->renderError($model->getError() ?: '添加失败');
+        
+        if($successCount > 0 && $failCount == 0){
+            return $this->renderSuccess("成功发放 {$successCount} 个优惠券");
+        } elseif($successCount > 0 && $failCount > 0){
+            $errorDetails = implode('; ', array_slice($errors, 0, 3));
+            return $this->renderSuccess("成功 {$successCount} 个，失败 {$failCount} 个。失败原因：{$errorDetails}");
+        } else {
+            $errorDetails = implode('; ', array_slice($errors, 0, 3));
+            return $this->renderError("全部失败。原因：{$errorDetails}");
+        }
     }
-    
         
     /**
      * 设置支付方式

@@ -71,6 +71,12 @@ class Shelf extends ShelfModel
         // 表单验证
         if (!$this->onValidate($data)) return false;
         // 保存数据
+        (new ShelfUnit())->where('shelf_id',$this->id)->update([
+            'status'=>$data['status'],
+            'is_normal'=>$data['is_normal'],
+            'is_nouser'=>$data['is_nouser'],
+            'is_big'=>$data['is_big']
+        ]);
         if ($this->allowField(true)->save($data)) {
             return true;
         }

@@ -72,6 +72,51 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">无主货架 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_nouser]" value="0" data-am-ucheck
+                                        <?= $model['is_nouser'] == 0 ? 'checked' : '' ?>>
+                                        专属
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_nouser]" value="1" data-am-ucheck
+                                            <?= $model['is_nouser'] == 1 ? 'checked' : '' ?>>
+                                        无主
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">普敏货架 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_normal]" value="0" data-am-ucheck
+                                        <?= $model['is_normal'] == 0 ? 'checked' : '' ?>>
+                                        普货
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_normal]" value="1" data-am-ucheck
+                                            <?= $model['is_normal'] == 1 ? 'checked' : '' ?>>
+                                        敏货
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">货位大小 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_big]" value="0" data-am-ucheck
+                                        <?= $model['is_big'] == 0 ? 'checked' : '' ?>>
+                                        小货
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="shelf[is_big]" value="1" data-am-ucheck
+                                            <?= $model['is_big'] == 1 ? 'checked' : '' ?>>
+                                        大货
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">货架状态 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">

@@ -62,11 +62,11 @@
             <tr>
                 <td class="am-text-middle">
                     <label class="am-checkbox">
-                        <input data-am-ucheck data-check="item" data-params='<?= json_encode([
+                        <input data-am-ucheck data-check="item" data-params="<?= htmlspecialchars(json_encode([
                             'user_id' => (string)$item['user_id'],
                             'nickName' => $item['nickName'],
                             'avatarUrl' => $item['avatarUrl'],
-                        ], JSON_UNESCAPED_SLASHES) ?>' type="checkbox">
+                        ], JSON_UNESCAPED_SLASHES), ENT_QUOTES) ?>" type="checkbox">
                     </label>
                 </td>
                 <td class="am-text-middle">

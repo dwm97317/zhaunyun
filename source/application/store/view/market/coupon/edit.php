@@ -188,6 +188,21 @@
                                     </label>
                                 </div>
                             </div>
+                            <div class="am-form-group" data-x-switch>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">是否VIP专享 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="coupon[is_vip]" value="0"  <?= $model['is_vip'] == 0 ? 'checked' : '' ?>
+                                               data-am-ucheck>
+                                        不限制
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="coupon[is_vip]" value="1"  <?= $model['is_vip'] == 1 ? 'checked' : '' ?>
+                                               data-am-ucheck >
+                                        VIP专享
+                                    </label>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">兑换所需积分 </label>
                                 <div class="am-u-sm-9 am-u-end">

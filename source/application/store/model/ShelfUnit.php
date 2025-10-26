@@ -139,32 +139,54 @@ class ShelfUnit extends ShelfUnitModel
     public function getShelfUnitData($data, $shelf, $type) {
         $shelf_unit = [];
         $qrcodeService = (new QrcodeService());
-        $K = 0;
-        
-        for ($i = 1; $i <= $data['shelf_column']; $i++) {
-            for ($j = 1; $j <= $data['shelf_row']; $j++) {
-                // Format numbers with leading zeros for single-digit numbers
-                $formattedI = $i < 10 ? '0' . $i : $i;
-                $formattedJ = $j < 10 ? '0' . $j : $j;
-                if($data['shelf_column']==1){
-                    $shelf_unit[$K]['shelf_unit_no'] = $data['shelf_no'] . '-' . $formattedJ;
-                    $shelf_unit[$K]['shelf_unit_code'] = $data['shelf_no'] . '-' . $formattedJ;
-                    $shelf_unit[$K]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'] . '-' . $formattedJ, $type);
-                    $shelf_unit[$K]['shelf_id'] = $shelf;
-                    $shelf_unit[$K]['shelf_unit_floor'] = $i; // layer
-                    $shelf_unit[$K]['wxapp_id'] = self::$wxapp_id;
-                    $K++;
-                }else{
-                    $shelf_unit[$K]['shelf_unit_no'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
-                    $shelf_unit[$K]['shelf_unit_code'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
-                    $shelf_unit[$K]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ, $type);
-                    $shelf_unit[$K]['shelf_id'] = $shelf;
-                    $shelf_unit[$K]['shelf_unit_floor'] = $i; // layer
-                    $shelf_unit[$K]['wxapp_id'] = self::$wxapp_id;
-                    $K++;
+        if($data['number_type']==10){
+            $K = 0;
+            for ($i = 1; $i <= $data['shelf_column']; $i++) {
+                for ($j = 1; $j <= $data['shelf_row']; $j++) {
+                    // Format numbers with leading zeros for single-digit numbers
+                    $formattedI = $i < 10 ? '0' . $i : $i;
+                    $formattedJ = $j < 10 ? '0' . $j : $j;
+                    if($data['shelf_column']==1){
+                        $shelf_unit[$K]['shelf_unit_no'] = $data['shelf_no'] . '-' . $formattedJ;
+                        $shelf_unit[$K]['shelf_unit_code'] = $data['shelf_no'] . '-' . $formattedJ;
+                        $shelf_unit[$K]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'] . '-' . $formattedJ, $type);
+                        $shelf_unit[$K]['shelf_id'] = $shelf;
+                        $shelf_unit[$K]['shelf_unit_floor'] = $i; // layer
+                        $shelf_unit[$K]['wxapp_id'] = self::$wxapp_id;
+                        $shelf_unit[$K]['is_nouser'] = $data['is_nouser'];
+                        $shelf_unit[$K]['is_normal'] = $data['is_normal'];
+                        $shelf_unit[$K]['is_big'] = $data['is_big'];
+                        $K++;
+                    }else{
+                        $shelf_unit[$K]['shelf_unit_no'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
+                        $shelf_unit[$K]['shelf_unit_code'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
+                        $shelf_unit[$K]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ, $type);
+                        $shelf_unit[$K]['shelf_id'] = $shelf;
+                        $shelf_unit[$K]['shelf_unit_floor'] = $i; // layer
+                        $shelf_unit[$K]['wxapp_id'] = self::$wxapp_id;
+                        $shelf_unit[$K]['is_nouser'] = $data['is_nouser'];
+                        $shelf_unit[$K]['is_normal'] = $data['is_normal'];
+                        $shelf_unit[$K]['is_big'] = $data['is_big'];
+                        $K++;
+                    }
                 }
             }
-        } 
+        }
+        if($data['number_type']==20){
+            $shelf_unit = [];
+            $allrang = $data['shelf_row']*$data['shelf_column'];
+            $qrcodeService = (new QrcodeService());
+            for ($i = 1; $i <= $allrang ; $i++){
+                //   dump(createQrcodeCode($data['shelf_no'].'S'.$i));die;
+                    $shelf_unit[$i]['shelf_unit_no'] = 'S'.$i;
+                    $shelf_unit[$i]['shelf_unit_code'] = $data['shelf_no'].'S'.$i;
+                    $shelf_unit[$i]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'].'S'.$i,$type);
+                    $shelf_unit[$i]['shelf_id'] = $shelf;
+                    $shelf_unit[$i]['shelf_unit_floor'] = $i; //层数
+                    $shelf_unit[$i]['wxapp_id'] = self::$wxapp_id;
+            } 
+        }
+        
         return $shelf_unit;
     }  
     

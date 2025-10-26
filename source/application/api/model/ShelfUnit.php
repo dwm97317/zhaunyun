@@ -20,6 +20,10 @@ class ShelfUnit extends ShelfUnitModel
       return $this->belongsTo('app\api\model\Shelf','shelf_id')->field('id,shelf_no,shelf_name'); 
     }
     
+    public function user(){
+      return $this->belongsTo('app\api\model\User','user_id')->field('user_id,nickName,avatarUrl,user_code');
+    }
+    
     public function getList($shelf_id){
       return $this
         ->where('shelf_id',$shelf_id)

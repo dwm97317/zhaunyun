@@ -213,6 +213,7 @@ class Index extends Controller
         $packIds = array_column($shelf_unit_item->toArray(),'pack_id');
         $res = (new ShelfUnitItem())->where(['shelf_unit_id'=>$id])->delete();
         (new Package())->where('id','in',$packIds)->update(['status'=>7]);
+        
         if ($res) {
             return $this->renderSuccess('下架成功');
         }
@@ -225,6 +226,7 @@ class Index extends Controller
         $packIds = array_column($shelf_unit_item->toArray(),'pack_id');
         $res = (new ShelfUnitItem())->where(['shelf_unit_id'=>$id])->delete();
         (new Package())->where('id','in',$packIds)->update(['status'=>7]);
+        (new ShelfUnit())->where('shelf_unit_id',$id)->update(['user_id' => 0]);
         if ($res) {
             return $this->renderSuccess('下架成功');
         }

@@ -12,7 +12,7 @@ use app\store\model\ShelfUnit;
 use app\store\model\ShelfUnitItem;
 use app\common\library\FileZip;
 use app\common\model\setting;
-
+use app\store\model\Package;
 /**
  * 门店店员控制器
  * Class Clerk
@@ -27,6 +27,113 @@ class Shelf extends Controller
             $value['num'] = (new ShelfUnit())->where(['shelf_id'=>$value['id']])->count();
         }
         return $this->fetch('index', compact('list'));
+    }
+    
+     /**
+     * 查看货位下的包裹单号列表页面
+     * @return mixed
+     */
+    public function viewShelfUnitPackages(){
+        $shelf_unit_id = $this->request->param('shelf_unit_id');
+        $status = $this->request->param('status', '');
+        $set = Setting::detail('store')['values'];
+        
+        if (empty($shelf_unit_id)) {
+            return $this->renderError('货位ID不能为空');
+        }
+        
+        // 获取货位信息
+        $shelfUnit = (new ShelfUnit())->with(['shelf'])->find($shelf_unit_id);
+        
+        if (!$shelfUnit) {
+            return $this->renderError('货位不存在');
+        }
+        
+        // 构建查询条件
+        $shelfUnitItemModel = new ShelfUnitItem();
+        $packageModel = new Package();
+        
+        // 如果设置了状态筛选，使用 JOIN 查询
+        if ($status !== '') {
+            // 获取包裹表名
+            $packageTable = $packageModel->getTable();
+            
+            $shelfUnitItems = $shelfUnitItemModel
+                ->alias('sui')
+                ->join($packageTable . ' p', 'sui.pack_id = p.id')
+                ->where('sui.shelf_unit_id', $shelf_unit_id)
+                ->where('p.status', $status)
+                ->field('sui.*')
+                ->with(['user', 'shelfunit.shelf'])
+                ->order('p.status desc')
+                ->select();
+        } else {
+            // 没有状态筛选，直接查询
+            $packageTable = $packageModel->getTable();
+            $shelfUnitItems = $shelfUnitItemModel
+                ->alias('sui')
+                ->join($packageTable . ' p', 'sui.pack_id = p.id')
+                ->where('sui.shelf_unit_id', $shelf_unit_id)
+                ->field('sui.*')
+                ->with(['user', 'shelfunit.shelf'])
+                ->order('p.status desc')
+                ->select();
+        }
+        
+        // 组装数据
+        $packageList = [];
+        if ($shelfUnitItems) {
+            foreach ($shelfUnitItems as $item) {
+                $packageList[] = [
+                    'express_num' => $item['package']['express_num'] ?? '-',
+                    'user' => $item['user'] ?? null,
+                    'created_time' => $item['created_time'] ?? '',
+                    'package' => $item['package'] ?? null,
+                ];
+            }
+        }
+        
+        return $this->fetch('view_shelf_unit_packages', compact('shelfUnit', 'packageList', 'set'));
+    }
+    
+    /**
+     * 批量从货位删除包裹
+     * @return mixed
+     */
+    public function batchDeletePackagesFromShelf(){
+        $pack_ids = $this->request->param()['selectIds'];
+        if (empty($pack_ids) || !is_array($pack_ids)) {
+            return $this->renderError('请选择要下架的包裹');
+        }
+        
+        // 批量删除货位项记录
+        $res = (new ShelfUnitItem())->where('pack_id', 'in', $pack_ids)->delete();
+        
+        if (!$res) {
+            return $this->renderError('批量下架失败');
+        }
+        return $this->renderSuccess('批量下架成功');
+    }
+    
+    /**
+     * 从货位删除单个包裹
+     * @return mixed
+     */
+    public function deletePackageFromShelf(){
+        $pack_id = $this->request->param('pack_id');
+        
+        if (empty($pack_id)) {
+            return $this->renderError('包裹ID不能为空');
+        }
+        
+        // 删除货位项记录
+        $res = (new ShelfUnitItem())->where(['pack_id' => $pack_id])->delete();
+        
+        if (!$res) {
+            return $this->renderError('删除失败');
+        }
+
+        return $this->renderSuccess('下架成功');
     }
     
     /**

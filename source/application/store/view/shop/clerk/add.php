@@ -141,6 +141,16 @@
                                         <?= isset($model['clerk_authority']['is_problem']) && $model['clerk_authority']['is_problem'] == 1 ? 'checked' : '' ?>>
                                         问题件
                                     </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="clerk[clerk_authority][is_scanquery]" value="1" data-am-ucheck
+                                        <?= isset($model['clerk_authority']['is_scanquery']) && $model['clerk_authority']['is_scanquery'] == 1 ? 'checked' : '' ?>>
+                                        扫码查件
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="clerk[clerk_authority][is_shelfmanagement]" value="1" data-am-ucheck
+                                        <?= isset($model['clerk_authority']['is_shelfmanagement']) && $model['clerk_authority']['is_shelfmanagement'] == 1 ? 'checked' : '' ?>>
+                                        货位管理
+                                    </label>
                                     <div class="help-block">
                                         <small>分拣员: 进行包裹上下架操作;</small>
                                     </div>
