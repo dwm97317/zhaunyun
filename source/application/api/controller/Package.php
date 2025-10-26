@@ -3185,6 +3185,27 @@ class Package extends Controller
         }
            
         $logic = array_merge($logic,$logici,$logicv);
+       // 按id去重，保留第一次出现的记录
+        $temp_ids = [];
+        $unique_logic = [];
+        foreach ($logic as $item) {
+            if (!empty($item['id']) && !in_array($item['id'], $temp_ids)) {
+                $temp_ids[] = $item['id'];
+                $unique_logic[] = $item;
+            } elseif (empty($item['id'])) {
+                // 如果没有id，则保留
+                $unique_logic[] = $item;
+            }
+        }
+        
+        // 按created_time进行排序（降序，最新的在前面）
+        usort($unique_logic, function($a, $b) {
+            $time_a = isset($a['created_time']) ? strtotime($a['created_time']) : 0;
+            $time_b = isset($b['created_time']) ? strtotime($b['created_time']) : 0;
+            return $time_b - $time_a; // 降序排列
+        });
+        
+        $logic = $unique_logic;
         return $this->renderSuccess(compact('logic'));
      }
      
