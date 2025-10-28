@@ -102,10 +102,7 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                                 <i class="am-icon-truck"></i> 发货
                                             </a>
                                             <?php endif; ?>
-                                            
-                                            <!--<a class='tpl-table-black-operation-green j-invoice' href="javascript:void(0);" data-id="<?= $item['batch_id'] ?>">-->
-                                            <!--    <i class="iconfont icon-daochu"></i> 导出INVOICE-->
-                                            <!--</a>-->
+                                   
                                         </div>
                                         <div style="margin-top:10px;" class="tpl-table-black-operation">
                                             <?php if (checkPrivilege('batch/batchvsinpack')): ?>
@@ -121,9 +118,7 @@ use app\common\enum\BatchType as BatchTypeEnum;
                                              <a class='tpl-table-black-operation-green j-package' href="javascript:void(0);" data-id="<?= $item['batch_id'] ?>">
                                                 <i class="iconfont icon-daochu"></i> 导出包裹明细
                                             </a>
-                                            <!--<a class='tpl-table-black-operation-green j-clearance' href="javascript:void(0);" data-id="<?= $item['batch_id'] ?>">-->
-                                            <!--    <i class="iconfont icon-daochu"></i> 导出清关模板-->
-                                            <!--</a>-->
+                                         
                                         </div>
                                     </td>
                                 </tr>
