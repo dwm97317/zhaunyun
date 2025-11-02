@@ -20,6 +20,7 @@ class Wechat
     {
         // 获取请求对象
         $request = Request::instance();
+        log_write($request);
         // 获取微信应用ID
         $wxapp_id = $request->param('wxapp_id');
         if (empty($wxapp_id)) {

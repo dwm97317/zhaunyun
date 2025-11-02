@@ -49,8 +49,8 @@ class Captcha extends Controller
         $Email = new Email;
         $data = $this->postData();
         $code = $this->getSmsCode(6);
-        Cache::set('emailcode',$code);
-        // dump($data['form']['email']);die;
+        Cache::set('emailcode_'.$data['form']['email'],$code);
+     
         if ($Email->sendEmailCaptcha($data['form']['email'],$code,$type=2)) {
             return $this->renderSuccess('','发送成功，请注意查收');
         }

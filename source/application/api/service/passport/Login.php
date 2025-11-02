@@ -576,10 +576,11 @@ class Login extends Basics
         }
         
         if($setting['checkphone']==10){
-          $emailcode = Cache::get('emailcode');
+          $emailcode = Cache::get('emailcode_'.$data['email']);
             if ($emailcode!=$data['smsCode']) {
                 throw new BaseException(['msg' =>'邮箱验证码不正确']);
-            }  
+            }
+            Cache::delete('emailcode_'.$data['email']);
         }
         
         if($setting['checkphone']==20){
@@ -587,6 +588,7 @@ class Login extends Basics
             if ($smsCode!=$data['smsCode']) {
                 throw new BaseException(['msg' =>'短信验证码不正确']);
             }
+            Cache::delete('smscode'.$data['phone']);
         }
 
     }
