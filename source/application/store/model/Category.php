@@ -62,14 +62,19 @@ class Category extends CategoryModel
      * @param $data
      * @return false|int
      */
-    public function add($data)
+    public function add($data,$type)
     {
         $data['wxapp_id'] = self::$wxapp_id;
         if (!empty($data['image'])) {
             $data['image_id'] = UploadFile::getFildIdByName($data['image']);
         }
-        $data['type']= 20;
-        $this->deleteCache();
+        $data['type']= $type;
+        if($type==10){
+            $this->deleteCache2();
+        }else{
+            $this->deleteCache();
+        }
+        
         return $this->allowField(true)->save($data);
     }
 
@@ -78,14 +83,18 @@ class Category extends CategoryModel
      * @param $data
      * @return bool|int
      */
-    public function edit($data)
+    public function edit($data,$type)
     {
         // 验证：一级分类如果存在子类，则不允许移动
         if ($data['parent_id'] > 0 && static::hasSubCategory($this['category_id'])) {
             $this->error = '该分类下存在子分类，不可以移动';
             return false;
         }
-        $this->deleteCache();
+        if($type==10){
+            $this->deleteCache2();
+        }else{
+            $this->deleteCache();
+        }
         !array_key_exists('image_id', $data) && $data['image_id'] = 0;
         return $this->allowField(true)->save($data) !== false;
     }
@@ -105,6 +114,22 @@ class Category extends CategoryModel
         $this->deleteCache();
         return $this->delete();
     }
+    
+        /**
+     * 删除商品分类
+     * @param $categoryId
+     * @return bool|int
+     */
+    public function remove2($categoryId)
+    {
+        // 判断是否存在子分类
+        if (static::hasSubCategory($categoryId)) {
+            $this->error = '该分类下存在子分类，请先删除';
+            return false;
+        }
+        $this->deleteCache2();
+        return $this->delete();
+    }
 
     /**
      * 删除缓存
@@ -114,5 +139,12 @@ class Category extends CategoryModel
     {
         return Cache::rm('categoryshop_' . static::$wxapp_id);
     }
-
+    /**
+     * 删除缓存
+     * @return bool
+     */
+    private function deleteCache2()
+    {
+        return Cache::rm('category_' . static::$wxapp_id);
+    }
 }

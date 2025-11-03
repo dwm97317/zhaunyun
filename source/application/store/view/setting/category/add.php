@@ -6,7 +6,7 @@
                     <div class="widget-body">
                         <fieldset>
                             <div class="widget-head am-cf">
-                                <div class="widget-title am-fl">添加商品分类</div>
+                                <div class="widget-title am-fl">添加货品分类</div>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">分类名称 </label>

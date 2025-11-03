@@ -61,7 +61,7 @@ class Category extends Controller
             return $this->fetch('add', compact('list'));
         }
         // 新增记录
-        if ($model->add($this->postData('category'))) {
+        if ($model->add($this->postData('category'),20)) {
             return $this->renderSuccess('添加成功', url('goods.category/index'));
         }
         return $this->renderError($model->getError() ?: '添加失败');
@@ -83,7 +83,7 @@ class Category extends Controller
             return $this->fetch('edit', compact('model', 'list'));
         }
         // 更新记录
-        if ($model->edit($this->postData('category'))) {
+        if ($model->edit($this->postData('category'),20)) {
             return $this->renderSuccess('更新成功', url('goods.category/index'));
         }
         return $this->renderError($model->getError() ?: '更新失败');

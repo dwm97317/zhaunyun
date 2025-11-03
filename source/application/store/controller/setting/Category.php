@@ -32,7 +32,7 @@ class Category extends Controller
     public function delete($category_id)
     {
         $model = CategoryModel::get($category_id);
-        if (!$model->remove($category_id)) {
+        if (!$model->remove2($category_id)) {
             return $this->renderError($model->getError() ?: '删除失败');
         }
         return $this->renderSuccess('删除成功');
@@ -51,8 +51,8 @@ class Category extends Controller
             return $this->fetch('add', compact('list'));
         }
         // 新增记录
-        if ($model->add($this->postData('category'))) {
-            return $this->renderSuccess('添加成功', url('goods.category/index'));
+        if ($model->add($this->postData('category'),10)) {
+            return $this->renderSuccess('添加成功', url('setting.category/index'));
         }
         return $this->renderError($model->getError() ?: '添加失败');
     }
@@ -73,8 +73,8 @@ class Category extends Controller
             return $this->fetch('edit', compact('model', 'list'));
         }
         // 更新记录
-        if ($model->edit($this->postData('category'))) {
-            return $this->renderSuccess('更新成功', url('goods.category/index'));
+        if ($model->edit($this->postData('category'),10)) {
+            return $this->renderSuccess('更新成功', url('setting.category/index'));
         }
         return $this->renderError($model->getError() ?: '更新失败');
     }

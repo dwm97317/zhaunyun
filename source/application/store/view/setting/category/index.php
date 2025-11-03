@@ -14,10 +14,10 @@
                     <div class="am-u-sm-12 am-u-md-6 am-u-lg-6">
                         <div class="am-form-group">
                             <div class="am-btn-toolbar">
-                                <?php if (checkPrivilege('goods.category/add')): ?>
+                                <?php if (checkPrivilege('setting.category/add')): ?>
                                     <div class="am-btn-group am-btn-group-xs">
                                         <a class="am-btn am-btn-default am-btn-success am-radius"
-                                           href="<?= url('goods.category/add') ?>">
+                                           href="<?= url('setting.category/add') ?>">
                                             <span class="am-icon-plus"></span> 新增
                                         </a>
                                     </div>
@@ -45,13 +45,13 @@
                                     <td class="am-text-middle"><?= $first['create_time'] ?></td>
                                     <td class="am-text-middle">
                                         <div class="tpl-table-black-operation">
-                                            <?php if (checkPrivilege('goods.category/edit')): ?>
-                                                <a href="<?= url('goods.category/edit',
+                                            <?php if (checkPrivilege('setting.category/edit')): ?>
+                                                <a href="<?= url('setting.category/edit',
                                                     ['category_id' => $first['category_id']]) ?>">
                                                     <i class="am-icon-pencil"></i> 编辑
                                                 </a>
                                             <?php endif; ?>
-                                            <?php if (checkPrivilege('goods.category/delete')): ?>
+                                            <?php if (checkPrivilege('setting.category/delete')): ?>
                                                 <a href="javascript:;" class="item-delete tpl-table-black-operation-del"
                                                    data-id="<?= $first['category_id'] ?>">
                                                     <i class="am-icon-trash"></i> 删除
@@ -68,13 +68,13 @@
                                         <td class="am-text-middle"><?= $two['create_time'] ?></td>
                                         <td class="am-text-middle">
                                             <div class="tpl-table-black-operation">
-                                                <?php if (checkPrivilege('goods.category/edit')): ?>
-                                                    <a href="<?= url('goods.category/edit',
+                                                <?php if (checkPrivilege('setting.category/edit')): ?>
+                                                    <a href="<?= url('setting.category/edit',
                                                         ['category_id' => $two['category_id']]) ?>">
                                                         <i class="am-icon-pencil"></i> 编辑
                                                     </a>
                                                 <?php endif; ?>
-                                                <?php if (checkPrivilege('goods.category/delete')): ?>
+                                                <?php if (checkPrivilege('setting.category/delete')): ?>
                                                     <a href="javascript:;"
                                                        class="item-delete tpl-table-black-operation-del"
                                                        data-id="<?= $two['category_id'] ?>">
@@ -91,13 +91,13 @@
                                             <td class="am-text-middle"><?= $three['create_time'] ?></td>
                                             <td class="am-text-middle">
                                                 <div class="tpl-table-black-operation">
-                                                    <?php if (checkPrivilege('goods.category/edit')): ?>
-                                                        <a href="<?= url('goods.category/edit',
+                                                    <?php if (checkPrivilege('setting.category/edit')): ?>
+                                                        <a href="<?= url('setting.category/edit',
                                                             ['category_id' => $three['category_id']]) ?>">
                                                             <i class="am-icon-pencil"></i> 编辑
                                                         </a>
                                                     <?php endif; ?>
-                                                    <?php if (checkPrivilege('goods.category/delete')): ?>
+                                                    <?php if (checkPrivilege('setting.category/delete')): ?>
                                                         <a href="javascript:;"
                                                            class="item-delete tpl-table-black-operation-del"
                                                            data-id="<?= $three['category_id'] ?>">
@@ -125,7 +125,7 @@
 <script>
     $(function () {
         // 删除元素
-        var url = "<?= url('goods.category/delete') ?>";
+        var url = "<?= url('setting.category/delete') ?>";
         $('.item-delete').delete('category_id', url);
 
     });
