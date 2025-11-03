@@ -28,7 +28,7 @@ class Order extends Controller
        $param = $this->request->param();
        $lists = $SharingOrder->getList($param);
        foreach ($lists as $key => $item){
-          $lists[$key]['count'] = $SharingOrderItem->where('order_id',$item['order_id'])->where('status','<',9)->count();
+          $lists[$key]['count'] = $SharingOrderItem->where('order_id',$item['order_id'])->where('type',1)->where('status','<',9)->count();
        }
        $list = $lists;
         // dump($list);die;
@@ -43,7 +43,7 @@ class Order extends Controller
         $SharingOrderItem = new SharingOrderItem();
         $Inpack = new Inpack();
         $shopList = ShopModel::getAllList();
-        $lists = $SharingOrderItem->where("order_id",input('order_id'))->where('status','<',9)->select();
+        $lists = $SharingOrderItem->where("order_id",input('order_id'))->where('type',1)->where('status','<',9)->select();
         $list = [];
         $set = Setting::detail('store')['values']['address_setting'];
         foreach ($lists as $key =>$value){
