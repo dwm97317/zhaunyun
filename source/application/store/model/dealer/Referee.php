@@ -74,6 +74,7 @@ class Referee extends RefereeModel
         // # 记录一级推荐关系
         // 判断当前用户是否已存在推荐关系
         if ($this->isExistReferee($user_id)) {
+            $this->error = "存在推荐关系，请先取消该用户的上级";
             return false;
         }
        

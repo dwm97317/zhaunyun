@@ -18,6 +18,7 @@
                                 <th>性别</th>
                                 <th>累积消费金额</th>
                                 <th>注册时间</th>
+                                <th>操作</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -36,10 +37,22 @@
                                     <td class="am-text-middle"><?= $item['user']['gender']['text'] ?></td>
                                     <td class="am-text-middle"><?= $item['user']['pay_money'] ?></td>
                                     <td class="am-text-middle"><?= $item['create_time'] ?></td>
+                                    <td class="am-text-middle">
+                                        <div class="tpl-table-black-operation">
+                                            <?php if (checkPrivilege('apps.dealer.user/deletefan')): ?>
+                                                <a class="tpl-table-black-operation-del j-delete-fan"
+                                                   href="javascript:void(0);"
+                                                   data-id="<?= $item['user_id'] ?>"
+                                                   title="解除关系">
+                                                    <i class="am-icon-trash"></i> 解除关系
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
                                 </tr>
                             <?php endforeach; else: ?>
                                 <tr>
-                                    <td colspan="6" class="am-text-center">暂无记录</td>
+                                    <td colspan="7" class="am-text-center">暂无记录</td>
                                 </tr>
                             <?php endif; ?>
                             </tbody>
@@ -58,7 +71,23 @@
 </div>
 <script>
     $(function () {
-
+        /**
+         * 解除粉丝关系
+         */
+        $('.j-delete-fan').on('click', function () {
+            var userId = $(this).data('id');
+            layer.confirm(
+                '确定要解除该用户与分销商的关系吗？解除后该用户将不再属于此分销商的下级成员，不可恢复，请谨慎操作！'
+                , {title: '友情提示'}
+                , function (index) {
+                    $.post("<?= url('apps.dealer.user/deleteFan') ?>", {user_id: userId}, function (result) {
+                        result.code === 1 ? $.show_success(result.msg, result.url)
+                            : $.show_error(result.msg);
+                    });
+                    layer.close(index);
+                }
+            );
+        });
     });
 </script>
 

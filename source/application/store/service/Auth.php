@@ -75,7 +75,9 @@ class Auth
         'tr_order/alluserlist',
         'package.index/userindex',
         'logistics/delete',
-        'tr_order/updateprintstatus'
+        'tr_order/updateprintstatus',
+        'apps.dealer.user/deletefan',
+        'apps.dealer.user/addreferee'
     ];
 
     /** @var array $accessUrls 商家用户权限url */

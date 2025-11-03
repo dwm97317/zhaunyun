@@ -42,10 +42,47 @@ class User extends Controller
             return $this->renderError('请选择该分校商的下级用户');
         }
         foreach ($param['data'] as $val){
-           $RefereeModel->createRelation($val['user_id'], $param['user_id']);
-        
+           $res = $RefereeModel->createRelation($val['user_id'], $param['user_id']);
+           if(!$res){
+               return $this->renderError($RefereeModel->getError()?: '操作失败');
+           }
         }
         return $this->renderSuccess('操作成功');
+    }
+    
+     /**
+     * 解除粉丝关系
+     * @param $user_id
+     * @return array|bool
+     * @throws \think\exception\DbException
+     */
+    public function deleteFan($user_id)
+    {
+        // 先获取推荐关系信息
+        $refereeInfo = RefereeModel::get(['user_id' => $user_id]);
+        if (!$refereeInfo) {
+            return $this->renderError('该用户不存在推荐关系');
+        }
+        
+        $model = new RefereeModel;
+        // 删除该用户的推荐关系
+        if ($model->onClearReferee($user_id)) {
+            // 更新分销商的成员数量
+            $dealerModel = UserModel::detail($refereeInfo['dealer_id']);
+            if ($dealerModel) {
+                // 减少成员数量
+                $level = $refereeInfo['level'];
+                if ($level == 1) {
+                    $dealerModel->setDec('first_num', 1);
+                } elseif ($level == 2) {
+                    $dealerModel->setDec('second_num', 1);
+                } elseif ($level == 3) {
+                    $dealerModel->setDec('third_num', 1);
+                }
+            }
+            return $this->renderSuccess('解除关系成功', '');
+        }
+        return $this->renderError('解除关系失败');
     }
 
     /**
