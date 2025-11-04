@@ -60,7 +60,30 @@ class User extends Controller
          return $this->renderError('找不到该ID的用户');
     }
 
-    
+    /**
+     * 设置全局备注
+     * @param $user_id
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function setglobalremark($user_id)
+    {
+        $param = $this->request->param();
+        $global_remark = isset($param['global_remark']) ? $param['global_remark'] : '';
+        
+        // 获取用户详情
+        $user = UserModel::detail($user_id);
+        if (!$user) {
+            return $this->renderError('用户不存在');
+        }
+        
+        // 更新全局备注
+        if ($user->save(['global_remark' => $global_remark])) {
+            return $this->renderSuccess('设置全局备注成功');
+        }
+        
+        return $this->renderError('设置全局备注失败');
+    }
     
     
     /**

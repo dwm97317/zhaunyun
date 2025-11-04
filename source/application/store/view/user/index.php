@@ -152,8 +152,7 @@
                                 <th>微信头像</th>
                                 <th>会员资料</th>
                                 <th>OPEN_ID</th>
-                                <th>专属客服</th>
-                                <th>默认支付方式</th>
+                                <th>用户设定</th>
                                 <th>交易数据</th>
                                 <th>会员唛头</th>
                                 <th>时间</th>
@@ -199,6 +198,7 @@
                                             手机号：<?= $item['mobile']; ?>
                                           <?php endif;?>
                                     </td>
+                                    <?php $usource = [1=>'小程序',2=>'公众号',3=>'PC端',4=>'App'] ?>
                                     <td class="am-text-middle">
                                         开放平台ID:<?= $item['union_id'] ?> <br> 
                                         小程序ID:<?= $item['open_id'] ?> <br>
@@ -207,11 +207,16 @@
                                             <?= $item['is_subscribe']==1?"已关注":"未关注"   ?>
                                         </span>
                                     </td>
-                                     <td class="am-text-middle"><?= $item['service']['real_name'] ?></td>
-                                    <!--<?php $usource = [1=>'小程序',2=>'公众号',3=>'PC端',4=>'App'] ?>-->
-                                    <!--<td class="am-text-middle"><?= $usource[$item['u_source']] ?></td>-->
+                                    
                                     <?php $paytype = [0=>'付款发货',1=>'货到付款',2=>'月结'] ?>
-                                    <td class="am-text-middle"><?= $paytype[$item['paytype']] ?></td>
+                                     <td class="am-text-middle">
+                                         归属客服：<?= $item['service']['real_name'] ?><br>
+                                         默认支付方式：<?= $paytype[$item['paytype']] ?><br> 
+                                         来源：<?= $usource[$item['u_source']] ?><br>
+                                         全局备注：<?= $item['global_remark'] ?><br>
+                                    </td>
+                                    
+                                    <td class="am-text-middle"></td>
                                     <td class="am-text-middle">
                                         用户余额：<?= $item['balance'] ?><br> 
                                         可用积分：<?= $item['points'] ?><br>
@@ -274,6 +279,17 @@
                                                 </a><br />
                                                 <span style="padding-bottom:10px;display: block;"></span>
                                             <?php endif; ?>
+                                            <?php if (checkPrivilege('user/setglobalremark')): ?>
+                                                <a class="j-globalremark tpl-table-black-operation-default"
+                                                   href="javascript:void(0);"
+                                                   data-id="<?= $item['user_id'] ?>"
+                                                   data-remark="<?= htmlspecialchars($item['global_remark']) ?>"
+                                                   title="设置全局备注">
+                                                    <i class="am-icon-edit"></i>
+                                                    全局备注
+                                                </a>
+                                                
+                                            <?php endif; ?>
                                             <?php if (checkPrivilege('user/delete')): ?>
                                                 <a class="j-delete tpl-table-black-operation-default"
                                                    href="javascript:void(0);"
@@ -293,7 +309,14 @@
                                                    data-id="<?= $item['user_id'] ?>" title="删除用户">
                                                     <i class="am-icon-trash"></i> 重置密码
                                                 </a>
+                                                <span style="padding-bottom:10px;display: block;"></span>
                                             <?php endif; ?>
+                                            <?php if (checkPrivilege('user/editusercode')): ?>
+                                            <a class="am-dropdown-item j-UpdateCode" href="javascript:void(0);" 
+                                                data-id="<?= $item['user_id'] ?>">
+                                                <i class="am-icon-edit"></i>
+                                                修改用户编号</a>
+                                            <?php endif; ?>                 
                                             <div class="j-opSelect operation-select am-dropdown">
                                                 <button type="button"
                                                         class="am-dropdown-toggle am-btn am-btn-sm am-btn-secondary">
@@ -342,11 +365,7 @@
                                                             <a class="am-dropdown-item" onclick="getlog(this)" value="<?= $item['user_id'] ?>" href="javascript:;" getlog>出货统计</a>
                                                         </li>
                                                     <?php endif; ?>
-                                                        <li>
-                                                            <a class="am-dropdown-item j-UpdateCode"
-                                                               href="javascript:void(0);"
-                                                             data-id="<?= $item['user_id'] ?>">修改用户Code</a>
-                                                        </li>
+                                                       
                                                 </ul>
                                             </div>
                                         </div>
@@ -505,6 +524,21 @@
                     <label class="am-u-sm-3 am-form-label"> 使用场景描述 </label>
                     <div class="am-u-sm-8 am-u-end">
                         <input type="text" name="mark[markdes]" value="" placeholder="请输入唛头用途">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+<!-- 模板：设置全局备注 -->
+<script id="tpl-globalremark" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label"> 全局备注 </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <textarea rows="5" name="global_remark" placeholder="请输入全局备注" class="am-field-valid">{{ remark }}</textarea>
                     </div>
                 </div>
             </div>
@@ -979,6 +1013,28 @@
                 , yes: function ($content) {
                     $content.find('form').myAjaxSubmit({
                         url: '<?= url('user/usermark') ?>',
+                        data: {user_id: data.id}
+                    });
+                    return true;
+                }
+            });
+        });
+        
+        /**
+         * 设置全局备注
+         */
+        $('.j-globalremark').on('click', function () {
+            var data = $(this).data();
+            $.showModal({
+                title: '设置全局备注'
+                , area: '460px'
+                , content: template('tpl-globalremark', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('user/setglobalremark') ?>',
                         data: {user_id: data.id}
                     });
                     return true;
