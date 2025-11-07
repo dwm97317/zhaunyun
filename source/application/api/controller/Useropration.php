@@ -495,16 +495,16 @@ class Useropration extends Controller
        foreach ($param['code'] as $key=>$val){
            $shelfdata['express_num'] = $val;
            $package = (new Package())->where(['express_num'=>$val,'is_delete'=>0])->find();
-           $Inpack = (new Inpack())->where(['t_order_sn'=>$val,'is_delete'=>0])->find();
-           
            if(!empty($package)){
                 $shelfdata['pack_id'] = $package['id'];
                 $shelfdata['user_id'] = $package['member_id'];
-                (new ShelfUnitItem())->post($shelfdata);
-           }elseif(!empty($Inpack)){
-                 $shelfdata['pack_id'] = $Inpack['order_sn'];
-                 $shelfdata['user_id'] = $Inpack['member_id'];
-                (new ShelfUnitItem())->post($shelfdata);
+                $result = (new ShelfUnitItem())->where('pack_id',$shelfdata['pack_id'])->find();
+                if(!empty($result)){
+                    $result->post($shelfdata);
+                }else{
+                    (new ShelfUnitItem())->post($shelfdata);
+                }
+                
            }else{
                $settingkeeper  = SettingModel::getItem('keeper');
                if($settingkeeper['shopkeeper']['is_sacn_shelf']==1){
