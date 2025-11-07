@@ -1609,39 +1609,53 @@ class Useropration extends Controller
             return false;
         }
         $selectedShelfUnitId = null;
-        // 1. 检查包裹是否有归属用户
+        // 1. 检查包裹是否有专属货位，如果有则使用专属货位
         if(!empty($member_id)){
             $userShelfUnits = $this->getUserBindShelfUnits($member_id, $wxapp_id);
             if(!empty($userShelfUnits)){
                 $selectedShelfUnitId = $userShelfUnits['shelf_unit_id'];
             }else{
-                // 2. 如果有归属用户，查询该用户的其他包裹存放的货位
-                $userShelfUnits = $this->getUserOtherPackagesShelfUnits($member_id, $wxapp_id, 1);
-                if(!empty($userShelfUnits) && count($userShelfUnits)>0){
-                    // 找到用户其他包裹的货位，优先分配
-                    $selectedShelfUnitId = $userShelfUnits[0]['shelf_unit_id'];
+                // 如果没有专属货位，看后台是否来决定是否给用户自动分配
+                //如果没有专属货位，就查询出空货位并给他分配一个，并绑定货位跟用户
+                if($keepersetting['shopkeeper']['is_auto_setshelfuser']==1){
+                    $emptyShelfUnits = $this->getEmptyShelfUnits($wxapp_id, 1);
+                    if(empty($emptyShelfUnits)){
+                         $this->error = "没有空余货位，请添加更多货位";
+                         return false;
+                    }
+                    $selectedShelfUnitId = $emptyShelfUnits[0]['shelf_unit_id'];
+                    (new ShelfUnit())->where('shelf_unit_id',$selectedShelfUnitId)->update([
+                        'user_id'=>$member_id
+                    ]);
+                }else{
+                    //如果没有归属货位，并且也没有需要自动分配货位，就先查询下该用户是否有其他包裹有在货位上的，放在相同货位 
+                    $userShelfUnits = $this->getUserOtherPackagesShelfUnits($member_id, $wxapp_id, 1);
+                    if(!empty($userShelfUnits) && count($userShelfUnits)>0){
+                        // 找到用户其他包裹的货位，优先分配
+                        $selectedShelfUnitId = $userShelfUnits[0]['shelf_unit_id'];
+                    }
+                    // 找到包裹数量最少的货位分配
+                    if(empty($selectedShelfUnitId)){
+                        $leastPackagesShelfUnits = $this->getLeastPackagesShelfUnits($wxapp_id, 1);
+                        if(!empty($leastPackagesShelfUnits) && count($leastPackagesShelfUnits)>0){
+                            $selectedShelfUnitId = $leastPackagesShelfUnits[0]['shelf_unit_id'];
+                        }
+                    }
+                    
                 }
+                
             }
-        }
-        
-        // 2. 如果还是没有货位，就从未设置专属货位的货位中随机一个空的
-        // 如果没有归属用户或没有找到用户其他包裹的货位，优先分配空货位
-        if(empty($selectedShelfUnitId)){
-            $emptyShelfUnits = $this->getEmptyShelfUnits($wxapp_id, 1);
+        }else{
+            //查询无主货架，随机分配一个无主货架
+            $emptyShelfUnits = $this->getNouserShelfUnits($wxapp_id);
             if(!empty($emptyShelfUnits)){
-                $selectedShelfUnitId = $emptyShelfUnits[0]['shelf_unit_id'];
-            }
-        }
-        
-        // 4. 如果没有空货位，找到包裹数量最少的货位分配
-        if(empty($selectedShelfUnitId)){
-            $leastPackagesShelfUnits = $this->getLeastPackagesShelfUnits($wxapp_id, 1);
-            if(!empty($leastPackagesShelfUnits) && count($leastPackagesShelfUnits)>0){
-                $selectedShelfUnitId = $leastPackagesShelfUnits[0]['shelf_unit_id'];
+                $selectedShelfUnitId = $emptyShelfUnits['shelf_unit_id'];
+            }else{
+                 //如果没有无主货架，则商家不存在货位，则不需要保存货位信息；
+                return true;
             }
         }
 
-        
         $resultpack = (new ShelfUnitItem())->where('pack_id',$pack_id)->find();
         if(empty($resultpack)){
             // 6. 分配货位
@@ -1649,22 +1663,29 @@ class Useropration extends Controller
                 'pack_id' => $pack_id,
                 'wxapp_id' => $wxapp_id,
                 'express_num' => $express_num,
-                'user_id' => $member_id,
+                'user_id' => !empty($member_id)?$member_id:0,
                 'shelf_unit_id' => $selectedShelfUnitId,
                 'created_time' => getTime()
             ];
             
             (new ShelfUnitItem())->save($shelfData);
         }else{
-            $resultpack->save(['shelf_unit_id' => $selectedShelfUnitId]);
+            $resultpack->save([
+                'shelf_unit_id' => $selectedShelfUnitId,
+                'user_id'=>!empty($member_id)?$member_id:$resultpack['user_id']
+            ]);
         }
         return true;
     }
     
+    //找到没有归属的货位
     public function getUserBindShelfUnits($member_id, $wxapp_id) {
-        return (new ShelfUnit())->field('shelf_unit_id, COUNT(*) as usage_count')
+        return (new ShelfUnit())
                     ->where('wxapp_id', $wxapp_id)
                     ->where('user_id', $member_id)
+                    ->where('is_nouser',0)
+                    ->where('is_big', 0)
+                    ->where('status',1)
                     ->find();
     }
     
@@ -1705,6 +1726,23 @@ class Useropration extends Controller
                     ->select();
     }
     
+     /**
+     * 获取无主货位
+     * @param int $wxapp_id
+     * @param int $limit
+     * @return array
+     */
+    public function getNouserShelfUnits($wxapp_id) {
+        return (new ShelfUnit())
+                ->where('user_id', 0)
+                ->where('is_nouser', 1)
+                ->where('is_big', 0)
+                ->where('status',1)
+                ->where('wxapp_id', $wxapp_id)
+                ->orderRaw('RAND()')  // MySQL 随机排序
+                ->find();  // 获取单个记录
+    }
+    
     /**
      * 获取空货位（没有任何包裹的货位）
      * @param int $wxapp_id
@@ -1713,7 +1751,13 @@ class Useropration extends Controller
      */
     public function getEmptyShelfUnits($wxapp_id, $limit = 1) {
         // 获取所有货位ID
-        $allShelfUnits = (new ShelfUnit())->field('shelf_unit_id')->where('user_id',0)->select();
+        $allShelfUnits = (new ShelfUnit())
+        ->field('shelf_unit_id')
+        ->where('status',1)
+        ->where('is_nouser',0)
+        ->where('is_big', 0)
+        ->where('user_id',0)
+        ->select();
         $allShelfUnitIds = array_column($allShelfUnits->toArray(), 'shelf_unit_id');
         if (empty($allShelfUnitIds)) {
             return [];

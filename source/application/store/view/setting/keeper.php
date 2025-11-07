@@ -366,6 +366,27 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    是否自动给用户绑定专属货位
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_auto_setshelfuser]" value="1"
+                                               data-am-ucheck  <?= $values['shopkeeper']['is_auto_setshelfuser'] == 1 ? 'checked' : '' ?>>
+                                        自动
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="keeper[shopkeeper][is_auto_setshelfuser]" value="0"
+                                               data-am-ucheck <?= $values['shopkeeper']['is_auto_setshelfuser'] == 0 ? 'checked' : '' ?>>
+                                        手动
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                               <label class="am-u-sm-3 am-form-label"></label>
+                                    <small>注：设置自动后，用户新包裹入库后会自动选择一个没有归属的货位设置为用户的专属货位，打包完成后货位会自动解除货位与用户的绑定关系，如用户还有未打包的包裹，则不会解除。</small>
+                            </div>
+                            <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
                                     </button>
