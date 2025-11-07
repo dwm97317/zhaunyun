@@ -179,7 +179,8 @@ class Setting extends BaseModel
                     'createSn' => 10, // 10 常规  20 时间+用户id+country_id
                     'menu_type' => 10,
                     'is_wechatgzh'=>1,
-                    'wechat_company'=>'',
+                    'wechat_company'=>'', //企业微信客服链接
+                    'wechat_company_corpid'=>'', //公司id
                     'is_newhand' => 1, //新手区时候展示
                     'is_wechat' =>1,
                     'is_wechathao' =>1,

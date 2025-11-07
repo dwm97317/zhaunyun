@@ -30,7 +30,7 @@
                                         <option value=""></option>
                                         <?php if (isset($shelfList) && !$shelfList->isEmpty()): ?>
                                           <?php foreach ($shelfList as $item): ?>
-                                                <option value="<?= $item['id'] ?>"  <?= $model['shelf_id']??'' == $item['id'] ? 'selected' : '' ?>><?= $item['shelf_name'] ?></option>
+                                                <option value="<?= $item['id'] ?>"  <?= $model['shelf_id']  == $item['id'] ? 'selected' : '' ?>><?= $item['shelf_name'] ?></option>
                                             <?php endforeach; endif; ?>
                                     </select>
                                     <div class="help-block">

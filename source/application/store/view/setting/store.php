@@ -830,6 +830,16 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label"> 企业微信ID </label>
+                                <div class="am-u-sm-9">
+                                     <input type="text" class="tpl-form-input" name="store[wechat_company_corpid]"
+                                           value="<?= $values['wechat_company_corpid']??'' ?>" required>
+                                            <div class="help-block">
+                                        <small>注：如果没有企业微信，就留空</small>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label"> 企业微信客服链接 </label>
                                 <div class="am-u-sm-9">
                                      <input type="text" class="tpl-form-input" name="store[wechat_company]"
