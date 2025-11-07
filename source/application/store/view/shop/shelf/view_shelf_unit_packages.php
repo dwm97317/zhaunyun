@@ -41,6 +41,12 @@
                                 <button type="button" id="j-batch-delete" class="am-btn am-btn-danger am-btn-sm">
                                     <i class="am-icon-trash"></i> 批量下架
                                 </button>
+                                <button type="button" id="j-upuser" class="am-btn am-btn-success am-btn-sm">
+                                    <i class="am-icon-user"></i> 批量修改归属用户
+                                </button>
+                                <button type="button" id="j-copy-express" class="am-btn am-btn-warning am-btn-sm">
+                                    <i class="am-icon-copy"></i> 复制快递单号
+                                </button>
                             </div>
                             <!-- 右侧搜索筛选 -->
                             <div class="am-fl" style="margin-left: 15px;">
@@ -196,6 +202,74 @@
     </div>
 </div>
 
+<script id="tpl-user-item" type="text/template">
+    {{ each $data }}
+    <div class="file-item">
+        <a href="{{ $value.avatarUrl }}" title="{{ $value.nickName }} (ID:{{ $value.user_id }})" target="_blank">
+            <img src="{{ $value.avatarUrl }}" style="width:60px;height:60px;border-radius:50%;">
+        </a>
+        <p style="margin-top:5px;">{{ $value.nickName }}<br>ID: {{ $value.user_id }}</p>
+        <input type="hidden" name="package[user_id]" value="{{ $value.user_id }}">
+    </div>
+    {{ /each }}
+</script>
+
+<style>
+    .change-user-modal .user-list {
+        margin-top: 10px;
+    }
+
+    .change-user-modal .file-item {
+        float: left;
+        text-align: center;
+        margin-right: 12px;
+        padding: 8px 12px;
+        border: 1px solid #f0f0f0;
+        border-radius: 6px;
+        background: #fafafa;
+    }
+
+    .change-user-modal .file-item img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 1px solid #e5e5e5;
+    }
+
+    .change-user-modal .file-item p {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 0;
+        line-height: 1.4;
+    }
+
+    .change-user-modal .am-btn + .user-list {
+        clear: both;
+    }
+</style>
+
+<script id="tpl-change-user" type="text/template">
+    <form class="am-form tpl-form-line-form change-user-modal" method="post" action="">
+        <div class="am-form-group">
+            <label class="am-u-sm-3 am-form-label">已选包裹</label>
+            <div class="am-u-sm-8 am-u-end">
+                <p class="am-text-middle">共选中 {{ selectCount }} 个包裹</p>
+            </div>
+        </div>
+        <div class="am-form-group">
+            <label class="am-u-sm-3 am-form-label form-require">选择用户</label>
+            <div class="am-u-sm-8 am-u-end">
+                <button type="button" class="am-btn am-btn-secondary am-btn-sm j-selectUser">
+                    <i class="am-icon-search"></i> 选择用户
+                </button>
+                <div class="user-list uploader-list am-cf" style="margin-top:10px;"></div>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
+
 <script>
     $(function () {
         // 全选/取消全选功能
@@ -301,6 +375,121 @@
                 });
             });
         });
+
+        // 复制快递单号
+        $('#j-copy-express').on('click', function() {
+            var selectRows = $('#package-tbody tr').filter(function() {
+                return $(this).find('input[name="checkIds"]').prop('checked');
+            });
+            var expressNums = [];
+
+            if (selectRows.length > 0) {
+                selectRows.each(function() {
+                    var num = $(this).find('td:nth-child(3) strong').text().trim();
+                    if (num) {
+                        expressNums.push(num);
+                    }
+                });
+            } else {
+                $('#package-tbody tr').each(function() {
+                    if ($(this).find('td').length === 0) {
+                        return;
+                    }
+                    var num = $(this).find('td:nth-child(3) strong').text().trim();
+                    if (num) {
+                        expressNums.push(num);
+                    }
+                });
+            }
+
+            if (expressNums.length === 0) {
+                layer.alert('没有可复制的快递单号', {icon: 5});
+                return;
+            }
+
+            var textToCopy = expressNums.join('\n');
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(function() {
+                        layer.msg('已复制 ' + expressNums.length + ' 个快递单号', {icon: 1});
+                    })
+                    .catch(function() {
+                        fallbackCopyExpress(textToCopy, expressNums.length);
+                    });
+            } else {
+                fallbackCopyExpress(textToCopy, expressNums.length);
+            }
+        });
+
+        // 批量修改归属用户
+        $('#j-upuser').on('click', function() {
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length === 0) {
+                layer.alert('请先选择要操作的包裹', {icon: 5});
+                return;
+            }
+
+            var modalData = {
+                selectId: selectIds.join(','),
+                selectCount: selectIds.length
+            };
+
+            layer.open({
+                type: 1,
+                title: '批量修改归属用户',
+                area: '460px',
+                content: template('tpl-change-user', modalData),
+                btn: ['确认', '取消'],
+                success: function(layero) {
+                    var $layer = $(layero);
+                    $layer.find('.j-selectUser').on('click', function() {
+                        var $userList = $layer.find('.user-list');
+                        $.selectData({
+                            title: '选择用户',
+                            uri: 'user/lists',
+                            dataIndex: 'user_id',
+                            done: function (data) {
+                                var user = [data[0]];
+                                $userList.html(template('tpl-user-item', user));
+                            }
+                        });
+                    });
+                },
+                yes: function(index, layero) {
+                    var $layer = $(layero);
+                    var userId = $layer.find('input[name="package[user_id]"]').val();
+                    if (!userId) {
+                        layer.alert('请先选择归属用户', {icon: 5});
+                        return;
+                    }
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '<?= url("store/package.index/changeUser") ?>',
+                        data: {
+                            selectIds: modalData.selectId,
+                            'package[user_id]': userId
+                        },
+                        dataType: 'json',
+                        success: function(res) {
+                            if (res.code === 1) {
+                                layer.close(index);
+                                layer.msg(res.msg || '修改成功', {icon: 1});
+                                setTimeout(function() {
+                                    window.location.reload();
+                                }, 600);
+                            } else {
+                                layer.msg(res.msg || '修改失败', {icon: 5});
+                            }
+                        },
+                        error: function() {
+                            layer.msg('网络请求失败，请稍后重试', {icon: 5});
+                        }
+                    });
+                }
+            });
+        });
         
         // 单个删除包裹
         $(document).on('click', '.j-delete-package', function() {
@@ -352,6 +541,24 @@
             $('#package-tbody tr').each(function(index) {
                 $(this).find('td:eq(1)').text(index + 1);
             });
+        }
+
+        function fallbackCopyExpress(text, count) {
+            var tempTextarea = $('<textarea readonly style="position:absolute;left:-9999px;top:-9999px;"></textarea>');
+            tempTextarea.val(text);
+            $('body').append(tempTextarea);
+            tempTextarea[0].select();
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    layer.msg('已复制 ' + count + ' 个快递单号', {icon: 1});
+                } else {
+                    layer.alert('复制失败，请手动复制', {icon: 5});
+                }
+            } catch (err) {
+                layer.alert('复制失败，请手动复制', {icon: 5});
+            }
+            tempTextarea.remove();
         }
     });
 </script>

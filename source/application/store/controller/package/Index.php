@@ -1123,6 +1123,7 @@ class Index extends Controller
         $user_id = $this->postData('package')['user_id'];
         $idsArr = explode(',',$ids);
         $res = (new Package())->whereIn("id",$idsArr)->update(['member_id'=>$user_id,'is_take'=>2,'updated_time'=>getTime()]);
+        (new ShelfUnitItem())->whereIn("pack_id",$idsArr)->update(['user_id'=>$user_id]);
         if (!$res){
             return $this->renderError('修改提交失败');
         }
