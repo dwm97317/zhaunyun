@@ -29,17 +29,49 @@ class DealerOrder
             return new DealerOrderModel and false;
         }
         $this->model = $model;
-        if (!Cache::has('__task_space__DealerOrder')) {
+        if (Cache::has('__task_space__DealerOrder')) {
+        
             $this->model->startTrans();
             try {
                 // 发放分销订单佣金
                 $this->grantMoney();
+                //发送集运订单佣金
+                $this->grantInpackMoney();
                 $this->model->commit();
             } catch (\Exception $e) {
                 $this->model->rollback();
             }
             Cache::set('__task_space__DealerOrder', time(), 3600);
         }
+        return true;
+    }
+    
+    /**
+     * 发放分销订单佣金
+     * @return bool
+     * @throws \think\Exception
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    private function grantInpackMoney()
+    {
+        // 获取未结算佣金的订单列表
+        $list = $this->model->getUnSettledInpackList();
+        // dump($list->toArray());die;
+        if ($list->isEmpty()) return false;
+        // 整理id集
+        $grantIds = [];
+        // 发放分销订单佣金
+        foreach ($list->toArray() as $item) {
+            // 已完成的订单
+            if ($item['inpack']['is_pay']==1 && $item['inpack']['status'] == 8 && $item['inpack']['is_settled'] == 0) {
+                $grantIds[] = $item['id'];
+                DealerOrderModel::grantMoneyInpack($item['inpack'],30);
+            }
+        }
+        // 记录日志
+        $this->dologs('grantMoney', ['Ids' => $grantIds]);
         return true;
     }
 
@@ -55,6 +87,7 @@ class DealerOrder
     {
         // 获取未结算佣金的订单列表
         $list = $this->model->getUnSettledList();
+       
         if ($list->isEmpty()) return false;
         // 整理id集
         $invalidIds = [];

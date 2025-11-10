@@ -833,7 +833,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 <label class="am-u-sm-3 am-form-label"> 企业微信ID </label>
                                 <div class="am-u-sm-9">
                                      <input type="text" class="tpl-form-input" name="store[wechat_company_corpid]"
-                                           value="<?= $values['wechat_company_corpid']??'' ?>" required>
+                                           value="<?= $values['wechat_company_corpid']??'' ?>">
                                             <div class="help-block">
                                         <small>注：如果没有企业微信，就留空</small>
                                 </div>
@@ -843,7 +843,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 <label class="am-u-sm-3 am-form-label"> 企业微信客服链接 </label>
                                 <div class="am-u-sm-9">
                                      <input type="text" class="tpl-form-input" name="store[wechat_company]"
-                                           value="<?= $values['wechat_company']??'' ?>" required>
+                                           value="<?= $values['wechat_company']??'' ?>">
                                             <div class="help-block">
                                         <small>注：如果没有企业微信，就留空</small>
                                 </div>
@@ -855,17 +855,24 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 </label>
                                 <div class="am-u-sm-9">
                                     <label class="am-radio-inline">
-                                        <input type="radio" name="store[is_wechathao]" value="1"
-                                               data-am-ucheck
-                                            <?= $values['is_wechathao'] == '1' ? 'checked' : '' ?>
-                                               required>
-                                        开启
-                                    </label>
-                                    <label class="am-radio-inline">
                                         <input type="radio" name="store[is_wechathao]" value="0"
                                                data-am-ucheck
                                             <?= $values['is_wechathao'] == '0' ? 'checked' : '' ?>>
                                         关闭
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_wechathao]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['is_wechathao'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        微信号
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_wechathao]" value="2"
+                                               data-am-ucheck
+                                            <?= $values['is_wechathao'] == '2' ? 'checked' : '' ?>
+                                               required>
+                                        微信二维码
                                     </label>
                                 </div>
                             </div>

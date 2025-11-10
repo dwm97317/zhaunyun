@@ -281,9 +281,6 @@
                                             <div class="help-block">
                                                 <small>当订单完成n天后，该订单的分销佣金才会结算到分销商余额，如果设置为0天 则订单完成时就结算</small>
                                             </div>
-                                            <div class="help-block">
-                                                <small>注：建议佣金结算天数大于允许发起售后申请天数，如果用户申请退款退货 则不结算佣金</small>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -140,6 +140,52 @@ class Order extends BaseModel
             'settle_time' => time()
         ]);
     }
+    
+    /**
+     * 发放分销订单佣金
+     * @param array|\think\Model $order 订单详情
+     * @param int $orderType 订单类型
+     * @return bool|false|int
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public static function grantMoneyInpack($order, $orderType = OrderTypeEnum::TRAN)
+    {
+    
+        // 订单是否已完成
+        if ($order['status'] != 8) {
+            return false;
+        }  
+       
+        // 佣金结算天数
+        $settleDays = Setting::getItem('settlement', $order['wxapp_id'])['settle_days'];
+          
+        
+        // 判断该订单是否满足结算时间 (订单完成时间 + 佣金结算时间) ≤ 当前时间
+        $deadlineTime = strtotime($order['receipt_time']) + ((int)$settleDays * 86400);
+          
+        if ($settleDays > 0 && $deadlineTime > time()) {
+            return false;
+        }
+       
+        // 分销订单详情
+        $model = self::getDetailByOrderId($order['id'],$orderType);
+       
+        if (!$model || $model['is_settled'] == 1) {
+            return false;
+        }
+        // 发放一级分销商佣金
+        $model['first_user_id'] > 0 && User::grantMoney($model['first_user_id'], $model['first_money']);
+        // 发放二级分销商佣金
+        $model['second_user_id'] > 0 && User::grantMoney($model['second_user_id'], $model['second_money']);
+        // 发放三级分销商佣金
+        $model['third_user_id'] > 0 && User::grantMoney($model['third_user_id'], $model['third_money']);
+        // 更新分销订单记录
+        return $model->save([
+            'is_settled' => 1,
+            'settle_time' => time()
+        ]);
+    }
 
     /**
      * 计算订单分销佣金

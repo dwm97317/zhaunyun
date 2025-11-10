@@ -146,11 +146,6 @@ class PaySuccess extends Basics
                 'money' => -$this->model['pay_price'],
             ], ['order_no' => $this->model['order_no']]);
         }
-        // 微信支付
-        if ($payType == PayTypeEnum::WECHAT) {
-            // 更新prepay_id记录
-//            WxappPrepayIdModel::updatePayStatus($this->model['order_id'], OrderTypeEnum::MASTER);
-        }
     }
 
 }

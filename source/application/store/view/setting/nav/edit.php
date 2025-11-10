@@ -16,6 +16,13 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 导航副标题(2号模板需要填) </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="nav[desc]"
+                                           value="<?= $model['desc'] ?>">
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">导航图标 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="am-form-file">
@@ -82,6 +89,34 @@
                                          <?= $model['is_use'] == 1 ? 'checked' : '' ?>>
                                         隐藏
                                     </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-u-lg-2 am-form-label"> 对应包裹/订单状态</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="nav[tips]" data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                        <option value="10" <?= $model['tips'] == 10 ? 'selected' : '' ?>>所有包裹</option>
+                                        <option value="20" <?= $model['tips'] == 20 ? 'selected' : '' ?>>未入库包裹</option>
+                                        <option value="30" <?= $model['tips'] == 30 ? 'selected' : '' ?>>已入库包裹</option>
+                                        <option value="40" <?= $model['tips'] == 40 ? 'selected' : '' ?>>已发货包裹</option>
+                                        <option value="50" <?= $model['tips'] == 50 ? 'selected' : '' ?>>问题件包裹</option>
+                                        <option value="60" <?= $model['tips'] == 60 ? 'selected' : '' ?>>已到货包裹</option>
+                                        <option value="70" <?= $model['tips'] == 70 ? 'selected' : '' ?>>已签收包裹</option>
+                                        <option value="80" <?= $model['tips'] == 80 ? 'selected' : '' ?>>待发货包裹</option>
+                                        <option value="90" <?= $model['tips'] == 90 ? 'selected' : '' ?>>待支付包裹</option>
+                                        <option value="100" <?= $model['tips'] == 100 ? 'selected' : '' ?>>待打包包裹</option>
+                                        <option value="110" <?= $model['tips'] == 110 ? 'selected' : '' ?>>所有订单</option>
+                                        <option value="120" <?= $model['tips'] == 120 ? 'selected' : '' ?>>已支付订单</option>
+                                        <option value="130" <?= $model['tips'] == 130 ? 'selected' : '' ?>>未支付订单</option>
+                                        <option value="140" <?= $model['tips'] == 140 ? 'selected' : '' ?>>待查验订单</option>
+                                        <option value="150" <?= $model['tips'] == 150 ? 'selected' : '' ?>>未发货订单</option>
+                                        <option value="160" <?= $model['tips'] == 160 ? 'selected' : '' ?>>已发货订单</option>
+                                        <option value="170" <?= $model['tips'] == 170 ? 'selected' : '' ?>>已完成订单</option>
+                                        <option value="180" <?= $model['tips'] == 180 ? 'selected' : '' ?>>未支付订单</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>此内容非必填，在首页需要显示某个状态的包裹数量或某个状态的订单数量时可以选择，其他菜单请勿选</small>
+                                    </div>
                                 </div>
                             </div>
                             <div class="am-form-group c" id="c1">

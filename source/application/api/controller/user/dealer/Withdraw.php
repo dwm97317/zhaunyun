@@ -45,7 +45,7 @@ class Withdraw extends Controller
     public function submit()
     {
         $formData = $this->request->param();
-      
+  
         $model = new WithdrawModel;
         if ($model->submit($this->dealer, $formData)) {
             return $this->renderSuccess([], '提现申请已提交成功，请等待审核');

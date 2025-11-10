@@ -23,6 +23,7 @@ class Order extends OrderModel
     {
         $list = $this->where('is_invalid', '=', 0)
             ->where('is_settled', '=', 0)
+            ->where('order_type',10)
             ->select();
         if ($list->isEmpty()) {
             return $list;
@@ -31,6 +32,21 @@ class Order extends OrderModel
         $with = ['goods' => ['refund']];
         return OrderService::getOrderList($list, 'order_master', $with);
     }
+    
+    public function getUnSettledInpackList()
+    {
+        $list = $this->where('is_invalid', '=', 0)
+            ->where('is_settled', '=', 0)
+            ->where('order_type',30)
+            ->select();
+        if ($list->isEmpty()) {
+            return $list;
+        }
+        // 整理订单信息
+        $with = ['inpack'];
+        return OrderService::getOrderList($list, 'order_master', $with);
+    }
+    
 
     /**
      * 标记订单已失效(批量)

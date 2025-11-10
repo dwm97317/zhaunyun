@@ -15,6 +15,12 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 导航副标题(2号模板需要填) </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="nav[desc]" value="">
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">导航图标 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="am-form-file">
@@ -55,6 +61,35 @@
                                     <input type="text" min="0" class="tpl-form-input" name="nav[nav_link]" value=""
                                            required>
                                     <small>注意：小程序内部链接使用链接库中的<a target="_blank" href="index.php?s=/store/wxapp.page/links">点击打开链接库</a></small>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3  am-u-lg-2 am-form-label"> 对应包裹/订单状态 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="nav[tips]"
+                                            data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                        <option value="10">所有包裹</option>
+                                        <option value="20">未入库包裹</option>
+                                        <option value="30">已入库包裹</option>
+                                        <option value="40">已发货包裹</option>
+                                        <option value="50">问题件包裹</option>
+                                        <option value="60">已到货包裹</option>
+                                        <option value="70">已签收包裹</option>
+                                        <option value="80">待发货包裹</option>
+                                        <option value="90">待支付包裹</option>
+                                        <option value="100">待打包包裹</option>
+                                        <option value="110">所有订单</option>
+                                        <option value="120">已支付订单</option>
+                                        <option value="130">未支付订单</option>
+                                        <option value="140">待查验订单</option>
+                                        <option value="150">未发货订单</option>
+                                        <option value="160">已发货订单</option>
+                                        <option value="170">已完成订单</option>
+                                        <option value="180">未支付订单</option>
+                                    </select>
+                                    <div class="help-block">
+                                        <small>此内容非必填，在首页需要显示某个状态的包裹数量或某个状态的订单数量时可以选择，其他菜单请勿选</small>
+                                    </div>
                                 </div>
                             </div>
                             <div class="am-form-group c" id="c1">

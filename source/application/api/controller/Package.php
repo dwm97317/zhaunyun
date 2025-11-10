@@ -24,6 +24,7 @@ use app\common\model\store\shop\Capital as CapitalModel;
 use app\common\model\dealer\Order as DealerOrder;
 use app\common\library\Pinyin;
 use app\common\model\dealer\User as DealerUser;
+use app\common\model\dealer\Rating as Rating;
 use app\api\model\Coupon as CouponModel;
 use app\api\model\UserCoupon;
 use app\common\model\PackageImage;
@@ -2120,6 +2121,46 @@ class Package extends Controller
      }
      
      
+     
+     //统计各个状态的包裹的数量
+     public function countall(){
+        $this->user = $this->getUser(); 
+        $PackageModel = new PackageModel();
+        $model =  (new Inpack());
+        if(!\request()->get('token')){
+            return $this->renderError('请先登录');
+        }
+        $where = [
+          'is_delete' => 0,
+          'member_id' => $this->user['user_id']
+        ];
+        $param = $this->request->param();
+        if(isset($param['usermark'])){
+            $where['usermark'] = $param['usermark'];
+        }
+        $data = [
+            '10' => $PackageModel->querycount($where,$status=0), //所有包裹
+            '20' => $PackageModel->querycount($where,$status=1), //未入库
+            '30' => $PackageModel->querycount($where,$status=2), //已入库
+            '40' => $PackageModel->querycount($where,$status=9),  //已发货
+            '50' => $PackageModel->querycount($where,$status=-1), //问题件
+            '60' => $PackageModel->querycount($where,$status=10), //已到货
+            '70' => $PackageModel->querycount($where,$status=11), //已签收
+            '80' => $PackageModel->querycount($where,$status=8), //待发货
+            '90' => $PackageModel->querycount($where,$status=5), //待支付
+            '100' => $PackageModel->querycount($where,$status=4),//待打包
+            '110'=>$model->whereIn('status',[1,2,3,4,5,6,7,8])->where($where)->count(), //所有订单
+            '120' => $model->whereIn('status',[2,3,4,5,6,7,8])->where($where)->where('is_pay',2)->count(), //已支付订单
+            '130' => $model->whereIn('status',[2,3,4,5,6,7,8])->where($where)->where('is_pay',2)->count(), //未支付订单
+            '140' => $model->whereIn('status',[1])->where($where)->count(), //待查验订单
+            '150' => $model->whereIn('status',[2,3,4,5])->where($where)->count(), //未发货订单
+            '160' => $model->whereIn('status',[6])->where($where)->count(), //已发货订单
+            '170' => $model->whereIn('status',[8])->where($where)->count(), //已完成订单
+            '180'=>$model->whereIn('status',[7])->where($where)->count(), //已到货订单
+        ];
+        return $this->renderSuccess($data);
+     }
+     
      /**
       * 恢复问题件
       * 更新于2022年5月7日
@@ -3433,39 +3474,64 @@ class Package extends Controller
         if (!$dealerUpUser){
             return false;
         }
-        $firstMoney = $data['amount'] * ($commission['first_money']/100);
+        
+        //查询分销商是否有等级
+        $first_money = 0;
+        $deuser = $dealeruser->where('user_id',$dealerUpUser['dealer_id'])->where('is_delete',0)->find();
+        if(!empty($deuser)){
+            $rantingData = Rating::detail($deuser['rating_id'],[]);
+            if(!empty($rantingData)){
+                $first_money  = $rantingData['setting']['first_money'];
+            }
+        }
+
+       
+        $firstMoney = $data['amount'] * (($commission['first_money']+$first_money)/100);
         $firstUserId = $dealerUpUser['dealer_id'];
         $remainMoney = $data['amount'] - $firstMoney;
     
         //给用户分配余额
-        $dealeruser->grantMoney($firstUserId,$firstMoney);
-        $dealerCapital[] = [
-           'user_id' => $firstUserId,
-           'flow_type' => 10,
-           'money' => $firstMoney,
-           'describe' => '分销收益',
-           'create_time' => time(),
-           'update_time' => time(),
-           'wxapp_id' => \request()->get('wxapp_id'),
-        ];
+        // $dealeruser->grantMoney($firstUserId,$firstMoney);
+        // $dealerCapital[] = [
+        //   'user_id' => $firstUserId,
+        //   'flow_type' => 10,
+        //   'money' => $firstMoney,
+        //   'describe' => '分销收益',
+        //   'create_time' => time(),
+        //   'update_time' => time(),
+        //   'wxapp_id' => \request()->get('wxapp_id'),
+        // ];
         # 判断是否进行二级分销
         if ($setting['level'] >= 2) {
             // 查询一级分销用户 是否存在上级
             $dealerSencondUser = $ReffeerModel->where(['user_id'=>$dealerUpUser['dealer_id']])->find();
             if ($dealerSencondUser){
-                $secondMoney = $remainMoney * ($commission['second_money']/100);
+                //查询分销商是否有等级
+                    $second_money = 0;
+                    $deusersencond = $dealeruser->where('user_id',$dealerSencondUser['dealer_id'])->where('is_delete',0)->find();
+                    
+                    if(!empty($deusersencond)){
+                        $rantingDatasen = Rating::detail($deusersencond['rating_id'],[]);
+                     
+                        if(!empty($rantingDatasen)){
+                            $second_money  = $rantingDatasen['setting']['first_money'];
+                        }
+                    }
+                
+                $secondMoney = $remainMoney * (($second_money+$commission['second_money'])/100);
+            
                 $remainMoney = $remainMoney - $secondMoney;
                 $secondUserId = $dealerSencondUser['dealer_id'];
-                $dealerCapital[] = [
-                   'user_id' => $secondUserId,
-                   'flow_type' => 10,
-                   'money' => $secondMoney,
-                   'describe' => '分销收益',
-                   'create_time' => time(),
-                   'update_time' => time(),
-                   'wxapp_id' => \request()->get('wxapp_id'),
-                ];
-                $dealeruser->grantMoney($secondUserId,$secondMoney);
+                // $dealerCapital[] = [
+                //   'user_id' => $secondUserId,
+                //   'flow_type' => 10,
+                //   'money' => $secondMoney,
+                //   'describe' => '分销收益',
+                //   'create_time' => time(),
+                //   'update_time' => time(),
+                //   'wxapp_id' => \request()->get('wxapp_id'),
+                // ];
+                // $dealeruser->grantMoney($secondUserId,$secondMoney);
             }
         }
         # 判断是否进行三级分销
@@ -3475,16 +3541,16 @@ class Package extends Controller
             if ($dealerSencondUser){
                 $thirdMoney = $remainMoney * ($commission['third_money']/100);
                 $thirdUserId = $dealerthirddUser['dealer_id'];
-                $dealerCapital[] = [
-                   'user_id' => $thirdUserId,
-                   'flow_type' => 10,
-                   'money' => $thirdMoney,
-                   'describe' => '分销收益',
-                   'create_time' => time(),
-                   'update_time' => time(),
-                   'wxapp_id' => \request()->get('wxapp_id'),
-                ];
-                $dealeruser->grantMoney($thirdUserId,$thirdMoney);
+                // $dealerCapital[] = [
+                //   'user_id' => $thirdUserId,
+                //   'flow_type' => 10,
+                //   'money' => $thirdMoney,
+                //   'describe' => '分销收益',
+                //   'create_time' => time(),
+                //   'update_time' => time(),
+                //   'wxapp_id' => \request()->get('wxapp_id'),
+                // ];
+                // $dealeruser->grantMoney($thirdUserId,$thirdMoney);
             }
         }
        
@@ -3501,16 +3567,21 @@ class Package extends Controller
             'second_money' => $secondMoney??0,
             'third_money' => $thirdMoney??0,
             'is_invalid' => 0,
-            'is_settled' => 1,
+            'is_settled' => 0,
             'settle_time' => time(),
             'create_time' => time(),
             'update_time' => time(),
             'wxapp_id' => \request()->get('wxapp_id')
         ];
-        
-        $resCapi = (new Capital())->insertAll($dealerCapital);
-        $resDeal = (new DealerOrder())->insert($dealerOrder);
-        if(!$resCapi || !$resDeal){
+
+        $dealerdata = (new DealerOrder())->where('order_id', $data['order_id'])->find();
+        if(!empty($dealerdata)){
+            $resDeal = $dealerdata->save($dealerOrder);
+        }else{
+            $resDeal = (new DealerOrder())->insert($dealerOrder);
+        }
+        // $resCapi = (new Capital())->insertAll($dealerCapital);
+        if(!$resDeal){
             return false;
         }
         return true;

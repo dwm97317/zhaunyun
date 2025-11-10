@@ -49,6 +49,13 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 微信客服链接 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input" name="clerk[service_link]"
+                                           placeholder="请输入微信客服链接" value="<?= $model['service_link'] ?>" >
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 发货仓入库员 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-checkbox-inline">

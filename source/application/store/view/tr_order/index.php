@@ -526,7 +526,7 @@
                                             </a>
                                             <?php endif; ?>
                                             <!--删除-->
-                                            <?php if($dataType=='complete' || $item['status']==-1): ?>
+                                            <?php if($item['status']==8 || $item['status']==-1): ?>
                                             <?php if (checkPrivilege('tr_order/orderdelete')): ?>
                                             <a href="javascript:void(0);"
                                                class="item-delete tpl-table-black-operation-del"

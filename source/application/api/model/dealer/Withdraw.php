@@ -52,7 +52,7 @@ class Withdraw extends WithdrawModel
         $this->validation($dealer, $data);
         // 新增申请记录
         unset($data['token']);
-        $this->save(array_merge($data, [
+        $this->allowField(true)->save(array_merge($data, [
             'user_id' => $dealer['user_id'],
             'apply_status' => 10,
             'wxapp_id' => self::$wxapp_id,
@@ -67,8 +67,10 @@ class Withdraw extends WithdrawModel
      *用户提现申请 
      */
     public function submitUser($dealer, $data){
+        
         // 数据验s证
         $this->validationUser($dealer, $data);
+        
         // 新增申请记录
         $this->save(array_merge($data, [
             'user_id' => $dealer['user_id'],
@@ -161,6 +163,7 @@ class Withdraw extends WithdrawModel
                 throw new BaseException(['msg' => '请补全提现信息']);
             }
         }
+        
     }
 
 

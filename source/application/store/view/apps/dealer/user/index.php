@@ -121,9 +121,9 @@
                                                 <a class="j-grade tpl-table-black-operation-default"
                                                    href="javascript:void(0);"
                                                    data-id="<?= $item['user_id'] ?>"
-                                                   title="修改会员等级">
+                                                   title="修改分销等级">
                                                     <i class="iconfont icon-grade-o"></i>
-                                                    会员等级
+                                                    分销等级
                                                 </a>
                                             <?php endif; ?>
                                             <a class='tpl-table-black-operation-green j-selectUser' data-id="<?= $item['user_id'] ?>"  href="javascript:void(0);">
@@ -192,18 +192,18 @@
         </div>
     </div>
 </div>
-<!-- 模板：修改会员等级 -->
+<!-- 模板：修改分销等级 -->
 <script id="tpl-grade" type="text/template">
     <div class="am-padding-xs am-padding-top">
         <form class="am-form tpl-form-line-form" method="post" action="">
             <div class="am-tab-panel am-padding-0 am-active">
                 <div class="am-form-group">
                     <label class="am-u-sm-3 am-form-label form-require">
-                        会员等级
+                        分销等级
                     </label>
                     <div class="am-u-sm-8 am-u-end">
                         <select name="grade[rating_id]"
-                                data-am-selected="{btnSize: 'sm', placeholder: '请选择会员等级'}">
+                                data-am-selected="{btnSize: 'sm', placeholder: '请选择分销等级'}">
                             <option value="0">无等级</option>
                             <?php foreach ($gradeList as $item): ?>
                                 <option value="<?= $item['rating_id'] ?>"
@@ -287,7 +287,7 @@
         
         
                 /**
-         * 修改会员等级
+         * 修改分销等级
          */
         $('.j-grade').on('click', function () {
             var data = $(this).data();
