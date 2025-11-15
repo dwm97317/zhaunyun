@@ -35,7 +35,7 @@ class QrcodeService {
             return $rout1;
         }
         if ($type=='20'){
-             //条形码
+            //条形码
             $width = 400;
             $height = 200;
             $image = imagecreatetruecolor($width, $height);
@@ -52,17 +52,23 @@ class QrcodeService {
             
             $fontPath = 'assets/common/fonts/verdanab.ttf';
             $fontColor = imagecolorallocate($image, 0, 0, 0);
-            $fontSize = 40;
+            $fontSize = 60;
             $descSize = 20;
-            $addcSize = 16;
-            //绘制单号到图片上
-            $expresstextBox = imagettfbbox($fontSize, 0, $fontPath,$text);
-            $expresstextWidth = $expresstextBox[2] - $expresstextBox[0];
-            $expresstextHeight = $expresstextBox[7] - $expresstextBox[1];
-            imagettftext($image, $addcSize,0,200-($width - $expresstextWidth)/2,140, $fontColor, $fontPath,$text);
+            $addcSize = 30;
+            
+            //绘制单号到图片上 - 修正文字居中
+            $textBox = imagettfbbox($addcSize, 0, $fontPath, $text);
+            $textWidth = $textBox[2] - $textBox[0];
+            $textHeight = $textBox[1] - $textBox[7];
+            
+            //计算文字起始位置使其居中
+            $textX = ($width - $textWidth) / 2;
+            $textY = 160; //保持原有的Y坐标位置
+            
+            imagettftext($image, $addcSize, 0, $textX, $textY, $fontColor, $fontPath, $text);
             
             $outfile = $this->outPut.date("YmdHis").rand(000000,999999).'.jpg';
-    		imagejpeg($image, $outfile);
+            imagejpeg($image, $outfile);
             imagedestroy($image);
             return $outfile;
         }

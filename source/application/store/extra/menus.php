@@ -382,6 +382,7 @@ return [
             ]
         ]
     ],
+
     'batch' => [
         'name' => '批次管理',
         'icon' => 'icon-wenzhang',

@@ -68,6 +68,7 @@
                                 <div class="am-u-sm-9 am-u-end">
                                     <select name="nav[tips]"
                                             data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                        <option value="0">不对应状态</option>
                                         <option value="10">所有包裹</option>
                                         <option value="20">未入库包裹</option>
                                         <option value="30">已入库包裹</option>

@@ -155,6 +155,21 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">拼团二维码</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <button type="button"
+                                                class="upload-share-image upload-file am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择图片
+                                        </button>
+                                        <div class="uploader-list am-cf"></div>
+                                    </div>
+                                    <div class="help-block">
+                                        <small>请上传拼团群二维码图片</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否通过审核 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">
@@ -220,6 +235,11 @@
 </script>
 
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
+<!-- 图片文件列表模板 -->
+{{include file="layouts/_template/tpl_file_item" /}}
+
+<!-- 文件库弹窗 -->
+{{include file="layouts/_template/file_library" /}}
 <script>
    
     // 国家搜索器
@@ -347,6 +367,12 @@
          * @type {*}
          */
         $('#my-form').superForm();
+
+        // 选择拼团二维码图片
+        $('.upload-share-image').selectImages({
+            name: 'data[share_image_id]',
+            multiple: false
+        });
      })
      
         

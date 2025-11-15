@@ -952,7 +952,6 @@ class Useropration extends Controller
             ->field('id,express_num,order_sn,member_id,storage_id,status,width,height,weight,length,remark,admin_remark')
             ->with(['storage','packageimage.filepackage'])
             ->find();
-            //  dump($res->toArray());die;
         if ($res) {  // 确保 $res 不是 null
             $res->ismorepack = 0;  // 如果是对象
             // 或者 $res['ismorepack'] = 0; 如果是数组
@@ -1005,6 +1004,10 @@ class Useropration extends Controller
         $userdata = UserModel::detail($where,$with=[]);
         !empty($userdata) && $res['user_code'] =  $userdata['user_code'];
         if ($res){
+          if($res['storage_id']==0){
+              $res['storage'] = Shop::detail($clerk['shop_id']);
+              $res['storage_id'] = $clerk['shop_id'];
+          }
           $res['is_pre'] = 10; //是包裹单号
           return $this->renderSuccess($res);
         }
@@ -1483,6 +1486,7 @@ class Useropration extends Controller
     //   dump($update);die;
        $res = (new Package())->where(['id'=>$id])->update($update);
        //插入图片
+       log_write("插入图片前获取的=".$id.'，id='.$data['id']);
        $this->inImages($id,$imageIds,$wxapp_id);
        //更新日志
        Logistics::add2($id,'包裹已到达仓库',$clerk['clerk_id']);

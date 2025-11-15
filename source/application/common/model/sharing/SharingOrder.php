@@ -1,6 +1,7 @@
 <?php
 namespace app\common\model\sharing;
 use app\common\model\BaseModel;
+use app\common\model\UploadFile;
 /**
  * 拼团订单服务
  * */
@@ -32,7 +33,7 @@ class SharingOrder extends BaseModel{
 
     public static function detail($id)
     {
-        return self::get($id,['country','storage','address','line']);
+        return self::get($id,['country','storage','address','line','shareImage']);
     }
     
     public function country(){
@@ -50,5 +51,14 @@ class SharingOrder extends BaseModel{
     }
     public function address(){
         return $this->belongsTo('app\common\model\UserAddress','address_id');
+    }
+    
+    /**
+     * 关联拼团二维码图片
+     * @return \think\model\relation\HasOne
+     */
+    public function shareImage()
+    {
+        return $this->hasOne('app\common\model\UploadFile', 'file_id', 'share_image_id');
     }
 } 

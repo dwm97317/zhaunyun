@@ -2011,6 +2011,21 @@ class Page extends Controller
       return $this->renderSuccess($list);
     }
     
+    //淘口令列表 
+    public function taoCommandList(){
+        $Bank = (new Bank());
+        $where['bank_type']=2;
+        $data = $Bank->getList($where);
+        $data->each(function ($item) {
+            if (isset($item['taocode'])) {
+                $item['taocode'] = html_entity_decode($item['taocode']);
+            }
+        });
+        $list['data'] = $data;
+        $list['setting'] = html_entity_decode((new SettingModel())->getItem('bank')['setting']);
+        return $this->renderSuccess($list);
+    }
+    
      //银行凭证设置
     public function getbanksetting(){
       $list = SettingModel::getItem('bank');

@@ -95,6 +95,7 @@
                                 <label class="am-u-sm-3  am-u-lg-2 am-form-label"> 对应包裹/订单状态</label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <select name="nav[tips]" data-am-selected="{btnSize: 'sm', placeholder: '请选择', maxHeight: 400}">
+                                        <option value="0">不对应状态</option>
                                         <option value="10" <?= $model['tips'] == 10 ? 'selected' : '' ?>>所有包裹</option>
                                         <option value="20" <?= $model['tips'] == 20 ? 'selected' : '' ?>>未入库包裹</option>
                                         <option value="30" <?= $model['tips'] == 30 ? 'selected' : '' ?>>已入库包裹</option>

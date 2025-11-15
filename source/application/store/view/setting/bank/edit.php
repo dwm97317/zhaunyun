@@ -21,13 +21,18 @@
                                         <?= $model['bank_type'] == 1 ? 'checked' : '' ?>>
                                         收款码
                                     </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="bank[bank_type]" value="2" data-am-ucheck
+                                        <?= $model['bank_type'] == 2 ? 'checked' : '' ?>>
+                                        淘口令
+                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group bank-info-fields">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">开户行 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="bank[bank_name]"
-                                           placeholder="请输入开户行" value="<?= $model['bank_name'] ?>">
+                                           placeholder="请输入开户行" value="<?= $model['bank_type'] == 2 ? ($model['bank_name'] ?: '淘口令') : $model['bank_name'] ?>">
                                 </div>
                             </div>  
                             <div class="am-form-group am-padding-top bank-info-fields">
@@ -59,7 +64,7 @@
                                     
                                 </div>
                             </div>
-                            <div class="am-form-group qrcode-upload-field">
+                            <div class="am-form-group qrcode-upload-field" style="display: none;">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label">收款码 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="am-form-file">
@@ -81,6 +86,13 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group taocode-field" style="display: none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">淘口令内容 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <textarea class="tpl-form-input" name="bank[taocode]" rows="4"
+                                              placeholder="请粘贴完整的淘口令内容"><?= isset($model['taocode']) ? $model['taocode'] : '' ?></textarea>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -118,6 +130,12 @@
 {{include file="layouts/_template/file_library" /}}
 
 <script src="assets/store/js/select.region.js?v=1.2"></script>
+<style>
+    .taocode-field textarea {
+        word-break: break-all;
+        white-space: normal;
+    }
+</style>
 
 <script>
 
@@ -133,15 +151,43 @@
          */
         function toggleBankFields() {
             var bankType = $('input[name="bank[bank_type]"]:checked').val();
+            var $bankNameInput = $('input[name="bank[bank_name]"]');
+            var $taocodeTextarea = $('textarea[name="bank[taocode]"]');
             
             if (bankType == '0') {
                 // 银行账户：显示银行信息，隐藏收款码
                 $('.bank-info-fields').show();
                 $('.qrcode-upload-field').hide();
+                $('.taocode-field').hide();
+                var backupBankName = $bankNameInput.data('backup-bank-name');
+                if (typeof backupBankName !== 'undefined') {
+                    $bankNameInput.val(backupBankName);
+                    $bankNameInput.removeData('backup-bank-name');
+                }
             } else if (bankType == '1') {
                 // 收款码：隐藏银行信息，显示收款码
                 $('.bank-info-fields').hide();
                 $('.qrcode-upload-field').show();
+                $('.taocode-field').hide();
+                var backupBankName = $bankNameInput.data('backup-bank-name');
+                if (typeof backupBankName !== 'undefined') {
+                    $bankNameInput.val(backupBankName);
+                    $bankNameInput.removeData('backup-bank-name');
+                }
+            } else if (bankType == '2') {
+                // 淘口令：隐藏银行信息和收款码，显示淘口令字段
+                if (typeof $bankNameInput.data('backup-bank-name') === 'undefined') {
+                    $bankNameInput.data('backup-bank-name', $bankNameInput.val());
+                }
+                $bankNameInput.val('淘口令');
+                if (!$taocodeTextarea.data('decoded')) {
+                    var decodedValue = $('<textarea/>').html($taocodeTextarea.val()).text();
+                    $taocodeTextarea.val(decodedValue);
+                    $taocodeTextarea.data('decoded', true);
+                }
+                $('.bank-info-fields').hide();
+                $('.qrcode-upload-field').hide();
+                $('.taocode-field').show();
             }
         }
         

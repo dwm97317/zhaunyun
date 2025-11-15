@@ -2,7 +2,7 @@
 namespace app\store\model\sharing;
 use app\common\model\sharing\SharingOrder as SharingOrderModel;
 use app\store\model\store\Shop as ShopModel;
-
+use app\store\model\UploadFile;
 
 class SharingOrder extends SharingOrderModel {
     

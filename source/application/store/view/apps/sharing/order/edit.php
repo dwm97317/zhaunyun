@@ -159,6 +159,31 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">拼团二维码</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <div class="am-form-file">
+                                        <button type="button"
+                                                class="upload-share-image am-btn am-btn-secondary am-radius">
+                                            <i class="am-icon-cloud-upload"></i> 选择图片
+                                        </button>
+                                        <div class="uploader-list am-cf">
+                                            <?php if (!empty($detail['share_image'])): ?>
+                                                <div class="file-item">
+                                                    <a href="<?= $detail['share_image']['file_path'] ?>" title="点击查看大图" target="_blank">
+                                                        <img src="<?= $detail['share_image']['file_path'] ?>">
+                                                    </a>
+                                                    <input type="hidden" name="data[share_image_id]" value="<?= $detail['share_image']['file_id'] ?>">
+                                                    <i class="iconfont icon-shanchu file-item-delete"></i>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <div class="help-block">
+                                        <small>请上传拼团群二维码图片</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否通过审核 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">
@@ -349,6 +374,12 @@
         $('.upload-file').selectImages({
             name: 'data[images][]' , multiple: true
         }); 
+
+        // 选择拼团二维码图片
+        $('.upload-share-image').selectImages({
+            name: 'data[share_image_id]',
+            multiple: false
+        });
      })
      
         
