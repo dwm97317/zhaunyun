@@ -1175,9 +1175,10 @@ class Page extends Controller
                               'price' => number_format((floatval($v['weight_price']) * $ww + floatval($otherfree))*$value['discount'],2),
                               'rule' => $v,
                               'service' =>0,
-                          ]; 
+                          ];
+                        break;
                       }
-                      break;
+                    
                    }else{
                        $lines[$key]['sortprice'] =(floatval($v['weight_price']) *$v['weight'][0]  + floatval($otherfree))*$value['discount'] ;
                        $lines[$key]['predict'] = [
@@ -1187,7 +1188,6 @@ class Page extends Controller
                           'service' =>0,
                        ]; 
                    }
-                   break;
                }
                break;
                
