@@ -15,7 +15,7 @@ class SharingUser extends SharingUserModel {
            return false;
        }
        $data['wxapp_id'] = self::$wxapp_id;
-       return $this->save($data);
+       return $this->allowField(true)->save($data);
    }
    
    public function reapply($data){
