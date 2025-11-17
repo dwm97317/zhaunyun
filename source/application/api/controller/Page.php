@@ -1177,6 +1177,7 @@ class Page extends Controller
                               'service' =>0,
                           ]; 
                       }
+                      break;
                    }else{
                        $lines[$key]['sortprice'] =(floatval($v['weight_price']) *$v['weight'][0]  + floatval($otherfree))*$value['discount'] ;
                        $lines[$key]['predict'] = [
@@ -1186,8 +1187,8 @@ class Page extends Controller
                           'service' =>0,
                        ]; 
                    }
+                   break;
                }
-               
                break;
                
                case '5':
