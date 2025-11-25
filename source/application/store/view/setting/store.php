@@ -602,6 +602,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                             <option value="10" <?= $values['usercode_mode']['mode'] == 10 ? 'selected' : '' ?> >纯数字模式</option>
                                             <option value="20" <?= $values['usercode_mode']['mode'] == 20 ? 'selected' : '' ?>>纯英文模式</option>
                                             <option value="30" <?= $values['usercode_mode']['mode'] == 30 ? 'selected' : '' ?> >数字英文混合模式</option>
+                                            <option value="40" <?= $values['usercode_mode']['mode'] == 40 ? 'selected' : '' ?> >数字英文顺序模式</option>
                                     </select>
                                     <div class="help-block">
                                         <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>
@@ -646,6 +647,24 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     <div class="am-u-sm-9 am-u-end">
                                         <input type="text" class="tpl-form-input"  value="<?= $values['usercode_mode']['30']['number'] ??'' ?>"
                                                name="store[usercode_mode][<?= UserCodeTypeEnum::SHUMU ?>][number]">
+                                                <small>子母填【JY】，数字填5生成的范围为：JY00001-JY99999</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 用户编号配置：数字英文混合模式 -->
+                            <div id="<?= UserCodeTypeEnum::SHUNXU ?>" name="store[usercode_mode][mode] " class="form-tab-group  <?= $values['usercode_mode']['mode'] == 40 ? 'active' : '' ?> 
+                            <?= ($values['usercode_mode']['mode'] == 40 && $values['usercode_mode']['is_show'] == '0') ? 'disnone' : '' ?>">
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3  am-form-label form-require"> 头部英文，最佳为2-3个固定子母 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                         <input type="text" class="tpl-form-input"
+                                               name="store[usercode_mode][<?= UserCodeTypeEnum::SHUNXU ?>][char]" value="<?= $values['usercode_mode']['30']['char'] ??'' ?>">
+                                    </div>
+                                    <label class="am-u-sm-3  am-form-label form-require"> 数字个数，最佳是5位 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input"  value="<?= $values['usercode_mode']['30']['number'] ??'' ?>"
+                                               name="store[usercode_mode][<?= UserCodeTypeEnum::SHUNXU ?>][number]">
                                                 <small>子母填【JY】，数字填5生成的范围为：JY00001-JY99999</small>
                                     </div>
                                 </div>

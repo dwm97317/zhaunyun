@@ -13,6 +13,7 @@ use app\common\model\Setting;
 use app\api\model\user\Grade;
 use app\api\model\store\shop\Clerk;
 use app\api\model\UserCoupon;
+use think\Db;
 /**
  * 用户模型类
  * Class User
@@ -398,12 +399,47 @@ class User extends UserModel
                     $num = $setting['usercode_mode'][30]['number'];
                     $userCode = $this->createCharNum($num,$zimu);
                     break;
+                case '40':
+                    //顺序模式
+                    $zimu = $setting['usercode_mode'][40]['char'];
+                    $num = $setting['usercode_mode'][40]['number'];
+                    $userCode = $this->createCharShunxuNum($num,$zimu);
+                    break;
                 default:
                     $num = $setting['usercode_mode'][10]['number'];
                     $userCode = $this->createNum($num);
                     break;
             }
             return $userCode;
+        }
+    }
+    
+    public function generateUserNo($num,$zimu)
+    {
+        try {
+            // 使用事务确保并发安全
+            Db::startTrans();
+            
+            // 锁表查询，防止并发问题
+            $lastUserNo = self::where('user_code', 'like', $zimu.'%')
+                ->lock(true)
+                ->order('user_id', 'desc')
+                ->value('user_code');
+            
+            if (empty($lastUserNo)) {
+                $newUserNo = $this->createCharNum($num,$zimu);
+            } else {
+                $lastNumber = intval(substr($lastUserNo, 1));
+                $newNumber = $lastNumber + 1;
+                $newUserNo = $zimu . str_pad($newNumber, $num, '0', STR_PAD_LEFT);
+            }
+            
+            Db::commit();
+            return $newUserNo;
+            
+        } catch (\Exception $e) {
+            Db::rollback();
+            throw new \Exception("生成用户编号失败: " . $e->getMessage());
         }
     }
     
@@ -439,6 +475,14 @@ class User extends UserModel
         $ucode = $this->checkOnlyOne($ucode,'createCharNum',$num);
         return $ucode;
     }
+    
+    //顺序生成
+    public function createCharShunxuNum($num,$zimu){
+        $ucode = $this->generateUserNo($num,$zimu);
+        $ucode = $this->checkOnlyOne($ucode,'createCharNum',$num);
+        return $ucode;
+    }
+    
     //校验唯一
      public function checkOnlyOne($ucode,$funcitonname,$num){
         
