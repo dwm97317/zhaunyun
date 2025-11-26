@@ -516,6 +516,10 @@ class Useropration extends Controller
                     }
                 }else{
                     (new ShelfUnitItem())->post($shelfdata);
+                    // 如果需要绑定专属，就绑定
+                    if($param['bind_exclusive_location']==1 && $package['member_id']>0 && $shelfunitresult['user_id']==0){
+                        $shelfunitresult->save(['user_id'=>$package['member_id']]);
+                    }
                 }
                 
            }else{
