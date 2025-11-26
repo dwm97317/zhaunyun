@@ -35,7 +35,7 @@
                                     <div class="am-form-group am-fl">
                                         <div class="am-input-group am-input-group-sm tpl-form-border-form">
                                             <input type="text" class="am-form-field" name="user_id"
-                                                   placeholder="请输入用户ID" value="<?= $request->get('user_id') ?>">
+                                                   placeholder="请输入用户ID/编号" value="<?= $request->get('user_id') ?>">
                                         </div>
                                     </div>
                                     <div class="am-form-group am-fl">

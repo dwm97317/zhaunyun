@@ -273,6 +273,9 @@ class ApiPost extends Controller
             ];
             (new PackageImage())->save($imgdata);
         }
+        if(isset($storesetting['is_auto_shelf']) && $storesetting['is_auto_shelf']==1){
+            $this->fenpeihuowei(0,$id,$param['expressnum'],$result['wxapp_id']);
+        }
         return $this->renderSuccess("预报成功");
     }
     
