@@ -108,6 +108,10 @@ class Useropration extends Controller
       if (!$res){
         return $this->renderError('包裹未查询到');
       }
+      // 找到此用户所有的货位
+      $result = (new shelfunit())->with(['shelf'])->where('user_id',$res['member_id'])->select();
+    //   dump($result->toArray());die;
+      $res['shelfunit'] = $result;
       return $this->renderSuccess($res);
     }
     
@@ -492,6 +496,11 @@ class Useropration extends Controller
        $this->user = $this->getUser();
        $shelfdata =['shelf_unit' => $param['shelf_unit_id']];
        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+       // 查询货位信息
+       $shelfunitresult = (new shelfunit())->where('shelf_unit_id',$param['shelf_unit_id'])->find();
+       if(empty($shelfunitresult)){
+            return $this->renderError('货位不存在');
+       }
        foreach ($param['code'] as $key=>$val){
            $shelfdata['express_num'] = $val;
            $package = (new Package())->where(['express_num'=>$val,'is_delete'=>0])->find();
@@ -501,6 +510,10 @@ class Useropration extends Controller
                 $result = (new ShelfUnitItem())->where('pack_id',$shelfdata['pack_id'])->find();
                 if(!empty($result)){
                     $result->post($shelfdata);
+                    // 如果需要绑定专属，就绑定
+                    if($param['bind_exclusive_location']==1 && $package['member_id']>0 && $shelfunitresult['user_id']==0){
+                        $shelfunitresult->save(['user_id'=>$package['member_id']]);
+                    }
                 }else{
                     (new ShelfUnitItem())->post($shelfdata);
                 }

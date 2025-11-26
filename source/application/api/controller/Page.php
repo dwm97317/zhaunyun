@@ -283,14 +283,15 @@ class Page extends Controller
     public function noticeBanner(){
         $setting = SettingModel::detail('store')['values']['jumpbox'];
         $BannerLog= new BannerLog();
+        $bannerModel = (new Banner());
+        $data = $bannerModel->noticeBanner();
         //如果没登陆直接返回
         if(!input('token')){
-            return $this->renderSuccess($data = []);
+            return $this->renderBannerSuccess($data,count($data));
         }
         
         $this->user = $this->getUser(); 
-        $bannerModel = (new Banner());
-        $data = $bannerModel->noticeBanner();
+        
         if(empty($data)){
             return $this->renderError($data = []);
         }
@@ -309,7 +310,6 @@ class Page extends Controller
                 $dataT[$i] = $value;
                 $i+=1;
             }
-            // dump($dataT);die;
             return $this->renderBannerSuccess($dataT,count($dataT));
         }
         if($setting['mode'] ==30){
