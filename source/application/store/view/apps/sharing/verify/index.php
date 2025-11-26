@@ -104,8 +104,8 @@
                                     </td>
                                     <td class="am-text-middle">
                                         <?php if (checkPrivilege('apps.sharing.verify/users')): ?>
-                                            <a class="tpl-table-black-operation-default"
-                                               href="javascript:void()" id="j-verify" data-id="<?= $item['id']; ?>">
+                                            <a class="tpl-table-black-operation-default j-verify"
+                                               href="javascript:void(0)" data-id="<?= $item['id']; ?>">
                                                 <i class="iconfont icon-shenhe"></i> 审核操作
                                             </a>
                                         <?php endif; ?>
@@ -237,13 +237,12 @@
       /**
          * 审核操作状态
          */
-       $('#j-verify').on('click', function(){
+       $(document).on('click', '.j-verify', function(){
             var $tabs, data = $(this).data();
             var selectIds = checker.getCheckSelect();
-            selectIds.push(data.id);
-            if (selectIds.length==0){
-                layer.alert('请先选择审核单', {icon: 5});
-                return;
+            // 将当前行的id加入审核列表（如果没有选中复选框，至少可以审核当前这一条）
+            if (selectIds.indexOf(data.id) === -1) {
+                selectIds.push(data.id);
             }
             data.selectId = selectIds.join(',');
             data.selectCount = selectIds.length;

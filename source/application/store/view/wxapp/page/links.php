@@ -570,6 +570,24 @@
                                     </div>
                                 </div>
                             </li>
+                            <li class="link-item">
+                                <div class="row page-name">拼团主页</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/pages/pintuan/pintuan</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="link-item">
+                                <div class="row page-name">团长中心</div>
+                                <div class="row am-cf">
+                                    <div class="am-fl">地址：</div>
+                                    <div class="am-fl">
+                                        <span class="x-color-green">/pages/mys/my_sharp/my_sharp</span>
+                                    </div>
+                                </div>
+                            </li>
                         </ul>
                     </div>
                 </div>
