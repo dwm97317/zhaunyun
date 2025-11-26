@@ -151,6 +151,7 @@ class Setting extends BaseModel
                     'client' =>[
                         'mode' =>20, //10 只开启H5，20，小程序+H5，    
                     ],
+                    'is_auto_shelf'=>0, //是否自动分配货位
                     'moren'=>[
                         'send_mode'=> 10, //默认10 拼邮模式  20 直邮模式  代用户打包默认的
                         'pack_in_shop' => 10, //默认10 拼邮模式  20 直邮模式  后台录入的

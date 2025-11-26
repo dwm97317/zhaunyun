@@ -1109,7 +1109,29 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     </div>
                                 </div>
                             </div> 
-                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    电子秤API入库时候自动分配货位
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_auto_shelf]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['is_auto_shelf'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        自动分配
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="store[is_auto_shelf]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['is_auto_shelf'] == '0' ? 'checked' : '' ?>>
+                                        不分配
+                                    </label>
+                                    <div class="help-block">
+                                        <small>开启分配后，在电子秤入库时会分配货位</small>
+                                    </div>
+                                </div>
+                            </div> 
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl"> 功能开启隐藏设置</div>
                             </div>
