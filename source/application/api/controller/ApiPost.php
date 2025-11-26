@@ -216,7 +216,7 @@ class ApiPost extends Controller
             // dump();die;$uploadFile['file_id']
         }
          
-        
+        $storesetting = SettingModel::getItem('store',$param['wxapp_id']);
         if(!empty($result)){
             $result->save([
                 'status'=>2,
@@ -247,7 +247,7 @@ class ApiPost extends Controller
               Message::send('package.inwarehouse',$result);
             }
             //分配货位
-            $storesetting = SettingModel::getItem('store',$param['wxapp_id']);
+            
             if(isset($storesetting['is_auto_shelf']) && $storesetting['is_auto_shelf']==1){
                 $this->fenpeihuowei($result['member_id'],$result['id'],$param['expressnum'],$result['wxapp_id']);
             }
@@ -274,8 +274,9 @@ class ApiPost extends Controller
             (new PackageImage())->save($imgdata);
         }
         if(isset($storesetting['is_auto_shelf']) && $storesetting['is_auto_shelf']==1){
-            $this->fenpeihuowei(0,$id,$param['expressnum'],$result['wxapp_id']);
+            $this->fenpeihuowei(0,$id,$param['expressnum'],$param['wxapp_id']);
         }
+      
         return $this->renderSuccess("预报成功");
     }
     
@@ -285,10 +286,7 @@ class ApiPost extends Controller
      //分配货位
     public function fenpeihuowei($member_id,$pack_id,$express_num,$wxapp_id){
         $keepersetting = SettingModel::getItem('keeper',$wxapp_id);
-        if(isset($keepersetting['shopkeeper']['is_auto_shelfunit']) && $keepersetting['shopkeeper']['is_auto_shelfunit']==0){
-            return false;
-        }
-        
+
         $resultshelfunit = (new ShelfUnit())->where('wxapp_id',$wxapp_id)->select();
         if(empty($resultshelfunit) && count($resultshelfunit)==0){
             return false;
@@ -333,6 +331,7 @@ class ApiPost extends Controller
         }else{
             //查询无主货架，随机分配一个无主货架
             $emptyShelfUnits = $this->getNouserShelfUnits($wxapp_id);
+           
             if(!empty($emptyShelfUnits)){
                 $selectedShelfUnitId = $emptyShelfUnits['shelf_unit_id'];
             }else{
