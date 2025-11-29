@@ -24,11 +24,12 @@ class Order extends Controller
     public function index(){
        $SharingOrder = (new SharingOrder());
        $shopList = ShopModel::getAllList();
-       $SharingOrderItem = new SharingOrderItem();
+       $Inpack = new Inpack();
        $param = $this->request->param();
        $lists = $SharingOrder->getList($param);
        foreach ($lists as $key => $item){
-          $lists[$key]['count'] = $SharingOrderItem->where('order_id',$item['order_id'])->where('type',1)->where('status','<',9)->count();
+          // 使用 inpack 表的 share_id 字段统计拼团订单中的集运单数量
+          $lists[$key]['count'] = $Inpack->where('share_id', $item['order_id'])->count();
        }
        $list = $lists;
         // dump($list);die;
@@ -40,18 +41,31 @@ class Order extends Controller
     
     //查看集运单里边的集运单列表
     public function inpacklist(){
-        $SharingOrderItem = new SharingOrderItem();
         $Inpack = new Inpack();
+        $SharingOrderItem = new SharingOrderItem();
         $shopList = ShopModel::getAllList();
-        $lists = $SharingOrderItem->where("order_id",input('order_id'))->where('type',1)->where('status','<',9)->select();
+        $orderId = input('order_id');
+        
+        // 直接通过 inpack 表的 share_id 字段获取集运单列表
+        $inpackList = $Inpack->where('share_id', $orderId)->select();
         $list = [];
         $set = Setting::detail('store')['values']['address_setting'];
-        foreach ($lists as $key =>$value){
-        //   $list[$key]['pin_status']  = $value['status'];
-           $list[$key] = $Inpack::details($value['package_id']);
-           $list[$key]['pin_status'] =$value['status'];
+        
+        foreach ($inpackList as $key => $inpack){
+           $list[$key] = $Inpack::details($inpack['id']);
+           // 从 SharingOrderItem 获取拼团状态（如果存在）
+           $orderItem = $SharingOrderItem->where('package_id', $inpack['id'])
+               ->where('order_id', $orderId)
+               ->where('type', 1)
+               ->find();
+           if ($orderItem) {
+               $list[$key]['pin_status'] = $orderItem['status'];
+           } else {
+               // 如果没有找到对应的 SharingOrderItem，设置默认状态
+               $list[$key]['pin_status'] = ['value' => 1, 'text' => '已加入'];
+           }
         }
-        // dump($list);die;
+        
         return $this->fetch('inpacklist',compact('list','set','shopList'));
     }
     

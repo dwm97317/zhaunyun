@@ -23,33 +23,20 @@
                                         <select name="status"
                                                 data-am-selected="{btnSize: 'sm', placeholder: '订单状态'}">
                                             <option value=""></option>
-                                            <option value="-1,1,2,3,4,5,6,7,8,9"
+                                            <option value="-1,0,1,2,3"
                                                 <?= $extractStatus === '-1' ? 'selected' : '' ?>>全部
+                                            </option>
+                                            <option value="0"
+                                                <?= $extractStatus === '0' ? 'selected' : '' ?>>待审核
                                             </option>
                                             <option value="1"
                                                 <?= $extractStatus === '1' ? 'selected' : '' ?>>开团中
                                             </option>
-                                            <!--1 状态 1 待查验 2 待支付 3 已支付 4 拣货中 5 已打包  6已发货 7 已到货 8 已完成  9已取消-->
                                             <option value="2"
-                                                <?= $extractStatus === '2' ? 'selected' : '' ?>>待查验
+                                                <?= $extractStatus === '2' ? 'selected' : '' ?>>已完成
                                             </option>
                                             <option value="3"
-                                                <?= $extractStatus === '3' ? 'selected' : '' ?>>待打包
-                                            </option>
-                                            <option value="4"
-                                                <?= $extractStatus === '4' ? 'selected' : '' ?>>待付款
-                                            </option>
-                                            <option value="5"
-                                                <?= $extractStatus === '5' ? 'selected' : '' ?>>待发货
-                                            </option>
-                                            <option value="6"
-                                                <?= $extractStatus === '6' ? 'selected' : '' ?>>已发货
-                                            </option>
-                                            <option value="7"
-                                                <?= $extractStatus === '7' ? 'selected' : '' ?>>已完成
-                                            </option>
-                                            <option value="8"
-                                                <?= $extractStatus === '8' ? 'selected' : '' ?>>已取消
+                                                <?= $extractStatus === '3' ? 'selected' : '' ?>>已解散
                                             </option>
                                         </select>
                                     </div>
@@ -129,7 +116,7 @@
                             </thead>
                             <tbody id="body">
                             <?php if (!$list->isEmpty()): foreach ($list as $item): ?>
-                            <?php $status = [1=>'开团中',2=>'待查验',3=>'待打包','4'=>'待付款','5'=>'待发货','6'=>'已发货','7'=>'已完成','8'=>'已取消','-1'=>'已取消']; ?>
+                            <?php $status = [0=>'待审核',1=>'开团中',2=>'已完成',3=>'已解散']; ?>
                                 <tr>
                                     <td class="am-text-middle">
                                        <input name="checkIds" type="checkbox" value="<?= $item['order_id'] ?>"> 

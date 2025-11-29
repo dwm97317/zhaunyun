@@ -1327,7 +1327,7 @@ class TrOrder extends Controller
             $params['limitnum'] = isset($adminstyle['pageno'])?$adminstyle['pageno']['inpack']:15;
         }
         $list = $model->getList($dataType, $params);
-        
+        // dump($list->toArray());die;
         $tracklist = $Track->getAllList();
         $servicelist = $Clerk->where('clerk_authority','like','%is_myuser%')->where('clerk_authority','like','%is_myuserpackage%')->where('is_delete',0)->select();
         $pintuanlist = (new SharingOrder())->getAllList();

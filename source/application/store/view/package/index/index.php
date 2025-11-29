@@ -342,6 +342,7 @@
                                         <?php if($item['shelfunititem'] && $item['shelfunititem']['shelfunit']) :?>
                                             货架：<span style="color:#ff6666;cursor:pointer"><?= $item['shelfunititem']['shelfunit']['shelf']['shelf_no'].' - '.$item['shelfunititem']['shelfunit']['shelf_unit_no'] ?></span><br>
                                         <?php endif;?>
+                                        <?= $item['is_shelf']==1?'已上架':"未上架" ?>
                                     </td>
                                     <td class="am-text-middle"><?= $item['title'] ?></td>
                                     <td class="am-text-middle">

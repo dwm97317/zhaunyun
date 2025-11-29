@@ -68,7 +68,10 @@ class SharingOrder extends SharingOrderModel {
             if (!$form['start_time']){
                  $form['start_time'] =  time();
             }
-            $form['is_verify'] = $setting['is_verify']==1?2:1; // 根据设置判断是否需要审核 1是需要审核
+            // 是否需要审核：1 需要审核  0 不需要审核
+            $form['is_verify'] = $setting['is_verify']==1?2:1; // 老字段，保持兼容
+            // 根据是否需要审核设置拼团状态：0 待审核，1 开团中
+            $form['status'] = $setting['is_verify']==1 ? 0 : 1;
             // 添加订单
             $this->allowField(true)->save($form);
             $this->addAddress($address_id,['is_head'=>1,'country'=>$form['country_id']]);
@@ -140,7 +143,10 @@ class SharingOrder extends SharingOrderModel {
     
     // 解散拼团
     public function dissolution($user){
-        if ($this->status['value']>=3){
+        // 状态说明（见 app\common\model\sharing\SharingOrder::getStatusAttr）
+        // 0 => 待审核, 1 => 开团中, 2 => 已完成, 3 => 已解散
+        // 已完成或已解散的拼团不允许再次解散
+        if ($this->status['value'] >= 2){
             $this->error = '无法解散该拼团活动';
             return false;
         }
@@ -148,7 +154,8 @@ class SharingOrder extends SharingOrderModel {
             $this->error = '您不是该活动创建者，无法解散';
             return false;
         }
-        $update['status'] = 8;
+        // 拼团失败（主动解散）状态：已解散
+        $update['status'] = 3;
         $update['disband_time'] = time();
         $update['disband_reason'] = '团长解散拼团活动';
         $update['disband_member_id'] = $user['user_id'];

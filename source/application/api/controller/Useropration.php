@@ -109,9 +109,10 @@ class Useropration extends Controller
         return $this->renderError('包裹未查询到');
       }
       // 找到此用户所有的货位
-      $result = (new shelfunit())->with(['shelf'])->where('user_id',$res['member_id'])->select();
-    //   dump($result->toArray());die;
-      $res['shelfunit'] = $result;
+      if($res['member_id']!=0){
+          $result = (new shelfunit())->with(['shelf'])->where('user_id',$res['member_id'])->select();
+          $res['shelfunit'] = $result;
+      }
       return $this->renderSuccess($res);
     }
     
@@ -504,6 +505,7 @@ class Useropration extends Controller
        foreach ($param['code'] as $key=>$val){
            $shelfdata['express_num'] = $val;
            $package = (new Package())->where(['express_num'=>$val,'is_delete'=>0])->find();
+           
            if(!empty($package)){
                 $shelfdata['pack_id'] = $package['id'];
                 $shelfdata['user_id'] = $package['member_id'];
@@ -521,6 +523,16 @@ class Useropration extends Controller
                         $shelfunitresult->save(['user_id'=>$package['member_id']]);
                     }
                 }
+                // 更新包裹状态 - 添加错误处理
+                $saveResult = (new Package())->where(['express_num'=>$val,'is_delete'=>0])->update([
+                    'is_shelf' => 1,
+                    'updated_time' =>getTime()
+                ]);
+               
+                if($saveResult === 0){
+                    // 记录日志或返回错误信息
+                    return $this->renderError('包裹状态更新失败: ' . $val);
+                }
                 
            }else{
                $settingkeeper  = SettingModel::getItem('keeper');
@@ -535,6 +547,7 @@ class Useropration extends Controller
                       'created_time'=>getTime(),
                       'entering_warehouse_time'=>getTime(),
                       'wxapp_id' =>  \request()->get('wxapp_id'),
+                      'is_shelf' => 1,
                     ];
                     $pid =(new Package())->insertGetId($update);
                     $shelfdata['pack_id'] = $pid;

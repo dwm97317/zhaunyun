@@ -149,7 +149,7 @@ class Inpack extends InpackModel
         $res= $this
             ->alias('pa')
             ->field('pa.*,ba.batch_id,ba.batch_name,ba.batch_no,u.nickName')
-            ->with(['line','address','storage','user','shop','usercoupon','packagelist','packageitems'])
+            ->with(['line','address','storage','user','shop','usercoupon','packagelist','packageitems','sharingorder'])
             ->join('user u','u.user_id = pa.member_id','left')
             ->join('batch ba','ba.batch_id = pa.batch_id','left')
             ->where('pa.status','in',$this->status[$dataType])
@@ -1070,6 +1070,10 @@ class Inpack extends InpackModel
     
     public function batch(){
         return $this->belongsTo('app\store\model\Batch');
+    }
+    
+    public function sharingorder(){
+        return $this->belongsTo('app\store\model\sharing\SharingOrder','share_id','order_id');
     }
     
     public function country(){

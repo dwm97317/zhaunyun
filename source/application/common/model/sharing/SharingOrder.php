@@ -20,13 +20,10 @@ class SharingOrder extends BaseModel{
     
     public function getStatusAttr($value){
         $map = [
+           0 => '待审核',
            1 => '开团中',
-           2 => '待开团',
-           3 => '待打包',
-           4 => '待付款',
-           5 => '待发货',
-           6 => '已结束',
-           8 => '已取消'
+           2 => '已完成',
+           3 => '已解散',
         ];
         return ['text' => $map[$value] , 'value'=>$value];
     }
