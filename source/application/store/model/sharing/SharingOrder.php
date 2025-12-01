@@ -29,12 +29,6 @@ class SharingOrder extends SharingOrderModel {
         if (!$this->validateForm($data, 'edit')) {
             return false;
         }
-        if($data['is_verify']==1){
-            $data['status'] = 1;
-        }
-        if($data['is_verify']==2){
-            $data['status'] = 3;
-        }
         $data['start_time'] = strtotime($data['start_time']);
         $data['end_time'] = strtotime($data['end_time']);
         return $this->allowField(true)->update($data) !== false;
