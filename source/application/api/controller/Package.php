@@ -2197,53 +2197,173 @@ class Package extends Controller
      // 包裹更新
      public function packageUpdate(){
           $post = $this->postData();
-          if (!$post['country_id']){
-              return $this->renderError('请选择国家');
-          }
-          $country = (new Country())->getValueById($post['country_id'],'title');
-          if (!$country){
-              return $this->renderError('国家信息错误');
-          }
-          if (!$post['storage_id']){
-              return $this->renderError('请选择仓库');
-          }
-          $storage = (new Shop())->getValueById($post['storage_id'],'shop_name');
-          if (!$storage){
-              return $this->renderError('仓库信息错误');
-          }
-          if (!$post['express_id']){
-              return $this->renderError('请选择快递');
-          }
-          $express = (new Express())->getValueById($post['express_id'],'express_name');
-          if (!$express){
-              return $this->renderError('快递信息错误');
-          }
+          
+          // 验证包裹ID
           if (!$post['id']){
              return $this->renderError('包裹参数错误');
           }
-          $class_ids = $post['class_ids'];
-          $classItem = [];
-         $goodslist = isset($post['goodslist'])?$post['goodslist']:[];
-         $classItems = [];
-         $packItemModel = new PackageItemModel();
-         if ($class_ids || $goodslist){
-             $classItem = $this->parseClass($class_ids);
- 
-                foreach ($goodslist as $k => $val){
-                     $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['goods_name'];
-                     $classItems[$k]['one_price'] = $val['one_price'];
-                     $classItems[$k]['all_price'] = (!empty($val['one_price'])?$val['one_price']:0) * (!empty($val['product_num'])?$val['product_num']:0);
-                     $classItems[$k]['product_num'] = $val['product_num'];
-                     $classItems[$k]['express_num'] = $post['express_sn'];
-                     $classItems[$k]['goods_name'] = $val['goods_name'];
-                     $classItems[$k]['express_name'] = $express;
-                    
-                    //  $packItemModel->where('id',$val['id'])->update($classItems);
-                }
-         }
-           
           
+          // 获取包裹信息以获取 wxapp_id
           $packModel = new PackageModel();
+          $package = $packModel->where('id', $post['id'])->find();
+          if (!$package) {
+              return $this->renderError('包裹不存在');
+          }
+          
+          // 获取预报功能设置
+          $wxapp_id = isset($package['wxapp_id']) ? $package['wxapp_id'] : $this->wxapp_id;
+          $userclient = SettingModel::detail("userclient", $wxapp_id)['values'];
+          $yubaoSetting = isset($userclient['yubao']) ? $userclient['yubao'] : [];
+          
+          // 根据设置验证国家
+          if (isset($yubaoSetting['is_country']) && $yubaoSetting['is_country'] == 1) {
+              // 如果需要预报国家
+              if (isset($yubaoSetting['is_country_force']) && $yubaoSetting['is_country_force'] == 1) {
+                  // 如果国家必填
+                  if (empty($post['country_id'])) {
+                      return $this->renderError('请选择国家');
+                  }
+              }
+              // 如果提供了国家，验证国家信息
+              if (!empty($post['country_id'])) {
+                  $country = (new Country())->getValueById($post['country_id'],'title');
+                  if (!$country){
+                      return $this->renderError('国家信息错误');
+                  }
+              }
+          } else {
+              // 如果不需要预报国家，但提供了国家，仍然验证国家信息
+              if (!empty($post['country_id'])) {
+                  $country = (new Country())->getValueById($post['country_id'],'title');
+                  if (!$country){
+                      return $this->renderError('国家信息错误');
+                  }
+              }
+          }
+          
+          // 根据设置验证仓库
+          if (isset($yubaoSetting['is_shop']) && $yubaoSetting['is_shop'] == 1) {
+              // 如果需要预报仓库
+              if (isset($yubaoSetting['is_shop_force']) && $yubaoSetting['is_shop_force'] == 1) {
+                  // 如果仓库必填
+                  if (empty($post['storage_id'])) {
+                      return $this->renderError('请选择仓库');
+                  }
+              }
+              // 如果提供了仓库，验证仓库信息
+              if (!empty($post['storage_id'])) {
+                  $storage = (new Shop())->getValueById($post['storage_id'],'shop_name');
+                  if (!$storage){
+                      return $this->renderError('仓库信息错误');
+                  }
+              }
+          } else {
+              // 如果不需要预报仓库，但提供了仓库，仍然验证仓库信息
+              if (!empty($post['storage_id'])) {
+                  $storage = (new Shop())->getValueById($post['storage_id'],'shop_name');
+                  if (!$storage){
+                      return $this->renderError('仓库信息错误');
+                  }
+              }
+          }
+          
+          // 根据设置验证快递公司
+          $express = '';
+          if (isset($yubaoSetting['is_expressname']) && $yubaoSetting['is_expressname'] == 1) {
+              // 如果需要预报快递公司
+              if (isset($yubaoSetting['is_expressname_force']) && $yubaoSetting['is_expressname_force'] == 1) {
+                  // 如果快递公司必填
+                  if (empty($post['express_id'])) {
+                      return $this->renderError('请选择快递');
+                  }
+              }
+              // 如果提供了快递公司，验证快递公司信息
+              if (!empty($post['express_id'])) {
+                  $express = (new Express())->getValueById($post['express_id'],'express_name');
+                  if (!$express){
+                      return $this->renderError('快递信息错误');
+                  }
+              }
+          } else {
+              // 如果不需要预报快递公司，但提供了快递公司，仍然验证快递公司信息
+              if (!empty($post['express_id'])) {
+                  $express = (new Express())->getValueById($post['express_id'],'express_name');
+                  if (!$express){
+                      return $this->renderError('快递信息错误');
+                  }
+              }
+          }
+          // 根据设置验证类目/物品信息
+          $class_ids = isset($post['class_ids']) ? $post['class_ids'] : '';
+          $goodslist = isset($post['goodslist']) ? $post['goodslist'] : [];
+          
+          if (isset($yubaoSetting['is_category']) && $yubaoSetting['is_category'] == 1) {
+              // 如果需要预报类目
+              if (isset($yubaoSetting['is_category_force']) && $yubaoSetting['is_category_force'] == 1) {
+                  // 如果类目必填
+                  if (empty($class_ids) && empty($goodslist)) {
+                      return $this->renderError('请选择物品类目');
+                  }
+              }
+          }
+          
+          if (isset($yubaoSetting['is_goodslist']) && $yubaoSetting['is_goodslist'] == 1) {
+              // 如果需要填写物品信息
+              if (empty($goodslist)) {
+                  return $this->renderError('请填写物品信息');
+              }
+          }
+          
+          // 根据设置验证价格
+          if (isset($yubaoSetting['is_price']) && $yubaoSetting['is_price'] == 1) {
+              // 如果需要填写价格
+              if (isset($yubaoSetting['is_price_force']) && $yubaoSetting['is_price_force'] == 1) {
+                  // 如果价格必填
+                  if (!isset($post['price']) || empty($post['price']) || $post['price'] <= 0) {
+                      return $this->renderError('请填写物品总价值');
+                  }
+              }
+          }
+          
+          // 根据设置验证备注
+          if (isset($yubaoSetting['is_remark']) && $yubaoSetting['is_remark'] == 1) {
+              // 如果需要填写备注
+              if (isset($yubaoSetting['is_remark_force']) && $yubaoSetting['is_remark_force'] == 1) {
+                  // 如果备注必填
+                  if (empty($post['remark'])) {
+                      return $this->renderError('请填写备注信息');
+                  }
+              }
+          }
+          
+          // 根据设置验证图片
+          if (isset($yubaoSetting['is_images']) && $yubaoSetting['is_images'] == 1) {
+              // 如果需要上传图片
+              if (isset($yubaoSetting['is_images_force']) && $yubaoSetting['is_images_force'] == 1) {
+                  // 如果图片必填
+                  if (empty($post['imageIds']) && empty($post['enter_image_id'])) {
+                      return $this->renderError('请上传包裹图片');
+                  }
+          }
+          }
+          
+          // 处理类目和物品信息
+          $classItem = [];
+          $classItems = [];
+          $packItemModel = new PackageItemModel();
+          if ($class_ids || $goodslist){
+              $classItem = $this->parseClass($class_ids);
+
+              foreach ($goodslist as $k => $val){
+                   $classItems[$k]['class_name'] = !empty($classItem)?$classItem[0]['name']:$val['goods_name'];
+                   $classItems[$k]['one_price'] = $val['one_price'];
+                   $classItems[$k]['all_price'] = (!empty($val['one_price'])?$val['one_price']:0) * (!empty($val['product_num'])?$val['product_num']:0);
+                   $classItems[$k]['product_num'] = $val['product_num'];
+                   $classItems[$k]['express_num'] = isset($post['express_sn']) ? $post['express_sn'] : '';
+                   $classItems[$k]['goods_name'] = $val['goods_name'];
+                   $classItems[$k]['express_name'] = $express;
+              }
+          }
          
         //   $result = $packModel->where('express_num',$post['express_sn'])->find();
         //   if(!$result){
@@ -2251,13 +2371,23 @@ class Package extends Controller
         //   }
           // 开启事务
           Db::startTrans();
-          $post['express_name'] = $express;
-          $post['express_num'] = $post['express_sn'];
+          
+          // 设置快递名称和快递单号
+          if (!empty($express)) {
+              $post['express_name'] = $express;
+          }
+          if (isset($post['express_sn']) && !empty($post['express_sn'])) {
+              $post['express_num'] = $post['express_sn'];
+          }
           
           unset($post['express_sn']);
           unset($post['class_ids']);
           unset($post['token']);
           unset($post['goodslist']);
+          // 移除可能存在的其他不需要的字段
+          unset($post['lang']);
+          unset($post['wxapp_id']); // wxapp_id 由模型内部设置
+          
           $res = $packModel->saveData($post);
           if (!$res){
               Db::rollback();

@@ -872,7 +872,7 @@ class Package extends PackageModel
             ->join('countries c', 'a.country_id = c.id',"LEFT")
             ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
             ->join('package_item pi','pi.order_id = a.id','LEFT')
-            ->where('a.inpack_id',null)
+            ->where('a.inpack_id',0)
             // ->whereOr('a.')
             ->order($order)
             ->group('a.id')

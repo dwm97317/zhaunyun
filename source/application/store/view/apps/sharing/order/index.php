@@ -206,17 +206,25 @@
                                             
                                             
                                             <?php if (checkPrivilege('apps.sharing.order/delivery')): ?>
-                                            <?php if (in_array($item['status']['value'],[1,2,3,4,5])): ?>
+                                            <?php if (in_array($item['status']['value'],[1,2,4,5]) && $item['status']['value'] != 3): ?>
                                              <a href="<?= url('apps.sharing.order/delivery', ['id' => $item['order_id']]) ?>">
                                                 <i class="iconfont icon-baoguo_fahuo_o"></i> 发货
                                             </a>
-                                            <?php endif ;?>
                                             <?php endif; ?>
-                                             <?php if ($item['is_verify'] == 2): ?>
-                                            <a class="shenhe" href="<?= url('store/apps.sharing.order/edit', ['order_id' => $item['order_id']]) ?>" >通过</a>
                                             <?php endif; ?>
-                                            <?php if ($item['is_verify'] == 3): ?>
-                                            <a class="shenhe" href="javascript:void(0);" data-id="<?= $item['order_id'] ?>">未通过</a>
+                                             <?php if ($item['is_verify'] != 1): ?>
+                                            <a class="shenhe-order" href="javascript:void(0);" data-id="<?= $item['order_id'] ?>">
+                                                <i class="am-icon-check"></i> 审核
+                                            </a>
+                                            <?php endif; ?>
+                                            
+                                            <?php if ($item['status']['value'] == 1): ?>
+                                            <a class="end-order" href="javascript:void(0);" data-id="<?= $item['order_id'] ?>">
+                                                <i class="am-icon-stop"></i> 结束拼团
+                                            </a>
+                                            <a class="disband-order" href="javascript:void(0);" data-id="<?= $item['order_id'] ?>">
+                                                <i class="am-icon-close"></i> 解散拼团
+                                            </a>
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -273,6 +281,38 @@
     </div>
 </script>
 
+<script id="tpl-status-order" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        审核结果
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <label class="am-radio-inline">
+                            <input type="radio" name="verify[status]" value="1" data-am-ucheck checked>
+                            通过
+                        </label>
+                        <label class="am-radio-inline">
+                            <input type="radio" name="verify[status]" value="2" data-am-ucheck>
+                            不通过
+                        </label>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label">
+                        拒绝原因
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <textarea name="verify[reason]" rows="3" placeholder="如选择不通过，请填写拒绝原因"></textarea>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
 
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
@@ -281,27 +321,82 @@
         var url = "<?= url('store/apps.sharing.order/orderdelete') ?>";
         $('.item-delete').delete('id', url);
          /**
-         * 审核操作状态
+         * 拼团订单审核操作
          */
-        $('.shenhe').on('click', function(){
+        $('.shenhe-order').on('click', function(){
             var $tabs, data = $(this).data();
-            // console.log(data.id,88888);
             $.showModal({
-                title: '订单审核'
+                title: '拼团订单审核'
                 , area: '460px'
-                , content: template('tpl-status', data)
+                , content: template('tpl-status-order', data)
                 , uCheck: true
                 , success: function ($content) {
                 }
                 , yes: function ($content) {
                     $content.find('form').myAjaxSubmit({
-                        url: '<?= url('apps.sharing.order/verify') ?>',
+                        url: '<?= url('store/apps.sharing.order/verifyOrder') ?>',
                         data: {
-                            id:data.id
+                            id: data.id
                         }
                     });
                     return true;
                 }
+            });
+        });
+        
+        /**
+         * 结束拼团
+         */
+        $('.end-order').on('click', function(){
+            var data = $(this).data();
+            layer.confirm('确定要结束该拼团吗？', {icon: 3, title: '提示'}, function(index){
+                $.ajax({
+                    url: '<?= url('store/apps.sharing.order/endOrder') ?>',
+                    type: 'POST',
+                    data: {id: data.id},
+                    dataType: 'json',
+                    success: function(res){
+                        if(res.code == 1){
+                            layer.msg(res.msg, {icon: 1}, function(){
+                                location.reload();
+                            });
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('操作失败', {icon: 2});
+                    }
+                });
+                layer.close(index);
+            });
+        });
+        
+        /**
+         * 解散拼团
+         */
+        $('.disband-order').on('click', function(){
+            var data = $(this).data();
+            layer.confirm('确定要解散该拼团吗？解散后相关包裹和集运单将被解除关联。', {icon: 3, title: '提示'}, function(index){
+                $.ajax({
+                    url: '<?= url('store/apps.sharing.order/disbandOrder') ?>',
+                    type: 'POST',
+                    data: {id: data.id},
+                    dataType: 'json',
+                    success: function(res){
+                        if(res.code == 1){
+                            layer.msg(res.msg, {icon: 1}, function(){
+                                location.reload();
+                            });
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('操作失败', {icon: 2});
+                    }
+                });
+                layer.close(index);
             });
         });
         

@@ -118,8 +118,14 @@ class Index extends Controller
      // 拼团首页根据经纬度返回列表
      public function sharing(){
          $param = $this->request->param();
+         // 获取当前用户ID（如果已登录）
+         $userId = null;
+         $userInfo = $this->getUser(false); // false表示不强制登录，未登录时返回false
+         if ($userInfo && isset($userInfo['user_id'])) {
+             $userId = $userInfo['user_id'];
+         }
          $shareOrder = (new SharingOrder());
-         $list = $shareOrder->getListByDistane($param);
+         $list = $shareOrder->getListByDistane($param, $userId);
          $shareService = (new SharingOrderService());
          // 获取已拼团包裹重量
          $list = $shareService->getPackageWeight($list);

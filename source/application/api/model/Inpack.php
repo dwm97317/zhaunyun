@@ -251,5 +251,13 @@ class Inpack extends InpackModel
     public function packageimages(){
         return $this->hasMany('app\api\model\Package','inpack_id','id');
     }
+    
+    /**
+     * 关联拼团订单
+     * @return \think\model\relation\BelongsTo
+     */
+    public function sharingOrder(){
+        return $this->belongsTo('app\api\model\sharing\SharingOrder','share_id','order_id');
+    }
      
 }

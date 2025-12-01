@@ -184,20 +184,6 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否通过审核 </label>
-                                <div class="am-u-sm-9 am-u-end">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="data[is_verify]" value="1" data-am-ucheck
-                                               <?= $detail['is_verify'] == 1 ? 'checked' : '' ?>>
-                                        通过
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="data[is_verify]" value="2" data-am-ucheck <?= $detail['is_verify'] == 2 ? 'checked' : '' ?>>
-                                        不通过
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否推荐 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <label class="am-radio-inline">

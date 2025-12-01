@@ -2,7 +2,6 @@
 namespace app\api\controller\sharp;
 use app\api\controller\Controller;
 use app\api\model\sharing\SharingOrder;
-use app\api\model\sharing\SharingOrderItem;
 use app\api\model\sharing\SharingOrderAddress;
 use app\api\model\Line;
 use app\api\model\Package;
@@ -64,34 +63,126 @@ class Order extends Controller
         return $this->renderError($model->getError()??'操作失败');
      }
      
+     /**
+      * 获取我的拼团列表
+      * 通过 share_id 从 Inpack 模型获取所有拼团订单
+      * @return array
+      */
      public function list(){
         $query = $this->request->param();
         // 当前用户信息
         $userInfo = $this->getUser();
-        $query['member_id'] = $userInfo['user_id'];
-        // 【1 开团中 2 待开团 3 待打包 4 待付款 5 待发货 6 已发货 7 已完成 8 已取消】
-        if ($query['type']=='sharing'){
-            $query['status'] = 1;
+        $userId = $userInfo['user_id'];
+        
+        // 通过 share_id 从 Inpack 模型获取所有拼团订单
+        // 条件：member_id=当前用户, share_id>0(属于拼团), inpack_type=1(拼团包裹), is_delete=0(未删除)
+        $Inpack = new Inpack();
+        $Inpack->where('member_id', $userId)
+               ->where('share_id', '>', 0)  // 只获取属于拼团的集运单
+               ->where('inpack_type', 1)    // 拼团包裹申请打包
+               ->where('is_delete', 0);
+        
+        // 根据 type 过滤状态
+        // Inpack状态: 1-查验 2-待支付 3-已支付 4-下架 5-打包 6-转运中 7+-已完成
+        // 前端状态类型: sharing(拼团中), no_pay(待付款), no_send(待发货), received(待收货), complete(已完成)
+        if (isset($query['type']) && $query['type'] != '0' && $query['type'] != '') {
+            if ($query['type'] == 'sharing') {
+                // 拼团中：状态为1(查验)或5(打包)
+                $Inpack->where('status', 'in', [1, 5]);
+            } elseif ($query['type'] == 'no_pay') {
+                // 待付款：状态为2(待支付)
+                $Inpack->where('status', 2);
+            } elseif ($query['type'] == 'no_send') {
+                // 待发货：状态为3(已支付)或4(下架)
+                $Inpack->where('status', 'in', [3, 4]);
+            } elseif ($query['type'] == 'received') {
+                // 待收货：状态为6(转运中)
+                $Inpack->where('status', 6);
+            } elseif ($query['type'] == 'complete') {
+                // 已完成：状态大于等于7
+                $Inpack->where('status', '>=', 7);
+            }
         }
-        if ($query['type']=='received'){
-            $query['status'] = 6;
+        
+        // 关联拼团订单信息（SharingOrder）
+        // sharingOrder 会自动格式化 start_time 为 'Y-m-d H:i:s' 格式
+        $list = $Inpack->with([
+                      'sharingOrder' => function($query) {
+                          // 关联拼团订单的国家和地址信息
+                          $query->with(['country', 'address']);
+                      }, 
+                      'address',  // 集运单的收件地址
+                      'country'   // 集运单的国家信息
+                  ])
+                      ->order('created_time desc')
+                      ->paginate(15, false, [
+                          'query' => \request()->request()
+                      ]);
+        
+        // 组装数据格式以匹配前端期望的结构
+        // 前端需要: order(拼团订单), package(集运单), status(状态), order_item_id(用于操作)
+        $resultList = [];
+        
+        foreach ($list as $inpack) {
+            // 如果没有关联的拼团订单，跳过该记录
+            if (!$inpack['sharingOrder']) {
+                continue;
+            }
+            
+            // 将 Inpack 状态映射为前端需要的状态格式
+            // 状态: 1-已加入 2-待审核 3-待打包 4-待付款 5-待发货 6-已发货 7-已完成 8-已取消
+            $statusMap = [
+                1 => ['value' => 3, 'text' => '待打包'],  // 查验 -> 待打包
+                2 => ['value' => 4, 'text' => '待付款'],  // 待支付 -> 待付款
+                3 => ['value' => 5, 'text' => '待发货'],  // 已支付 -> 待发货
+                4 => ['value' => 5, 'text' => '待发货'],  // 下架 -> 待发货
+                5 => ['value' => 3, 'text' => '待打包'],  // 打包 -> 待打包
+                6 => ['value' => 6, 'text' => '已发货'],  // 转运中 -> 已发货
+            ];
+            
+            // 如果状态 >= 7，则认为是已完成
+            if ($inpack['status'] >= 7) {
+                $status = ['value' => 7, 'text' => '已完成'];
+            } else {
+                $status = isset($statusMap[$inpack['status']]) ? $statusMap[$inpack['status']] : ['value' => 1, 'text' => '已加入'];
+            }
+            
+            // 将 inpack 转换为数组，并移除 sharingOrder 和 sharing_order 字段（避免混淆）
+            $packageData = $inpack->toArray();
+            // 移除关联字段，因为已经单独提取为 order
+            unset($packageData['sharingOrder']);
+            unset($packageData['sharing_order']);
+            
+            // 确保 sharingOrder 存在且可以转换为数组
+            $sharingOrderData = [];
+            if ($inpack['sharingOrder']) {
+                $sharingOrderData = $inpack['sharingOrder']->toArray();
+            }
+            
+            // 组装返回数据
+            // order: 拼团订单信息（包含 order_sn, max_people, min_weight, start_time, order_id 等）
+            // package: 集运单信息（包含 order_sn, address 等）
+            // status: 状态信息（value 和 text）
+            // order_item_id: 集运单ID（用于取消订单等操作）
+            $resultList[] = [
+                'order_item_id' => $inpack['id'], // 使用 inpack 的 id 作为 order_item_id
+                'order' => $sharingOrderData, // 拼团订单信息（通过 share_id 关联），转换为数组
+                'package' => $packageData, // 集运单信息（已移除 sharingOrder 字段）
+                'status' => $status, // 状态信息
+            ];
         }
-        if ($query['type']=='no_pay'){
-            $query['status'] = 4;
-        }
-        if ($query['type']=='no_send'){
-            $query['status'] = 5;
-        }
-        if ($query['type']=='complete'){
-            $query['status'] = 7;
-        }
-        $model = (new SharingOrderItem());
-        $list = $model->getList($query);
-        foreach ($list as $key => $v){
-            $address = (new SharingOrderAddress())->where(['order_id'=>$v['order_item_id'],'is_head'=>0])->find();
-            $list[$key]['address'] = $address['country'].$address['province'].$address['city'].$address['region'];
-        }
-        return $this->renderSuccess(compact('list'));
+        
+        // 重新组装分页数据结构
+        // 创建新的分页对象，使用组装后的数据
+        $newList = [
+            'total' => $list->total(),
+            'per_page' => $list->listRows(),
+            'current_page' => $list->currentPage(),
+            'last_page' => $list->lastPage(),
+            'data' => $resultList
+        ];
+        
+        return $this->renderSuccess(['list' => $newList]);
      }
      
      // 获取热门城市
@@ -109,10 +200,6 @@ class Order extends Controller
         if ($query['type']=='recommend'){
             $query['is_recommend'] = 1;
         }
-        // if ($query['type']=='hot'){
-        //     $order_ids = (new SharingOrderItem())->getHotOrderId();
-        //     $query['order_ids'] = $order_ids;
-        // }
         // 当前用户信息
         $userInfo = $this->getUser();
         $query['user_id'] = $userInfo['user_id'];
@@ -126,14 +213,69 @@ class Order extends Controller
      }
      
      // 取消该拼团单
+     /**
+      * 取消拼团订单
+      * 取消订单后：
+      * 1. 跟拼团订单关联的包裹单号 share_id 恢复为 0
+      * 2. inpack_id 也恢复为 0
+      * 3. inpack 订单则删除 is_delete=1
+      */
      public function cancle(){
-        $id = $this->request->param('id');
+        $id = $this->request->param('id'); // 这是 inpack 的 id
         $userInfo = $this->getUser();
-        $model = (new SharingOrderItem())->detail($id);
-        if ($model->cancle($userInfo)){
-            return $this->renderSuccess('拼团成功取消');
+        
+        // 获取 inpack 订单
+        $inpack = (new Inpack())->where('id', $id)
+                                ->where('member_id', $userInfo['user_id'])
+                                ->where('is_delete', 0)
+                                ->find();
+        
+        if (!$inpack) {
+            return $this->renderError('订单不存在或已删除');
         }
-        return $this->renderError($model->getError()??'操作失败');
+        
+        // 验证订单是否属于拼团（inpack_type=1 且 share_id>0）
+        if ($inpack['inpack_type'] != 1 || $inpack['share_id'] <= 0) {
+            return $this->renderError('该订单不是拼团订单');
+        }
+        
+        // 开启事务
+        $inpack->startTrans();
+        try {
+            // 1. 获取该 inpack 关联的所有包裹ID
+            $packIds = [];
+            if (!empty($inpack['pack_ids'])) {
+                $packIds = explode(',', $inpack['pack_ids']);
+                // 过滤空值
+                $packIds = array_filter($packIds, function($v) {
+                    return !empty($v) && $v > 0;
+                });
+            }
+            
+            // 2. 更新包裹的 share_id 和 inpack_id 为 0
+            if (!empty($packIds)) {
+                (new Package())->where('id', 'in', $packIds)
+                              ->where('member_id', $userInfo['user_id']) // 确保是当前用户的包裹
+                              ->update([
+                                  'share_id' => 0,
+                                  'inpack_id' => 0,
+                                  'status' => 2,
+                                  'updated_time' => getTime()
+                              ]);
+            }
+            
+            // 3. 删除 inpack 订单（is_delete=1）
+            $inpack->save(['is_delete' => 1, 'updated_time' => getTime()]);
+            
+            // 提交事务
+            $inpack->commit();
+            return $this->renderSuccess('拼团订单已成功取消');
+            
+        } catch (\Exception $e) {
+            // 回滚事务
+            $inpack->rollback();
+            return $this->renderError('取消订单失败：' . $e->getMessage());
+        }
      }
      
      // 拼单详情
@@ -142,9 +284,8 @@ class Order extends Controller
          $item_id = $this->request->param('item_id');
          $userInfo = $this->getUser();
          $model = (new SharingOrder())->detail($id);
-         $item = (new SharingOrderItem())->find($item_id);
          $is_publiser = $userInfo['user_id']==$model['member_id']?true:false;
-         $address_where['order_id'] = $item['order_item_id'];
+         $address_where['order_id'] = $model['order_id'];
          $is_publiser == true?$address_where['is_head'] = 1:$address_where['is_head'] = 0;
         //  dump($model);die;
          if ($model['address_id']){
@@ -166,36 +307,34 @@ class Order extends Controller
          $userModel = new UserModel();
          $model['leader'] =$userModel->find($model['member_id']);
 
-         $orderItem = (new SharingOrderItem())->where(['order_id'=> $id])->where('type',0)->select();
-         $orderItem2 = (new SharingOrderItem())->where(['order_id'=> $id])->where('type',1)->select();
-         
-         // 从 sharing_tr_user 表获取用户列表
-         $sharingTrUserList = (new SharingTrUser())->where(['order_id' => $model['order_id']])->with(['user'])->select();
-         $userList = [];
-         foreach($sharingTrUserList as $key => $val){
-             if($val['user']){
-                 $userList[$key] = $val['user'];
-             }
-         }
-         if ($model['address_id']){
-             $address_where['order_id'] = $model['order_id'];
-             $address_where['is_head'] = 1;
-             $model['address'] = (new SharingOrderAddress())->where($address_where)->find();
-         }
-         $SharingService = (new SharingOrderService());
-         $setting = Setting::getItem('sharp');
-         $model['setting'] =  htmlspecialchars_decode($setting['describe']);
-         //根据设置来决定使用什么作为百分比
-         if(isset($setting['sharepredict']) && $setting['sharepredict']==10){
-            $countpackageid = (new SharingOrderItem())->where(['order_id' => $id])->where('type',0)->column('package_id');
-            $countinpackid = (new SharingOrderItem())->where(['order_id' => $id])->where('type',1)->column('package_id');
-            $countweight = $Package->whereIn('id', $countpackageid)->sum('weight');
-            $countinpackweight = $inpack->whereIn('id', $countinpackid)->sum('cale_weight');
-            $model['percent'] = (round(($countweight+$countinpackweight)/$model['predict_weight'],4))*100;   // 使用重量作为进度标准
-         }else{
-            $count = count($userList);
-            $model['percent'] = (round($count/$model['max_people'],2))*100; // 使用人数作为进度标准
-         }
+        // 从 sharing_tr_user 表获取用户列表
+        $sharingTrUserList = (new SharingTrUser())->where(['order_id' => $model['order_id']])->with(['user'])->select();
+        $userList = [];
+        foreach($sharingTrUserList as $key => $val){
+            if($val['user']){
+                $userList[$key] = $val['user'];
+            }
+        }
+        if ($model['address_id']){
+            $address_where['order_id'] = $model['order_id'];
+            $address_where['is_head'] = 1;
+            $model['address'] = (new SharingOrderAddress())->where($address_where)->find();
+        }
+        $SharingService = (new SharingOrderService());
+        $setting = Setting::getItem('sharp');
+        $model['setting'] =  htmlspecialchars_decode($setting['describe']);
+        //根据设置来决定使用什么作为百分比
+        if(isset($setting['sharepredict']) && $setting['sharepredict']==10){
+           // 通过 share_id 获取包裹ID和集运单ID
+           $countpackageid = $Package->where('share_id', $id)->where('is_delete', 0)->column('id');
+           $countinpackid = $inpack->where('share_id', $id)->where('is_delete', 0)->column('id');
+           $countweight = $Package->whereIn('id', $countpackageid)->sum('weight');
+           $countinpackweight = $inpack->whereIn('id', $countinpackid)->sum('cale_weight');
+           $model['percent'] = (round(($countweight+$countinpackweight)/$model['predict_weight'],4))*100;   // 使用重量作为进度标准
+        }else{
+           $count = count($userList);
+           $model['percent'] = (round($count/$model['max_people'],2))*100; // 使用人数作为进度标准
+        }
          $model['join_user_list'] = $userList;
          
          // 判断当前用户是否已加入拼团
@@ -236,13 +375,13 @@ class Order extends Controller
              return $this->renderError('您已经加入该拼团了');
          }
          
-         // 检查拼团是否已满（如果按人数计算）
-         if (!isset($setting['sharepredict']) || $setting['sharepredict'] != 10) {
-             $currentCount = (new SharingOrderItem())->where(['order_id' => $order['order_id']])->where('status', '<', 9)->count();
-             if ($currentCount >= $order['max_people']) {
-                 return $this->renderError('拼团人数已满');
-             }
-         }
+        // 检查拼团是否已满（如果按人数计算）
+        if (!isset($setting['sharepredict']) || $setting['sharepredict'] != 10) {
+            $currentCount = (new SharingTrUser())->where(['order_id' => $order['order_id']])->count();
+            if ($currentCount >= $order['max_people']) {
+                return $this->renderError('拼团人数已满');
+            }
+        }
          
          // 加入拼团
          $data = [
@@ -283,46 +422,17 @@ class Order extends Controller
                  throw new \Exception($sharingTrUser->getError() ?: '退出拼团失败');
              }
              
-             // 2. 查找该用户在 SharingOrderItem 中的所有记录（通过包裹/订单的 member_id）
-             $orderItemList = (new SharingOrderItem())->where(['order_id' => $order['order_id']])->select();
-             $orderItemIds = []; // 需要删除的 SharingOrderItem ID
-             $updatePackageIds = []; // 需要更新 share_id 的包裹ID
-             $updateInpackIds = []; // 需要更新 share_id 的订单ID
-             
-             foreach ($orderItemList as $item) {
-                 if ($item['type'] == 0) {
-                     // Package 类型
-                     $package = (new Package())->where('id', $item['package_id'])->find();
-                     if ($package && $package['member_id'] == $userInfo['user_id']) {
-                         $orderItemIds[] = $item['order_item_id'];
-                         $updatePackageIds[] = $item['package_id'];
-                     }
-                 } else {
-                     // Inpack 类型
-                     $inpack = (new Inpack())->where('id', $item['package_id'])->find();
-                     if ($inpack && $inpack['member_id'] == $userInfo['user_id']) {
-                         $orderItemIds[] = $item['order_item_id'];
-                         $updateInpackIds[] = $item['package_id'];
-                     }
-                 }
-             }
-             
-             // 3. 删除该用户的 SharingOrderItem 记录
-             if (!empty($orderItemIds)) {
-                 (new SharingOrderItem())->where('order_item_id', 'in', $orderItemIds)->delete();
-             }
-             
-             // 4. 更新包裹/订单的 share_id 字段（如果存在）
-             
-             // 更新包裹的 share_id 字段，清除拼团ID
-             if (!empty($updatePackageIds)) {
-                 (new Package())->where('id', 'in', $updatePackageIds)->update(['share_id' => null]);
-             }
-             
-             // 更新订单的 share_id 字段，清除拼团ID
-             if (!empty($updateInpackIds)) {
-                 (new Inpack())->where('id', 'in', $updateInpackIds)->update(['share_id' => null]);
-             }
+            // 2. 更新该用户的包裹和集运单的 share_id 字段，清除拼团关联
+            
+            // 更新包裹的 share_id 字段，清除拼团ID
+            (new Package())->where('share_id', $order['order_id'])
+                          ->where('member_id', $userInfo['user_id'])
+                          ->update(['share_id' => 0, 'updated_time' => getTime()]);
+            
+            // 更新集运单的 share_id 字段，清除拼团ID
+            (new Inpack())->where('share_id', $order['order_id'])
+                          ->where('member_id', $userInfo['user_id'])
+                          ->update(['share_id' => 0, 'inpack_type' => 0, 'updated_time' => getTime()]);
              
              $sharingTrUser->commit();
              return $this->renderSuccess('退出拼团成功');
@@ -333,129 +443,120 @@ class Order extends Controller
          }
      }
      
-     // 加入包裹到拼团
-     public function joinPackage(){
-         $id = $this->request->param('id'); // 拼团ID
-         $packageIds = $this->request->param('package_ids'); // 包裹ID，逗号分隔
-         $userInfo = $this->getUser();
-         
-         // 验证参数
-         if (!$id) {
-             return $this->renderError('拼团ID不能为空');
-         }
-         if (!$packageIds) {
-             return $this->renderError('请选择要加入的包裹');
-         }
-         
-         // 获取拼团信息
-         $order = (new SharingOrder())->detail($id);
-         if (!$order) {
-             return $this->renderError('拼团不存在');
-         }
-         
-         // 检查拼团设置
-         $setting = Setting::getItem('sharp');
-         if($setting['is_open'] == 0) {
-             return $this->renderError('暂时无法加入拼团');
-         }
-         
-         // 检查拼团状态（只有开团中的拼团才能加入）
-         if ($order['status']['value'] != 1) {
-             return $this->renderError('该拼团已结束或已取消，无法加入');
-         }
-         
-         // 解析包裹ID
-         $packageIdArray = explode(',', $packageIds);
-         $packageIdArray = array_filter(array_map('intval', $packageIdArray));
-         if (empty($packageIdArray)) {
-             return $this->renderError('请选择有效的包裹');
-         }
-         
-         // 开启事务
-         $SharingOrderItem = new SharingOrderItem();
-         $SharingOrderItem->startTrans();
-         try {
-             $Package = new Package();
-             $insertData = [];
-             
-             // 验证每个包裹
-             foreach ($packageIdArray as $packageId) {
-                 // 验证包裹是否存在且属于当前用户
-                 $package = $Package->where('id', $packageId)->find();
-                 if (!$package) {
-                     throw new \Exception('包裹不存在');
-                 }
-                 if ($package['member_id'] != $userInfo['user_id']) {
-                     throw new \Exception('包裹不属于您，无法加入拼团');
-                 }
-                 
-                 // 检查包裹是否已经加入拼团（包括当前拼团）
-                 $existingItem = $SharingOrderItem->where('package_id', $packageId)
-                     ->where('type', 0)
-                     ->where('status', '<', 9)
-                     ->find();
-                 if ($existingItem) {
-                     if ($existingItem['order_id'] == $order['order_id']) {
-                         throw new \Exception('包裹已加入该拼团，请勿重复添加');
-                     } else {
-                         throw new \Exception('包裹已加入其他拼团，请勿重复添加');
-                     }
-                 }
-                 
-                 // 准备插入数据
-                 $insertData[] = [
-                     'order_id' => $order['order_id'],
-                     'package_id' => $packageId,
-                     'status' => $setting['is_shenhe'] == 1 ? 2 : 1, // 如果需要审核则为2，否则为1
-                     'type' => 0, // 0表示Package，1表示Inpack
-                     'wxapp_id' => $this->request->param('wxapp_id'),
-                     'create_time' => time(),
-                     'update_time' => time(),
-                 ];
-             }
-             
-             // 批量插入
-             if (!empty($insertData)) {
-                 $SharingOrderItem->insertAll($insertData);
-                 
-                 // 更新包裹的 share_id 字段，存储拼团ID
-                 $Package->where('id', 'in', $packageIdArray)->update(['share_id' => $order['order_id']]);
-             }
-             
-             $SharingOrderItem->commit();
-             return $this->renderSuccess('加入拼团成功');
-             
-         } catch (\Exception $e) {
-             $SharingOrderItem->rollback();
-             return $this->renderError($e->getMessage());
-         }
-     }
+    // 加入包裹到拼团
+    public function joinPackage(){
+        $id = $this->request->param('id'); // 拼团ID
+        $packageIds = $this->request->param('package_ids'); // 包裹ID，逗号分隔
+        $userInfo = $this->getUser();
+        
+        // 验证参数
+        if (!$id) {
+            return $this->renderError('拼团ID不能为空');
+        }
+        if (!$packageIds) {
+            return $this->renderError('请选择要加入的包裹');
+        }
+        
+        // 获取拼团信息
+        $order = (new SharingOrder())->detail($id);
+        if (!$order) {
+            return $this->renderError('拼团不存在');
+        }
+        
+        // 检查拼团设置
+        $setting = Setting::getItem('sharp');
+        if($setting['is_open'] == 0) {
+            return $this->renderError('暂时无法加入拼团');
+        }
+        
+        // 检查拼团状态（只有开团中的拼团才能加入）
+        if ($order['status']['value'] != 1) {
+            return $this->renderError('该拼团已结束或已取消，无法加入');
+        }
+        
+        // 解析包裹ID
+        $packageIdArray = explode(',', $packageIds);
+        $packageIdArray = array_filter(array_map('intval', $packageIdArray));
+        if (empty($packageIdArray)) {
+            return $this->renderError('请选择有效的包裹');
+        }
+        
+        // 开启事务
+        $Package = new Package();
+        $Package->startTrans();
+        try {
+            // 验证每个包裹
+            foreach ($packageIdArray as $packageId) {
+                // 验证包裹是否存在且属于当前用户
+                $package = $Package->where('id', $packageId)->find();
+                if (!$package) {
+                    throw new \Exception('包裹不存在');
+                }
+                if ($package['member_id'] != $userInfo['user_id']) {
+                    throw new \Exception('包裹不属于您，无法加入拼团');
+                }
+                
+                // 检查包裹是否已经加入拼团
+                if ($package['share_id'] > 0) {
+                    if ($package['share_id'] == $order['order_id']) {
+                        throw new \Exception('包裹已加入该拼团，请勿重复添加');
+                    } else {
+                        throw new \Exception('包裹已加入其他拼团，请勿重复添加');
+                    }
+                }
+            }
+            
+            // 更新包裹的 share_id 和 status
+            $Package->where('id', 'in', $packageIdArray)
+                    ->where('member_id', $userInfo['user_id'])
+                    ->update([
+                        'share_id' => $order['order_id'],
+                        'status' => 4,
+                        'updated_time' => getTime()
+                    ]);
+            
+            $Package->commit();
+            return $this->renderSuccess('加入拼团成功');
+            
+        } catch (\Exception $e) {
+            $Package->rollback();
+            return $this->renderError($e->getMessage());
+        }
+    }
      
      // 申请加入拼团
      public function applytopintuan(){
          $param = $this->request->param();
-         $SharingOrderItem = new SharingOrderItem();
          $inpack = new Inpack();
+         $userInfo = $this->getUser();
          $setting = Setting::getItem('sharp');
          if($setting['is_open'] == 0 ){
              return $this->renderError('暂时无法加入拼团');  
          }
-         $shareoder = $SharingOrderItem->where('package_id',$param['id'])->where('status','<',9)->find();
-         if(!empty($shareoder)){
+         
+         // 检查集运单是否已经加入拼团
+         $inpackOrder = $inpack->where('id', $param['id'])->find();
+         if (!$inpackOrder) {
+             return $this->renderError('集运单不存在');
+         }
+         if ($inpackOrder['share_id'] > 0) {
              return $this->renderError('请勿重复加入该拼团');  
          }
-         $data = [
-           'order_id' => $param['pin_id'],
-           'package_id' => $param['id'],
-           'create_time' => time(),
-           'update_time' => time(),
-           'status' => $setting['is_shenhe']==1?2:1,
-           'type'=>1,
-           'wxapp_id' => $param['wxapp_id'],
-         ];
-         if($SharingOrderItem->insert($data)){
-              $inpack->where('id',$param['id'])->update(['inpack_type' => 1 ]);
-              return $this->renderSuccess('加入拼团成功');
+         
+         // 验证集运单属于当前用户
+         if ($inpackOrder['member_id'] != $userInfo['user_id']) {
+             return $this->renderError('该集运单不属于您');
+         }
+         
+         // 更新集运单的 share_id 和 inpack_type
+         $result = $inpack->where('id', $param['id'])->update([
+             'share_id' => $param['pin_id'],
+             'inpack_type' => 1,
+             'updated_time' => getTime()
+         ]);
+         
+         if($result){
+             return $this->renderSuccess('加入拼团成功');
          }
          return $this->renderError('暂时无法加入拼团');  
      }
@@ -466,57 +567,74 @@ class Order extends Controller
         $userInfo = $this->getUser();
         $address = $this->request->param('address_id');
         $order = (new SharingOrder())->find($id);
-        $order_item = (new SharingOrderItem())->where(['order_id'=>$order['order_id'],'user_id'=>$userInfo['user_id']])->find();
-        $addressInfo = (new SharingOrderAddress())->where(['order_id'=>$order_item['order_item_id']])->find();
+        
+        // 验证用户是否为拼团团长
+        if ($order['member_id'] != $userInfo['user_id']) {
+            return $this->renderError('只有团长可以修改地址');
+        }
+        
+        $addressInfo = (new SharingOrderAddress())->where(['order_id'=>$order['order_id'], 'is_head' => 1])->find();
         if(!$order->updateAddress($addressInfo,$address)){
             return $this->renderError($order->getError()??'操作失败');
         };
         return $this->renderSuccess('地址更新成功');
      }
      
-     // 审核列表
+     // 审核列表（已废弃，不再使用 SharingOrderItem）
      public function verifylist(){
+        // 由于不再使用 SharingOrderItem，审核功能需要重新设计
+        // 可以通过 Package 和 Inpack 的 share_id 来获取需要审核的包裹和集运单
         $query = $this->request->param();
-        $ShareOrderItem = (new SharingOrderItem());
-        $where['status'] = [1,2,3,4,5,6];
-        if (isset($query['type']) && $query['type']=='verify'){
-            $where['status'] = [2];
-        }
-        if (isset($query['type']) && $query['type']=='reject'){
-            $where['status'] = [9];
-        }
-        if (isset($query['type']) && $query['type']=='ok'){
-            $where['status'] = [1,3,4,5,6,7];
-        }
-        $shareOrder = (new SharingOrder());
         $userInfo = $this->getUser();
+        $shareOrder = (new SharingOrder());
+        
         // 获取我发布的拼团ID
-  
-        $orderIds = $shareOrder->getMyOrderIds($userInfo['user_id'],$where);
-            //  dump($orderIds);die;
-        $orderIdsArr = array_column($orderIds->toArray(),'order_id');
-        $list = $ShareOrderItem->getVeriftListWithPack($orderIdsArr,$where);
-                        
-        foreach ($list as $key => $v){
-            $packageItem = (new PackageItem())->where(['order_id'=>$v['package']['id']])->select();
+        $orderIds = $shareOrder->where('member_id', $userInfo['user_id'])
+                               ->where('is_delete', 0)
+                               ->column('order_id');
+        
+        $list = [];
+        $Package = new Package();
+        $Inpack = new Inpack();
+        
+        // 获取需要审核的包裹（通过 share_id 关联）
+        $packages = $Package->where('share_id', 'in', $orderIds)
+                           ->where('is_delete', 0)
+                           ->select();
+        
+        foreach ($packages as $package) {
+            $packageItem = (new PackageItem())->where(['order_id'=>$package['id']])->select();
             $packageName = array_column($packageItem->toArray(),'class_name');
-            $list[$key]['name'] = implode('-',$packageName);
+            $list[] = [
+                'id' => $package['id'],
+                'type' => 'package',
+                'package' => $package,
+                'name' => implode('-', $packageName)
+            ];
+        }
+        
+        // 获取需要审核的集运单（通过 share_id 关联）
+        $inpacks = $Inpack->where('share_id', 'in', $orderIds)
+                         ->where('is_delete', 0)
+                         ->select();
+        
+        foreach ($inpacks as $inpack) {
+            $list[] = [
+                'id' => $inpack['id'],
+                'type' => 'inpack',
+                'package' => $inpack,
+                'name' => '集运单：' . $inpack['order_sn']
+            ];
         }
     
         return $this->renderSuccess(compact('list'));
      }
      
-     // 修改审核状态
+     // 修改审核状态（已废弃，不再使用 SharingOrderItem）
      public function verifyupdate(){
-        $id = $this->request->param('id');
-        $param = $this->request->param();
-        $model = (new SharingOrderItem());
-        $detail = $model->detail($id);
-        // dump($detail);die;
-        if ($detail->modifyUpdata($param)){
-            return $this->renderSuccess('审核成功'); 
-        }
-        return $this->renderError($order->getError()??'操作失败');
+        // 由于不再使用 SharingOrderItem，审核功能需要重新设计
+        // 可以直接更新 Package 或 Inpack 的状态
+        return $this->renderError('审核功能已废弃，请使用新的审核接口');
      }
      
      // 获取拼团选择包裹列表
@@ -639,18 +757,16 @@ class Order extends Controller
              return $this->renderError('请选择有效的包裹');
          }
          
-         // 验证包裹是否属于当前用户且在该拼团中
-         $orderItems = (new SharingOrderItem())->where(['order_id' => $order['order_id'], 'type' => 0])
-             ->where('package_id', 'in', $packageIdArray)
-             ->where('status', '<', 9)
+         // 验证包裹是否属于当前用户且在该拼团中（通过 share_id 关联）
+         $packages = (new Package())->where('share_id', $order['order_id'])
+             ->where('id', 'in', $packageIdArray)
+             ->where('member_id', $userInfo['user_id'])
+             ->where('is_delete', 0)
              ->select();
          
          $validPackageIds = [];
-         foreach ($orderItems as $item) {
-             $package = (new Package())->where('id', $item['package_id'])->find();
-             if ($package && $package['member_id'] == $userInfo['user_id']) {
-                 $validPackageIds[] = $package['id'];
-             }
+         foreach ($packages as $package) {
+             $validPackageIds[] = $package['id'];
          }
          
          if (empty($validPackageIds)) {
@@ -762,10 +878,7 @@ class Order extends Controller
                  'updated_time' => getTime()
              ]);
              
-             // 更新 SharingOrderItem 状态为待付款
-             (new SharingOrderItem())->where(['order_id' => $order['order_id'], 'type' => 0])
-                 ->where('package_id', 'in', $validPackageIds)
-                 ->update(['status' => 4, 'update_time' => time()]);
+             // 包裹状态已在上面更新为 5（打包），无需额外更新
              
              $Package->commit();
              return $this->renderSuccess('申请打包成功');
