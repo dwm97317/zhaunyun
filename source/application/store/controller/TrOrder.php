@@ -1288,7 +1288,7 @@ class TrOrder extends Controller
     // 取消订单
     public function cancelorder($id){
         $model = Inpack::details($id);
-        (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>null,'is_scan'=>1]);
+        (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>0,'is_scan'=>1]);
         if ($model->removedelete($id)) {
             return $this->renderSuccess('取消成功');
         }
@@ -1475,7 +1475,7 @@ class TrOrder extends Controller
           //单个移出集运单
           if(input('value') && input('id')){
               $update['status'] = 2;
-              $update['inpack_id'] = null;
+              $update['inpack_id'] = 0;
               $res =  (new Package())->where('id',input('id'))->update($update);
               if ($res){
                    return $this->renderSuccess('修改成功');
@@ -1488,7 +1488,7 @@ class TrOrder extends Controller
           $ids= input("post.selectId/a");  //需要去除的包裹id；
           $item =input("post.selectItem"); // 集运单编号
           $update['status'] = 2;
-          $update['inpack_id'] = null;
+          $update['inpack_id'] = 0;
           foreach($ids as $key => $val){
              (new Package())->where('id',$val)->update($update);    
           } 
@@ -1667,7 +1667,7 @@ class TrOrder extends Controller
             ->where('p.member_id', $member_id)
             ->where('p.status','in',[2]) // 待打包状态
             ->where('p.is_delete', 0)
-            ->where('p.inpack_id', null) // 未分配到任何集运单
+            ->where('p.inpack_id', 0) // 未分配到任何集运单
             ->order('p.entering_warehouse_time', 'desc')
             ->select()
             ->toArray();
@@ -2180,7 +2180,7 @@ class TrOrder extends Controller
           $item =input("post.selectItem"); // 集运单编号
           $detail = $model->find($item);
           
-          $result = $Package->where('id','in',$ids)->update(['inpack_id'=>null]);
+          $result = $Package->where('id','in',$ids)->update(['inpack_id'=>0]);
           if (!$result){
               return $this->renderSuccess('拆包失败');
           }

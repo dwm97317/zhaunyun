@@ -1909,10 +1909,10 @@ class Package extends Controller
          $padata= explode(',',$info['pack_ids']);
          if($info['pack_ids']){
              foreach($padata as $key=>$val){
-                 (new PackageModel())->where('id',$val)->update(['status'=>2,'inpack_id'=>null]);
+                 (new PackageModel())->where('id',$val)->update(['status'=>2,'inpack_id'=>0]);
              }
          }else{
-             (new PackageModel())->where('inpack_id',$info['id'])->update(['status'=>2,'inpack_id'=>null]);
+             (new PackageModel())->where('inpack_id',$info['id'])->update(['status'=>2,'inpack_id'=>0]);
          }
         
          $res = (new Inpack())->where(['id'=>$info['id']])->update(['status'=>'-1','cancel_reason'=>$param["reason"],'cancel_time'=>getTime()]);
