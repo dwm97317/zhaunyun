@@ -194,6 +194,7 @@ class Order extends Controller
         return $this->renderSuccess(compact('data'));
      }
      
+     
      // 拼团广场数据
      public function center(){
         $query = $this->request->param();
@@ -209,6 +210,8 @@ class Order extends Controller
          // 获取已拼团包裹重量
          $list = $shareService->getPackageWeight($list);
          $list = $shareService->getMainAddressInfo($list);
+         // 获取参与用户信息
+         $list = $shareService->getJoinUserInfo($list);
         return $this->renderSuccess(compact('list'));
      }
      
