@@ -766,6 +766,7 @@
                                <option value="7">已到货</option>
                                <option value="8">已完成</option>
                                <option value="5">回退到待发货</option>
+                               <option value="9">回退到待查验</option>
                         </select>
                     </div>
                 </div>

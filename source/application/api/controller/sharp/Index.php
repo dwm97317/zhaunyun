@@ -124,13 +124,15 @@ class Index extends Controller
          if ($userInfo && isset($userInfo['user_id'])) {
              $userId = $userInfo['user_id'];
          }
-         $shareOrder = (new SharingOrder());
-         $list = $shareOrder->getListByDistane($param, $userId);
-         $shareService = (new SharingOrderService());
-         // 获取已拼团包裹重量
-         $list = $shareService->getPackageWeight($list);
-         $list = $shareService->getMainAddressInfo($list);
-         return $this->renderSuccess(compact('list')); 
+        $shareOrder = (new SharingOrder());
+        $list = $shareOrder->getListByDistane($param, $userId);
+        $shareService = (new SharingOrderService());
+        // 获取已拼团包裹重量
+        $list = $shareService->getPackageWeight($list);
+        $list = $shareService->getMainAddressInfo($list);
+        // 获取参与用户信息
+        $list = $shareService->getJoinUserInfo($list);
+        return $this->renderSuccess(compact('list'));
      }
      
      public function sharingpage(){

@@ -85,8 +85,9 @@ class Email extends Basics
                  $subject = "【".$setting['setting']['replyName']."】".'邮箱验证';
                  $content = "【".$setting['setting']['replyName']."】".$code;
             }
-           
-            send_mail($toemail,$name,$subject,$content,$attachment=null,$setting['setting']);
+       
+            $res= send_mail($toemail,$name,$subject,$content,$attachment=null,$setting['setting']);
+            
             return true;
     } 
 

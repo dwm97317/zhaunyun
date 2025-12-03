@@ -690,6 +690,7 @@ class TrOrder extends Controller
                6 => '9',
                7 => '10',
                8 => '11',
+               9 => '1'
            ];
            if($status==5){
                $_up['status'] = 3;
@@ -712,6 +713,7 @@ class TrOrder extends Controller
                6 => $dosend,
                7 => $noticesetting['reach']['describe'],
                8 => $noticesetting['take']['describe'],
+               9 => "订单回退，重新打包",
            ];
            
            

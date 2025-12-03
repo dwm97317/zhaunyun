@@ -226,7 +226,7 @@ class Setting extends BaseModel
                     'is_sort'=>10,
                     'sort_mode'=>10,
                     'link_mode'=>10, //联系人的模式
-                    'address_mode'=>10,//10=纯地址，20=地址+UID:ID 30=地址+ID+室  40=地址+ID+室+客服名
+                    'address_mode'=>10,//10=纯地址，20=地址+UID:ID 30=地址+ID+室  40=地址+ID+室+客服名 50=地址+昵称+ID+室
                     "is_change_uid"=>0, //是否更改UID显示为xxx室
                     "is_room_alias"=>"", //“室”字替换成的文字
                     'is_auto_free' => 1, //0不自动计算费用，1自动计算费用
@@ -952,7 +952,7 @@ class Setting extends BaseModel
                     'is_enable' =>1,
                     'setting' => [
                             'Username' => '1835504221@qq.com',
-                            'Password' => 'faumrfbbbymscihb',
+                            'Password' => 'zxisvlamfngtbbia',
                             'replyName' => $storeName?:"小思集运",
                             'replyEmail' => '1835504221@qq.com',
                             

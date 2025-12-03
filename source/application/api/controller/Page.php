@@ -646,6 +646,9 @@ class Page extends Controller
                     case '40':
                         $data['address'] = $data['address'].''.$this->user['user_code'].' '.($this->user['service']['real_name']);
                         break;
+                    case '50':
+                        $data['address'] = $data['address'].$this->user['nickName'].$this->user['user_code'];
+                        break;
                     default:
                         // code...
                         break;
@@ -690,6 +693,9 @@ class Page extends Controller
                         break;
                     case '40':
                         $data['address'] = $data['address'].$this->user['user_code'].($this->user['service']['real_name']);
+                        break;
+                    case '50':
+                        $data['address'] = $data['address'].$this->user['nickName'].$this->user['user_code'];
                         break;
                     default:
                         // code...
@@ -739,6 +745,9 @@ class Page extends Controller
                     case '40':
                         $data['address'] = $data['address'].$this->user['user_id'].''.($this->user['service']['real_name']);
                         break;
+                    case '50':
+                        $data['address'] = $data['address'].$this->user['nickName'].$this->user['user_id'];
+                        break;
                     default:
                         // code...
                         break;
@@ -781,6 +790,9 @@ class Page extends Controller
                         break;
                     case '40':
                         $data['address'] = $data['address'].$this->user['user_id'].($this->user['service']['real_name']);
+                        break;
+                    case '50':
+                        $data['address'] = $data['address'].$this->user['nickName'].$this->user['user_id'];
                         break;
                     default:
                         // code...
@@ -832,6 +844,9 @@ class Page extends Controller
                     case '40':
                         $data['address'] = $data['address'].$aliasid.''.($this->user['service']['real_name']);
                         break;
+                    case '50':
+                        $data['address'] = $data['address'].$this->user['nickName'].$aliasid;
+                        break;
                     default:
                         // code...
                         break;
@@ -873,6 +888,9 @@ class Page extends Controller
                         break;
                     case '40':
                         $data['address'] = $data['address'].$aliasid.($this->user['service']['real_name']);
+                        break;
+                    case '50':
+                        $data['address'] = $data['address'].$this->user['nickName'].$aliasid;
                         break;
                     default:
                         // code...

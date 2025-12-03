@@ -7,6 +7,7 @@ use app\api\model\sharing\SharingOrderAddress;
 use app\api\model\sharing\Setting as SharingSetting;
 use app\api\model\Package;
 use app\api\model\Inpack;
+use app\api\model\sharing\SharingTrUser;
 
 class SharingOrder extends Basics {
     
@@ -83,6 +84,28 @@ class SharingOrder extends Basics {
                 $address = $item['country'].$item['province'].$item['city'].$item['region'];
             }
             $list[$key]['address'] = $address;
+        }
+        return $list;
+    }
+    
+    // 获取参与用户信息（头像列表和参与人数）
+    public function getJoinUserInfo($list){
+        $sharingTrUser = new SharingTrUser();
+        foreach ($list as $key => $val){
+            // 获取参与用户列表（最多显示前5个）
+            $sharingTrUserList = $sharingTrUser->where(['order_id' => $val['order_id']])->with(['user'])->limit(5)->select();
+            $userList = [];
+            foreach($sharingTrUserList as $userItem){
+                if($userItem['user']){
+                    $userList[] = [
+                        'avatarUrl' => $userItem['user']['avatarUrl'] ?? '',
+                        'nickName' => $userItem['user']['nickName'] ?? ''
+                    ];
+                }
+            }
+            $list[$key]['join_user_list'] = $userList;
+            // 获取参与人数
+            $list[$key]['join_count'] = $sharingTrUser->where(['order_id' => $val['order_id']])->count();
         }
         return $list;
     }

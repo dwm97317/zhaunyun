@@ -700,6 +700,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                             <option value="20" <?= $values['address_mode'] == 20 ? 'selected' : '' ?>>地址+用户ID</option>
                                             <option value="30" <?= $values['address_mode'] == 30 ? 'selected' : '' ?>>地址+用户ID+室</option>
                                             <option value="40" <?= $values['address_mode'] == 40 ? 'selected' : '' ?>>地址+用户ID+室+客服</option>
+                                             <option value="50" <?= $values['address_mode'] == 50 ? 'selected' : '' ?>>地址+用户昵称+用户ID+室</option>
                                     </select>
                                     <div class="help-block">
                                         <small>目前支持纯数字模式，纯英文模式，数字英文混合模式</small>

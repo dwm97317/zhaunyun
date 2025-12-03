@@ -604,9 +604,8 @@ class Login extends Basics
         // 数据验证
         $setting = SettingModel::detail('store')['values'];
         $validate = new ValidateLogin;
-  
         if($setting['checkphone']==10){
-          $emailcode = Cache::get('emailcode');
+          $emailcode = Cache::get('emailcode_'.$data['email']);
             if ($emailcode!=$data['smsCode']) {
                 throw new BaseException(['msg' =>'邮箱验证码不正确']);
             }  
