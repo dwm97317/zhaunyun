@@ -387,523 +387,408 @@ class Page extends Controller
       return $this->storageDetails($data[0]['shop_id']);
     }
     
+    // // 获取仓库列表
+    // public function storageList(){
+    //   $this->user = $this->getUser(); 
+    //   $data = (new Shop())->getList();
+    //   $data= $data->toArray();
+    //   //获取设置信息
+    //   $setting = CommonSetting::getItem('store',input('wxapp_id'));
+    //   if($setting['is_change_uid']==1){
+    //       if(!empty($setting['is_room_alias'])){
+    //           ($this->user)['user_code'] = ($this->user)['user_code'].$setting['is_room_alias'];
+    //           ($this->user)['user_id'] = ($this->user)['user_id'].$setting['is_room_alias'];
+    //       }else{
+    //           ($this->user)['user_code'] = ($this->user)['user_code'].'室';
+    //           ($this->user)['user_id'] = ($this->user)['user_id'].'室';
+    //       }
+    //   }
+       
+    //   $aiidentify = CommonSetting::getItem('aiidentify',input('wxapp_id'));
+    //   if($aiidentify['is_enable']==1){
+    //       ($this->user)['user_code'] = $aiidentify['keyword1'].($this->user)['user_code'].$aiidentify['keyword2'];
+    //       ($this->user)['user_id'] = $aiidentify['keyword1'].($this->user)['user_id'].$aiidentify['keyword2'];
+    //   }
+    //   //0 显示ID, 1显示code 2 都显示
+    // //   dump($setting['usercode_mode']['is_show']);die;
+    // // dump($data);die;
+    //   if($setting['usercode_mode']['is_show']==1){
+    //       foreach ($data as $k => $v){
+    //             if($v['type']==1){
+    //               $data[$k]['region']['province'] = '';
+    //               $data[$k]['region']['city'] = '';
+    //               $data[$k]['region']['region'] = '';
+    //             }
+    //             if($v['type']==1){
+    //                 if($setting['link_mode'] == 10){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_name'].'-'.($this->user)['user_code'];
+    //                 }
+    //                 if($setting['link_mode'] == 20){
+    //                      $data[$k]['linkman'] =$data[$k]['linkman'].'-'.($this->user)['user_code'];
+    //                 }
+    //                 if($setting['link_mode'] == 30){
+    //                      $data[$k]['linkman'] =($this->user)['nickName'].'-'.($this->user)['user_code'];
+    //                 }
+    //                 if($setting['link_mode'] == 40){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_alias_name'].'-'.($this->user)['user_code'];
+    //                 }
+    //                 $data[$k]['address'] = $this->user['user_code'].'-'.$v['address'];
+    //                 if($setting['link_mode'] == 50){
+    //                     $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
+    //                     $data[$k]['linkman'] = ($this->user)['nickName'];
+    //                 }
+    //                 if($setting['link_mode'] == 60){
+    //                     $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
+    //                     $data[$k]['linkman'] = $data[$k]['shop_name'];
+    //                 }
+    //             }else{
+    //                 if($setting['link_mode'] == 10){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_name'].'-'.($this->user)['user_code'];
+    //                 }
+    //                 if($setting['link_mode'] == 20){
+    //                      $data[$k]['linkman'] =$data[$k]['linkman'].'-'.($this->user)['user_code'];
+    //                 }
+    //                 if($setting['link_mode'] == 30){
+    //                      $data[$k]['linkman'] =($this->user)['nickName'].'-'.($this->user)['user_code'];
+    //                 }
+    //                 if($setting['link_mode'] == 40){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_alias_name'].'-'.($this->user)['user_code'];
+    //                 }
+    //                 $data[$k]['address'] = $v['address'].$this->user['user_code'];
+    //                 if($setting['link_mode'] == 50){
+    //                   $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
+    //                     $data[$k]['linkman'] = ($this->user)['nickName'];
+    //                 }
+    //                 if($setting['link_mode'] == 60){
+    //                     $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
+    //                     $data[$k]['linkman'] = $data[$k]['shop_name'];
+    //                 }
+    //                 if($setting['link_mode'] == 70){
+    //                     $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
+    //                     $data[$k]['linkman'] = $data[$k]['shop_name'];
+    //                 }
+    //             }
+    //       }    
+    //   }elseif($setting['usercode_mode']['is_show']==0){
+    //       foreach ($data as $k => $v){
+    //           if($v['type']==1){
+    //               $data[$k]['region']['province'] = '';
+    //               $data[$k]['region']['city'] = '';
+    //               $data[$k]['region']['region'] = '';
+    //               $data[$k]['address'] = $this->user['user_id'].'-'.$v['address'];
+    //                 if($setting['link_mode'] == 10){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_name'].($this->user)['user_id'];
+    //                 }
+    //                 if($setting['link_mode'] == 20){
+    //                      $data[$k]['linkman'] =$data[$k]['linkman'].($this->user)['user_id'];
+    //                 }
+    //                 if($setting['link_mode'] == 30){
+    //                      $data[$k]['linkman'] =($this->user)['nickName'].($this->user)['user_id'];
+    //                 }
+    //                 if($setting['link_mode'] == 40){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_alias_name'].($this->user)['user_id'];
+    //                 }
+    //                 if($setting['link_mode'] == 50){
+    //                     $data[$k]['address'] =  $v['address'].$this->user['user_id'];
+    //                     $data[$k]['linkman'] = ($this->user)['nickName'];
+    //                 }
+    //                 if($setting['link_mode'] == 60){
+    //                     $data[$k]['address'] =  $v['address'].($this->user)['user_id'];
+    //                     $data[$k]['linkman'] = $data[$k]['shop_name'];
+    //                 }
+    //           }else{
+    //                 $data[$k]['address'] = $v['address'].$this->user['user_id'];
+    //                 if($setting['link_mode'] == 10){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_name'].($this->user)['user_id'];
+    //                 }
+    //                 if($setting['link_mode'] == 20){
+    //                      $data[$k]['linkman'] =$data[$k]['linkman'].($this->user)['user_id'];
+    //                 }
+    //                 if($setting['link_mode'] == 30){
+    //                      $data[$k]['linkman'] =($this->user)['nickName'].($this->user)['user_id'];
+    //                 }
+    //                 if($setting['link_mode'] == 40){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_alias_name'].($this->user)['user_id'];
+    //                 }
+    //                 if($setting['link_mode'] == 50){
+    //                     $data[$k]['address'] =  $v['address'].$this->user['user_id'];
+    //                     $data[$k]['linkman'] = ($this->user)['nickName'];
+    //                 }
+    //                 if($setting['link_mode'] == 60){
+    //                     $data[$k]['address'] =  $v['address'].($this->user)['user_id'];
+    //                     $data[$k]['linkman'] = $data[$k]['shop_name'];
+    //                 }
+    //           }
+    //         }
+    //   }elseif($setting['usercode_mode']['is_show']==2){
+    //       $param = $this->request->param();
+    //       if(isset($param['usermark'])){
+    //           $aliasid = $param['usermark'];
+    //           foreach ($data as $k => $v){
+    //           if($v['type']==1){
+    //               $data[$k]['region']['province'] = '';
+    //               $data[$k]['region']['city'] = '';
+    //               $data[$k]['region']['region'] = '';
+    //               $data[$k]['address'] = $aliasid.'-'.$v['address'];
+    //                 if($setting['link_mode'] == 10){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_name'].$aliasid;
+    //                 }
+    //                 if($setting['link_mode'] == 20){
+    //                      $data[$k]['linkman'] =$data[$k]['linkman'].$aliasid;
+    //                 }
+    //                 if($setting['link_mode'] == 30){
+    //                      $data[$k]['linkman'] =($this->user)['nickName'].$aliasid;
+    //                 }
+    //                 if($setting['link_mode'] == 40){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_alias_name'].$aliasid;
+    //                 }
+    //                 if($setting['link_mode'] == 50){
+    //                     $data[$k]['address'] =  $v['address'].$aliasid;
+    //                     $data[$k]['linkman'] = ($this->user)['nickName'];
+    //                 }
+    //                 if($setting['link_mode'] == 60){
+    //                     $data[$k]['address'] =  $v['address'].$aliasid;
+    //                     $data[$k]['linkman'] = $data[$k]['shop_name'];
+    //                 }
+    //           }else{
+    //                 $data[$k]['address'] = $v['address'].$aliasid;
+    //                 if($setting['link_mode'] == 10){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_name'].$aliasid;
+    //                 }
+    //                 if($setting['link_mode'] == 20){
+    //                      $data[$k]['linkman'] =$data[$k]['linkman'].$aliasid;
+    //                 }
+    //                 if($setting['link_mode'] == 30){
+    //                      $data[$k]['linkman'] =($this->user)['nickName'].$aliasid;
+    //                 }
+    //                 if($setting['link_mode'] == 40){
+    //                  $data[$k]['linkman'] =$data[$k]['shop_alias_name'].$aliasid;
+    //                 }
+    //                 if($setting['link_mode'] == 50){
+    //                     $data[$k]['address'] =  $v['address'].$aliasid;
+    //                     $data[$k]['linkman'] = ($this->user)['nickName'];
+    //                 }
+    //                 if($setting['link_mode'] == 60){
+    //                     $data[$k]['address'] =  $v['address'].$aliasid;
+    //                     $data[$k]['linkman'] = $data[$k]['shop_name'];
+    //                 }
+    //           }
+    //         }
+    //       }
+           
+    //   }
+    //   return $this->renderSuccess($data);
+    // }
+    
     // 获取仓库列表
     public function storageList(){
       $this->user = $this->getUser(); 
       $data = (new Shop())->getList();
-      $data= $data->toArray();
+      $data = $data->toArray();
       //获取设置信息
       $setting = CommonSetting::getItem('store',input('wxapp_id'));
-       if($setting['is_change_uid']==1){
-           if(!empty($setting['is_room_alias'])){
-              ($this->user)['user_code'] = ($this->user)['user_code'].$setting['is_room_alias'];
-              ($this->user)['user_id'] = ($this->user)['user_id'].$setting['is_room_alias'];
-           }else{
-              ($this->user)['user_code'] = ($this->user)['user_code'].'室';
-              ($this->user)['user_id'] = ($this->user)['user_id'].'室';
-           }
-       }
-       
-       $aiidentify = CommonSetting::getItem('aiidentify',input('wxapp_id'));
-       if($aiidentify['is_enable']==1){
-           ($this->user)['user_code'] = $aiidentify['keyword1'].($this->user)['user_code'].$aiidentify['keyword2'];
-           ($this->user)['user_id'] = $aiidentify['keyword1'].($this->user)['user_id'].$aiidentify['keyword2'];
-       }
-      //0 显示ID, 1显示code 2 都显示
-    //   dump($setting['usercode_mode']['is_show']);die;
-    // dump($data);die;
-       if($setting['usercode_mode']['is_show']==1){
-           foreach ($data as $k => $v){
-                if($v['type']==1){
-                   $data[$k]['region']['province'] = '';
-                   $data[$k]['region']['city'] = '';
-                   $data[$k]['region']['region'] = '';
-                }
-                if($v['type']==1){
-                    if($setting['link_mode'] == 10){
-                     $data[$k]['linkman'] =$data[$k]['shop_name'].'-'.($this->user)['user_code'];
-                    }
-                    if($setting['link_mode'] == 20){
-                         $data[$k]['linkman'] =$data[$k]['linkman'].'-'.($this->user)['user_code'];
-                    }
-                    if($setting['link_mode'] == 30){
-                         $data[$k]['linkman'] =($this->user)['nickName'].'-'.($this->user)['user_code'];
-                    }
-                    if($setting['link_mode'] == 40){
-                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].'-'.($this->user)['user_code'];
-                    }
-                    $data[$k]['address'] = $this->user['user_code'].'-'.$v['address'];
-                    if($setting['link_mode'] == 50){
-                        $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
-                        $data[$k]['linkman'] = ($this->user)['nickName'];
-                    }
-                    if($setting['link_mode'] == 60){
-                        $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
-                        $data[$k]['linkman'] = $data[$k]['shop_name'];
-                    }
-                }else{
-                    if($setting['link_mode'] == 10){
-                     $data[$k]['linkman'] =$data[$k]['shop_name'].'-'.($this->user)['user_code'];
-                    }
-                    if($setting['link_mode'] == 20){
-                         $data[$k]['linkman'] =$data[$k]['linkman'].'-'.($this->user)['user_code'];
-                    }
-                    if($setting['link_mode'] == 30){
-                         $data[$k]['linkman'] =($this->user)['nickName'].'-'.($this->user)['user_code'];
-                    }
-                    if($setting['link_mode'] == 40){
-                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].'-'.($this->user)['user_code'];
-                    }
-                    $data[$k]['address'] = $v['address'].$this->user['user_code'];
-                    if($setting['link_mode'] == 50){
-                       $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
-                        $data[$k]['linkman'] = ($this->user)['nickName'];
-                    }
-                    if($setting['link_mode'] == 60){
-                        $data[$k]['address'] =  $v['address'].($this->user)['user_code'];
-                        $data[$k]['linkman'] = $data[$k]['shop_name'];
-                    }
-                }
-           }    
-       }elseif($setting['usercode_mode']['is_show']==0){
-          foreach ($data as $k => $v){
-               if($v['type']==1){
-                   $data[$k]['region']['province'] = '';
-                   $data[$k]['region']['city'] = '';
-                   $data[$k]['region']['region'] = '';
-                   $data[$k]['address'] = $this->user['user_id'].'-'.$v['address'];
-                    if($setting['link_mode'] == 10){
-                     $data[$k]['linkman'] =$data[$k]['shop_name'].($this->user)['user_id'];
-                    }
-                    if($setting['link_mode'] == 20){
-                         $data[$k]['linkman'] =$data[$k]['linkman'].($this->user)['user_id'];
-                    }
-                    if($setting['link_mode'] == 30){
-                         $data[$k]['linkman'] =($this->user)['nickName'].($this->user)['user_id'];
-                    }
-                    if($setting['link_mode'] == 40){
-                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].($this->user)['user_id'];
-                    }
-                    if($setting['link_mode'] == 50){
-                        $data[$k]['address'] =  $v['address'].$this->user['user_id'];
-                        $data[$k]['linkman'] = ($this->user)['nickName'];
-                    }
-                    if($setting['link_mode'] == 60){
-                        $data[$k]['address'] =  $v['address'].($this->user)['user_id'];
-                        $data[$k]['linkman'] = $data[$k]['shop_name'];
-                    }
-               }else{
-                    $data[$k]['address'] = $v['address'].$this->user['user_id'];
-                    if($setting['link_mode'] == 10){
-                     $data[$k]['linkman'] =$data[$k]['shop_name'].($this->user)['user_id'];
-                    }
-                    if($setting['link_mode'] == 20){
-                         $data[$k]['linkman'] =$data[$k]['linkman'].($this->user)['user_id'];
-                    }
-                    if($setting['link_mode'] == 30){
-                         $data[$k]['linkman'] =($this->user)['nickName'].($this->user)['user_id'];
-                    }
-                    if($setting['link_mode'] == 40){
-                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].($this->user)['user_id'];
-                    }
-                    if($setting['link_mode'] == 50){
-                        $data[$k]['address'] =  $v['address'].$this->user['user_id'];
-                        $data[$k]['linkman'] = ($this->user)['nickName'];
-                    }
-                    if($setting['link_mode'] == 60){
-                        $data[$k]['address'] =  $v['address'].($this->user)['user_id'];
-                        $data[$k]['linkman'] = $data[$k]['shop_name'];
-                    }
-               }
-            }
-       }elseif($setting['usercode_mode']['is_show']==2){
-           $param = $this->request->param();
-           if(isset($param['usermark'])){
-               $aliasid = $param['usermark'];
-               foreach ($data as $k => $v){
-               if($v['type']==1){
-                   $data[$k]['region']['province'] = '';
-                   $data[$k]['region']['city'] = '';
-                   $data[$k]['region']['region'] = '';
-                   $data[$k]['address'] = $aliasid.'-'.$v['address'];
-                    if($setting['link_mode'] == 10){
-                     $data[$k]['linkman'] =$data[$k]['shop_name'].$aliasid;
-                    }
-                    if($setting['link_mode'] == 20){
-                         $data[$k]['linkman'] =$data[$k]['linkman'].$aliasid;
-                    }
-                    if($setting['link_mode'] == 30){
-                         $data[$k]['linkman'] =($this->user)['nickName'].$aliasid;
-                    }
-                    if($setting['link_mode'] == 40){
-                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].$aliasid;
-                    }
-                    if($setting['link_mode'] == 50){
-                        $data[$k]['address'] =  $v['address'].$aliasid;
-                        $data[$k]['linkman'] = ($this->user)['nickName'];
-                    }
-                    if($setting['link_mode'] == 60){
-                        $data[$k]['address'] =  $v['address'].$aliasid;
-                        $data[$k]['linkman'] = $data[$k]['shop_name'];
-                    }
-               }else{
-                    $data[$k]['address'] = $v['address'].$aliasid;
-                    if($setting['link_mode'] == 10){
-                     $data[$k]['linkman'] =$data[$k]['shop_name'].$aliasid;
-                    }
-                    if($setting['link_mode'] == 20){
-                         $data[$k]['linkman'] =$data[$k]['linkman'].$aliasid;
-                    }
-                    if($setting['link_mode'] == 30){
-                         $data[$k]['linkman'] =($this->user)['nickName'].$aliasid;
-                    }
-                    if($setting['link_mode'] == 40){
-                     $data[$k]['linkman'] =$data[$k]['shop_alias_name'].$aliasid;
-                    }
-                    if($setting['link_mode'] == 50){
-                        $data[$k]['address'] =  $v['address'].$aliasid;
-                        $data[$k]['linkman'] = ($this->user)['nickName'];
-                    }
-                    if($setting['link_mode'] == 60){
-                        $data[$k]['address'] =  $v['address'].$aliasid;
-                        $data[$k]['linkman'] = $data[$k]['shop_name'];
-                    }
-               }
-            }
-           }
-           
-       }
+      
+      // 处理用户代码/ID转换
+      $this->prepareUserCode($setting);
+      
+      // 处理每个仓库数据
+      foreach ($data as $k => $v){
+          // 当是国外仓库时候，不显示省市区
+          if($v['type'] == 1){
+              $data[$k]['region']['province'] = '';
+              $data[$k]['region']['city'] = '';
+              $data[$k]['region']['region'] = '';
+          }
+          
+          // 根据用户代码显示模式处理数据
+          $param = $this->request->param();
+          $aliasid = isset($param['usermark']) ? $param['usermark'] : null;
+          
+          if($setting['usercode_mode']['is_show'] == 1){
+              // 显示CODE
+              $this->processStorageData($data[$k], $setting, $this->user['user_code'], $v['type'] == 1, true);
+          }elseif($setting['usercode_mode']['is_show'] == 0){
+              // 显示ID
+              $this->processStorageData($data[$k], $setting, $this->user['user_id'], $v['type'] == 1, false);
+          }elseif($setting['usercode_mode']['is_show'] == 2 && $aliasid){
+              // 显示唛头
+              $this->processStorageData($data[$k], $setting, $aliasid, $v['type'] == 1, false);
+          }
+      }
+      
       return $this->renderSuccess($data);
+    }
+    
+    /**
+     * 处理用户代码/ID转换
+     * @param array $setting
+     */
+    private function prepareUserCode($setting){
+        if($setting['is_change_uid'] == 1){
+            if(!empty($setting['is_room_alias'])){
+                ($this->user)['user_code'] = ($this->user)['user_code'].$setting['is_room_alias'];
+                ($this->user)['user_id'] = ($this->user)['user_id'].$setting['is_room_alias'];
+            }else{
+                ($this->user)['user_code'] = ($this->user)['user_code'].'室';
+                ($this->user)['user_id'] = ($this->user)['user_id'].'室';
+            }
+        }
+        
+        $aiidentify = CommonSetting::getItem('aiidentify',input('wxapp_id'));
+        if($aiidentify['is_enable'] == 1){
+            ($this->user)['user_code'] = $aiidentify['keyword1'].($this->user)['user_code'].$aiidentify['keyword2'];
+            ($this->user)['user_id'] = $aiidentify['keyword1'].($this->user)['user_id'].$aiidentify['keyword2'];
+        }
+    }
+    
+    /**
+     * 处理仓库数据（联系人名称和地址）
+     * @param array &$item 仓库数据（引用传递）
+     * @param array $setting 设置信息
+     * @param string $identifier 标识符（user_code/user_id/aliasid）
+     * @param bool $isForeignWarehouse 是否国外仓库
+     * @param bool $useSeparator 是否使用分隔符（-），当usercode_mode['is_show']==1时使用
+     */
+    private function processStorageData(&$item, $setting, $identifier, $isForeignWarehouse = false, $useSeparator = false){
+        // 设置联系人名称
+        $this->setLinkman($item, $setting, $identifier, $useSeparator);
+        
+        // 设置地址
+        $this->setAddress($item, $setting, $identifier, $isForeignWarehouse);
+    }
+    
+    /**
+     * 设置联系人名称
+     * @param array &$item 仓库数据
+     * @param array $setting 设置信息
+     * @param string $identifier 标识符
+     * @param bool $useSeparator 是否使用分隔符（-）
+     */
+    private function setLinkman(&$item, $setting, $identifier, $useSeparator = false){
+        $separator = $useSeparator ? '-' : '';
+        
+        switch($setting['link_mode']){
+            case 10:
+                $item['linkman'] = $item['shop_name'].$separator.$identifier;
+                break;
+            case 20:
+                $item['linkman'] = $item['linkman'].$separator.$identifier;
+                break;
+            case 30:
+                $item['linkman'] = ($this->user)['nickName'].$separator.$identifier;
+                break;
+            case 40:
+                $item['linkman'] = $item['shop_alias_name'].$separator.$identifier;
+                break;
+            case 50:
+                $item['linkman'] = ($this->user)['nickName'];
+                break;
+            case 60:
+                $item['linkman'] = $item['shop_name'];
+                break;
+            case 70:
+                $item['linkman'] = $item['shop_alias_name'].'('. ($this->user)['nickName'] .')';
+                break;
+            default:
+                // 保持原值
+                break;
+        }
+    }
+    
+    /**
+     * 设置地址
+     * @param array &$item 仓库数据
+     * @param array $setting 设置信息
+     * @param string $identifier 标识符
+     * @param bool $isForeignWarehouse 是否国外仓库
+     */
+    private function setAddress(&$item, $setting, $identifier, $isForeignWarehouse = false){
+        // 如果设置了address_mode，使用address_mode（参考storageDetails）
+        if(isset($setting['address_mode'])){
+            switch($setting['address_mode']){
+                case '10':
+                    $item['address'] = $item['address'];
+                    break;
+                case '20':
+                    $item['address'] = $item['address'].($isForeignWarehouse ? '  ' : '').$identifier;
+                    break;
+                case '30':
+                    $item['address'] = $item['address'].($isForeignWarehouse ? '  ' : '').$identifier;
+                    break;
+                case '40':
+                    $realName = isset($this->user['service']['real_name']) ? ' '.$this->user['service']['real_name'] : '';
+                    $item['address'] = $item['address'].$identifier.$realName;
+                    break;
+                case '50':
+                    $item['address'] = $item['address'].($this->user)['nickName'].$identifier;
+                    break;
+                default:
+                    // 使用默认逻辑
+                    $this->setAddressDefault($item, $setting, $identifier, $isForeignWarehouse);
+                    break;
+            }
+        }else{
+            // 使用默认逻辑（兼容旧代码）
+            $this->setAddressDefault($item, $setting, $identifier, $isForeignWarehouse);
+        }
+    }
+    
+    /**
+     * 设置地址（默认逻辑）
+     * @param array &$item 仓库数据
+     * @param array $setting 设置信息
+     * @param string $identifier 标识符
+     * @param bool $isForeignWarehouse 是否国外仓库
+     */
+    private function setAddressDefault(&$item, $setting, $identifier, $isForeignWarehouse = false){
+        // link_mode 50、60、70时，地址格式为 address.identifier
+        if($setting['link_mode'] == 50 || $setting['link_mode'] == 60 || $setting['link_mode'] == 70){
+            $item['address'] = $item['address'].$identifier;
+        }else{
+            // 其他情况：国外仓库为 identifier-address，国内仓库为 addressidentifier
+            if($isForeignWarehouse){
+                $item['address'] = $identifier.'-'.$item['address'];
+            }else{
+                $item['address'] = $item['address'].$identifier;
+            }
+        }
     }
     
     // 获取仓库详情
     public function storageDetails($id){
        $this->user = $this->getUser(); 
-    //   dump($this->user->toarray());die;
        $data = (new Shop())->getDetails($id);
+       
        //当是国外仓库时候，不显示省市区
-       if($data['type']==1){
-           $data= $data->toArray();
+       if($data['type'] == 1){
+           $data = $data->toArray();
            $data['region']['province'] = '';
            $data['region']['city'] = '';
            $data['region']['region'] = '';
        }
+       
        $setting = CommonSetting::getItem('store',input('wxapp_id'));
-        
        
-       if($setting['is_change_uid']==1){
-           if(!empty($setting['is_room_alias'])){
-              ($this->user)['user_code'] = ($this->user)['user_code'].$setting['is_room_alias'];
-              ($this->user)['user_id'] = ($this->user)['user_id'].$setting['is_room_alias'];
-           }else{
-              ($this->user)['user_code'] = ($this->user)['user_code'].'室';
-              ($this->user)['user_id'] = ($this->user)['user_id'].'室';
-           }
-       }
+       // 处理用户代码/ID转换
+       $this->prepareUserCode($setting);
        
-       $aiidentify = CommonSetting::getItem('aiidentify',input('wxapp_id'));
-       if($aiidentify['is_enable']==1){
-           ($this->user)['user_code'] = $aiidentify['keyword1'].($this->user)['user_code'].$aiidentify['keyword2'];
-           ($this->user)['user_id'] = $aiidentify['keyword1'].($this->user)['user_id'].$aiidentify['keyword2'];
-       }
-       //只显示CODE
-        // dump($setting['usercode_mode']['is_show']);die;
-       if($setting['usercode_mode']['is_show']==1){
-           if($data['type']==1){
-                
-                if($setting['link_mode'] == 10){
-                     $data['linkman'] =$data['shop_name'].'-'.($this->user)['user_code'];
-                }
-                if($setting['link_mode'] == 20){
-                     $data['linkman'] =$data['linkman'].'-'.($this->user)['user_code'];
-                }
-                if($setting['link_mode'] == 30){
-                     $data['linkman'] =($this->user)['nickName'].'-'.($this->user)['user_code'];
-                }
-                if($setting['link_mode'] == 40){
-                     $data['linkman'] =$data['shop_alias_name'].'-'.($this->user)['user_code'];
-                }
-                if($setting['link_mode'] == 50){
-                     $data['linkman'] = ($this->user)['nickName'];
-                }
-                if($setting['link_mode'] == 60){
-                    $data['linkman'] = $data['shop_name'];
-                }
-                if($setting['link_mode'] == 70){
-                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
-                }
-               // 根据地址的设置，生成不同的地址展示模式
-                switch ($setting['address_mode']) {
-                    case '10':
-                        $data['address'] = $data['address'];
-                        break;
-                    case '20':
-                        $data['address'] = $data['address'].'  '.$this->user['user_code'];
-                        break;
-                    case '30':
-                        $data['address']  = $data['address'].'  '.$this->user['user_code'];
-                        break;
-                    case '40':
-                        $data['address'] = $data['address'].''.$this->user['user_code'].' '.($this->user['service']['real_name']);
-                        break;
-                    case '50':
-                        $data['address'] = $data['address'].$this->user['nickName'].$this->user['user_code'];
-                        break;
-                    default:
-                        // code...
-                        break;
-                }
-                
-                
-                
-           }else{
-                
-                if($setting['link_mode'] == 10){
-                     $data['linkman'] =$data['shop_name'].'-'.($this->user)['user_code'];
-                }
-                if($setting['link_mode'] == 20){
-                     $data['linkman'] =$data['linkman'].'-'.($this->user)['user_code'];
-                }
-                if($setting['link_mode'] == 30){
-                     $data['linkman'] =($this->user)['nickName'].'-'.($this->user)['user_code'];
-                }
-                if($setting['link_mode'] == 40){
-                     $data['linkman'] =$data['shop_alias_name'].'-'.($this->user)['user_code'];
-                }
-                if($setting['link_mode'] == 50){
-                     $data['address'] =  $data['address'].$this->user['user_code'];
-                     $data['linkman'] = ($this->user)['nickName'];
-                }
-                if($setting['link_mode'] == 60){
-                    $data['linkman'] = $data['shop_name'];
-                }
-                if($setting['link_mode'] == 70){
-                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
-                }
-                // 根据地址的设置，生成不同的地址展示模式
-                switch ($setting['address_mode']) {
-                    case '10':
-                        $data['address'] = $data['address'];
-                        break;
-                    case '20':
-                        $data['address'] = $data['address'].$this->user['user_code'];
-                        break;
-                    case '30':
-                        $data['address'] = $data['address'].$this->user['user_code'];
-                        break;
-                    case '40':
-                        $data['address'] = $data['address'].$this->user['user_code'].($this->user['service']['real_name']);
-                        break;
-                    case '50':
-                        $data['address'] = $data['address'].$this->user['nickName'].$this->user['user_code'];
-                        break;
-                    default:
-                        // code...
-                        break;
-                }
-           }
-       }
+       // 根据用户代码显示模式处理数据
+       $param = $this->request->param();
+       $aliasid = isset($param['usermark']) ? $param['usermark'] : null;
        
-      //只显示ID 
-      if($setting['usercode_mode']['is_show']==0){
-             
-             if($data['type']==1){
-                
-                if($setting['link_mode'] == 10){
-                     $data['linkman'] =$data['shop_name'].($this->user)['user_id'];
-                }
-                if($setting['link_mode'] == 20){
-                     $data['linkman'] =$data['linkman'].($this->user)['user_id'];
-                }
-                if($setting['link_mode'] == 30){
-                     $data['linkman'] =($this->user)['nickName'].($this->user)['user_id'];
-                }
-                if($setting['link_mode'] == 40){
-                     $data['linkman'] =$data['shop_alias_name'].($this->user)['user_id'];
-                }
-                if($setting['link_mode'] == 50){
-                     $data['linkman'] = ($this->user)['nickName'];
-                }
-                if($setting['link_mode'] == 60){
-                     $data['linkman'] = $data['shop_name'];
-                }
-                if($setting['link_mode'] == 70){
-                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
-                }
-                
-                // 根据地址的设置，生成不同的地址展示模式
-                switch ($setting['address_mode']) {
-                    case '10':
-                        $data['address'] = $data['address'];
-                        break;
-                    case '20':
-                        $data['address'] = $data['address'].$this->user['user_id'];
-                        break;
-                    case '30':
-                        $data['address'] = $data['address'].$this->user['user_id'];
-                        break;
-                    case '40':
-                        $data['address'] = $data['address'].$this->user['user_id'].''.($this->user['service']['real_name']);
-                        break;
-                    case '50':
-                        $data['address'] = $data['address'].$this->user['nickName'].$this->user['user_id'];
-                        break;
-                    default:
-                        // code...
-                        break;
-                }
-                
-             }else{
-                
-                if($setting['link_mode'] == 10){
-                     $data['linkman'] =$data['shop_name'].($this->user)['user_id'];
-                }
-                if($setting['link_mode'] == 20){
-                     $data['linkman'] =$data['linkman'].($this->user)['user_id'];
-                }
-                if($setting['link_mode'] == 30){
-                     $data['linkman'] =($this->user)['nickName'].($this->user)['user_id'];
-                }
-                if($setting['link_mode'] == 40){
-                     $data['linkman'] =$data['shop_alias_name'].($this->user)['user_id'];
-                }
-                if($setting['link_mode'] == 50){
-                     $data['linkman'] = ($this->user)['nickName'];
-                }
-                if($setting['link_mode'] == 60){
-                     $data['linkman'] = $data['shop_name'];
-                }
-                if($setting['link_mode'] == 70){
-                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
-                }
-                
-                // 根据地址的设置，生成不同的地址展示模式
-                switch ($setting['address_mode']) {
-                    case '10':
-                        $data['address'] = $data['address'];
-                        break;
-                    case '20':
-                        $data['address'] = $data['address'].$this->user['user_id'];
-                        break;
-                    case '30':
-                        $data['address'] = $data['address'].$this->user['user_id'];
-                        break;
-                    case '40':
-                        $data['address'] = $data['address'].$this->user['user_id'].($this->user['service']['real_name']);
-                        break;
-                    case '50':
-                        $data['address'] = $data['address'].$this->user['nickName'].$this->user['user_id'];
-                        break;
-                    default:
-                        // code...
-                        break;
-                }
-             }
+       if($setting['usercode_mode']['is_show'] == 1){
+           // 显示CODE
+           $this->processStorageData($data, $setting, $this->user['user_code'], $data['type'] == 1, true);
+       }elseif($setting['usercode_mode']['is_show'] == 0){
+           // 显示ID
+           $this->processStorageData($data, $setting, $this->user['user_id'], $data['type'] == 1, false);
+       }elseif($setting['usercode_mode']['is_show'] == 2 && $aliasid){
+           // 显示唛头
+           $this->processStorageData($data, $setting, $aliasid, $data['type'] == 1, false);
        }
-       
-       //只显示唛头
-      if($setting['usercode_mode']['is_show']==2){
-             $param = $this->request->param();
-             if(isset($param['usermark'])){
-               $aliasid = $param['usermark'];
-               if($data['type']==1){
-                
-                if($setting['link_mode'] == 10){
-                     $data['linkman'] =$data['shop_name'].$aliasid;
-                }
-                if($setting['link_mode'] == 20){
-                     $data['linkman'] =$data['linkman'].$aliasid;
-                }
-                if($setting['link_mode'] == 30){
-                     $data['linkman'] =($this->user)['nickName'].$aliasid;
-                }
-                if($setting['link_mode'] == 40){
-                     $data['linkman'] =$data['shop_alias_name'].$aliasid;
-                }
-                if($setting['link_mode'] == 50){
-                     $data['linkman'] = ($this->user)['nickName'];
-                }
-                if($setting['link_mode'] == 60){
-                     $data['linkman'] = $data['shop_name'];
-                }
-                if($setting['link_mode'] == 70){
-                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
-                }
-                
-                // 根据地址的设置，生成不同的地址展示模式
-                switch ($setting['address_mode']) {
-                    case '10':
-                        $data['address'] = $data['address'];
-                        break;
-                    case '20':
-                        $data['address'] = $data['address'].$aliasid;
-                        break;
-                    case '30':
-                        $data['address'] = $data['address'].$aliasid;
-                        break;
-                    case '40':
-                        $data['address'] = $data['address'].$aliasid.''.($this->user['service']['real_name']);
-                        break;
-                    case '50':
-                        $data['address'] = $data['address'].$this->user['nickName'].$aliasid;
-                        break;
-                    default:
-                        // code...
-                        break;
-                }
-                
-             }else{
-                
-                if($setting['link_mode'] == 10){
-                     $data['linkman'] =$data['shop_name'].$aliasid;
-                }
-                if($setting['link_mode'] == 20){
-                     $data['linkman'] =$data['linkman'].$aliasid;
-                }
-                if($setting['link_mode'] == 30){
-                     $data['linkman'] =($this->user)['nickName'].$aliasid;
-                }
-                if($setting['link_mode'] == 40){
-                     $data['linkman'] =$data['shop_alias_name'].$aliasid;
-                }
-                if($setting['link_mode'] == 50){
-                     $data['linkman'] = ($this->user)['nickName'];
-                }
-                if($setting['link_mode'] == 60){
-                     $data['linkman'] = $data['shop_name'];
-                }
-                if($setting['link_mode'] == 70){
-                    $data['linkman'] = $data['shop_alias_name'].'('. ($this->user)['nickName'] .')';
-                }
-                // 根据地址的设置，生成不同的地址展示模式
-                switch ($setting['address_mode']) {
-                    case '10':
-                        $data['address'] = $data['address'];
-                        break;
-                    case '20':
-                        $data['address'] = $data['address'].$aliasid;
-                        break;
-                    case '30':
-                        $data['address'] = $data['address'].$aliasid;
-                        break;
-                    case '40':
-                        $data['address'] = $data['address'].$aliasid.($this->user['service']['real_name']);
-                        break;
-                    case '50':
-                        $data['address'] = $data['address'].$this->user['nickName'].$aliasid;
-                        break;
-                    default:
-                        // code...
-                        break;
-                }
-             }
-             }
-       }
-
       
        return $this->renderSuccess($data);
     }
-
     // 最佳线路
     public function goods_line(){
        $data = (new Line())->goodsLine();
