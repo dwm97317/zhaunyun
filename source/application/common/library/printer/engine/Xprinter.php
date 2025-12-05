@@ -3,7 +3,7 @@
 namespace app\common\library\printer\engine;
 
 use app\common\library\printer\party\FeieHttpClient;
-
+use Exception;
 /**
  * 芯烨云API引擎
  * Class Xprinter

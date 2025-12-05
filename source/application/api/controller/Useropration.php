@@ -1471,7 +1471,10 @@ class Useropration extends Controller
               }
             //判断是否打印标签
             $packagePrintData = (new Package())->where(['id'=>$restwo])->find();
-            (new Printer())->printTicket($packagePrintData,10);
+            $printerConfig = SettingModel::getItem('printer',$wxapp_id);
+            if($printerConfig['is_open']==1 && $printerConfig['printer_id']>0 && count($printerConfig['printsite'])>0){
+                 (new Printer())->printTicket($packagePrintData,10);
+            }
             Logistics::add2($restwo,'仓管员手动入库',$clerk['clerk_id']);
             return $this->renderSuccess('包裹入库成功');
           
@@ -1601,7 +1604,10 @@ class Useropration extends Controller
        }
         //判断是否打印标签
         $packagePrintData = (new Package())->where(['id'=>$id])->find();
-        (new Printer())->printTicket($packagePrintData,10);
+        $printerConfig = SettingModel::getItem('printer',$wxapp_id);
+        if($printerConfig['is_open']==1 && $printerConfig['printer_id']>0 && count($printerConfig['printsite'])>0){
+             (new Printer())->printTicket($packagePrintData,10);
+        }
        return $this->renderSuccess('包裹入库成功'); 
            
        }elseif($is_pre==20){
