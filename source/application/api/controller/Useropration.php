@@ -1477,7 +1477,13 @@ class Useropration extends Controller
           
        }elseif($is_pre==10){
        //有对应数据情况下
+       if(empty($id)){
+           return $this->renderError('包裹ID不能为空');
+       }
        $data = (new Package())->find($id);
+       if(empty($data)){
+           return $this->renderError('包裹不存在');
+       }
     //   if ($data['status']==2){
     //      return $this->renderError('包裹已入库');
     //   }
@@ -1516,8 +1522,12 @@ class Useropration extends Controller
     //   dump($update);die;
        $res = (new Package())->where(['id'=>$id])->update($update);
        //插入图片
+       // 使用 $data['id'] 确保 package_id 不为空
+       $packageId = !empty($data['id']) ? $data['id'] : $id;
        log_write("插入图片前获取的=".$id.'，id='.$data['id']);
-       $this->inImages($id,$imageIds,$wxapp_id);
+       if(!empty($packageId)){
+           $this->inImages($packageId,$imageIds,$wxapp_id);
+       }
        //更新日志
        Logistics::add2($id,'包裹已到达仓库',$clerk['clerk_id']);
        if (!$res){
