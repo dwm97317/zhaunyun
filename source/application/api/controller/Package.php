@@ -1915,7 +1915,7 @@ class Package extends Controller
              (new PackageModel())->where('inpack_id',$info['id'])->update(['status'=>2,'inpack_id'=>0]);
          }
         
-         $res = (new Inpack())->where(['id'=>$info['id']])->update(['status'=>'-1','cancel_reason'=>$param["reason"],'cancel_time'=>getTime()]);
+         $res = (new Inpack())->where(['id'=>$info['id']])->update(['status'=>'-1','cancel_reason'=>isset($param["reason"])?$param["reason"]:'','cancel_time'=>getTime()]);
          if (!$res){
               return $this->renderError('取消失败');
          }
