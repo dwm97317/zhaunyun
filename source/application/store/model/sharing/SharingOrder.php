@@ -54,7 +54,6 @@ class SharingOrder extends SharingOrderModel {
         $ndata['end_time'] = strtotime($data['end_time']);
         $ndata['is_hot'] = $data['is_hot'];
         $ndata['is_recommend'] = $data['is_recommend'];
-        $ndata['is_verify'] = $data['is_verify'];
         $ndata['wxapp_id'] = self::$wxapp_id;
         return $this->allowField(true)->save($ndata) !== false;
     }
