@@ -690,7 +690,7 @@ class TrOrder extends Controller
                6 => '9',
                7 => '10',
                8 => '11',
-               9 => '1'
+               9 => '2'
            ];
            if($status==5){
                $_up['status'] = 3;
@@ -700,6 +700,9 @@ class TrOrder extends Controller
            }
            if($status==8){
                $_up['receipt_time'] = getTime();
+           }
+           if($status==9){
+                $_up['status'] = 1;
            }
            $model->where(['id'=>$v])->update($_up);
            (new Package())->where('inpack_id',$order['id'])->update(['status'=>$status_map[$status]]);
