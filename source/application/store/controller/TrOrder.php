@@ -2226,8 +2226,7 @@ class TrOrder extends Controller
        if(empty($pintuan_id)){
            return $this->renderError($model->getError() ?: '请选择拼团订单');
        }
-       $SharingOrderItem = new SharingOrderItem();
-       $res= $SharingOrderItem->insertInpack($idsArray,$pintuan_id);
+       $res = $model->where('id','in',$idsArray)->update(['share_id'=>$pintuan_id]);
         if(!$res){
             return $this->renderError($SharingOrderItem->getError() ?: '添加失败');
         }
