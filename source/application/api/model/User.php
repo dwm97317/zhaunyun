@@ -472,26 +472,43 @@ class User extends UserModel
         $x = pow(10,$num-1);
         $y = pow(10,$num)-1;
         $ucode =$zimu.rand($x,$y);
-        $ucode = $this->checkOnlyOne($ucode,'createCharNum',$num);
+        $ucode = $this->checkOnlyOne($ucode,'createCharNum',$num,$zimu);
         return $ucode;
     }
     
     //顺序生成
     public function createCharShunxuNum($num,$zimu){
         $ucode = $this->generateUserNo($num,$zimu);
-        $ucode = $this->checkOnlyOne($ucode,'createCharNum',$num);
+        $ucode = $this->checkOnlyOne($ucode,'createCharShunxuNum',$num,$zimu);
         return $ucode;
     }
     
     //校验唯一
-     public function checkOnlyOne($ucode,$funcitonname,$num){
+     public function checkOnlyOne($ucode,$functionname,$num,$zimu = null){
+        $maxAttempts = 100; // 防止无限循环
+        $attempts = 0;
         
-         $user = self::detail(['user_code' => $ucode]); 
-         if($user){
-             $ucode=  $this->$funcitonname($num);  
-         }
-         return $ucode;
-     }
+        while($attempts < $maxAttempts){
+            $user = self::detail(['user_code' => $ucode]); 
+            if(!$user){
+                // 用户不存在，ucode唯一，返回
+                return $ucode;
+            }
+            
+            // 用户已存在，生成新的ucode
+            $attempts++;
+            if($zimu !== null){
+                // 需要zimu参数的函数（如createCharNum, generateUserNo）
+                $ucode = $this->$functionname($num, $zimu);
+            } else {
+                // 只需要num参数的函数（如createNum, createChar）
+                $ucode = $this->$functionname($num);
+            }
+        }
+        
+        // 如果尝试100次还是重复，抛出异常
+        throw new \Exception("生成唯一用户编号失败，已尝试{$maxAttempts}次");
+    }
 
     
     // 累积收益
