@@ -4396,9 +4396,9 @@ public function expressBillbatch() {
         $objPHPExcel->getActiveSheet()->setTitle('业务结算清单');
         //9.设置浏览器窗口下载表格
         if($setting['usercode_mode']['is_show']==0){
-            $filename = $data[0]['user']['user_id'].'-'. date("Ymd") . ".xlsx";
+            $filename = $data[0]['user']['user_id'].'-'. date("YmdHis") . ".xlsx";
         }else{
-            $filename = $data[0]['user']['user_code'].'-'. date("Ymd") . ".xlsx";
+            $filename = $data[0]['user']['user_code'].'-'. date("YmdHis") . ".xlsx";
         }
         
         // $objWriter = new \PHPExcel_Writer_Excel5($objPHPExcel);
