@@ -296,6 +296,12 @@
                                     <a id="sendpaymess" class="am-dropdown-item" 
                                        href="javascript:;">批量发送支付通知</a>
                                 </li>
+                                <?php if (checkPrivilege('tr_order/batchPayStatus')): ?>
+                                <li>
+                                    <a id="batchPayStatus" class="am-dropdown-item" 
+                                       href="javascript:;">批量设置订单支付状态</a>
+                                </li>
+                                <?php endif;?>
                             </ul>
                         </div>
                     </div>
@@ -528,6 +534,12 @@
                                             <?php if (checkPrivilege('tr_order/orderdetail')): ?>
                                             <a href="<?= url('store/trOrder/orderdetail', ['id' => $item['id']]) ?>">
                                                 <i class="iconfont icon-xiangqing"></i> 详情
+                                            </a>
+                                            <?php endif; ?>
+                                             <!--复制订单-->
+                                            <?php if (checkPrivilege('tr_order/copyOrder')): ?>
+                                            <a href="javascript:void(0);" class="j-copy-order" data-id="<?= $item['id'] ?>">
+                                                <i class="am-icon-copy"></i> 复制订单
                                             </a>
                                             <?php endif; ?>
                                             <!--删除-->
@@ -981,6 +993,55 @@
     });
      
 </script>
+<script id="tpl-pay-status" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择订单数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'> 共选中 {{ selectCount }} 个订单</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        支付状态
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="pay_status"
+                                data-am-selected="{btnSize: 'sm', placeholder: '请选择支付状态'}">
+                               <option value="">请选择</option>
+                               <option value="1">已支付</option>
+                               <option value="2">未支付</option>
+                               <option value="3">待审核</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        支付方式
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="pay_type"
+                                data-am-selected="{btnSize: 'sm', placeholder: '请选择支付方式'}">
+                               <option value="">请选择</option>
+                               <option value="0">后台操作</option>
+                               <option value="1">微信支付</option>
+                               <option value="2">余额支付</option>
+                               <option value="3">汉特支付</option>
+                               <option value="4">OMIPAY</option>
+                               <option value="5">现金支付</option>
+                               <option value="6">线下支付</option>
+                        </select>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+</script>
 <script id="tpl-errors" type="text/template">
     <div class="am-padding-xs am-padding-top">
         <form class="am-form tpl-form-line-form" method="post" action="">
@@ -1262,6 +1323,40 @@
           }
        }
        
+       // 复制订单
+        $('.j-copy-order').on('click', function () {
+            var orderId = $(this).data('id');
+            if (!orderId) {
+                layer.alert('订单ID不存在', {icon: 5});
+                return;
+            }
+            layer.confirm('确定要复制此订单吗？复制后将生成一个完全相同的新订单。', {
+                title: '复制订单',
+                icon: 3
+            }, function (index) {
+                $.ajax({
+                    url: '<?= url('store/trOrder/copyOrder') ?>',
+                    type: 'POST',
+                    data: {id: orderId},
+                    dataType: 'json',
+                    success: function (result) {
+                        if (result.code === 1) {
+                            layer.msg(result.msg, {icon: 1}, function () {
+                                // 刷新页面
+                                window.location.reload();
+                            });
+                        } else {
+                            layer.alert(result.msg, {icon: 5});
+                        }
+                    },
+                    error: function () {
+                        layer.alert('复制订单失败，请重试', {icon: 5});
+                    }
+                });
+                layer.close(index);
+            });
+        });
+       
         $('.j-cancel').on('click', function () {
             var $tabs, data = $(this).data();
             console.log(data,7656);
@@ -1388,6 +1483,37 @@
                     $content.find('form').myAjaxSubmit({
                         url: '<?= url('store/batch/addtobatch') ?>',
                         data: {selectIds:data.selectId},
+                    });
+                    return true;
+                }
+            });
+        });
+        
+        /**
+         * 批量设置订单支付状态
+         */
+        $('#batchPayStatus').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择集运单', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            $.showModal({
+                title: '批量设置订单支付状态'
+                , area: '460px'
+                , content: template('tpl-pay-status', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('store/trOrder/batchPayStatus') ?>',
+                        data: {
+                            selectIds: data.selectId
+                        }
                     });
                     return true;
                 }

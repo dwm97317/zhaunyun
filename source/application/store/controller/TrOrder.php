@@ -44,6 +44,7 @@ use app\common\library\Ditch\Hualei;
 use app\store\model\Countries;
 use app\store\model\LineService;
 use app\store\model\user\PointsLog as PointsLogModel;
+use think\Db;
 
 /**
  * 订单管理
@@ -182,6 +183,137 @@ class TrOrder extends Controller
         return $this->getPaymentAuditList('订单支付审核列表', 'payment_audit');
     }
     
+    
+    /**
+     * 复制订单
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function copyOrder(){
+        $id = $this->request->param('id');
+        if(empty($id)){
+            return $this->renderError('订单ID不能为空');
+        }
+       
+        $model = new Inpack();
+        // 先检查订单是否存在
+        $originalOrder = $model->where('id', $id)->find();
+        if(empty($originalOrder)){
+            return $this->renderError('原订单不存在');
+        }
+        
+        // 开始事务
+        Db::startTrans();
+        try {
+            // 直接从数据库获取原始数据（使用Db查询避免访问器问题）
+            $orderData = Db::name('inpack')->where('id', $id)->find();
+            if(empty($orderData)){
+                throw new \Exception('获取订单数据失败');
+            }
+            
+            // 排除不需要复制的字段
+            $excludeFields = ['id', 'order_sn', 't_order_sn', 't2_order_sn', 'pay_order', 'pay_time', 
+                            'created_time', 'updated_time', 'unpack_time', 'shoprk_time', 'receipt_time'];
+            
+            // 准备新订单数据
+            $newOrderData = [];
+            foreach($orderData as $key => $value){
+                if(!in_array($key, $excludeFields)){
+                    // 跳过对象和null值（某些字段可能是null）
+                    if(is_object($value)){
+                        continue;
+                    }
+                    $newOrderData[$key] = $value;
+                }
+            }
+            
+            // 获取系统设置
+            $storeSetting = Setting::detail('store')['values'];
+            
+            // 根据系统设置生成订单号（优先使用自定义规则）
+            $newOrderSn = '';
+            if(isset($storeSetting['orderno']['default']) && !empty($storeSetting['orderno']['default'])){
+                // 优先使用自定义订单号生成规则
+                $user_id = $orderData['member_id'];
+                // 如果使用用户编号模式
+                if(isset($storeSetting['usercode_mode']['is_show']) && $storeSetting['usercode_mode']['is_show'] == 1){
+                    $userModel = new User();
+                    $member = $userModel->where('user_id', $orderData['member_id'])->find();
+                    if($member && !empty($member['user_code'])){
+                        $user_id = $member['user_code'];
+                    }
+                }
+                // 计算序号（该用户的订单数量+1）
+                $xuhao = $model->where(['member_id' => $orderData['member_id'], 'is_delete' => 0])->count() + 1;
+                // 获取仓库简称
+                $shop_alias_name = 'XS';
+                if(!empty($orderData['storage_id'])){
+                    $shop = ShopModel::detail($orderData['storage_id']);
+                    if($shop && !empty($shop['shop_alias_name'])){
+                        $shop_alias_name = $shop['shop_alias_name'];
+                    }
+                }
+                $createSnfistword = isset($storeSetting['createSnfistword']) ? $storeSetting['createSnfistword'] : 'XS';
+                $newOrderSn = createNewOrderSn(
+                    $storeSetting['orderno']['default'], 
+                    $xuhao, 
+                    $createSnfistword, 
+                    $user_id, 
+                    $shop_alias_name, 
+                    $orderData['country_id']
+                );
+            } elseif(isset($storeSetting['createSn']) && $storeSetting['createSn'] == 20){
+                // 使用 H5+用户id+目的地id 规则
+                $newOrderSn = createSnByUserIdCid($orderData['member_id'], $orderData['country_id']);
+            } else {
+                // 默认使用 createSn() 函数
+                $newOrderSn = createSn();
+            }
+            
+            // 设置新订单的特殊字段
+            $newOrderData['order_sn'] = $newOrderSn; // 使用系统设置规则生成新订单号
+            $newOrderData['parent_id'] = $id; // 保存母单ID
+            $newOrderData['status'] = 1; // 重置为待查验状态
+            $newOrderData['is_pay'] = 2; // 重置为未支付
+            $newOrderData['pay_time'] = null; // 清空支付时间
+            $newOrderData['created_time'] = getTime(); // 设置创建时间
+            $newOrderData['updated_time'] = getTime(); // 设置更新时间
+            $newOrderData['unpack_time'] = null; // 清空打包时间
+            $newOrderData['shoprk_time'] = null; // 清空入库时间
+            $newOrderData['receipt_time'] = null; // 清空收货时间
+            $newOrderData['real_payment'] = 0; // 重置实付金额
+            $newOrderData['inpack_type'] = 0; 
+            $newOrderData['pack_ids'] = ''; // 清空包裹ID
+            // 清空批次ID和拼团ID（如果存在且大于0）
+            if(isset($newOrderData['batch_id']) && $newOrderData['batch_id'] > 0){
+                $newOrderData['batch_id'] = 0;
+            }
+            if(isset($newOrderData['share_id']) && $newOrderData['share_id'] > 0){
+                $newOrderData['share_id'] = 0;
+            }
+            
+            // 确保所有必需字段都有值
+            if(!isset($newOrderData['wxapp_id']) || empty($newOrderData['wxapp_id'])){
+                $newOrderData['wxapp_id'] = isset($orderData['wxapp_id']) ? $orderData['wxapp_id'] : 0;
+            }
+            
+            // 插入新订单
+            $newOrderId = $model->insertGetId($newOrderData);
+            if(!$newOrderId){
+                throw new \Exception('创建新订单失败');
+            }
+            
+            // 提交事务
+            Db::commit();
+            return $this->renderSuccess('订单复制成功，新订单号：' . $newOrderData['order_sn']);
+            
+        } catch (\Exception $e) {
+            // 回滚事务
+            Db::rollback();
+            return $this->renderError('复制订单失败：' . $e->getMessage());
+        }
+    }
+    
     /**
      * 获取待审核订单列表
      * @param string $title
@@ -215,6 +347,84 @@ class TrOrder extends Controller
           return $this->fetch('newindex', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));  
         }
         return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
+    }
+    
+    /**
+     * 批量设置订单支付状态
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function batchPayStatus(){
+        $params = $this->request->param();
+        if(empty($params['selectIds'])){
+            return $this->renderError('请选择订单');
+        }
+        $payStatus = $this->request->param('pay_status');
+        if(empty($payStatus)){
+            return $this->renderError('请选择支付状态');
+        }
+        // 确保是单个值，不是数组
+        if(is_array($payStatus)){
+            $payStatus = $payStatus[0] ?? '';
+        }
+        $payStatus = (int)$payStatus;
+        // 验证支付状态值
+        if(!in_array($payStatus, [1, 2, 3])){
+            return $this->renderError('支付状态值不正确');
+        }
+        
+        // 获取支付方式
+        $payType = $this->request->param('pay_type');
+        // 确保是单个值，不是数组
+        if(is_array($payType)){
+            $payType = $payType[0] ?? '';
+        }
+        if($payType !== ''){
+            $payType = (int)$payType;
+            // 验证支付方式值
+            if(!in_array($payType, [0, 1, 2, 3, 4, 5, 6])){
+                return $this->renderError('支付方式值不正确');
+            }
+        }
+        
+        $idsArr = is_array($params['selectIds']) ? $params['selectIds'] : explode(',', $params['selectIds']);
+        $model = new Inpack();
+        
+        $updateData = ['is_pay' => $payStatus];
+        // 如果设置了支付方式，则更新
+        if($payType !== ''){
+            $updateData['is_pay_type'] = $payType;
+        }
+        // 如果设置为已支付，更新支付时间
+        if($payStatus == 1){
+            $updateData['pay_time'] = getTime();
+        }
+        
+        $successCount = 0;
+        $failCount = 0;
+        foreach ($idsArr as $id){
+            $order = $model->where(['id' => $id])->find();
+            if($order){
+                $result = $model->where('id', $id)->update($updateData);
+                if($result){
+                    $successCount++;
+                } else {
+                    $failCount++;
+                }
+            } else {
+                $failCount++;
+            }
+        }
+        
+        if($successCount > 0){
+            $msg = "成功设置 {$successCount} 个订单的支付状态";
+            if($failCount > 0){
+                $msg .= "，{$failCount} 个订单设置失败";
+            }
+            return $this->renderSuccess($msg);
+        } else {
+            return $this->renderError('设置失败，请检查订单是否存在');
+        }
     }
     
     /**
