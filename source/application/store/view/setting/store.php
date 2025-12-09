@@ -659,11 +659,11 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                     <label class="am-u-sm-3  am-form-label form-require"> 头部英文，最佳为2-3个固定子母 </label>
                                     <div class="am-u-sm-9 am-u-end">
                                          <input type="text" class="tpl-form-input"
-                                               name="store[usercode_mode][<?= UserCodeTypeEnum::SHUNXU ?>][char]" value="<?= $values['usercode_mode']['30']['char'] ??'' ?>">
+                                               name="store[usercode_mode][<?= UserCodeTypeEnum::SHUNXU ?>][char]" value="<?= $values['usercode_mode']['40']['char'] ??'' ?>">
                                     </div>
                                     <label class="am-u-sm-3  am-form-label form-require"> 数字个数，最佳是5位 </label>
                                     <div class="am-u-sm-9 am-u-end">
-                                        <input type="text" class="tpl-form-input"  value="<?= $values['usercode_mode']['30']['number'] ??'' ?>"
+                                        <input type="text" class="tpl-form-input"  value="<?= $values['usercode_mode']['40']['number'] ??'' ?>"
                                                name="store[usercode_mode][<?= UserCodeTypeEnum::SHUNXU ?>][number]">
                                                 <small>子母填【JY】，数字填5生成的范围为：JY00001-JY99999</small>
                                     </div>
@@ -2096,13 +2096,11 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
     	        }
     	    }
 	    });
-        // 切换打印机类型
+        // 切换用户编号模式
         $("select[name='store[usercode_mode][mode]']").on('change', function (e) {
             $('.form-tab-group').removeClass('active');
             $('.form-tab-group').removeClass('goog');
-            if(e.currentTarget.value == 1){
-                $('#usercode').addClass('active');
-            }
+            $('#' + e.currentTarget.value).addClass('active');
         });
         
          // 选择图片
