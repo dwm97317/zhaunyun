@@ -4374,7 +4374,9 @@ public function expressBillbatch() {
             $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+5),$data[$i]['total_free']);//标准价
             $objPHPExcel->getActiveSheet()->setCellValue('G'.($i+5),isset($data[$i]['packClass'])?$data[$i]['packClass']:'');//快递类别  ***********
             $objPHPExcel->getActiveSheet()->setCellValue('H'.($i+5),isset($data[$i]['packprice'])?$data[$i]['packprice']:0);//标准价 ***********
-            $objPHPExcel->getActiveSheet()->setCellValue('I'.($i+5),$data[$i]['user']['user_id']);//用户id
+            //根据setting的is_show来判断是显示user_code还是user_id
+            $userIdValue = ($setting['usercode_mode']['is_show'] == 0) ? $data[$i]['user']['user_id'] : (isset($data[$i]['user']['user_code']) ? $data[$i]['user']['user_code'] : $data[$i]['user']['user_id']);
+            $objPHPExcel->getActiveSheet()->setCellValue('I'.($i+5),$userIdValue);//用户id
             $objPHPExcel->getActiveSheet()->setCellValue('J'.($i+5),$data[$i]['address']['name']);//用户昵称
             $objPHPExcel->getActiveSheet()->setCellValue('K'.($i+5),$data[$i]['address']['phone']);//专属客服
             $objPHPExcel->getActiveSheet()->setCellValue('L'.($i+5),$data[$i]['address']['clearancecode']);//快递类别  ***********

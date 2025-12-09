@@ -733,10 +733,12 @@ class Order extends Controller
          ]);
      }
      
-     // 申请打包（拼团包裹）
+    // 申请打包（拼团包裹）
      public function applyPack(){
          $id = $this->request->param('id'); // 拼团ID
          $packageIds = $this->request->param('package_ids'); // 包裹ID，逗号分隔
+         $currentTab = $this->request->param('currentTab', 1); // 1: 送货上门, 2: 上门自提
+         $userAddressId = $this->request->param('address_id', 0); // 用户选择的地址ID
          $userInfo = $this->getUser();
          
          // 验证参数
@@ -751,6 +753,29 @@ class Order extends Controller
          $order = (new SharingOrder())->detail($id);
          if (!$order) {
              return $this->renderError('拼团不存在');
+         }
+         
+         // 确定使用的地址ID
+         $finalAddressId = 0;
+         if ($currentTab == 2) {
+             // 上门自提：使用拼团地址
+             $finalAddressId = $order['address_id'] ?: 0;
+             if (!$finalAddressId) {
+                 return $this->renderError('拼团地址不存在');
+             }
+         } else {
+             // 送货上门：使用用户选择的地址
+             if (!$userAddressId) {
+                 return $this->renderError('请选择收货地址');
+             }
+             // 验证地址是否属于当前用户
+             $userAddress = (new UserAddress())->where('address_id', $userAddressId)
+                 ->where('user_id', $userInfo['user_id'])
+                 ->find();
+             if (!$userAddress) {
+                 return $this->renderError('地址不存在或不属于您');
+             }
+             $finalAddressId = $userAddressId;
          }
          
          // 解析包裹ID
@@ -816,26 +841,26 @@ class Order extends Controller
              // 获取设置
              $storesetting = SettingModel::getItem('store');
              
-             // 获取拼团的地址信息（直接使用拼团订单中的地址）
+             // 获取地址信息以确定国家ID
              $countryId = 0;
-             if ($order['address_id']) {
-                 $address = (new UserAddress())->find($order['address_id']);
+             if ($finalAddressId) {
+                 $address = (new UserAddress())->find($finalAddressId);
                  if ($address) {
                      $countryId = $address['country_id'];
                  }
              }
-             // 如果没有拼团地址，使用线路的国家ID
+             // 如果没有地址，使用线路的国家ID
              if (!$countryId && $line && $line['country_id']) {
                  $countryId = $line['country_id'];
              }
              
-             // 创建集运订单（直接使用拼团订单中的地址和线路）
+             // 创建集运订单（使用确定的地址和线路）
              $inpackOrder = [
                  'order_sn' => $storesetting['createSn']==10 ? createSn() : createSnByUserIdCid($userInfo['user_id'], $countryId),
                  'remark' => $this->request->param('remark', ''),
                  'pack_ids' => implode(',', $validPackageIds),
                  'storage_id' => $storageIds[0],
-                 'address_id' => $order['address_id'] ?: 0, // 直接使用拼团的地址ID
+                 'address_id' => $finalAddressId, // 使用确定的地址ID
                  'free' => 0,
                  'weight' => $allWeight,
                  'cale_weight' => $cale_weight,
@@ -876,7 +901,7 @@ class Order extends Controller
              $Package->whereIn('id', $validPackageIds)->update([
                  'status' => 5,
                  'line_id' => $lineId,
-                 'address_id' => $order['address_id'] ?: 0, // 使用拼团的地址ID
+                 'address_id' => $finalAddressId, // 使用确定的地址ID
                  'inpack_id' => $inpack,
                  'updated_time' => getTime()
              ]);

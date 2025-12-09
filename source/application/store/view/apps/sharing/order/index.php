@@ -141,7 +141,8 @@
                                         拼团线路：<?= $item['line']['name']; ?></br> 
                                         仓库名称：<?= $item['storage']['shop_name']; ?></br></br> 
                                         共有 <?= $item['count'] ?> 个集运单 </br>
-                                        <a href="<?= url('/store/apps.sharing.order/inpacklist', ['order_id' => $item['order_id']]) ?>">查看拼单明细</a>
+                                        <a href="<?= url('/store/apps.sharing.order/inpacklist', ['order_id' => $item['order_id']]) ?>">查看拼单明细</a></br>
+                                        <a href="<?= url('store/apps.sharing.order/participants', ['order_id' => $item['order_id']]) ?>">参与人员</a>
                                     </td>
                                     <td class="am-text-middle">国家ID:<?= $item['country_id']; ?> </br> 国家名称:<?= $item['country']['title']; ?></br></td>
                                    <td class="am-text-middle">

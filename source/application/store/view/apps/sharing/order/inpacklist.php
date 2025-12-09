@@ -281,10 +281,30 @@
                                              <a class='tpl-table-black-operation-green j-label' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
                                                 <i class="iconfont icon-biaoqian"></i> 打印标签
                                             </a>
+                                             <a class='tpl-table-black-operation-green j-packlist' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
+                                                <i class="iconfont icon-biaoqian"></i> 打印拣货单
+                                            </a>
                                              <a class='tpl-table-black-operation-green j-changeaddress' href="javascript:void(0);" data-user_id="<?= $item['member_id'] ?>" data-id="<?= $item['id'] ?>">
                                                 <i class="iconfont icon-dizhi"></i> 变更地址
                                             </a>
                                          </div>
+                                         <?php if ($item['is_pay']==3): ?>
+                                         <div class="tpl-table-black-operation" style="margin-top:10px">
+                                             <a class='tpl-table-black-operation-green j-audit-order' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
+                                                <i class="iconfont icon-shenhe"></i> 线下支付审核
+                                            </a>
+                                         </div>
+                                         <?php endif ;?>
+                                         <?php if ($item['is_pay']==2 && in_array($item['status'],[2,3,4,5])): ?>
+                                         <div class="tpl-table-black-operation" style="margin-top:10px">
+                                             <a class='tpl-table-black-operation-green j-payyue' href="javascript:void(0);" data-id="<?= $item['id'] ?>" data-name="<?= $item['user']['nickName'] ?>" data-user_id="<?= $item['member_id'] ?>">
+                                                <i class="iconfont icon-rmb"></i> 余额扣除
+                                            </a>
+                                             <a class='tpl-table-black-operation-green j-payxianjin' href="javascript:void(0);" data-id="<?= $item['id'] ?>" data-name="<?= $item['user']['nickName'] ?>" data-user_id="<?= $item['member_id'] ?>">
+                                                <i class="iconfont icon-dollar"></i> 现金收款
+                                            </a>
+                                         </div>
+                                         <?php endif ;?>
                                          <?php endif ;?>
                                     </td>
                                 </tr>
@@ -442,6 +462,71 @@
                     <div class="am-u-sm-8 am-u-end">
                          <textarea name="verify[reason]" placeholder="拒绝时此项必填"></textarea> 
                     </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-xianjin" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-4 am-form-label form-require">
+                        用户信息
+                    </label>
+                    <div class="am-u-sm-8">
+                       <p class='am-form-static'>{{ name }}</p>
+                    </div>
+                </div>
+               <div class="am-form-group">
+                    <label class="am-u-sm-4 am-form-label form-require">
+                        订单信息
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'>订单金额：{{ price }}</p>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-errors" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-4 am-form-label form-require">
+                        用户信息
+                    </label>
+                    <div class="am-u-sm-8">
+                       <p class='am-form-static'>{{ name }}</p>
+                    </div>
+                </div>
+               <div class="am-form-group">
+                    <label class="am-u-sm-4 am-form-label form-require">
+                        订单信息
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'>用户余额：{{ balance }} / 订单金额：{{ price }}</p>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-label" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group" style="text-align: center;">
+                    <button onclick="printlabel(10,{{ inpack_id }});" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-primary">标签模板1</button>
+                    <button onclick="printlabel(20,{{ inpack_id }});" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-secondary">标签模板2</button>
+                    <button onclick="printlabel(30,{{ inpack_id }});" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-success">标签模板3</button>
+                    <button onclick="printlabel(40,{{ inpack_id }});" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-warning">渠道标签</button>
+                    <button onclick="printlabel(50,{{ inpack_id }});" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-danger">国际单号标签</button>
                 </div>
             </div>
         </form>
@@ -712,19 +797,51 @@
         }); 
         
         
+        // 打印标签 - 弹出标签类型选择
         $(".j-label").on('click',function(){
            var data = $(this).data();
-           console.log(6543578)
-           $.ajax({
-               url:'<?= url('store/trOrder/expressLabel') ?>',
-               type:"get",
-               data:{id:data['id']},
-               success:function(result){
-                   console.log(result);
+           var labelModalIndex;
+           labelModalIndex = $.showModal({
+                title: '选择标签类型'
+                , area: '460px'
+                , content: template('tpl-label', { inpack_id: data.id })
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    // 不需要在这里处理，按钮点击会直接调用printlabel函数
+                    return false; // 阻止默认关闭
+                }
+            });
+            // 将弹窗索引存储到全局，供printlabel函数使用
+            window.currentLabelModalIndex = labelModalIndex;
+        });
+        
+        // 打印标签函数
+        window.printlabel = function(e, s) {
+            // 关闭标签类型选择弹窗
+            if(window.currentLabelModalIndex !== undefined) {
+                layer.close(window.currentLabelModalIndex);
+                window.currentLabelModalIndex = undefined;
+            }
+            
+            $.ajax({
+                url:'<?= url('store/trOrder/expressLabel') ?>',
+                type:"get",
+                data:{id: s, label: e},
+                success:function(result){
+                    console.log(result);
 
-                    if(result.code ===0){
+                    if(result.code === 0){
                        layer.alert(result.msg, {icon: 5});
                        return; 
+                    }
+                    
+                    // 特殊类型标签处理（直接下载）
+                    if(e == 40 && result.code === 1) {
+                        console.log("下载标签结果:", result);
+                        window.open(result.url, '_blank');
+                        return;  
                     }
                    
                    $.showModal({
@@ -739,11 +856,99 @@
                             PrintDiv(result)
                         }
                     });
+               },
+               error: function(xhr, status, error) {
+                   layer.alert('请求失败: ' + error, {icon: 2});
                }
                
            })
-        }); 
- 
+        }; 
+        
+        // 打印拣货单
+        $(".j-packlist").on('click',function(){
+           var data = $(this).data();
+           $.ajax({
+               url:'<?= url('store/trOrder/printpacklist') ?>',
+               type:"get",
+               data:{id:data['id']},
+               success:function(result){
+                   console.log(result);
+                    if(result.code === 0){
+                       layer.alert(result.msg, {icon: 5});
+                       return; 
+                    }
+                   
+                  $.showModal({
+                        title: '拣货单打印预览'
+                        , area: '600px,700px'
+                        , content: result
+                        , success: function ($content) {
+                            console.log($content)
+                             
+                        }
+                        , yes: function ($content) {
+                            PrintDiv(result)
+                        }
+                    });
+               },
+               error: function(xhr, status, error) {
+                   layer.alert('请求失败: ' + error, {icon: 2});
+               }
+               
+           })
+        });
+        
+        // 线下支付审核
+        $('.j-audit-order').on('click', function () {
+            var data = $(this).data();
+            var auditUrl = "<?= url('store/trOrder/auditOrder') ?>";
+            
+            layer.open({
+                type: 1,
+                title: '审核订单',
+                area: ['400px', '300px'],
+                content: '<div style="padding: 20px;">' +
+                    '<div class="am-form-group">' +
+                    '<label class="am-form-label">审核状态：</label>' +
+                    '<select id="audit-status" class="am-form-field">' +
+                    '<option value="1">审核通过</option>' +
+                    '<option value="0">审核不通过</option>' +
+                    '</select>' +
+                    '</div>' +
+                    '<div class="am-form-group">' +
+                    '<label class="am-form-label">审核备注：</label>' +
+                    '<textarea id="audit-remark" class="am-form-field" rows="3" placeholder="请输入审核备注"></textarea>' +
+                    '</div>' +
+                    '</div>',
+                btn: ['确定', '取消'],
+                yes: function(index, layero) {
+                    var auditStatus = $('#audit-status').val();
+                    var auditRemark = $('#audit-remark').val();
+                    
+                    if (auditStatus == '1' && !auditRemark.trim()) {
+                        layer.msg('审核通过时请输入审核备注');
+                        return false;
+                    }
+                    
+                    $.post(auditUrl, {
+                        id: data.id,
+                        audit_status: auditStatus,
+                        audit_remark: auditRemark
+                    }, function(result) {
+                        if (result.code === 1) {
+                            $.show_success(result.msg, result.url);
+                            layer.close(index);
+                        } else {
+                            $.show_error(result.msg);
+                        }
+                    });
+                },
+                btn2: function(index) {
+                    layer.close(index);
+                }
+            });
+        });
+
         
         function PrintDiv(content) {
             var win = window.open("");
@@ -892,6 +1097,138 @@
                 }
             });
         }); 
+        
+        /**
+         * 余额抵扣集运单费用
+         */
+        $('.j-payyue').on('click', function () {
+            var data = $(this).data();
+            var user_id = data['user_id'];
+            var id = data['id'];
+            
+            if(!user_id) {
+                layer.alert('用户信息有误', {icon: 5});
+                return false;
+            }
+            
+            // 获取余额和价格信息
+            $.ajax({
+                url: '<?= url('store/trOrder/balanceAndPrice') ?>',
+                type: 'POST',
+                data: {id: id, user_id: user_id},
+                dataType: 'json',
+                success: function(result) {
+                    if(result.code == 1) {
+                        var modalData = {
+                            balance: result.data.balance,
+                            price: result.data.price,
+                            id: id,
+                            user_id: user_id,
+                            name: data.name
+                        };
+                        
+                        $.showModal({
+                            title: '余额抵扣'
+                            , area: '460px'
+                            , content: template('tpl-errors', modalData)
+                            , uCheck: true
+                            , success: function ($content) {
+                            }
+                            , yes: function ($content) {
+                                $.ajax({
+                                    url: '<?= url('store/trOrder/payyue') ?>',
+                                    type: 'POST',
+                                    data: {id: id, user_id: user_id},
+                                    dataType: 'json',
+                                    success: function(result) {
+                                        if(result.code === 1) {
+                                            $.show_success(result.msg, result.url);
+                                        } else {
+                                            $.show_error(result.msg);
+                                        }
+                                    },
+                                    error: function() {
+                                        $.show_error('请求失败，请重试');
+                                    }
+                                });
+                                return true;
+                            }
+                        });
+                    } else {
+                        layer.alert(result.msg, {icon: 5});
+                    }
+                },
+                error: function() {
+                    layer.alert('获取余额信息失败', {icon: 5});
+                }
+            });
+        });
+        
+        /**
+         * 现金收款
+         */
+        $('.j-payxianjin').on('click', function () {
+            var data = $(this).data();
+            var user_id = data['user_id'];
+            var id = data['id'];
+            
+            if(!user_id) {
+                layer.alert('用户信息有误', {icon: 5});
+                return false;
+            }
+            
+            // 获取金额信息
+            $.ajax({
+                url: '<?= url('store/trOrder/balanceAndPrice') ?>',
+                type: 'POST',
+                data: {id: id, user_id: user_id},
+                dataType: 'json',
+                success: function(result) {
+                    if(result.code == 1) {
+                        var modalData = {
+                            balance: result.data.balance,
+                            price: result.data.price,
+                            id: id,
+                            user_id: user_id,
+                            name: data.name
+                        };
+                        
+                        $.showModal({
+                            title: '现金收款'
+                            , area: '460px'
+                            , content: template('tpl-xianjin', modalData)
+                            , uCheck: true
+                            , success: function ($content) {
+                            }
+                            , yes: function ($content) {
+                                $.ajax({
+                                    url: '<?= url('store/trOrder/cashforprice') ?>',
+                                    type: 'POST',
+                                    data: {id: id, user_id: user_id},
+                                    dataType: 'json',
+                                    success: function(result) {
+                                        if(result.code === 1) {
+                                            $.show_success(result.msg, result.url);
+                                        } else {
+                                            $.show_error(result.msg);
+                                        }
+                                    },
+                                    error: function() {
+                                        $.show_error('请求失败，请重试');
+                                    }
+                                });
+                                return true;
+                            }
+                        });
+                    } else {
+                        layer.alert(result.msg, {icon: 5});
+                    }
+                },
+                error: function() {
+                    layer.alert('获取金额信息失败', {icon: 5});
+                }
+            });
+        });
         
         
         

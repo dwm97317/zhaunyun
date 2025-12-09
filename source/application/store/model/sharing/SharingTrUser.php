@@ -35,6 +35,22 @@ class SharingTrUser extends SharingTrUserModel {
         return $this;
     }
     
+        /**
+     * 关联用户
+     * @return \think\model\relation\BelongsTo
+     */
+    public function user(){
+        return $this->belongsTo('app\store\model\User', 'user_id');
+    }
+    
+    /**
+     * 关联拼团订单
+     * @return \think\model\relation\BelongsTo
+     */
+    public function order(){
+        return $this->belongsTo('app\store\model\sharing\SharingOrder', 'order_id', 'order_id');
+    }
+    
 }  
 
 ?>

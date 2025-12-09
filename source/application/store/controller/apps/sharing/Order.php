@@ -12,6 +12,7 @@ use app\common\model\User;
 use app\common\service\Message;
 use app\api\model\Logistics;
 use app\store\model\Countries;
+use app\store\model\sharing\SharingTrUser;
 /**
  * 拼单管理控制器
  * Class Active
@@ -58,6 +59,113 @@ class Order extends Controller
         }
         
         return $this->fetch('inpacklist',compact('list','set','shopList'));
+    }
+    
+    //查看参与人员及其包裹列表
+    public function participants(){
+        $orderId = input('order_id'); // 拼团订单ID
+        $Inpack = new Inpack();
+        $Package = new \app\api\model\Package();
+        
+        // 获取拼团订单信息
+        $sharingOrder = (new SharingOrder())->where('order_id', $orderId)->find();
+        if (!$sharingOrder) {
+            return $this->renderError('拼团订单不存在');
+        }
+        
+        $shareId = $orderId;
+        
+        // 通过 SharingTrUser 表查询参与的用户（通过 order_id）
+        $sharingTrUserList = (new SharingTrUser())->where('order_id', $orderId)
+                                                  ->with(['user'])
+                                                  ->select();
+        
+        if (empty($sharingTrUserList)) {
+            return $this->renderError('该拼团暂无参与人员');
+        }
+        
+        // 通过 share_id 查询该拼团的所有集运单
+        $inpackList = $Inpack->where('share_id', $shareId)
+                             ->where('is_delete', 0)
+                             ->with(['user', 'address'])
+                             ->select();
+        
+        // 通过 share_id 查询该拼团的所有包裹（不依赖 inpack_id）
+        $packages = $Package->where('share_id', $shareId)
+                           ->where('is_delete', 0)
+                           ->with(['packageimage.file', 'country'])
+                           ->select();
+        
+        // 组织参与人员数据（按用户ID分组）
+        $participants = [];
+        foreach ($sharingTrUserList as $sharingTrUser) {
+            $userId = $sharingTrUser['user_id'];
+            
+            // 获取用户信息
+            $user = $sharingTrUser['user'] ?? User::detail($userId);
+            if (!$user) {
+                continue;
+            }
+            
+            // 初始化参与人员数据
+            $participants[$userId] = [
+                'user_id' => $userId,
+                'user_code' => $user['user_code'] ?? '',
+                'nickName' => $user['nickName'] ?? '',
+                'mobile' => $user['mobile'] ?? '',
+                'inpacks' => [],
+                'packages' => []
+            ];
+        }
+        
+        // 遍历集运单，按用户分组
+        foreach ($inpackList as $inpack) {
+            $userId = $inpack['member_id'];
+            
+            // 如果该用户不在参与人员列表中，跳过（理论上不应该发生）
+            if (!isset($participants[$userId])) {
+                continue;
+            }
+            
+            // 添加集运单信息
+            $participants[$userId]['inpacks'][] = [
+                'id' => $inpack['id'],
+                'order_sn' => $inpack['order_sn'],
+                'status' => $inpack['status'],
+                'weight' => $inpack['weight'],
+                'free' => $inpack['free'],
+                'is_pay' => $inpack['is_pay'],
+                'created_time' => $inpack['created_time']
+            ];
+        }
+        
+        // 遍历包裹，按用户分组（通过 member_id）
+        foreach ($packages as $package) {
+            $userId = $package['member_id'];
+            
+            // 如果该用户不在参与人员列表中，跳过（理论上不应该发生）
+            if (!isset($participants[$userId])) {
+                continue;
+            }
+            
+            // 添加包裹信息
+            $participants[$userId]['packages'][] = [
+                'id' => $package['id'],
+                'express_num' => $package['express_num'],
+                'weight' => $package['weight'],
+                'remark' => $package['remark'],
+                'status' => $package['status'],
+                'inpack_id' => $package['inpack_id']
+            ];
+        }
+        
+        // 将关联数组转换为索引数组，便于视图遍历
+        $participantsList = array_values($participants);
+        
+        $set = Setting::detail('store')['values']['address_setting'];
+        $setcode = Setting::detail('store')['values']['usercode_mode'];
+        
+        return $this->fetch('participants', compact('participantsList', 'sharingOrder', 'set', 'setcode', 'shareId'));
     }
     
     
