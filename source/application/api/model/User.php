@@ -379,7 +379,7 @@ class User extends UserModel
     }
     
     public function checkUserCode($user,$setting){
-        if($user['user_code']){
+        if(!empty($user) && isset($user['user_code']) && !empty($user['user_code'])){
             return $user['user_code'];
         }else{
             switch ($setting['usercode_mode']['mode']) {
@@ -413,7 +413,6 @@ class User extends UserModel
             return $userCode;
         }
     }
-    
     
     public function generateUserNo($num,$zimu)
     {
