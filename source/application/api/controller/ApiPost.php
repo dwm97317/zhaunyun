@@ -35,6 +35,7 @@ use app\common\service\package\Printer;
 use app\api\model\Shelf;
 use app\api\model\ShelfUnit;
 use app\api\model\ShelfUnitItem;
+use app\common\model\PackageImage as CommonPackageImage;
 
 /**
  * 页面控制器
@@ -761,5 +762,57 @@ class ApiPost extends Controller
             (new PackageImage())->save($imgdata);
         }
         return $this->renderSuccess("预报成功");
+    }
+    
+    
+    /**
+     * 获取昨天入库的所有包裹以及包裹图片信息
+     * @return array
+     * @throws \think\exception\DbException
+     */
+    public function getTodayInWarehousePackages()
+    {
+        // 获取昨天的开始和结束时间
+        $yesterdayStart = date('Y-m-d 00:00:00', strtotime('-1 day'));
+        $yesterdayEnd = date('Y-m-d 23:59:59', strtotime('-1 day'));
+        
+        // 查询昨天入库的包裹
+        $packages = (new Package())
+            ->where('is_delete', 0)
+            ->where('entering_warehouse_time', 'between', [$yesterdayStart, $yesterdayEnd])
+            ->field('id, express_num, entering_warehouse_time')
+            ->order('entering_warehouse_time', 'desc')
+            ->select();
+        
+        $result = [];
+        foreach ($packages as $package) {
+            // 获取包裹的图片信息（使用with关联并bind字段）
+            $images = CommonPackageImage::where('package_id', $package['id'])
+                ->with(['file'])
+                ->select();
+            
+            $imageUrls = [];
+            foreach ($images as $image) {
+                // 由于file关联使用了bind，file_path、file_name、file_url会直接绑定到image对象上
+                if (!empty($image['file_path'])) {
+                    // 优先使用file_path（完整路径）
+                    $imageUrls[] = $image['file_path'];
+                } elseif (!empty($image['file_url']) && !empty($image['file_name'])) {
+                    // 如果没有file_path，则手动拼接
+                    $imageUrls[] = rtrim($image['file_url'], '/') . '/' . $image['file_name'];
+                }
+            }
+            
+            $result[] = [
+                'express_num' => $package['express_num'], // 包裹单号
+                'entering_warehouse_time' => $package['entering_warehouse_time'], // 入库时间
+                'image_urls' => $imageUrls // 包裹照片的url数组
+            ];
+        }
+        
+        return $this->renderSuccess([
+            'list' => $result,
+            'count' => count($result)
+        ]);
     }
 }
