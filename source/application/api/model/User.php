@@ -414,6 +414,35 @@ class User extends UserModel
         }
     }
     
+    // public function generateUserNo($num,$zimu)
+    // {
+    //     try {
+    //         // 使用事务确保并发安全
+    //         Db::startTrans();
+            
+    //         // 锁表查询，防止并发问题
+    //         $lastUserNo = self::where('user_code', 'like', $zimu.'%')
+    //             ->lock(true)
+    //             ->order('user_id', 'desc')
+    //             ->value('user_code');
+            
+    //         if (empty($lastUserNo)) {
+    //             $newUserNo = $this->createCharNum($num,$zimu);
+    //         } else {
+    //             $lastNumber = intval(substr($lastUserNo, 1));
+    //             $newNumber = $lastNumber + 1;
+    //             $newUserNo = $zimu . str_pad($newNumber, $num, '0', STR_PAD_LEFT);
+    //         }
+            
+    //         Db::commit();
+    //         return $newUserNo;
+            
+    //     } catch (\Exception $e) {
+    //         Db::rollback();
+    //         throw new \Exception("生成用户编号失败: " . $e->getMessage());
+    //     }
+    // }
+    
     public function generateUserNo($num,$zimu)
     {
         try {
@@ -421,15 +450,19 @@ class User extends UserModel
             Db::startTrans();
             
             // 锁表查询，防止并发问题
+            // 找到最新的用户code：按user_code的数值部分降序排列
+            $zimuLength = strlen($zimu);
+            // 直接按数值部分排序，找到最大的编号（like已经能过滤出以字母开头的记录）
             $lastUserNo = self::where('user_code', 'like', $zimu.'%')
                 ->lock(true)
-                ->order('user_id', 'desc')
+                ->orderRaw('CAST(SUBSTRING(user_code, ' . ($zimuLength + 1) . ') AS UNSIGNED) DESC')
                 ->value('user_code');
             
             if (empty($lastUserNo)) {
                 $newUserNo = $this->createCharNum($num,$zimu);
             } else {
-                $lastNumber = intval(substr($lastUserNo, 1));
+                // 提取数字部分（去掉前面的字母）
+                $lastNumber = intval(substr($lastUserNo, $zimuLength));
                 $newNumber = $lastNumber + 1;
                 $newUserNo = $zimu . str_pad($newNumber, $num, '0', STR_PAD_LEFT);
             }
