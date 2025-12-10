@@ -765,54 +765,173 @@ class ApiPost extends Controller
     }
     
     
-    /**
-     * 获取昨天入库的所有包裹以及包裹图片信息
+            ]);
+
+    
+    
+     /**
+     * 请求接口并保存昨天入库的包裹数据
      * @return array
      * @throws \think\exception\DbException
      */
-    public function getTodayInWarehousePackages()
+    public function saveInWarehousePackages()
     {
-        // 获取昨天的开始和结束时间
-        $yesterdayStart = date('Y-m-d 00:00:00', strtotime('-1 day'));
-        $yesterdayEnd = date('Y-m-d 23:59:59', strtotime('-1 day'));
-        
-        // 查询昨天入库的包裹
-        $packages = (new Package())
-            ->where('is_delete', 0)
-            ->where('entering_warehouse_time', 'between', [$yesterdayStart, $yesterdayEnd])
-            ->field('id, express_num, entering_warehouse_time')
-            ->order('entering_warehouse_time', 'desc')
-            ->select();
-        
-        $result = [];
-        foreach ($packages as $package) {
-            // 获取包裹的图片信息（使用with关联并bind字段）
-            $images = CommonPackageImage::where('package_id', $package['id'])
-                ->with(['file'])
-                ->select();
-            
-            $imageUrls = [];
-            foreach ($images as $image) {
-                // 由于file关联使用了bind，file_path、file_name、file_url会直接绑定到image对象上
-                if (!empty($image['file_path'])) {
-                    // 优先使用file_path（完整路径）
-                    $imageUrls[] = $image['file_path'];
-                } elseif (!empty($image['file_url']) && !empty($image['file_name'])) {
-                    // 如果没有file_path，则手动拼接
-                    $imageUrls[] = rtrim($image['file_url'], '/') . '/' . $image['file_name'];
-                }
-            }
-            
-            $result[] = [
-                'express_num' => $package['express_num'], // 包裹单号
-                'entering_warehouse_time' => $package['entering_warehouse_time'], // 入库时间
-                'image_urls' => $imageUrls // 包裹照片的url数组
-            ];
+        // 固定请求接口URL
+        $apiUrl = 'https://transport.box0018.cn/index.php?s=/api/api_Post/getTodayInWarehousePackages&wxapp_id=10028';
+      
+        // 请求接口获取数据
+        $response = curl($apiUrl);
+        if (empty($response)) {
+            return $this->renderError('请求接口失败，无法获取数据');
         }
         
-        return $this->renderSuccess([
-            'list' => $result,
-            'count' => count($result)
-        ]);
+        // 解析JSON数据
+        $result = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return $this->renderError('接口返回数据格式错误：' . json_last_error_msg());
+        }
+        
+        // 验证返回数据格式
+        if (empty($result['code']) || $result['code'] != 1) {
+            return $this->renderError('接口返回错误：' . ($result['msg'] ?? '未知错误'));
+        }
+        
+        if (empty($result['data']['list']) || !is_array($result['data']['list'])) {
+            return $this->renderError('接口返回数据为空或格式不正确');
+        }
+        
+        $dataList = $result['data']['list'];
+        $successCount = 0;
+        $failCount = 0;
+        $errors = [];
+        
+        // 开始事务
+        Db::startTrans();
+        try {
+            foreach ($dataList as $index => $item) {
+                // 验证必要字段
+                if (empty($item['express_num'])) {
+                    $errors[] = "第" . ($index + 1) . "条数据：包裹单号不能为空";
+                    $failCount++;
+                    continue;
+                }
+                
+                // 检查包裹是否已存在
+                $existingPackage = (new Package())
+                    ->where('express_num', $item['express_num'])
+                    ->where('is_delete', 0)
+                    ->find();
+                
+                if (!empty($existingPackage)) {
+                    // 如果包裹已存在，更新入库时间
+                    $packageId = $existingPackage['id'];
+                    if (!empty($item['entering_warehouse_time'])) {
+                        $existingPackage->save([
+                            'entering_warehouse_time' => $item['entering_warehouse_time']
+                        ]);
+                    }
+                } else {
+                    // 创建新包裹
+                    $packageData = [
+                        'order_sn' => createSn(),
+                        'express_num' => $item['express_num'],
+                        'status' => 2, // 已入库
+                        'source' => 9, // 外部接口导入
+                        'entering_warehouse_time' => !empty($item['entering_warehouse_time']) 
+                            ? $item['entering_warehouse_time'] 
+                            : getTime(),
+                        'is_take' => 1, // 未认领
+                        'created_time' => getTime(),
+                        'updated_time' => getTime()
+                    ];
+                    
+                    $packageId = (new Package())->saveData($packageData);
+                    if (!$packageId) {
+                        $errors[] = "第" . ($index + 1) . "条数据：保存包裹失败";
+                        $failCount++;
+                        continue;
+                    }
+                }
+                
+                // 保存图片
+                if (!empty($item['image_urls']) && is_array($item['image_urls'])) {
+                    foreach ($item['image_urls'] as $imageUrl) {
+                        if (empty($imageUrl)) {
+                            continue;
+                        }
+                        
+                        // 解析图片URL
+                        $urlInfo = parse_url($imageUrl);
+                        if (empty($urlInfo['host']) || empty($urlInfo['path'])) {
+                            continue;
+                        }
+                        
+                        // 提取文件URL和文件名
+                        $fileUrl = $urlInfo['scheme'] . '://' . $urlInfo['host'];
+                        $filePath = trim($urlInfo['path'], '/');
+                        $fileName = basename($filePath);
+                        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+                        
+                        // 检查图片是否已存在（通过file_url和file_name查找UploadFile）
+                        $existingFile = UploadFile::where('file_url', $fileUrl)
+                            ->where('file_name', $fileName)
+                            ->find();
+                        
+                        $fileId = null;
+                        if (!empty($existingFile)) {
+                            // 如果文件已存在，复用文件ID
+                            $fileId = $existingFile['file_id'];
+                        } else {
+                            // 创建UploadFile记录
+                            $uploadFileData = [
+                                'storage' => 'qiniu', // 或其他云存储类型，根据实际情况调整
+                                'file_url' => $fileUrl,
+                                'file_name' => $fileName,
+                                'file_type' => 'image',
+                                'extension' => $extension ?: 'jpg',
+                                'file_size' => 0, // 远程图片无法获取大小
+                                'wxapp_id' => $this->wxapp_id
+                            ];
+                            
+                            $uploadFile = new UploadFile();
+                            $uploadFile->addImage($uploadFileData);
+                            $fileId = $uploadFile['file_id'];
+                        }
+                        
+                        // 检查该包裹是否已有此图片
+                        if ($fileId) {
+                            $existingImage = CommonPackageImage::where('package_id', $packageId)
+                                ->where('image_id', $fileId)
+                                ->find();
+                            
+                            if (empty($existingImage)) {
+                                // 创建PackageImage记录
+                                $imageData = [
+                                    'package_id' => $packageId,
+                                    'image_id' => $fileId,
+                                    'wxapp_id' => $this->wxapp_id,
+                                    'create_time' => time()
+                                ];
+                                (new CommonPackageImage())->save($imageData);
+                            }
+                        }
+                    }
+                }
+                
+                $successCount++;
+            }
+            
+            Db::commit();
+            
+            return $this->renderSuccess([
+                'success_count' => $successCount,
+                'fail_count' => $failCount,
+                'errors' => $errors
+            ], "成功保存 {$successCount} 条，失败 {$failCount} 条");
+            
+        } catch (\Exception $e) {
+            Db::rollback();
+            return $this->renderError('保存失败：' . $e->getMessage());
+        }
     }
 }
