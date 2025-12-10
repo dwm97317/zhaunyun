@@ -378,7 +378,7 @@ class User extends UserModel
         return $model['user_id'];
     }
     
-    private function checkUserCode($user,$setting){
+    public function checkUserCode($user,$setting){
         if($user['user_code']){
             return $user['user_code'];
         }else{
@@ -414,34 +414,6 @@ class User extends UserModel
         }
     }
     
-    // public function generateUserNo($num,$zimu)
-    // {
-    //     try {
-    //         // 使用事务确保并发安全
-    //         Db::startTrans();
-            
-    //         // 锁表查询，防止并发问题
-    //         $lastUserNo = self::where('user_code', 'like', $zimu.'%')
-    //             ->lock(true)
-    //             ->order('user_id', 'desc')
-    //             ->value('user_code');
-            
-    //         if (empty($lastUserNo)) {
-    //             $newUserNo = $this->createCharNum($num,$zimu);
-    //         } else {
-    //             $lastNumber = intval(substr($lastUserNo, 1));
-    //             $newNumber = $lastNumber + 1;
-    //             $newUserNo = $zimu . str_pad($newNumber, $num, '0', STR_PAD_LEFT);
-    //         }
-            
-    //         Db::commit();
-    //         return $newUserNo;
-            
-    //     } catch (\Exception $e) {
-    //         Db::rollback();
-    //         throw new \Exception("生成用户编号失败: " . $e->getMessage());
-    //     }
-    // }
     
     public function generateUserNo($num,$zimu)
     {

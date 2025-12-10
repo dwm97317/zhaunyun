@@ -175,7 +175,7 @@ class Wechat
                         'paytype'=> $setting['moren']['user_pack_in_pay'],
                         'last_login_time' =>date("Y-m-d H:i:s",time()),
                         'wxapp_id' => $wxapp_id,
-                        'user_code' => $this->checkUserCode($setting),
+                        'user_code' => (new UserModel())->checkUserCode([], $setting),
                         'is_subscribe'=>1
                     ]);
                     //发送优惠券
@@ -194,59 +194,8 @@ class Wechat
        
         return $userResult; // 包含 unionid（如果存在）
     }
-    
-    private function checkUserCode($setting){
-        switch ($setting['usercode_mode']['mode']) {
-            case '10':
-                //纯数字
-                $num = $setting['usercode_mode'][10]['number'];
-                $userCode = $this->createNum($num);
-                break;
-            case '20':
-                //英文子母
-                $num = $setting['usercode_mode'][20]['char'];
-                $userCode = $this->createChar($num);
-                break;
-            case '30':
-                //混合模式
-                $zimu = $setting['usercode_mode'][30]['char'];
-                $num = $setting['usercode_mode'][30]['number'];
-                $userCode = $this->createCharNum($num,$zimu);
-                break;
-            default:
-                $num = $setting['usercode_mode'][10]['number'];
-                $userCode = $this->createNum($num);
-                break;
-        }
-        return $userCode;
-    }
-    
-    //生成随机英文+数字的编号
-    public function createCharNum($num,$zimu){
-        $x = pow(10,$num-1);
-        $y = pow(10,$num)-1;
-        $ucode =$zimu.rand($x,$y);
-        $ucode = $this->checkOnlyOne($ucode,'createCharNum',$num);
-        return $ucode;
-    }
-    
-    //生成随机数
-    public function createNum($num){
-        $x = pow(10,$num-1);
-        $y = pow(10,$num)-1;
-        $ucode =rand($x,$y);
-        $ucode = $this->checkOnlyOne($ucode,'createNum',$num);
-        return $ucode;
-    }
-    
-    //校验唯一
-     public function checkOnlyOne($ucode,$funcitonname,$num){
-         $user = UserModel::detail(['user_code' => $ucode]); 
-         if($user){
-             $ucode=  $this->$funcitonname($num);  
-         }
-         return $ucode;
-     }
+   
+   
     /**
      * 回复文本消息
      * @param string $fromUser
