@@ -109,16 +109,20 @@ class Wechat
                 if ($event == 'subscribe') {
                     //根据公众号openid = $fromUser来获取uniacid，并根据是否已经有用户信息来决定是否注册用户;
                     $userResult = $this->getUserInfo($fromUser,$wxapp_id);
-                    $storesetting = Setting::getItem('store',$wxapp_id);
-                    $setting = Setting::getItem('wechat',$wxapp_id);
-                    if($storesetting['usercode_mode']['is_show']==0){
-                        $welcomeMessage = str_replace('{code}', "ID:".$userResult['user_id'], $setting['subscribe']);
-                    }else{
-                        $welcomeMessage = str_replace('{code}', "编号:".$userResult['user_code'], $setting['subscribe']);
+                    if(!empty($userResult)){
+                        $storesetting = Setting::getItem('store',$wxapp_id);
+                        $setting = Setting::getItem('wechat',$wxapp_id);
+                        if($storesetting['usercode_mode']['is_show']==0){
+                            $welcomeMessage = str_replace('{code}', "ID:".$userResult['user_id'], $setting['subscribe']);
+                        }else{
+                            $welcomeMessage = str_replace('{code}', "编号:".$userResult['user_code'], $setting['subscribe']);
+                        }
+                        
+                        log_write($welcomeMessage);
+                        return $this->responseText($fromUser, $toUser,$welcomeMessage);
+                    } else {
+                        return $this->responseText($fromUser, $toUser, "欢迎关注！");
                     }
-                    
-                    log_write($welcomeMessage);
-                    return $this->responseText($fromUser, $toUser,$welcomeMessage);
                 }
                 if ($event == 'unsubscribe') {
                     // 如果用户取消关注，先查询用户信息，查到后设置用户已经取消关注
@@ -146,7 +150,7 @@ class Wechat
     }
     
     
-     /**
+    /**
      * 通过 OpenID 获取用户信息（含 UnionID）
      */
     public function getUserInfo($openid,$wxapp_id)
@@ -167,7 +171,8 @@ class Wechat
                 //如果公众号openid找不到具体用户，就用unionid再查找一次，如果还是没有，则新增用户，否则就更新
                 $userResult2 = $UserModel->where(['union_id'=>$userInfo['unionid'],'is_delete'=>0])->find();
                 if(empty($userResult2)){
-                    $UserModel->allowField(true)->save([
+                    $newUserModel = new UserModel();
+                    $newUserModel->allowField(true)->save([
                         'nickName'=>"",
                         'avatarUrl'=>"",
                         'union_id'=> !empty($userInfo['unionid'])?$userInfo['unionid']:'',
@@ -180,16 +185,23 @@ class Wechat
                     ]);
                     //发送优惠券
                     if($couponsetting['is_register']==1){
-                        (new UserCoupon())->newUserReceive($UserModel,$couponsetting['register_coupon']);
+                        (new UserCoupon())->newUserReceive($newUserModel,$couponsetting['register_coupon']);
                     }
+                    $userResult = $newUserModel;
+                } else {
+                    $userResult = $userResult2;
                 }
-                $userResult = $userResult2;
            }
-           $userResult->save([
-               'union_id'=>!empty($userInfo['unionid'])?$userInfo['unionid']:$userResult['union_id'],
-               'is_subscribe'=>1,
-               'gzh_openid'=>$userInfo['openid'],
-           ]);
+           // 确保 $userResult 存在后再调用 save
+           if(!empty($userResult)){
+               $userResult->save([
+                   'union_id'=>!empty($userInfo['unionid'])?$userInfo['unionid']:$userResult['union_id'],
+                   'is_subscribe'=>1,
+                   'gzh_openid'=>$userInfo['openid'],
+               ]);
+           }
+        } else {
+            $userResult = null;
         }
        
         return $userResult; // 包含 unionid（如果存在）
