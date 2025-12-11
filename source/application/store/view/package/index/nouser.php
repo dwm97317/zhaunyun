@@ -56,11 +56,11 @@
                     </div>
                     <div class="page_toolbar am-margin-bottom-xs am-cf" style="margin-bottom:20px; margin-left:15px;">
                         <!--修改所属用户-->
-                        <?php if (checkPrivilege('package.index/changeUser')): ?>
+                        <?php if (checkPrivilege('package.index/changeuser')): ?>
                         <button type="button" id="j-upuser" class="am-btn am-btn-success am-radius"><i class="iconfont icon-yonghu "></i> 修改所属用户</button>
                         <?php endif;?>
                         <!--修改包裹位置-->
-                        <?php if (checkPrivilege('package.index/changeShelf')): ?>
+                        <?php if (checkPrivilege('package.index/changeshelf')): ?>
                         <button type="button" id="j-change" class="am-btn am-btn-warning am-radius"><i class="iconfont icon-dingwei "></i> 修改包裹位置</button>
                         <?php endif;?>
                         <?php if (checkPrivilege('package.index/changepackageuser')): ?>

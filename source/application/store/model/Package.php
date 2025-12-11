@@ -674,6 +674,33 @@ class Package extends PackageModel
             ]);
     }
     
+    /**
+     * 订单列表
+     * @param array $query
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    //查询
+    public function getReportList($query = [])
+    {
+        $setting = SettingModel::detail("adminstyle")['values'];
+        $order = ['created_time'=>'desc','express_num'=>'desc'];
+        return $this->setindexListQueryWhere($query)
+            ->alias('a')
+            ->with(['categoryAttr','Member','country','storage','inpack','packageimage.file','batch','shelfunititem.shelfunit.shelf','address'])
+            ->field('a.address_id,a.member_id,a.is_verify,a.is_shelf,a.admin_remark,a.is_scan,a.pack_type,a.inpack_id,a.num,a.batch_id,a.usermark,a.id,a.volume,a.order_sn,a.status as a_status,a.entering_warehouse_time,a.pack_free,a.source,a.is_take,a.free,a.express_num,a.express_name, a.length, a.width, a.height, a.weight,a.price,a.real_payment,a.remark,a.created_time,a.updated_time,pi.class_name,pi.class_id,pi.express_num as pnumber,u.user_id,u.nickName,u.user_code,a.member_id,s.shop_name,c.title,a.scan_time')
+            ->join('user u', 'a.member_id = u.user_id',"LEFT")
+            ->join('countries c', 'a.country_id = c.id',"LEFT")
+            ->join('store_shop s', 'a.storage_id = s.shop_id',"LEFT")
+            ->join('package_item pi','pi.order_id = a.id','LEFT')
+            // ->join('shelf_unit_item sui','sui.pack_id = a.id','LEFT')
+            ->order($order)
+            ->group('a.id')
+            ->paginate(isset($query['limitnum'])?$query['limitnum']:15,false,[
+                'query'=>\request()->request()
+            ]);
+    }
+    
      /**
      * 订单列表重量之和
      * @param array $query

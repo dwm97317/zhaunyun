@@ -577,14 +577,14 @@
 
 <script id="tpl-shelf" type="text/template">
     <div class="am-padding-xs am-padding-top">
-        <form class="am-form tpl-form-line-form" method="post" action="">
+        <form class="am-form tpl-form-line-form" method="post" action="" id="shelf-form">
             <div class="am-tab-panel am-padding-0 am-active">
                <div class="am-form-group">
                     <label class="am-u-sm-3 am-form-label form-require">
                         选择包裹数量
                     </label>
                     <div class="am-u-sm-8 am-u-end">
-                        <p class='am-form-static'> 共选中 {{ selectCount }} 包裹</p>
+                        <p class='am-form-static'><span class="am-badge am-badge-success">{{ selectCount }}</span> 个包裹</p>
                     </div>
                 </div>
                 <div class="am-form-group">
@@ -592,14 +592,16 @@
                         选择仓库
                     </label>
                     <div class="am-u-sm-8 am-u-end">
-                          <select name="shelf[shop_id]"
-                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" onchange="getSelectData(this)" data-select_type='shelf'>
-                                        <option value="">请选择</option>
+                          <select name="shelf[shop_id]" id="shelf-shop-id"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择仓库', maxHeight: 400}" 
+                                            data-select_type='shelf'>
+                                        <option value="">请选择仓库</option>
                                         <?php if (isset($shopList) && !$shopList->isEmpty()):
                                             foreach ($shopList as $item): ?>
                                                 <option value="<?= $item['shop_id'] ?>"><?= $item['shop_name'] ?></option>
                                             <?php endforeach; endif; ?>
                                     </select>
+                                    <small class="am-form-text am-text-warning">选择仓库后会自动加载该仓库下的货架</small>
                     </div>
                 </div>
                 <div class="am-form-group">
@@ -607,10 +609,12 @@
                         选择货架
                     </label>
                     <div class="am-u-sm-8 am-u-end">
-                         <select id="select-shelf" data-select_type = 'shelf_unit'
-                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'选择货架', maxHeight: 400}" onchange="getSelectData(this)" data-select_type='shelf'>
-                                        <option value=""></option>
-                                    </select> 
+                         <select id="select-shelf" 
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请先选择仓库', maxHeight: 400}" 
+                                            data-select_type='shelf_unit' disabled>
+                                        <option value="">请先选择仓库</option>
+                                    </select>
+                                    <small class="am-form-text am-text-warning">选择货架后会自动加载该货架下的货位</small>
                     </div>
                 </div>
                 <div class="am-form-group">
@@ -619,9 +623,17 @@
                     </label>
                     <div class="am-u-sm-8 am-u-end">
                          <select id="select_shelf_unit" name="shelf[shelf_unit]"
-                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择货位', maxHeight: 400}">
-                                        <option value=""></option>
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请先选择货架', maxHeight: 400}" disabled>
+                                        <option value="">请先选择货架</option>
                                     </select>
+                                    <small class="am-form-text am-text-muted">货位为可选，不选择则只更新仓库和货架</small>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <div class="am-u-sm-8 am-u-end am-u-sm-offset-3">
+                        <div class="am-alert am-alert-warning" style="margin-bottom: 0;">
+                            <i class="am-icon-info-circle"></i> 提示：至少需要选择仓库，货架和货位为可选
+                        </div>
                     </div>
                 </div>
             </div>
@@ -816,47 +828,138 @@ function renderData(datatotal) {
     var _render = false;
     var getSelectData = function(_this){
         if (_render){
-            return 
+            return;
         }
         var sType = _this.getAttribute('data-select_type');
-        var api_group = {'shelf':'<?= url('store/shelf_manager.index/getShelf')?>','shelf_unit':'<?= url('store/shelf_manager.index/getshelf_unit')?>'};
-        if (sType=='shelf'){
-            var $selected = $('#select-shelf');
-            var data = {'shop_id':_this.value}
-        }
-        if (sType=='shelf_unit'){
-            var $selected = $('#select_shelf_unit');
-            var data = {'shelf_id':_this.value}
+        if (!sType || !_this.value) {
+            return;
         }
         
+        var api_group = {
+            'shelf': '<?= url('store/shelf_manager.index/getShelf')?>',
+            'shelf_unit': '<?= url('store/shelf_manager.index/getshelf_unit')?>'
+        };
+        
+        var $selected, data, $nextSelect;
+        
+        if (sType == 'shelf'){
+            $selected = $('#select-shelf');
+            $nextSelect = $('#select_shelf_unit');
+            data = {'shop_id': _this.value};
+            
+            // 清空货架和货位选项
+            $selected.html('<option value="">加载中...</option>').prop('disabled', true);
+            $nextSelect.html('<option value="">请先选择货架</option>').prop('disabled', true);
+            
+            // 重新初始化am-selected
+            if ($selected.data('amui.selected')) {
+                $selected.selected('destroy');
+            }
+        }
+        
+        if (sType == 'shelf_unit'){
+            $selected = $('#select_shelf_unit');
+            data = {'shelf_id': _this.value};
+            
+            // 清空货位选项
+            $selected.html('<option value="">加载中...</option>').prop('disabled', true);
+            
+            // 重新初始化am-selected
+            if ($selected.data('amui.selected')) {
+                $selected.selected('destroy');
+            }
+        }
+        
+        _render = true;
+        
         $.ajax({
-            type:"GET",
-            url:api_group[sType],
-            data:data,
-            dataType:'json',
-            success:function(res){
-               
-                console.log(_data,78);
-                if (sType=='shelf'){
-                     var _data = res.data.shelf;
-                    for (var i=0;i<_data.length;i++){
-                        // _html += '<option value="">'+_data[i]['shelf_name']+'</option>';
-                        $selected.append('<option value="' + _data[i]['id'] +'">' + _data[i]['shelf_name'] + '</option>');
+            type: "GET",
+            url: api_group[sType],
+            data: data,
+            dataType: 'json',
+            beforeSend: function() {
+                // 可以在这里添加加载提示
+            },
+            success: function(res){
+                if (res.code != 1) {
+                    layer.msg(res.msg || '加载失败', {icon: 2});
+                    if (sType == 'shelf') {
+                        $selected.html('<option value="">加载失败，请重试</option>');
+                    } else {
+                        $selected.html('<option value="">加载失败，请重试</option>');
                     }
-                }else{
-                     var _data = res.data.shelfunit;
-                    console.log(444);
-                    for (var i=0;i<_data.length;i++){
-                        // _html += '<option value="">'+_data[i]['shelf_name']+'</option>';
-                        $selected.append('<option value="' + _data[i]['shelf_unit_id'] +'">' + _data[i]['shelf_unit_no'] + '</option>');
+                    _render = false;
+                    return;
+                }
+                
+                if (sType == 'shelf'){
+                    var _data = res.data.shelf || [];
+                    var html = '<option value="">请选择货架</option>';
+                    
+                    if (_data.length > 0) {
+                        for (var i = 0; i < _data.length; i++){
+                            html += '<option value="' + _data[i]['id'] + '">' + _data[i]['shelf_name'] + '</option>';
+                        }
+                    } else {
+                        html = '<option value="">该仓库暂无货架</option>';
+                    }
+                    
+                    $selected.html(html).prop('disabled', false);
+                    
+                    // 刷新am-selected组件
+                    if ($selected.data('amui.selected')) {
+                        $selected.selected('refresh');
+                    } else {
+                        // 如果还没有初始化，则重新初始化
+                        $selected.selected({
+                            searchBox: 1,
+                            btnSize: 'sm',
+                            placeholder: sType == 'shelf' ? '请选择货架' : '请选择货位',
+                            maxHeight: 400
+                        });
+                    }
+                } else {
+                    var _data = res.data.shelfunit || [];
+                    var html = '<option value="">请选择货位（可选）</option>';
+                    
+                    if (_data.length > 0) {
+                        for (var i = 0; i < _data.length; i++){
+                            html += '<option value="' + _data[i]['shelf_unit_id'] + '">' + _data[i]['shelf_unit_no'] + '</option>';
+                        }
+                    } else {
+                        html = '<option value="">该货架暂无货位</option>';
+                    }
+                    
+                    $selected.html(html).prop('disabled', false);
+                    
+                    // 刷新am-selected组件
+                    if ($selected.data('amui.selected')) {
+                        $selected.selected('refresh');
+                    } else {
+                        // 如果还没有初始化，则重新初始化
+                        $selected.selected({
+                            searchBox: 1,
+                            btnSize: 'sm',
+                            placeholder: '请选择货位',
+                            maxHeight: 400
+                        });
                     }
                 }
-                _render = true;
+                
                 setTimeout(function() {
                     _render = false;
-                }, 10);
+                }, 100);
+            },
+            error: function() {
+                layer.msg('网络错误，请重试', {icon: 2});
+                if (sType == 'shelf') {
+                    $selected.html('<option value="">加载失败，请重试</option>');
+                } else {
+                    $selected.html('<option value="">加载失败，请重试</option>');
+                }
+                _render = false;
             }
-        })
+        });
     }
 
     $(function () {
@@ -1051,23 +1154,93 @@ function renderData(datatotal) {
         $('#j-change').on('click', function () {
             var $tabs, data = $(this).data();
             var selectIds = checker.getCheckSelect();
-            if (selectIds.length==0){
-                layer.alert('请先选择包裹', {icon: 5});
+            if (selectIds.length == 0){
+                layer.alert('请先选择要修改位置的包裹', {icon: 5, title: '提示'});
                 return;
             }
             data.selectId = selectIds.join(',');
             data.selectCount = selectIds.length;
+            
             $.showModal({
-                title: '修改包裹位置'
-                , area: '460px'
+                title: '修改包裹位置 <small style="color:#999;">(已选择 ' + data.selectCount + ' 个包裹)</small>'
+                , area: ['650px', '550px']
                 , content: template('tpl-shelf', data)
                 , uCheck: true
                 , success: function ($content) {
+                    // 等待am-selected初始化完成后再绑定事件
+                    setTimeout(function() {
+                        // 绑定仓库选择事件
+                        var $shopSelect = $content.find('#shelf-shop-id');
+                        if ($shopSelect.length) {
+                            // 使用事件委托，确保能捕获到am-selected的变化
+                            $shopSelect.on('change', function() {
+                                var shopId = $(this).val();
+                                var $shelfSelect = $content.find('#select-shelf');
+                                var $shelfUnitSelect = $content.find('#select_shelf_unit');
+                                
+                                if (shopId) {
+                                    getSelectData(this);
+                                } else {
+                                    // 清空下级选项
+                                    $shelfSelect.html('<option value="">请先选择仓库</option>').prop('disabled', true);
+                                    $shelfUnitSelect.html('<option value="">请先选择货架</option>').prop('disabled', true);
+                                    if ($shelfSelect.data('amui.selected')) {
+                                        $shelfSelect.selected('refresh');
+                                    }
+                                    if ($shelfUnitSelect.data('amui.selected')) {
+                                        $shelfUnitSelect.selected('refresh');
+                                    }
+                                }
+                            });
+                        }
+                        
+                        // 绑定货架选择事件
+                        var $shelfSelect = $content.find('#select-shelf');
+                        if ($shelfSelect.length) {
+                            $shelfSelect.on('change', function() {
+                                var shelfId = $(this).val();
+                                var $shelfUnitSelect = $content.find('#select_shelf_unit');
+                                
+                                if (shelfId) {
+                                    getSelectData(this);
+                                } else {
+                                    // 清空货位选项
+                                    $shelfUnitSelect.html('<option value="">请先选择货架</option>').prop('disabled', true);
+                                    if ($shelfUnitSelect.data('amui.selected')) {
+                                        $shelfUnitSelect.selected('refresh');
+                                    }
+                                }
+                            });
+                        }
+                    }, 100);
                 }
                 , yes: function ($content) {
-                    $content.find('form').myAjaxSubmit({
+                    var $form = $content.find('form');
+                    var shopId = $form.find('select[name="shelf[shop_id]"]').val();
+                    var shelfId = $form.find('#select-shelf').val();
+                    var shelfUnitId = $form.find('select[name="shelf[shelf_unit]"]').val();
+                    
+                    // 表单验证：至少需要选择仓库
+                    if (!shopId) {
+                        layer.msg('请至少选择仓库', {icon: 2, time: 2000});
+                        return false;
+                    }
+                    
+                    // 如果选择了货架但没有选择货位，给出提示（但不阻止提交）
+                    if (shelfId && !shelfUnitId) {
+                        // 货位是可选的，所以这里不阻止提交
+                    }
+                    
+                    // 提交表单
+                    $form.myAjaxSubmit({
                         url: '<?= url('/store/package.index/changeShelf') ?>',
-                        data: {selectIds:data.selectId},
+                        data: {selectIds: data.selectId},
+                        beforeSubmit: function() {
+                            layer.load(2, {time: 10*1000});
+                        },
+                        success: function(res) {
+                            layer.closeAll('loading');
+                        }
                     });
                     return true;
                 }
