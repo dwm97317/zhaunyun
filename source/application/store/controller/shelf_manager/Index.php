@@ -74,7 +74,7 @@ class Index extends Controller
      */
     public function getShelf(){
         $shop_id = $this->request->param('shop_id');
-        $shelf = (new Shelf())->getList(['ware_no'=>$shop_id]);
+        $shelf = (new Shelf())->getAllList(['ware_no'=>$shop_id]);
         $shelfunit = [];
         if(count($shelf)>0){
             $shelfunit = (new ShelfUnit())->getAllList($shelf[0]['id']);
