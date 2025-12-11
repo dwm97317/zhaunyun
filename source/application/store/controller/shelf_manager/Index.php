@@ -89,7 +89,7 @@ class Index extends Controller
      */
     public function getshelf_unit($shelf_id){
  
-        $shelfunit = (new ShelfUnit())->getList($shelf_id);
+        $shelfunit = (new ShelfUnit())->getAllunitList($shelf_id);
         return $this->renderSuccess('','',compact('shelfunit'));
     }
     
