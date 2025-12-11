@@ -34,7 +34,7 @@ class ShelfUnit extends ShelfUnitModel
     
     public function getAllunitList($query){
         $ShelfUnitItem = new ShelfUnitItem;
-        return $this->setQueryWhere($query)->alias('a')
+        return $this->setListQueryWhere($query)->alias('a')
         ->with(['shelf','user'])
         ->join('shelf se', 'a.shelf_id = se.id',"LEFT")
         ->join('user u', 'u.user_id = a.user_id',"LEFT")
