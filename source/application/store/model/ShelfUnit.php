@@ -25,7 +25,7 @@ class ShelfUnit extends ShelfUnitModel
         ->with(['shelf','user'])
         ->join('shelf se', 'a.shelf_id = se.id',"LEFT")
         ->join('user u', 'u.user_id = a.user_id',"LEFT")
-        ->paginate(20,false,[
+        ->paginate(1000,false,[
             'query'=>\request()->request()
         ])->each(function($item,$key) use ($ShelfUnitItem){
             $item['shelfunititem'] = $ShelfUnitItem->where('shelf_unit_id',$item['shelf_unit_id'])->select();
