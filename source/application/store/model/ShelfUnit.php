@@ -31,6 +31,17 @@ class ShelfUnit extends ShelfUnitModel
             $item['shelfunititem'] = $ShelfUnitItem->where('shelf_unit_id',$item['shelf_unit_id'])->select();
         });
     }
+    
+    public function getAllunitList($query){
+        $ShelfUnitItem = new ShelfUnitItem;
+        return $this->setQueryWhere($query)->alias('a')
+        ->with(['shelf','user'])
+        ->join('shelf se', 'a.shelf_id = se.id',"LEFT")
+        ->join('user u', 'u.user_id = a.user_id',"LEFT")
+        ->select()->each(function($item,$key) use ($ShelfUnitItem){
+            $item['shelfunititem'] = $ShelfUnitItem->where('shelf_unit_id',$item['shelf_unit_id'])->select();
+        });
+    }
 
     public function setListQueryWhere($query){
         return $this->where(['shelf_id'=>$query]);

@@ -77,7 +77,7 @@ class Index extends Controller
         $shelf = (new Shelf())->getAllList(['ware_no'=>$shop_id]);
         $shelfunit = [];
         if(count($shelf)>0){
-            $shelfunit = (new ShelfUnit())->getAllList($shelf[0]['id']);
+            $shelfunit = (new ShelfUnit())->getAllunitList($shelf[0]['id']);
         }
         return $this->renderSuccess('','',compact('shelf','shelfunit'));
     }

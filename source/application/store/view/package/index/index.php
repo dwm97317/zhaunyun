@@ -838,13 +838,13 @@ function renderData(datatotal) {
                
                 console.log(_data,78);
                 if (sType=='shelf'){
-                     var _data = res.data.shelf.data;
+                     var _data = res.data.shelf;
                     for (var i=0;i<_data.length;i++){
                         // _html += '<option value="">'+_data[i]['shelf_name']+'</option>';
                         $selected.append('<option value="' + _data[i]['id'] +'">' + _data[i]['shelf_name'] + '</option>');
                     }
                 }else{
-                     var _data = res.data.shelfunit.data;
+                     var _data = res.data.shelfunit;
                     console.log(444);
                     for (var i=0;i<_data.length;i++){
                         // _html += '<option value="">'+_data[i]['shelf_name']+'</option>';
