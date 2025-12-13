@@ -29,8 +29,13 @@
                                     <tr>
                                         <td class="am-text-middle"><?= $item['id'] ?></td>
                                         <td class="am-text-middle">
-                                            <p>ID:<?= $item['user']['user_id'] ?></p>
                                             <p>昵称：<?= $item['user']['nickName'] ?></p>
+                                            <?php if($set['usercode_mode']['is_show']!=1) :?>
+                                            <p>ID:<?= $item['user']['user_id'] ?></p>
+                                            <?php endif;?>
+                                            <?php if($set['usercode_mode']['is_show']!=0) :?>
+                                            <p>Code:<?= $item['user']['user_code'] ?? '' ?></p>
+                                            <?php endif;?>
                                         </td>
                                         <td> 
                                         <?php foreach ($item['image'] as $it): ?>

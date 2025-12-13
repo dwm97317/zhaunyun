@@ -3,6 +3,7 @@ namespace app\store\controller\setting;
 use app\store\controller\Controller;
 use app\common\model\Certificate as CertificateModel;
 use think\Cache;
+use app\store\model\Setting;
 use app\common\service\Message;
 
 /**
@@ -22,7 +23,8 @@ class Certificate extends Controller
         $model = new CertificateModel;
         $scoreType = 0;
         $list = $model->getList($scoreType);
-        return $this->fetch('index', compact('list'));
+        $set = Setting::detail('store')['values'];
+        return $this->fetch('index', compact('list', 'set'));
     }
 
     /**

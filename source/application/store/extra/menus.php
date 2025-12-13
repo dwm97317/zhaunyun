@@ -1062,6 +1062,10 @@ return [
                 'name' => '财务功能',
                 'submenu' => [
                     [
+                        'name'=>'支付流水',
+                        'index'=>'setting.payment_flow/index',
+                    ],
+                    [
                         'name' => '支付设置',
                         'index' => 'setting/paytype',
                     ],

@@ -273,12 +273,15 @@
                                             <div class="am-form-file">
                                                 <div class=" am-form-file">
                                                     <form>
-                                                		<input type=button value="点击拍照" onClick="take_snapshot()">
+                                                		<input type=button value="启用摄像头" id="enable_camera_btn" onClick="enableWebcam()" style="margin-right: 10px;">
+                                                		<input type=button value="点击拍照" onClick="take_snapshot()" id="take_snapshot_btn" style="display:none;">
                                                 	</form>
                                                 </div>
                                             </div>
                                             <div id="results"></div>
                                             <a href="#" type='primary' class='j-uploadimg'>确认上传</a>
+                                            <div id="camera_error" style="color: red; margin-top: 10px; display: none; line-height: 1.6;"></div>
+                                            <div id="camera_help" style="color: #666; margin-top: 10px; font-size: 12px; display: none; line-height: 1.6;"></div>
                                       </div>
                                 </div>
                             </div>
@@ -291,7 +294,128 @@
                         			jpeg_quality: 100,
                         			flip_horiz: true
                         		});
-                        		Webcam.attach( '#my_camera' );
+                        		
+                        		// 获取浏览器类型
+                        		function getBrowserType() {
+                        			var ua = navigator.userAgent.toLowerCase();
+                        			if (ua.indexOf('chrome') > -1 && ua.indexOf('edge') === -1) return 'chrome';
+                        			if (ua.indexOf('firefox') > -1) return 'firefox';
+                        			if (ua.indexOf('edge') > -1) return 'edge';
+                        			if (ua.indexOf('safari') > -1 && ua.indexOf('chrome') === -1) return 'safari';
+                        			return 'other';
+                        		}
+                        		
+                        		// 获取权限操作说明
+                        		function getPermissionHelp(browserType) {
+                        			var help = '<strong>如何允许摄像头权限：</strong><br>';
+                        			switch(browserType) {
+                        				case 'chrome':
+                        					help += '1. 点击地址栏左侧的锁图标或摄像头图标<br>';
+                        					help += '2. 找到"摄像头"选项，选择"允许"<br>';
+                        					help += '3. 如果已拒绝，请点击"重置权限"后刷新页面<br>';
+                        					help += '或者：设置 → 隐私和安全 → 网站设置 → 摄像头 → 允许此网站';
+                        					break;
+                        				case 'firefox':
+                        					help += '1. 点击地址栏左侧的锁图标<br>';
+                        					help += '2. 点击"更多信息" → "权限"标签<br>';
+                        					help += '3. 找到"使用摄像头"，选择"允许"<br>';
+                        					help += '或者：设置 → 隐私与安全 → 权限 → 摄像头 → 允许此网站';
+                        					break;
+                        				case 'edge':
+                        					help += '1. 点击地址栏左侧的锁图标或摄像头图标<br>';
+                        					help += '2. 找到"摄像头"选项，选择"允许"<br>';
+                        					help += '3. 如果已拒绝，请点击"重置权限"后刷新页面<br>';
+                        					help += '或者：设置 → Cookie 和网站权限 → 摄像头 → 允许此网站';
+                        					break;
+                        				case 'safari':
+                        					help += '1. Safari → 偏好设置 → 网站 → 摄像头<br>';
+                        					help += '2. 找到当前网站，选择"允许"<br>';
+                        					help += '或者：在地址栏点击摄像头图标，选择"允许"';
+                        					break;
+                        				default:
+                        					help += '请在浏览器设置中找到"摄像头"或"相机"权限，设置为"允许"';
+                        			}
+                        			return help;
+                        		}
+                        		
+                        		// 检查权限状态
+                        		function checkCameraPermission() {
+                        			if (navigator.permissions && navigator.permissions.query) {
+                        				navigator.permissions.query({name: 'camera'}).then(function(result) {
+                        					if (result.state === 'denied') {
+                        						var helpDiv = document.getElementById('camera_help');
+                        						helpDiv.innerHTML = getPermissionHelp(getBrowserType());
+                        						helpDiv.style.display = 'block';
+                        					}
+                        				}).catch(function() {
+                        					// 某些浏览器不支持此API
+                        				});
+                        			}
+                        		}
+                        		
+                        		// 添加错误处理
+                        		Webcam.on('error', function(err) {
+                        			var errorMsg = '';
+                        			var showHelp = false;
+                        			
+                        			if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                        				errorMsg = '<strong style="color: red;">权限被拒绝</strong><br>';
+                        				errorMsg += '浏览器拒绝了摄像头访问权限。';
+                        				showHelp = true;
+                        			} else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                        				errorMsg = '<strong style="color: red;">未找到摄像头设备</strong><br>';
+                        				errorMsg += '请检查您的设备是否连接了摄像头，并确保摄像头未被其他程序占用。';
+                        			} else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                        				errorMsg = '<strong style="color: red;">摄像头被占用</strong><br>';
+                        				errorMsg += '摄像头可能被其他应用程序占用，请关闭其他使用摄像头的程序后重试。';
+                        			} else {
+                        				errorMsg = '<strong style="color: red;">无法访问摄像头</strong><br>';
+                        				errorMsg += '错误信息：' + (err.message || err.toString());
+                        			}
+                        			
+                        			document.getElementById('camera_error').innerHTML = errorMsg;
+                        			document.getElementById('camera_error').style.display = 'block';
+                        			
+                        			if (showHelp) {
+                        				var helpDiv = document.getElementById('camera_help');
+                        				helpDiv.innerHTML = getPermissionHelp(getBrowserType());
+                        				helpDiv.style.display = 'block';
+                        			}
+                        			
+                        			document.getElementById('enable_camera_btn').style.display = 'inline-block';
+                        			document.getElementById('take_snapshot_btn').style.display = 'none';
+                        		});
+                        		
+                        		// 成功加载摄像头
+                        		Webcam.on('live', function() {
+                        			document.getElementById('camera_error').style.display = 'none';
+                        			document.getElementById('camera_help').style.display = 'none';
+                        			document.getElementById('enable_camera_btn').style.display = 'none';
+                        			document.getElementById('take_snapshot_btn').style.display = 'inline-block';
+                        		});
+                        		
+                        		// 启用摄像头函数
+                        		function enableWebcam() {
+                        			document.getElementById('camera_error').style.display = 'none';
+                        			document.getElementById('camera_help').style.display = 'none';
+                        			
+                        			// 检查是否使用HTTPS（某些浏览器要求）
+                        			if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                        				document.getElementById('camera_error').innerHTML = '<strong style="color: red;">安全提示</strong><br>现代浏览器要求使用 HTTPS 协议才能访问摄像头。请使用 HTTPS 访问此页面。';
+                        				document.getElementById('camera_error').style.display = 'block';
+                        				return;
+                        			}
+                        			
+                        			try {
+                        				Webcam.attach('#my_camera');
+                        			} catch(e) {
+                        				document.getElementById('camera_error').innerHTML = '<strong style="color: red;">启用摄像头失败</strong><br>' + e.message;
+                        				document.getElementById('camera_error').style.display = 'block';
+                        			}
+                        		}
+                        		
+                        		// 页面加载时检查权限状态
+                        		checkCameraPermission();
                         	</script>
                         	 <?php endif; ?>
                         
