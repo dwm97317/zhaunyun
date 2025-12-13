@@ -24,6 +24,8 @@ class SharingOrder extends BaseModel{
            1 => '开团中',
            2 => '已完成',
            3 => '已解散',
+           4 => '已发货',
+           5 => '已完结',
         ];
         return ['text' => $map[$value] , 'value'=>$value];
     }

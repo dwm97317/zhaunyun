@@ -38,6 +38,12 @@
                                             <option value="3"
                                                 <?= $extractStatus === '3' ? 'selected' : '' ?>>已解散
                                             </option>
+                                            <option value="4"
+                                                <?= $extractStatus === '4' ? 'selected' : '' ?>>已发货
+                                            </option>
+                                            <option value="5"
+                                                <?= $extractStatus === '5' ? 'selected' : '' ?>>已完结
+                                            </option>
                                         </select>
                                     </div>
                                     
@@ -116,7 +122,7 @@
                             </thead>
                             <tbody id="body">
                             <?php if (!$list->isEmpty()): foreach ($list as $item): ?>
-                            <?php $status = [0=>'待审核',1=>'开团中',2=>'已完成',3=>'已解散']; ?>
+                            <?php $status = [0=>'待审核',1=>'开团中',2=>'已完成',3=>'已解散',4=>'已发货',5=>'已完结']; ?>
                                 <tr>
                                     <td class="am-text-middle">
                                        <input name="checkIds" type="checkbox" value="<?= $item['order_id'] ?>"> 
@@ -207,9 +213,16 @@
                                             
                                             
                                             <?php if (checkPrivilege('apps.sharing.order/delivery')): ?>
-                                            <?php if (in_array($item['status']['value'],[1,2,4,5]) && $item['status']['value'] != 3): ?>
+                                            <?php if (in_array($item['status']['value'],[1,2]) && $item['status']['value'] != 3): ?>
                                              <a href="<?= url('apps.sharing.order/delivery', ['id' => $item['order_id']]) ?>">
                                                 <i class="iconfont icon-baoguo_fahuo_o"></i> 发货
+                                            </a>
+                                            <?php endif; ?>
+                                            <?php endif; ?>
+                                            <?php if (checkPrivilege('apps.sharing.order/completeOrder')): ?>
+                                            <?php if ($item['status']['value'] == 4): ?>
+                                            <a class="complete-order" href="javascript:void(0);" data-id="<?= $item['order_id'] ?>">
+                                                <i class="am-icon-check-circle"></i> 已完结
                                             </a>
                                             <?php endif; ?>
                                             <?php endif; ?>
@@ -381,6 +394,34 @@
             layer.confirm('确定要解散该拼团吗？解散后相关包裹和集运单将被解除关联。', {icon: 3, title: '提示'}, function(index){
                 $.ajax({
                     url: '<?= url('store/apps.sharing.order/disbandOrder') ?>',
+                    type: 'POST',
+                    data: {id: data.id},
+                    dataType: 'json',
+                    success: function(res){
+                        if(res.code == 1){
+                            layer.msg(res.msg, {icon: 1}, function(){
+                                location.reload();
+                            });
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('操作失败', {icon: 2});
+                    }
+                });
+                layer.close(index);
+            });
+        });
+        
+        /**
+         * 已完结拼团
+         */
+        $('.complete-order').on('click', function(){
+            var data = $(this).data();
+            layer.confirm('确定要将该拼团标记为已完结吗？', {icon: 3, title: '提示'}, function(index){
+                $.ajax({
+                    url: '<?= url('store/apps.sharing.order/completeOrder') ?>',
                     type: 'POST',
                     data: {id: data.id},
                     dataType: 'json',

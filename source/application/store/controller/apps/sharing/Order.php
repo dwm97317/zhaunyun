@@ -216,7 +216,7 @@ class Order extends Controller
         }
         $data = input();
        
-        $res = $SharingOrder->where('order_id',$id)->update(['inpack_id'=> $data['delivery']['t_order_sn'],'status'=>6]);
+        $res = $SharingOrder->where('order_id',$id)->update(['inpack_id'=> $data['delivery']['t_order_sn'],'status'=>4]);
         //TODO发货记录log and message send 
         if(!$res){
              return $this->renderError('发货失败');
@@ -531,6 +531,34 @@ class Order extends Controller
             $SharingOrder->rollback();
             return $this->renderError('解散失败：' . $e->getMessage());
         }
+    }
+    
+    //已完结拼团
+    public function completeOrder(){
+        $id = $this->request->param('id');
+        $SharingOrder = new SharingOrder();
+        
+        // 获取拼团订单
+        $order = $SharingOrder->where('order_id', $id)->find();
+        if (!$order) {
+            return $this->renderError('订单不存在');
+        }
+        
+        // 检查订单状态是否为已发货（状态4）
+        if ($order['status']['value'] != 4) {
+            return $this->renderError('只有已发货的订单才能标记为已完结');
+        }
+        
+        // 更新订单状态为已完结
+        $result = $SharingOrder->where('order_id', $id)->update([
+            'status' => 5,
+            'update_time' => time()
+        ]);
+        
+        if($result){
+            return $this->renderSuccess('拼团已完结');
+        }
+        return $this->renderError('操作失败');
     }
       
 }
