@@ -843,6 +843,392 @@ class Page extends Controller
       return $this->renderSuccess($data);
     }
     
+    // /**
+    // * 运费查询
+    // * 最全运费查询
+    // */
+    // public function getfree(){
+    //   $length = $this->postData('length')[0];
+    //   $width = $this->postData('width')[0];
+    //   $height = $this->postData('height')[0];
+    //   $weigth = !empty($this->postData('weigth')[0])?$this->postData('weigth')[0]:0;
+    //   $country = $this->postData('country_id')[0];
+    //   $category = $this->postData('class_ids')[0];
+       
+    //   $freeType = $this->postData('freeType')[0];
+    //   $service = $this->postData('service')[0]; //增值服务
+    //   $param = $this->request->param();
+    //   $linecategory = isset($param['linecategory'])?$param['linecategory']:0;
+
+    //   $weigthV = 0; //初始化为0
+    //   $weigthV_fi =0;
+    //   $wxappId = $this->request->param('wxapp_id');
+    //   $setting = SettingModel::getItem('store',$wxappId);
+    //   $line_type_unit_map = [10 =>'g',20=>'kg',30=>'lbs',40=>'CBM'];
+   
+    //   //这里用于计算路线国家的匹配度
+    //     if($freeType==0){
+    //         $where['line_type'] = $freeType;
+    //         if($linecategory !=0){
+    //                 $where['line_category'] = $linecategory;
+    //         }
+    //         if(!empty($category)){
+    //             $line = (new Line())->with('image')->where($where)->where('FIND_IN_SET(:ids,categorys)', ['ids' => $category])->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->select();
+    //         }else{
+    //             $line = (new Line())->with('image')->where($where)->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->select();
+    //         }
+    //     }else{
+    //         $where['line_type'] = $freeType;
+    //         if($linecategory !=0){
+    //             $where['line_category'] = $linecategory;
+    //         }
+    //         if(!empty($category)){
+    //             $line = (new Line())->with('image')->where($where)->where('FIND_IN_SET(:ids,categorys)', ['ids' => $category])->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->select();
+    //         }else{
+    //             $line = (new Line())->with('image')->where($where)->where('FIND_IN_SET(:id,countrys)', ['id' => $country])->select();
+    //         }
+    //     }
+    // //   dump((new Line())->getLastsql());die;
+    //   //还需要计算重量范围是否符合，物品属性是否匹配
+    //     $lines =[];
+    //     $k = 0;
+    //     $oWeigth = $weigth;
+    //     foreach ($line as $key => $value) {
+    //         //校验长宽高是否存在
+    //       if(!empty($width) && !empty($height) && !empty($length)){
+    //          // 计算体积重 6000计算方式
+    //          $weigthV = round(($length*$width*$height)/$value['volumeweight'],2);
+          
+    //          if($value['volumeweight_type']==20){
+    //              $weigthV = round(($oWeigth + (($length*$width*$height)/$value['volumeweight'] - $oWeigth)*$value['bubble_weight']/100),2); 
+    //          }
+    //          $oWeigth = $weigthV>=$weigth*$value['volumeweight_weight']?$weigthV:$weigth; 
+    //       }
+
+    //       if(isset($value['max_weight']) && isset($value['weight_min'])){
+    //          if(($oWeigth < $value['weight_min']) || ($oWeigth > $value['max_weight'])){
+    //              continue;
+    //          }
+    //       }
+    //     //   dump($setting['weight_mode']['mode']);die;
+    //   if($setting['is_discount']==1){
+    //     $this->user = $this->getUser();
+      
+    //     $UserLine =  (new UserLine());
+    //     $linedata= $UserLine->where('user_id',$this->user['user_id'])->where('line_id',$value['id'])->find();
+    //         if($linedata){
+    //           $value['discount']  = $linedata['discount'];
+    //         }else{
+    //             if(isset($this->user['grade']['equity']['discount']) && $this->user['grade']['status']==1){
+    //               $value['discount'] = isset($this->user['grade']['equity']['discount'])?($this->user['grade']['equity']['discount']/10):1;  
+    //             }else{
+    //               $value['discount'] = 1;
+    //             }
+    //         }
+    //     }else{
+    //         $value['discount'] = isset($this->user['grade']['equity']['discount'])?($this->user['grade']['equity']['discount']/10):1;
+    //     }
+      
+    //       $value['line_type_unit_name'] =  $line_type_unit_map[$value['line_type_unit']];
+    //       $value['weight'] = $oWeigth;
+    //       $value['sortprice'] ='';
+    //       $value['predict'] =[];
+    //       $value['service'] =0;
+    //       $lines[$k] =$value;
+    //       $k = $k+1;
+    //     }
+    //     $PackageService = new PackageService(); 
+    //     //对剩余符合条件的路线进行计算费用；
+    //   foreach ($lines as $key => $value) {
+    //       $lines[$key]['predict'] = [
+    //           'weight' => $oWeigth,
+    //           'price' => '包裹重量超限',
+    //       ]; 
+    //       $oWeigth = $value['weight'];
+           
+    //       //单位转化
+    //       switch ($setting['weight_mode']['mode']) {
+    //           case '10':
+    //                 if($value['line_type_unit'] == 20){
+    //                     $oWeigth = 0.001 * $oWeigth;
+    //                 }
+    //                 if($value['line_type_unit'] == 30){
+    //                     $oWeigth = 0.00220462262185 * $oWeigth;
+    //                 }
+    //               break;
+    //           case '20':
+    //                 if($value['line_type_unit'] == 10){
+    //                     $oWeigth = 1000 * $oWeigth;
+    //                 }
+    //                 if($value['line_type_unit'] == 30){
+    //                     $oWeigth = 2.20462262185 * $oWeigth;
+    //                 }
+    //               break;
+    //           case '30':
+    //               if($value['line_type_unit'] == 10){
+    //                     $oWeigth = 453.59237 * $oWeigth;
+    //                 }
+    //                 if($value['line_type_unit'] == 20){
+    //                     $oWeigth = 0.45359237 * $oWeigth;
+    //                 }
+    //               break;
+    //           default:
+    //               if($value['line_type_unit'] == 10){
+    //                     $oWeigth = 1000 * $oWeigth;
+    //                 }
+    //                 if($value['line_type_unit'] == 30){
+    //                     $oWeigth = 2.20462262185 * $oWeigth;
+    //                 }
+    //               break;
+    //       }
+    //       $oWeigth = round($oWeigth,2);
+    //         //税和增值服务费用
+    //       $otherfree = 0;
+    //       $reprice=0;
+    //       switch ($value['free_mode']) {
+    //          case '1':
+    //           $free_rule = json_decode($value['free_rule'],true);
+               
+    //           $size = sizeof($free_rule);    
+    //           if(($oWeigth>= $free_rule[0]['weight'][0]) && ($oWeigth<= $free_rule[$size-1]['weight'][1])){
+   
+    //               foreach ($free_rule as $k => $v) {
+    //                   if ($oWeigth>$v['weight'][1]){
+    //                         $reprice += (floatval($v['weight'][1]) - floatval($v['weight'][0]))*floatval($v['weight_price']);
+    //                         continue;
+    //                   }else{
+    //                       $reprice += ($oWeigth - floatval($v['weight'][0]))*$v['weight_price'];
+    //                       break;
+    //                   }
+    //               }
+        
+    //               $lines[$key]['sortprice'] =($reprice+ floatval($free_rule[0]['weight_price']) * floatval($free_rule[0]['weight'][0])+$otherfree)*$value['discount'];
+              
+    //               $lines[$key]['predict'] = [
+    //                 'weight' => $oWeigth,
+    //                 'price' => number_format(($reprice+ floatval($free_rule[0]['weight_price']) * floatval($free_rule[0]['weight'][0])+$otherfree)*$value['discount'],2),
+    //                 'rule' => $free_rule
+    //               ];         
+    //           }else{
+    //                 break;
+    //           }
+    //           break;
+    //          case '2':
+    //           //首重价格+续重价格*（总重-首重）
+               
+    //           $free_rule = json_decode($value['free_rule'],true);
+    //           foreach ($free_rule as $k => $v) {
+    //               //判断时候需要取整
+    //                 if($value['is_integer']==1){
+    //                     $ww = ceil((($oWeigth-$v['first_weight'])/$v['next_weight']));
+    //                 }else{
+    //                     $ww = ($oWeigth-$v['first_weight'])/$v['next_weight'];
+    //                 }
+               
+    //               if ($oWeigth >= $v['first_weight']){
+    //                       $lines[$key]['sortprice'] =($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'];
+    //                       $lines[$key]['predict'] = [
+    //                           'weight' => $oWeigth,
+    //                           'price' => number_format(($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'],2),
+    //                           'rule' => $v
+    //                       ]; 
+    //               }else{
+                        
+    //                   $lines[$key]['sortprice'] = $v['first_price'];
+    //                   $lines[$key]['predict'] = [
+    //                           'weight' => $oWeigth,
+    //                           'price' => number_format(($v['first_price']+ $otherfree)*$value['discount'],2),
+    //                           'rule' => $v
+    //                       ]; 
+    //               }
+    //           }
+    //           break;
+    //           case '3':
+    //             $free_rule = json_decode($value['free_rule'],true);
+    //           foreach ($free_rule as $k => $v) {
+    //               if ($oWeigth >= $v['weight'][0]){
+    //                   if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
+    //                       $lines[$key]['sortprice'] =(floatval($v['weight_price']) + $otherfree)*$value['discount'] ;
+    //                       $lines[$key]['predict'] = [
+    //                           'weight' => $oWeigth,
+    //                           'price' => number_format((floatval($v['weight_price']) + $otherfree)*$value['discount'],2),
+    //                           'rule' => $v
+    //                       ];   
+    //                   }
+    //               }
+    //           }
+    //           break;
+               
+    //           case '4':
+    //             $free_rule = json_decode($value['free_rule'],true);
+    //             // dump($value['free_rule']);
+    //           foreach ($free_rule as $k => $v) {
+    //               //判断时候需要取整
+    //                 if($value['is_integer']==1){
+    //                     $ww = ceil(floatval($oWeigth)/floatval($v['weight_unit']));
+    //                 }else{
+    //                     $ww = floatval($oWeigth)/floatval($v['weight_unit']);
+    //                 }
+    //               if ($oWeigth >= $v['weight'][0]){
+    //                   if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
+    //                       !isset($v['weight_unit']) && $v['weight_unit']=1;
+    //                       $lines[$key]['sortprice'] =(floatval($v['weight_price']) *$ww  + floatval($otherfree))*$value['discount'] ;
+    //                       $lines[$key]['predict'] = [
+    //                           'weight' => $oWeigth,
+    //                           'price' => number_format((floatval($v['weight_price']) * $ww + floatval($otherfree))*$value['discount'],2),
+    //                           'rule' => $v,
+    //                           'service' =>0,
+    //                       ];
+    //                     break;
+    //                   }
+                    
+    //               }else{
+    //                   $lines[$key]['sortprice'] =(floatval($v['weight_price']) *$v['weight'][0]  + floatval($otherfree))*$value['discount'] ;
+    //                   $lines[$key]['predict'] = [
+    //                       'weight' => $oWeigth,
+    //                       'price' => number_format((floatval($v['weight_price']) * $v['weight'][0] + floatval($otherfree))*$value['discount'],2),
+    //                       'rule' => $v,
+    //                       'service' =>0,
+    //                   ]; 
+    //               }
+    //           }
+    //           break;
+               
+    //           case '5':
+    //             $free_rule = json_decode($value['free_rule'],true);
+            
+    //           foreach ($free_rule as $k => $vv) {
+                   
+    //               //判断时候需要取整
+    //             if($vv['type']=="1"){
+    //                 if($value['is_integer']==1){
+    //                     $ww = ceil((($oWeigth-$vv['first_weight'])/$vv['next_weight']));
+    //                 }else{
+    //                     $ww = ($oWeigth-$vv['first_weight'])/$vv['next_weight'];
+    //                 }
+                   
+    //                 if ($oWeigth >= $vv['first_weight']){
+    //                       $lines[$key]['sortprice'] =($vv['first_price']+ $ww*$vv['next_price'] + $otherfree)*$value['discount'];
+    //                       $lines[$key]['predict'] = [
+    //                           'weight' => $oWeigth,
+    //                           'price' => number_format(($vv['first_price']+ $ww*$vv['next_price'] + $otherfree)*$value['discount'],2),
+    //                           'rule' => $vv,
+    //                           'service' =>0,
+    //                       ]; 
+    //               }else{
+    //                   $lines[$key]['sortprice'] = $vv['first_price'];
+    //                   $lines[$key]['predict'] = [
+    //                           'weight' => $oWeigth,
+    //                           'price' => number_format(($vv['first_price']+ $otherfree)*$value['discount'],2),
+    //                           'rule' => $vv,
+    //                           'service' =>0,
+    //                       ]; 
+    //               }
+    //             }
+                
+    //             if($vv['type']=="2"){
+           
+    //                   if ($oWeigth >= $vv['weight'][0]){
+    //                       if (isset($vv['weight'][1]) && $oWeigth<=$vv['weight'][1]){
+    //                           $lines[$key]['sortprice'] =(floatval($vv['weight_price']) + $otherfree)*$value['discount'] ;
+    //                           $lines[$key]['predict'] = [
+    //                               'weight' => $oWeigth,
+    //                               'price' => number_format((floatval($vv['weight_price']) + $otherfree)*$value['discount'],2),
+    //                               'rule' => $vv,
+    //                               'service' =>0,
+    //                           ];   
+    //                       }
+    //                   }
+                   
+    //             }
+       
+    //             if($vv['type']=="3"){
+    //               //判断时候需要取整
+    //                 if($value['is_integer']==1){
+    //                     $ww = ceil(floatval($oWeigth)/floatval($vv['weight_unit']));
+    //                 }else{
+    //                     $ww = floatval($oWeigth)/floatval($vv['weight_unit']);
+    //                 }
+    //               if ($oWeigth >= $vv['weight'][0]){
+    //                   if (isset($vv['weight'][1]) && $oWeigth<=$vv['weight'][1]){
+    //                       !isset($vv['weight_unit']) && $vv['weight_unit']=1;
+    //                       $lines[$key]['sortprice'] =(floatval($vv['weight_price']) *$ww  + floatval($otherfree))*$value['discount'] ;
+    //                       $lines[$key]['predict'] = [
+    //                           'weight' => $oWeigth,
+    //                           'price' => number_format((floatval($vv['weight_price']) * $ww + floatval($otherfree))*$value['discount'],2),
+    //                           'rule' => $vv,
+    //                           'service' =>0,
+    //                       ]; 
+    //                   }
+    //               }
+    //             }
+    //           }
+               
+    //           break;
+               
+    //           case '6':
+    //             $free_rule = json_decode($value['free_rule'],true);
+
+    //             foreach ($free_rule as $k => $v) {
+    //                 if($oWeigth >= $v['weight'][0] ){
+    //                   //判断时候需要取整
+    //                         if($value['is_integer']==1){
+    //                             $ww = ceil((($oWeigth-$v['first_weight'])/$v['next_weight']));
+    //                         }else{
+    //                             $ww = ($oWeigth-$v['first_weight'])/$v['next_weight'];
+    //                         }
+                       
+    //                       if ($oWeigth >= $v['first_weight']){
+    //                               $lines[$key]['sortprice'] =($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'];
+    //                               $lines[$key]['predict'] = [
+    //                                   'weight' => $oWeigth,
+    //                                   'price' => number_format(($v['first_price']+ $ww*$v['next_price'] + $otherfree)*$value['discount'],2),
+    //                                   'rule' => $v
+    //                               ]; 
+    //                         }else{
+    //                           $lines[$key]['sortprice'] = $v['first_price'];
+    //                           $lines[$key]['predict'] = [
+    //                                   'weight' => $oWeigth,
+    //                                   'price' => number_format(($v['first_price']+ $otherfree)*$value['discount'],2),
+    //                                   'rule' => $v
+    //                               ]; 
+    //                       }
+    //                     }
+    //           }
+    //           break;
+             
+    //          default:
+    //           break;
+    //       }
+    //         $pricetwo = $pricethree = $lines[$key]['sortprice'];
+    //         //计算打包费
+    //         if($service){
+    //           $servicelist = explode(',',$service);
+    //           $servicelist = array_unique($servicelist);
+    //           foreach ($servicelist as $val){
+    //               $servicedetail = $PackageService::detail($val);
+    //               if($servicedetail['type']==0){
+    //                   $lines[$key]['service'] = $lines[$key]['service'] + $servicedetail['price'];
+    //                   $pricethree = floatval($pricethree) + floatval($servicedetail['price']);
+    //               }
+    //               if($servicedetail['type']==1){
+    //                   $lines[$key]['service'] = floatval($pricetwo)*floatval($servicedetail['percentage'])/100 + floatval($lines[$key]['service']);
+    //                   $pricethree = floatval($pricetwo)* floatval($servicedetail['percentage'])/100 + floatval($pricethree);
+    //               }
+    //           }
+    //         }
+            
+            
+    //         $lines[$key]['sortprice'] = number_format(floatval($pricethree),2);
+    //   }
+       
+    //   $mapsort = [10=>'desc',20=>'asc',30=>'nat'];
+    //   $mapmode = [10=>'sortprice',20=>'sort',30=>'id'];
+    //   $line = $this->withImageById($lines,'image_id','image_path');
+    //   $sortedAccounts = $this->list_sort_by($line, $mapmode[$setting['sort_mode']], $mapsort[$setting['is_sort']]);
+    //   return $this->renderSuccess($sortedAccounts);
+    // }
+    
     /**
     * 运费查询
     * 最全运费查询
@@ -893,7 +1279,42 @@ class Page extends Controller
         $lines =[];
         $k = 0;
         $oWeigth = $weigth;
+        // 获取用户信息（如果存在token）
+        $user = null;
+        $userGradeId = null;
+        try {
+            $user = $this->getUser(false); // false表示不强制要求token
+            if ($user) {
+                $userGradeId = isset($user['grade_id']) ? intval($user['grade_id']) : (isset($user['grade']['grade_id']) ? intval($user['grade']['grade_id']) : null);
+            }
+        } catch (\Exception $e) {
+            // 如果没有token或获取用户失败，继续执行，但grade_id判断会跳过
+        }
+        
         foreach ($line as $key => $value) {
+            // 判断线路的grade_id是否符合用户条件
+            $lineGradeId = isset($value['grade_id']) ? intval($value['grade_id']) : null;
+            if ($lineGradeId !== null) {
+                // grade_id = -1: 所有人都适用
+                // grade_id = 0: 仅普货会员适用（grade_id为0或null的用户）
+                // grade_id > 0: 针对对应会员等级
+                if ($lineGradeId == -1) {
+                    // 所有人都适用，继续
+                } elseif ($lineGradeId == 0) {
+                    // 仅普货会员适用，需要判断用户是否是普货会员
+                    // 如果用户有会员等级且不是普货会员（grade_id != 0），跳过此线路
+                    if ($userGradeId !== null && $userGradeId != 0) {
+                        continue;
+                    }
+                } elseif ($lineGradeId > 0) {
+                    // 针对特定会员等级，需要精确匹配
+                    if ($userGradeId != $lineGradeId) {
+                        // 用户等级不匹配，跳过此线路
+                        continue;
+                    }
+                }
+            }
+            
             //校验长宽高是否存在
            if(!empty($width) && !empty($height) && !empty($length)){
              // 计算体积重 6000计算方式
@@ -912,21 +1333,33 @@ class Page extends Controller
            }
         //   dump($setting['weight_mode']['mode']);die;
        if($setting['is_discount']==1){
-        $this->user = $this->getUser();
+        if (!$user) {
+            try {
+                $this->user = $this->getUser();
+            } catch (\Exception $e) {
+                $this->user = null;
+            }
+        } else {
+            $this->user = $user;
+        }
       
-        $UserLine =  (new UserLine());
-        $linedata= $UserLine->where('user_id',$this->user['user_id'])->where('line_id',$value['id'])->find();
+        if ($this->user && isset($this->user['user_id'])) {
+            $UserLine =  (new UserLine());
+            $linedata= $UserLine->where('user_id',$this->user['user_id'])->where('line_id',$value['id'])->find();
             if($linedata){
                $value['discount']  = $linedata['discount'];
             }else{
-                if(isset($this->user['grade']['equity']['discount']) && $this->user['grade']['status']==1){
+                if(isset($this->user['grade']['equity']['discount']) && isset($this->user['grade']['status']) && $this->user['grade']['status']==1){
                    $value['discount'] = isset($this->user['grade']['equity']['discount'])?($this->user['grade']['equity']['discount']/10):1;  
                 }else{
                    $value['discount'] = 1;
                 }
             }
+        } else {
+            $value['discount'] = 1;
+        }
         }else{
-            $value['discount'] = isset($this->user['grade']['equity']['discount'])?($this->user['grade']['equity']['discount']/10):1;
+            $value['discount'] = (isset($this->user) && isset($this->user['grade']['equity']['discount'])) ? ($this->user['grade']['equity']['discount']/10) : 1;
         }
       
            $value['line_type_unit_name'] =  $line_type_unit_map[$value['line_type_unit']];
@@ -1061,7 +1494,7 @@ class Page extends Controller
                
                case '4':
                 $free_rule = json_decode($value['free_rule'],true);
-                // dump($value['free_rule']);
+                      
                foreach ($free_rule as $k => $v) {
                    //判断时候需要取整
                     if($value['is_integer']==1){
@@ -1069,6 +1502,7 @@ class Page extends Controller
                     }else{
                         $ww = floatval($oWeigth)/floatval($v['weight_unit']);
                     }
+                   
                    if ($oWeigth >= $v['weight'][0]){
                       if (isset($v['weight'][1]) && $oWeigth<=$v['weight'][1]){
                           !isset($v['weight_unit']) && $v['weight_unit']=1;
@@ -1092,6 +1526,7 @@ class Page extends Controller
                        ]; 
                    }
                }
+               
                break;
                
                case '5':
@@ -1200,6 +1635,7 @@ class Page extends Controller
              default:
                break;
            }
+               
             $pricetwo = $pricethree = $lines[$key]['sortprice'];
             //计算打包费
             if($service){
@@ -1221,7 +1657,7 @@ class Page extends Controller
             
             $lines[$key]['sortprice'] = number_format(floatval($pricethree),2);
        }
-       
+     
       $mapsort = [10=>'desc',20=>'asc',30=>'nat'];
       $mapmode = [10=>'sortprice',20=>'sort',30=>'id'];
       $line = $this->withImageById($lines,'image_id','image_path');

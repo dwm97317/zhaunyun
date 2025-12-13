@@ -37,6 +37,19 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 支持会员等级 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select name="line[grade_id]" class="am-form-field" data-am-selected="{searchBox: 1, maxHeight: 200}">
+                                        <option value="-1" selected>所有用户都适用</option>
+                                        <option value="0">仅普货会员适用</option>
+                                        <?php if (count($gradeList)>0): foreach ($gradeList as $grade): ?>
+                                        <option value="<?= $grade['grade_id'] ?>"><?= $grade['name'] ?></option>
+                                        <?php endforeach; endif; ?>
+                                    </select>
+                                    <div class="help-block"><small>选择该线路适用的会员等级：-1表示所有人都适用，0表示仅普货会员适用，>0表示针对对应会员等级</small></div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">线路图片 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <div class="am-form-file">

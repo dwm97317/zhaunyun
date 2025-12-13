@@ -50,6 +50,7 @@
                                 <th width='80px'>线路ID</th>
                                 <th>路线名称</th>
                                 <th>运输形式</th>
+                                <th>支持会员等级</th>
                                 <th>限重</th>
                                 <th width='50px'>时效</th>
                                 <th>关税</th>
@@ -68,6 +69,24 @@
                                         <td class="am-text-middle"><?= $item['id'] ?></td>
                                         <td class="am-text-middle"><?= $item['name'] ?></td>
                                         <td class="am-text-middle"><?= $item['lineCategory']['name'] ?></td>
+                                        <td class="am-text-middle">
+                                            <?php 
+                                            $gradeId = isset($item['grade_id']) ? $item['grade_id'] : null;
+                                            if ($gradeId === null || $gradeId == -1) {
+                                                echo '所有用户都适用';
+                                            } elseif ($gradeId == 0) {
+                                                echo '仅普货会员适用';
+                                            } elseif (!empty($item['grade']) && isset($item['grade']['name'])) {
+                                                echo $item['grade']['name'];
+                                            } elseif ($gradeId > 0) {
+                                                // 如果关联数据未加载，尝试直接查询
+                                                $grade = \app\common\model\user\Grade::get($gradeId);
+                                                echo $grade ? $grade['name'] : '会员等级ID: ' . $gradeId;
+                                            } else {
+                                                echo '-';
+                                            }
+                                            ?>
+                                        </td>
                                         <td class="am-text-middle"><?= $item['weight_min'] ?></td>
                                         <td class="am-text-middle"><?= $item['limitationofdelivery'] ?></td>
                                         <td class="am-text-middle"><?= $item['tariff'] ?></td>

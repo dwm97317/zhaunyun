@@ -9,6 +9,7 @@ use app\common\model\Setting;
 use app\store\model\LineService;
 use app\store\model\store\Shop as ShopModel;
 use app\store\model\LineCategory as LineCategoryModel;
+use app\store\model\user\Grade as GradeModel;
 
 /**
  * 线路设置
@@ -69,7 +70,8 @@ class Line extends Controller
         $lineservice = (new LineService())->getListAll();
         if (!$this->request->isAjax()) {
             $shopList = ShopModel::getAllList();
-            return $this->fetch('add',compact('set','lineservice','shopList','linecategory'));
+            $gradeList = GradeModel::getUsableList();
+            return $this->fetch('add',compact('set','lineservice','shopList','linecategory','gradeList'));
         }
         // 新增记录
         $model = new LineModel();
@@ -170,7 +172,8 @@ class Line extends Controller
         if (!$this->request->isAjax()) {
             $linecategory = LineCategoryModel::getALL();
             $shopList = ShopModel::getAllList();
-            return $this->fetch('edit', compact('model','country','set','lineservice','shopList','linecategory'));
+            $gradeList = GradeModel::getUsableList();
+            return $this->fetch('edit', compact('model','country','set','lineservice','shopList','linecategory','gradeList'));
         }
         //  dump($this->postData('line'));die;
         // 更新记录

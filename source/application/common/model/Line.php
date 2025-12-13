@@ -27,4 +27,13 @@ class Line extends BaseModel
     {
         return $this->hasOne('LineCategory','category_id','line_category');
     }
+    
+    /**
+     * 关联会员等级
+     * @return \think\model\relation\HasOne
+     */
+    public function grade()
+    {
+        return $this->hasOne('app\common\model\user\Grade', 'grade_id', 'grade_id');
+    }
 }
