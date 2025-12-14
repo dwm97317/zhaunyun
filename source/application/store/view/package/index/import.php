@@ -18,7 +18,7 @@
                         <fieldset>
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">导入文件</div>&nbsp;&nbsp; 
-                                <a href="/assets/store/小思集运批量导入模板.xlsx">批量导入模板（点击下载）</a>
+                                <a href="<?= url('store/package.index/downloadTemplate') ?>">批量导入模板（点击下载）</a>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">选择文件</label>
@@ -46,6 +46,12 @@
                     </div>
                 </form>
                  <div class="am-u-sm-12" style="display:none;">
+                        <div id="downloadErrorBtn" style="display:none; margin: 10px 0;">
+                            <button type="button" class="am-btn am-btn-danger am-radius" onclick="importExcel.downloadErrorData()">
+                                <i class="am-icon-download"></i> 下载失败数据
+                            </button>
+                            <span id="errorCount" style="margin-left: 10px; color: #e53935;"></span>
+                        </div>
                         <table width="100%" class="am-table am-table-compact am-table-striped tpl-table-black ">
                             <thead>
                             <tr id="tableTr">
@@ -84,6 +90,8 @@ var importExcel = {
           
           '快递单号':'express_num',
           '物流名称':'express_name',
+          // 同时支持用户编号和用户ID，根据Excel表头自动识别
+          '用户编号':'user_code',
           '用户ID':'member_id',
           '唛头':'usermark',
           '仓库名称':'storage_name',
@@ -97,6 +105,8 @@ var importExcel = {
     },
     num:0,
     pro_num:0,
+    errorData:[], // 存储失败的数据
+    originalDataMap:{}, // 存储原始数据的映射
     onSelect:function(){
       var fileSelect = document.getElementsByClassName('data-file-select')[0];
         
@@ -190,11 +200,17 @@ var importExcel = {
              console.log(excelData + 'excel 为空的');
              return;
         }
+        // 重置失败数据数组和原始数据映射
+        this.errorData = [];
+        this.originalDataMap = {};
         $('.am-u-sm-12').show();
+        $('#downloadErrorBtn').hide();
         this.appendTableTr();
         for (var ik in excelData){
             excelData[ik]['id'] = new Date().getTime()+randomNum(000,999); 
             var _temp = this.getMapData(excelData[ik]);
+            // 保存原始数据和id的对应关系
+            this.originalDataMap[_temp['id']] = excelData[ik];
             this.tableTbodyAppend(excelData[ik]);
             this.upload(_temp);
         }
@@ -227,6 +243,11 @@ var importExcel = {
        processbarText.innerHTML = "正在处理中:<b>"+scale *100 +"%</b>";
        if (scale==1){
            processbarText.innerHTML = '处理完成';
+           // 如果有失败数据，显示下载按钮
+           if(importExcel.errorData.length > 0){
+               $('#downloadErrorBtn').show();
+               $('#errorCount').html('共有 <strong>' + importExcel.errorData.length + '</strong> 条数据导入失败');
+           }
            setTimeout(()=>{
                $('.process-bar').hide();
            },3000);
@@ -237,6 +258,15 @@ var importExcel = {
        td = tr.getElementsByTagName('td');
        td[td.length-1].style.color = 'red';
        td[td.length-1].innerHTML = res.error;
+       // 保存失败的数据
+       if(res.error && res.id){
+           var errorItem = {
+               data: res,
+               error: res.error,
+               originalData: importExcel.originalDataMap[res.id] || {}
+           };
+           importExcel.errorData.push(errorItem);
+       }
     },
     outPutSuccess:function(res){
        var tr = document.getElementById(res.id);
@@ -250,6 +280,89 @@ var importExcel = {
     },
     getFileExt:function(file){
         return file.substring(file.lastIndexOf('.')+1); 
+    },
+    // 下载失败数据
+    downloadErrorData:function(){
+        if(this.errorData.length == 0){
+            alert('没有失败的数据可下载');
+            return;
+        }
+        
+        // 清理和格式化错误数据
+        var formattedErrorData = [];
+        for(var i = 0; i < this.errorData.length; i++){
+            var item = this.errorData[i];
+            if(item && (item.error || item.originalData)){
+                // 清理data对象中的undefined字段
+                var cleanData = {};
+                if(item.data){
+                    for(var key in item.data){
+                        if(item.data.hasOwnProperty(key) && key !== 'undefined' && item.data[key] !== undefined){
+                            cleanData[key] = item.data[key];
+                        }
+                    }
+                }
+                
+                formattedErrorData.push({
+                    error: item.error || '未知错误',
+                    originalData: item.originalData || {},
+                    data: cleanData
+                });
+            }
+        }
+        
+        if(formattedErrorData.length == 0){
+            alert('没有有效的失败数据可下载');
+            return;
+        }
+        
+        // 发送失败数据到后端生成Excel
+        // 将数据转换为JSON字符串
+        var jsonData = JSON.stringify(formattedErrorData);
+        console.log('准备发送的数据:', formattedErrorData.length, '条', formattedErrorData);
+        console.log('JSON字符串长度:', jsonData.length);
+        
+        $.ajax({
+            type:"POST",
+            url:"<?= url('store/package.index/downloadErrorData')?>",
+            dataType:"JSON",
+            contentType:"application/x-www-form-urlencoded; charset=UTF-8",
+            data:{
+                errorData: jsonData
+            },
+            success:function(res){
+                var fileUrl = '';
+                // 尝试从data字段获取
+                if(res.code == 1 && res.data && res.data.file_name){
+                    fileUrl = res.data.file_name;
+                } 
+                // 如果data中没有，尝试从url字段获取（兼容旧格式）
+                else if(res.code == 1 && res.url && res.url.file_name){
+                    fileUrl = res.url.file_name;
+                }
+                // 如果url字段是字符串
+                else if(res.code == 1 && res.url && typeof res.url === 'string'){
+                    fileUrl = res.url;
+                }
+                
+                if(fileUrl){
+                    // 创建下载链接
+                    var a = document.createElement('a');
+                    a.href = fileUrl;
+                    a.download = '';
+                    a.target = '_blank';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }else{
+                    alert(res.msg || '下载失败：未找到文件链接');
+                }
+            },
+            error:function(xhr, status, error){
+                console.error('下载失败:', xhr, status, error);
+                alert('下载失败，请重试。错误信息: ' + (xhr.responseJSON ? xhr.responseJSON.msg : error));
+            }
+        });
     },
     envInit:function(){
                       

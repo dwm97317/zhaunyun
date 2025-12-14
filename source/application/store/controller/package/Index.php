@@ -96,6 +96,269 @@ class Index extends Controller
         return $this->fetch('index', compact('i','packlists','list','shopList','line','packageService','type','storeAddress','category','topcategory','set','countweight','batchlist','adminstyle','shelf'));
     }
     
+    // 下载导入失败的数据
+    public function downloadErrorData(){
+        // 引入excel插件
+        vendor('PHPExcel.PHPExcel');
+        
+        // 获取POST数据 - 优先从$_POST直接获取，避免框架的自动处理
+        $errorDataJson = '';
+        if(isset($_POST['errorData'])){
+            $errorDataJson = $_POST['errorData'];
+        } elseif(input('?post.errorData')){
+            $errorDataJson = input('post.errorData');
+        } else {
+            $post = request()->param();
+            if(isset($post['errorData'])){
+                $errorDataJson = $post['errorData'];
+            }
+        }
+        
+        if(empty($errorDataJson)){
+            return $this->renderError('没有接收到失败数据');
+        }
+        
+        // 如果是数组，直接使用
+        if(is_array($errorDataJson)){
+            $errorData = $errorDataJson;
+        } 
+        // 如果是字符串，解析JSON
+        elseif(is_string($errorDataJson)){
+            // 先尝试直接解析
+            $errorData = @json_decode($errorDataJson, true);
+            $jsonError = json_last_error();
+            
+            // 如果解析失败，尝试处理转义问题
+            if($jsonError !== JSON_ERROR_NONE){
+                // 方法1: 去除转义字符
+                $decoded1 = stripslashes($errorDataJson);
+                $errorData = @json_decode($decoded1, true);
+                $jsonError = json_last_error();
+                
+                // 方法2: 如果还是失败，尝试处理HTML实体
+                if($jsonError !== JSON_ERROR_NONE){
+                    $decoded2 = html_entity_decode($errorDataJson, ENT_QUOTES | ENT_HTML401, 'UTF-8');
+                    $errorData = @json_decode($decoded2, true);
+                    $jsonError = json_last_error();
+                }
+                
+                // 方法3: 如果还是失败，尝试去除首尾空白和可能的BOM
+                if($jsonError !== JSON_ERROR_NONE){
+                    $decoded3 = trim($errorDataJson);
+                    $decoded3 = preg_replace('/^\xEF\xBB\xBF/', '', $decoded3); // 去除BOM
+                    $errorData = @json_decode($decoded3, true);
+                    $jsonError = json_last_error();
+                }
+            }
+            
+            // 如果仍然失败，返回详细错误信息
+            if($jsonError !== JSON_ERROR_NONE){
+                $errorMsg = 'JSON解析失败: ' . json_last_error_msg();
+                $errorMsg .= ' | 错误代码: ' . $jsonError;
+                $errorMsg .= ' | 数据长度: ' . strlen($errorDataJson);
+                // 显示数据的前100个字符用于调试
+                $preview = mb_substr($errorDataJson, 0, 100, 'UTF-8');
+                $errorMsg .= ' | 数据预览: ' . $preview;
+                return $this->renderError($errorMsg);
+            }
+        } else {
+            return $this->renderError('数据格式错误，期望字符串或数组，实际类型: ' . gettype($errorDataJson));
+        }
+        
+        // 验证数据格式
+        if(!is_array($errorData) || empty($errorData)){
+            return $this->renderError('数据格式错误或为空，期望非空数组');
+        }
+        
+        // 获取系统设置，判断显示用户编号还是用户ID
+        $set = Setting::detail('store')['values'];
+        $isShowUserCode = isset($set['usercode_mode']['is_show']) && $set['usercode_mode']['is_show'] == 1;
+        $userFieldLabel = $isShowUserCode ? '用户编号' : '用户ID';
+        
+        // 创建Excel对象
+        $objPHPExcel = new \PHPExcel();
+        
+        // 设置表头（包含错误信息列）
+        $headers = [
+            '快递单号',
+            $userFieldLabel,
+            '唛头',
+            '物流名称',
+            '仓库名称',
+            '包裹重量',
+            '长',
+            '宽',
+            '高',
+            '体积',
+            '物品名称',
+            '物品数量',
+            '错误原因'
+        ];
+        
+        // 设置表头
+        $objPHPExcel->setActiveSheetIndex(0);
+        $column = 'A';
+        foreach ($headers as $header) {
+            $objPHPExcel->getActiveSheet()->setCellValue($column . '1', $header);
+            $column++;
+        }
+        
+        // 设置样式
+        $objPHPExcel->getActiveSheet()->getStyle('A1:' . chr(64 + count($headers)) . '1')->getFont()->setBold(true);
+        $objPHPExcel->getActiveSheet()->getStyle('A1:' . chr(64 + count($headers)) . '1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->getActiveSheet()->getStyle('A1:' . chr(64 + count($headers)) . '1')->getFill()->setFillType(\PHPExcel_Style_Fill::FILL_SOLID);
+        $objPHPExcel->getActiveSheet()->getStyle('A1:' . chr(64 + count($headers)) . '1')->getFill()->getStartColor()->setRGB('FFE6E6');
+        
+        // 设置列宽
+        $objPHPExcel->getActiveSheet()->getColumnDimension('A')->setWidth(20); // 快递单号
+        $objPHPExcel->getActiveSheet()->getColumnDimension('B')->setWidth(15); // 用户编号/用户ID
+        $objPHPExcel->getActiveSheet()->getColumnDimension('C')->setWidth(15); // 唛头
+        $objPHPExcel->getActiveSheet()->getColumnDimension('D')->setWidth(15); // 物流名称
+        $objPHPExcel->getActiveSheet()->getColumnDimension('E')->setWidth(15); // 仓库名称
+        $objPHPExcel->getActiveSheet()->getColumnDimension('F')->setWidth(12); // 包裹重量
+        $objPHPExcel->getActiveSheet()->getColumnDimension('G')->setWidth(10); // 长
+        $objPHPExcel->getActiveSheet()->getColumnDimension('H')->setWidth(10); // 宽
+        $objPHPExcel->getActiveSheet()->getColumnDimension('I')->setWidth(10); // 高
+        $objPHPExcel->getActiveSheet()->getColumnDimension('J')->setWidth(10); // 体积
+        $objPHPExcel->getActiveSheet()->getColumnDimension('K')->setWidth(15); // 物品名称
+        $objPHPExcel->getActiveSheet()->getColumnDimension('L')->setWidth(12); // 物品数量
+        $objPHPExcel->getActiveSheet()->getColumnDimension('M')->setWidth(50); // 错误原因
+        
+        // 填充数据
+        $row = 2;
+        foreach($errorData as $item){
+            $originalData = isset($item['originalData']) ? $item['originalData'] : (isset($item['data']) ? $item['data'] : []);
+            $error = isset($item['error']) ? $item['error'] : '未知错误';
+            
+            // 根据系统设置获取用户字段
+            $userField = '';
+            if($isShowUserCode){
+                // 显示用户编号
+                if(isset($originalData['用户编号'])){
+                    $userField = $originalData['用户编号'];
+                } elseif(isset($item['data']['user_code'])){
+                    $userField = $item['data']['user_code'];
+                }
+            } else {
+                // 显示用户ID
+                if(isset($originalData['用户ID'])){
+                    $userField = $originalData['用户ID'];
+                } elseif(isset($item['data']['member_id'])){
+                    $userField = $item['data']['member_id'];
+                }
+            }
+            
+            $objPHPExcel->getActiveSheet()->setCellValue('A' . $row, isset($originalData['快递单号']) ? $originalData['快递单号'] : (isset($item['data']['express_num']) ? $item['data']['express_num'] : ''));
+            $objPHPExcel->getActiveSheet()->setCellValue('B' . $row, $userField);
+            $objPHPExcel->getActiveSheet()->setCellValue('C' . $row, isset($originalData['唛头']) ? $originalData['唛头'] : (isset($item['data']['usermark']) ? $item['data']['usermark'] : ''));
+            $objPHPExcel->getActiveSheet()->setCellValue('D' . $row, isset($originalData['物流名称']) ? $originalData['物流名称'] : (isset($item['data']['express_name']) ? $item['data']['express_name'] : ''));
+            $objPHPExcel->getActiveSheet()->setCellValue('E' . $row, isset($originalData['仓库名称']) ? $originalData['仓库名称'] : (isset($item['data']['storage_name']) ? $item['data']['storage_name'] : ''));
+            $objPHPExcel->getActiveSheet()->setCellValue('F' . $row, isset($originalData['包裹重量']) ? $originalData['包裹重量'] : (isset($item['data']['weight']) ? $item['data']['weight'] : ''));
+            $objPHPExcel->getActiveSheet()->setCellValue('G' . $row, isset($originalData['长']) ? $originalData['长'] : (isset($item['data']['length']) ? $item['data']['length'] : ''));
+            $objPHPExcel->getActiveSheet()->setCellValue('H' . $row, isset($originalData['宽']) ? $originalData['宽'] : (isset($item['data']['width']) ? $item['data']['width'] : ''));
+            $objPHPExcel->getActiveSheet()->setCellValue('I' . $row, isset($originalData['高']) ? $originalData['高'] : (isset($item['data']['height']) ? $item['data']['height'] : ''));
+            $objPHPExcel->getActiveSheet()->setCellValue('J' . $row, isset($originalData['体积']) ? $originalData['体积'] : (isset($item['data']['volume']) ? $item['data']['volume'] : ''));
+            $objPHPExcel->getActiveSheet()->setCellValue('K' . $row, isset($originalData['物品名称']) ? $originalData['物品名称'] : (isset($item['data']['class_name']) ? $item['data']['class_name'] : ''));
+            $objPHPExcel->getActiveSheet()->setCellValue('L' . $row, isset($originalData['物品数量']) ? $originalData['物品数量'] : (isset($item['data']['product_num']) ? $item['data']['product_num'] : ''));
+            $objPHPExcel->getActiveSheet()->setCellValue('M' . $row, $error);
+            
+            // 错误原因列设置为红色
+            $objPHPExcel->getActiveSheet()->getStyle('M' . $row)->getFont()->getColor()->setRGB('FF0000');
+            
+            $row++;
+        }
+        
+        // 设置工作表名称
+        $objPHPExcel->getActiveSheet()->setTitle('导入失败数据');
+        
+        // 设置文件名
+        $filename = "导入失败数据_" . date('YmdHis') . "_" . rand(1000, 9999) . ".xlsx";
+        
+        // 确保excel目录存在
+        $excelDir = 'excel/';
+        if (!is_dir($excelDir)) {
+            mkdir($excelDir, 0755, true);
+        }
+        
+        // 输出Excel文件
+        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter->save($excelDir . $filename);
+        
+        return $this->renderSuccess("导出成功", '', [
+            "file_name" => "https://" . $_SERVER["HTTP_HOST"] . "/" . $excelDir . $filename,
+        ]);
+    }
+    
+    // 下载导入模板
+    public function downloadTemplate(){
+        // 引入excel插件
+        vendor('PHPExcel.PHPExcel');
+        
+        // 获取系统设置
+        $set = Setting::detail('store')['values'];
+        $isShowUserCode = isset($set['usercode_mode']['is_show']) && $set['usercode_mode']['is_show'] == 1;
+        
+        // 创建Excel对象
+        $objPHPExcel = new \PHPExcel();
+        
+        // 设置表头
+        $headers = [
+            '快递单号',
+            $isShowUserCode ? '用户编号' : '用户ID',
+            '唛头',
+            '物流名称',
+            '仓库名称',
+            '包裹重量',
+            '长',
+            '宽',
+            '高',
+            '体积',
+            '物品名称',
+            '物品数量',
+        ];
+        
+        // 设置表头
+        $objPHPExcel->setActiveSheetIndex(0);
+        $column = 'A';
+        foreach ($headers as $header) {
+            $objPHPExcel->getActiveSheet()->setCellValue($column . '1', $header);
+            $column++;
+        }
+        
+        // 设置样式
+        $objPHPExcel->getActiveSheet()->getStyle('A1:' . chr(64 + count($headers)) . '1')->getFont()->setBold(true);
+        $objPHPExcel->getActiveSheet()->getStyle('A1:' . chr(64 + count($headers)) . '1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        
+        // 设置列宽
+        $objPHPExcel->getActiveSheet()->getColumnDimension('A')->setWidth(20);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('B')->setWidth(15);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('C')->setWidth(15);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('D')->setWidth(15);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('E')->setWidth(15);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('F')->setWidth(12);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('G')->setWidth(10);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('H')->setWidth(10);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('I')->setWidth(10);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('J')->setWidth(10);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('K')->setWidth(15);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('L')->setWidth(12);
+        
+        // 设置工作表名称
+        $objPHPExcel->getActiveSheet()->setTitle('批量导入模板');
+        
+        // 设置文件名
+        $filename = "小思集运批量导入模板_" . ($isShowUserCode ? '用户编号' : '用户ID') . ".xlsx";
+        
+        // 输出Excel文件
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        
+        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter->save('php://output');
+        exit;
+    }
+    
     /**
      * 用户列表
      * @return mixed
@@ -1246,12 +1509,26 @@ class Index extends Controller
         return $this->renderSuccess('操作成功');  
     }
     
-    // 文件导入处理
+   // 文件导入处理
     public function importdo(){
        $post = request()->param();
        //物流模板设置
        $PackageItem = new PackageItem;
        $noticesetting = setting::getItem('notice');
+       
+       // 根据Excel实际内容判断是用户编号还是用户ID
+       // 优先处理user_code（用户编号），如果存在则转换为member_id
+       if (isset($post['user_code']) && !empty($post['user_code'])) {
+           $user = (new User())->where('user_code', $post['user_code'])->where('is_delete', 0)->find();
+           if (!$user) {
+               $post['error'] = "用户编号不存在: " . $post['user_code'];
+               return $this->renderError('导入错误','',$post);
+           }
+           $post['member_id'] = $user['user_id'];
+           unset($post['user_code']);
+       }
+       // 如果Excel中直接提供了member_id（用户ID），则直接使用，不需要转换
+       
        $field = [
           'express_num','member_id','express_name','storage_name','weight','usermark'
        ];
@@ -1278,27 +1555,36 @@ class Index extends Controller
        }
        //查询包裹是否存在
        $packdata = (new Package())->where('express_num',$post['express_num'])->where('is_delete',0)->find();
+       
+       // 确定member_id：优先使用Excel中提供的，如果没有则使用原有包裹的
+       $memberId = null;
+       if(isset($post['member_id']) && !empty($post['member_id'])){
+           $memberId = $post['member_id'];
+       } elseif($packdata && !empty($packdata['member_id'])){
+           $memberId = $packdata['member_id'];
+       }
+       
        $postData = [
-            'order_sn' => createSn(),
+            'order_sn' => $packdata ? $packdata['order_sn'] : createSn(),
             'status' => 2,
-            'member_id' => isset($post['member_id'])?$post['member_id']:$packdata['member_id'],
-            'member_name' => isset($res['data']['member']['nickName'])?$res['data']['member']['nickName']:'',
+            'member_id' => $memberId,
+            'member_name' => isset($res['data']['member']['nickName'])?$res['data']['member']['nickName']:($packdata ? $packdata['member_name'] : ''),
             'express_num' =>$post['express_num'],
-            'express_name'=>isset($post['express_name'])?$post['express_name']:'其他',
-            'storage_id' => isset($res['data']['storage']['shop_id'])?$res['data']['storage']['shop_id']:'',
-            'length'=> isset($post['length'])?$post['length']:$packdata['length'],
-            'width'=> isset($post['width'])?$post['width']:$packdata['width'],
-            'height'=> isset($post['height'])?$post['height']:$packdata['height'],
-            'usermark'=> isset($post['usermark'])?$post['usermark']:$packdata['usermark'],
+            'express_name'=>isset($post['express_name'])?$post['express_name']:($packdata ? $packdata['express_name'] : '其他'),
+            'storage_id' => isset($res['data']['storage']['shop_id'])?$res['data']['storage']['shop_id']:($packdata ? $packdata['storage_id'] : ''),
+            'length'=> isset($post['length'])?$post['length']:($packdata ? $packdata['length'] : 0),
+            'width'=> isset($post['width'])?$post['width']:($packdata ? $packdata['width'] : 0),
+            'height'=> isset($post['height'])?$post['height']:($packdata ? $packdata['height'] : 0),
+            'usermark'=> isset($post['usermark'])?$post['usermark']:($packdata ? $packdata['usermark'] : ''),
             // 'num'=>isset($post['num'])?$post['num']:$packdata['num'],
-            'volume'=>isset($post['volume'])?$post['volume']:$packdata['volume'],
-            'weight'=>isset($post['weight'])?$post['weight']:$packdata['weight'],
+            'volume'=>isset($post['volume'])?$post['volume']:($packdata ? $packdata['volume'] : 0),
+            'weight'=>isset($post['weight'])?$post['weight']:($packdata ? $packdata['weight'] : 0),
             'entering_warehouse_time'=> getTime(),
-            'created_time'=> getTime(),
+            'created_time'=> $packdata ? $packdata['created_time'] : getTime(),
             'updated_time'=> getTime(),
             'source'=>4,
             'wxapp_id' => (new Package())->getWxappId(),
-            'is_take'=> !isset($post['member_id'])?1:2
+            'is_take'=> !empty($memberId) ? 2 : 1
        ];
        
         
@@ -1342,17 +1628,31 @@ class Index extends Controller
        return $this->renderSuccess('导入成功','',$post);
     }
     
-    // 数据检查
+   // 数据检查
     public function onCheckData($post){
         //物流模板设置
         $noticesetting = setting::getItem('notice');
-        if(isset($post['member_id'])){
-            $member = (new User())->find($post['member_id']);
-            if ($member['is_delete']==1){
-                return ['code'=>0,'msg'=>'用户已被删除,请检查用户ID'];
+        $data = [];
+        
+        // 根据Excel实际内容判断是用户编号还是用户ID
+        // 优先处理user_code（用户编号），如果存在则转换为member_id
+        if (isset($post['user_code']) && !empty($post['user_code'])) {
+            $user = (new User())->where('user_code', $post['user_code'])->where('is_delete', 0)->find();
+            if (!$user) {
+                return ['code'=>0,'msg'=>'用户编号不存在: ' . $post['user_code']];
             }
+            $post['member_id'] = $user['user_id'];
+            unset($post['user_code']);
+        }
+        
+        // 如果Excel中提供了member_id（用户ID），则验证用户是否存在
+        if(isset($post['member_id']) && !empty($post['member_id'])){
+            $member = (new User())->find($post['member_id']);
             if (!$member){
-                return ['code'=>0,'msg'=>'用户不存在,请检查用户ID'];
+                return ['code'=>0,'msg'=>'用户不存在,请检查用户ID: ' . $post['member_id']];
+            }
+            if ($member['is_delete']==1){
+                return ['code'=>0,'msg'=>'用户已被删除,请检查用户ID: ' . $post['member_id']];
             }
             $data['member'] = $member;
         }
@@ -1384,19 +1684,29 @@ class Index extends Controller
                  $update['storage_id'] = isset($data['storage']['shop_id'])?$data['storage']['shop_id']:'';
             }
             
-            if ($sn['status']==1 || $sn['status']==2 || $sn['status']==3){
-                if(!$sn['member_id']){
-                $update['member_id'] = isset($post['member_id'])?$post['member_id']:($sn['member_id']);
-                $update['member_name']= isset($res['data']['member']['nickName'])?$res['data']['member']['nickName']:'';
-                $update['is_take']= !isset($post['member_id'])?1:2;
-                 }
+            if ($sn && ($sn['status']==1 || $sn['status']==2 || $sn['status']==3)){
+                // 如果Excel中提供了member_id，则更新绑定（即使包裹已有member_id也要更新）
+                if(isset($post['member_id']) && !empty($post['member_id'])){
+                    $update['member_id'] = $post['member_id'];
+                    $update['member_name'] = isset($data['member']['nickName'])?$data['member']['nickName']:'';
+                    $update['is_take'] = 2;
+                } elseif(!$sn['member_id'] && isset($post['member_id'])){
+                    // 如果包裹没有member_id，且Excel中提供了，则绑定
+                    $update['member_id'] = $post['member_id'];
+                    $update['member_name'] = isset($data['member']['nickName'])?$data['member']['nickName']:'';
+                    $update['is_take'] = 2;
+                } elseif(!$sn['member_id']){
+                    // 如果包裹没有member_id，且Excel中也没有提供，则保持未绑定状态
+                    $update['is_take'] = 1;
+                }
+                
                 if($sn['status'] == 1){
                      $update['status'] = 2;
                 }
                 
-                $update['weight'] =isset($post['weight'])?$post['weight']:0.000;
-                $update['entering_warehouse_time']= getTime();
-                $update['express_name'] =isset($post['express_name'])?$post['express_name']:'其他';
+                $update['weight'] = isset($post['weight'])?$post['weight']:0.000;
+                $update['entering_warehouse_time'] = getTime();
+                $update['express_name'] = isset($post['express_name'])?$post['express_name']:'其他';
                 $res= (new Package())->where(['express_num'=>$post['express_num']])->update($update);
                 $data = (new Package())->where(['express_num'=>$post['express_num']])->find();
                 if($res){
@@ -1409,14 +1719,16 @@ class Index extends Controller
                 $sub =  (new Package())->sendEnterMessage([$data->toArray()]);
                 return ['code'=>3,'msg'=>'快递单号客户已预报,状态修改失败，请手动调整为入库'];
             }
-            if ($sn['status']==2){
+            if ($sn && $sn['status']==2){
                 return ['code'=>0,'msg'=>'快递单号已入库,请勿重复入库'];
             }
             
             // if ($sn['status']==2){
             //     return ['code'=>0,'msg'=>'快递单号已入库,请勿重复入库'];
             // }
-            $data['sn'] = $sn;
+            if($sn){
+                $data['sn'] = $sn;
+            }
         }else{
              return ['code'=>0,'msg'=>'快递单号不能为空'];
         }
