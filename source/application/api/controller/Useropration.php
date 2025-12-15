@@ -3331,7 +3331,7 @@ class Useropration extends Controller
             $data['line'] = (new Line())->field('name')->find($data['line_id']);
         }
         $data['total'] =round($data['free'] +  $data['other_free'] +  $data['pack_free'],2);
-      
+        $data['weight'] = number_format($pack->where('inpack_id',$id)->where('is_delete',0)->sum('weight'), 2, '.', '');
         return $this->renderSuccess($data);
     }
 

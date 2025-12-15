@@ -2058,7 +2058,6 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
 <script src="/web/static/js/selectize.min.js"></script>
 <!-- 图片文件列表模板 -->
 {{include file="layouts/_template/tpl_file_item" /}}
-
 <!-- 文件库弹窗 -->
 {{include file="layouts/_template/file_library" /}}
 <script>
