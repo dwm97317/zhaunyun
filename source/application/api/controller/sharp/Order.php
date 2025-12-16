@@ -849,9 +849,9 @@ class Order extends Controller
                      $countryId = $address['country_id'];
                  }
              }
-             // 如果没有地址，使用线路的国家ID
-             if (!$countryId && $line && $line['country_id']) {
-                 $countryId = $line['country_id'];
+             // 如果没有地址，使用拼团的国家ID
+             if (!$countryId && $order && $order['country_id']) {
+                 $countryId = $order['country_id'];
              }
              
              // 创建集运订单（使用确定的地址和线路）
