@@ -267,26 +267,7 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                                 </div>
                                 </div>
                             </div>
-                            <div class="am-form-group">
-                                <label class="am-u-sm-3 am-form-label form-require">
-                                    集运订单号生成规则
-                                </label>
-                                <div class="am-u-sm-9">
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[createSn]" value="10"
-                                               data-am-ucheck
-                                            <?= $values['createSn'] == '10' ? 'checked' : '' ?>
-                                               required>
-                                        时间+99999999以内的随即数
-                                    </label>
-                                    <label class="am-radio-inline">
-                                        <input type="radio" name="store[createSn]" value="20"
-                                               data-am-ucheck
-                                            <?= $values['createSn'] == '20' ? 'checked' : '' ?>>
-                                        H5+用户id+目的地id
-                                    </label>
-                                </div>
-                            </div>
+                            
                             
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl"> 自定义功能设置</div>

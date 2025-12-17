@@ -105,10 +105,20 @@ class BaseModel extends Model
      */
     protected function base($query)
     {
-        if (self::$wxapp_id > 0) {
+        if (empty(self::$wxapp_id)) {
+            $module = self::getCalledModule();
+            if ($module == 'store') {
+                $session = Session::get('yoshop_store');
+                if (!empty($session['wxapp']['wxapp_id'])) {
+                    self::$wxapp_id = $session['wxapp']['wxapp_id'];
+                }
+            }
+        }
+        
+        if (isset(self::$wxapp_id) && self::$wxapp_id > 0) {
             $query->where($query->getTable() . '.wxapp_id', self::$wxapp_id);
         }
-        // dump();die;
+      
         if (isset(self::$shop_id) && self::$shop_id !== '0') {
             if($query->getTable() == 'yoshop_inpack' || $query->getTable() == 'yoshop_package'){
                 $query->whereIn($query->getTable() . '.storage_id', explode(',',self::$shop_id));

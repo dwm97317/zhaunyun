@@ -1331,7 +1331,7 @@ class Package extends Controller
          $packModel = new PackageModel();
         //  dump($ids);die;
          $inpackOrder = [
-          'order_sn' => $storesetting['createSn']==10?createSn():createSnByUserIdCid($this->user['user_id'],$address['country_id']),
+          'order_sn' => $createSn(),
           'remark' =>$param['remark'],
         //   'pack_ids' => $ids,
           'waitreceivedmoney'=>$param['waitreceivedmoney'],
@@ -1419,7 +1419,7 @@ class Package extends Controller
           $storesetting = SettingModel::getItem('store');
           $shopname = (new ShopModel())->getDefault();     
           $inpackOrder = [
-              'order_sn' => $storesetting['createSn']==10?createSn():createSnByUserIdCid($this->user['user_id'],$address['country_id']),
+              'order_sn' =>createSn(),
               'remark' =>$remark,
               'storage_id' => $shopname['shop_id'],
               'address_id' => $params['address_id'],
@@ -1526,7 +1526,7 @@ class Package extends Controller
         $storesetting = SettingModel::getItem('store');
         // 创建包裹订单
         $inpackOrder = [
-          'order_sn' => $storesetting['createSn']==10?createSn():createSnByUserIdCid($this->user['user_id'],$address['country_id']),
+          'order_sn' => createSn(),
           'remark' =>$remark,
           'pack_ids' => $ids,
           'waitreceivedmoney'=>$waitreceivedmoney,
@@ -1701,7 +1701,7 @@ class Package extends Controller
         
         // 创建包裹订单
         $inpackOrder = [
-          'order_sn' => $storesetting['createSn']==10?createSn():createSnByUserIdCid($address['user_id'],$address['country_id']),
+          'order_sn' =>createSn(),
           'remark' =>$remark,
           'pay_type' => $payType,
           'pack_ids' => $ids,

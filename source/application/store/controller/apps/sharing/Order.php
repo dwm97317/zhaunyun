@@ -13,6 +13,8 @@ use app\common\service\Message;
 use app\api\model\Logistics;
 use app\store\model\Countries;
 use app\store\model\sharing\SharingTrUser;
+use app\api\model\Package as PackageModel;
+use app\store\model\InpackService as InpackServiceModel;
 /**
  * 拼单管理控制器
  * Class Active
@@ -65,6 +67,7 @@ class Order extends Controller
     public function participants(){
         $orderId = input('order_id'); // 拼团订单ID
         $Inpack = new Inpack();
+        $Line = new Line();
         $Package = new \app\api\model\Package();
         
         // 获取拼团订单信息
@@ -165,7 +168,9 @@ class Order extends Controller
         $set = Setting::detail('store')['values']['address_setting'];
         $setcode = Setting::detail('store')['values']['usercode_mode'];
         
-        return $this->fetch('participants', compact('participantsList', 'sharingOrder', 'set', 'setcode', 'shareId'));
+        // 获取线路列表
+        $lineList = $Line->getListAll();
+        return $this->fetch('participants', compact('participantsList', 'sharingOrder', 'set', 'setcode', 'shareId', 'lineList'));
     }
     
     
@@ -559,6 +564,233 @@ class Order extends Controller
             return $this->renderSuccess('拼团已完结');
         }
         return $this->renderError('操作失败');
+    }
+    
+    // 代客户打包
+    public function packForCustomer(){
+        $packageIds = $this->request->param('package_ids');
+        $shareId = $this->request->param('share_id');
+        $lineId = $this->request->param('line_id');
+        $addressId = $this->request->param('address_id');
+        $remark = $this->request->param('remark', '');
+        
+        // 验证参数
+        if (!$packageIds) {
+            return $this->renderError('请选择要打包的包裹');
+        }
+        if (!$shareId) {
+            return $this->renderError('拼团订单ID不能为空');
+        }
+        if (!$lineId) {
+            return $this->renderError('请选择线路');
+        }
+        if (!$addressId) {
+            return $this->renderError('请选择地址');
+        }
+        
+        // 获取拼团订单信息
+        $sharingOrder = (new SharingOrder())->where('order_id', $shareId)->find();
+        if (!$sharingOrder) {
+            return $this->renderError('拼团订单不存在');
+        }
+        
+        // 解析包裹ID
+        $idsArr = explode(',', $packageIds);
+        $idsArr = array_filter(array_map('intval', $idsArr));
+        if (empty($idsArr)) {
+            return $this->renderError('请选择有效的包裹');
+        }
+        
+        // 获取包裹信息
+        $pack = (new PackageModel())->whereIn('id', $idsArr)->select();
+        if (!$pack || count($pack) !== count($idsArr)) {
+            return $this->renderError('打包包裹数据错误');
+        }
+        
+        // 验证包裹状态（可以打包的状态：2已入库、3已拣货上架、4待打包、7已分拣下架）
+        $status = array_unique(array_column($pack->toArray(), 'status'));
+        if (count($status) == 1 && in_array($status[0], [1, 5, 6, 8, 9, 10, 11, -1])) {
+            return $this->renderError('请选择可以打包的包裹');
+        }
+        
+        // 验证包裹是否属于同一用户
+        $packMember = array_unique(array_column($pack->toArray(), 'member_id'));
+        if (count($packMember) != 1) {
+            return $this->renderError('请选择同一用户的包裹进行打包');
+        }
+        $memberId = $packMember[0];
+        
+        // 验证包裹是否属于该拼团
+        foreach ($pack as $p) {
+            if ($p['share_id'] != $shareId) {
+                return $this->renderError('包裹不属于该拼团订单');
+            }
+        }
+        
+        // 验证包裹是否在同一仓库
+        $storageIds = array_unique(array_column($pack->toArray(), 'storage_id'));
+        if (count($storageIds) != 1) {
+            return $this->renderError('请选择同一仓库的包裹进行打包');
+        }
+        
+        // 获取线路信息
+        $line = (new Line())->find($lineId);
+        if (!$line) {
+            return $this->renderError('线路不存在，请重新选择');
+        }
+        
+        // 获取地址信息
+        $address = (new UserAddress())->find($addressId);
+        if (!$address) {
+            return $this->renderError('地址信息错误');
+        }
+        
+        // 验证地址是否属于该用户
+        if ($address['user_id'] != $memberId) {
+            return $this->renderError('地址不属于该用户');
+        }
+        
+        // 获取设置
+        $noticesetting = setting::getItem('notice');
+        $storesetting = setting::getItem('store');
+        
+        // 计算重量和体积
+        $weight = (new PackageModel())->whereIn('id', $idsArr)->sum('weight');
+        $volumn = (new PackageModel())->whereIn('id', $idsArr)->sum('volume');
+        
+        // 计算体积重
+        $volumnweight = $volumn / $line['volumeweight'] * 1000000;
+        if ($line['volumeweight_type'] == 20) {
+            $volumnweight = round(($weight + ($volumn * 1000000 / $line['volumeweight'] - $weight) * $line['bubble_weight'] / 100), 2);
+        }
+        
+        // 获取用户信息
+        $userinfo = (new User())->where('user_id', $memberId)->find();
+        
+        // 开启事务
+        $Package = new PackageModel();
+        $Package->startTrans();
+        try {
+            // 创建集运单订单号
+            $user_id = $memberId;
+            if ($storesetting['usercode_mode']['is_show'] == 1) {
+                $member = (new User())->where('user_id', $memberId)->find();
+                $user_id = $member['user_code'] ?? $memberId;
+            }
+            
+            $createSnfistword = $storesetting['createSnfistword'] ?? 'XS';
+            $xuhao = ((new Inpack())->where(['member_id' => $memberId, 'is_delete' => 0])->count()) + 1;
+            $shopname = ShopModel::detail($storageIds[0]);
+            $shopAliasName = $shopname['shop_alias_name'] ?? 'XS';
+            
+            $orderno = createNewOrderSn(
+                $storesetting['orderno']['default'] ?? [],
+                $xuhao,
+                $createSnfistword,
+                $user_id,
+                $shopAliasName,
+                $address['country_id']
+            );
+            
+            // 创建集运单
+            $inpackOrder = [
+                'order_sn' => $orderno,
+                'remark' => $remark,
+                'pack_ids' => $packageIds,
+                'pack_services_id' => '',
+                'storage_id' => $storageIds[0],
+                'address_id' => $addressId,
+                'free' => 0,
+                'weight' => $weight,
+                'cale_weight' => $weight,
+                'line_weight' => $weight,
+                'pay_type' => !empty($userinfo) ? $userinfo['paytype'] : 0,
+                'volume' => $volumnweight,
+                'pack_free' => 0,
+                'other_free' => 0,
+                'member_id' => $memberId,
+                'country_id' => $address['country_id'],
+                'created_time' => getTime(),
+                'updated_time' => getTime(),
+                'status' => 1,
+                'source' => 1,
+                'wxapp_id' => (new PackageModel())->getWxappId(),
+                'line_id' => $lineId,
+                'share_id' => $shareId, // 关联拼团订单ID
+                'inpack_type' => 1, // 拼团包裹
+            ];
+            
+            $inpack = (new Inpack())->insertGetId($inpackOrder);
+            if (!$inpack) {
+                throw new \Exception('创建集运单失败');
+            }
+            
+            $inpackdate = (new Inpack())->where('id', $inpack)->find();
+            
+            // 更新包裹信息
+            $res = (new PackageModel())->whereIn('id', $idsArr)->update([
+                'inpack_id' => $inpack,
+                'status' => 5, // 待支付
+                'line_id' => $lineId,
+                'pack_service' => '',
+                'address_id' => $addressId,
+                'updated_time' => getTime()
+            ]);
+            
+            if (!$res) {
+                throw new \Exception('更新包裹信息失败');
+            }
+            
+            // 更新包裹的物流信息
+            foreach ($idsArr as $val) {
+                $packnum = (new PackageModel())->where('id', $val)->value('express_num');
+                if ($packnum) {
+                    Logistics::updateOrderSn($packnum, $inpackdate['order_sn']);
+                }
+            }
+            
+            // 添加物流日志
+            if ($noticesetting['packageit']['is_enable'] == 1) {
+                Logistics::addInpackLogs($inpackdate['order_sn'], $noticesetting['packageit']['describe']);
+            }
+            
+            // 是否自动计算运费
+            $settingdata = setting::getItem('adminstyle', $inpackOrder['wxapp_id']);
+            if (isset($settingdata) && $settingdata['is_auto_free'] == 1) {
+                getpackfree($inpack, []);
+            }
+            
+            // 提交事务
+            $Package->commit();
+            
+            return $this->renderSuccess('打包成功，集运单号：' . $orderno);
+            
+        } catch (\Exception $e) {
+            // 回滚事务
+            $Package->rollback();
+            return $this->renderError('打包失败：' . $e->getMessage());
+        }
+    }
+    
+    // 获取用户地址列表（用于AJAX请求）
+    // 获取用户地址列表（用于AJAX请求）
+    public function getUserAddresses(){
+        $userId = $this->request->param('user_id');
+        if (!$userId) {
+            return $this->renderError('用户ID不能为空');
+        }
+        
+        $addressList = (new UserAddress())->where('user_id', $userId)
+                                          ->where('address_type', 0)
+                                          ->select();
+        
+        // 将 Collection 转换为数组
+        $addressArray = [];
+        foreach ($addressList as $address) {
+            $addressArray[] = $address->toArray();
+        }
+        
+        return $this->renderSuccess('获取成功', '', $addressArray);
     }
       
 }

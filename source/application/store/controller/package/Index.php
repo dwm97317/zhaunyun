@@ -1220,7 +1220,7 @@ class Index extends Controller
         }
         // 创建包裹订单
         $inpackOrder = [
-          'order_sn' => $storesetting['createSn']==10?createSn():createSnByUserIdCid($pack_member[0],$address['country_id']),
+          'order_sn' =>createSn(),
           'remark' =>$remark,
           'pack_ids' => $ids,
           'pack_services_id' => !empty($pack_ids)?$pack_ids:'',

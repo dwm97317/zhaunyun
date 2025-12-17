@@ -168,6 +168,7 @@ class Line extends LineModel
     
     public function getListAll(){
       return $this
+        ->where('wxapp_id', self::$wxapp_id)
         ->order(['sort desc','created_time desc'])
         ->select();
     }

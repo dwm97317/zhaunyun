@@ -231,7 +231,7 @@ class TrOrder extends Controller
             $storeSetting = Setting::detail('store')['values'];
             
             // 根据系统设置生成订单号（优先使用自定义规则）
-            $newOrderSn = '';
+            $newOrderSn =createSn();
             if(isset($storeSetting['orderno']['default']) && !empty($storeSetting['orderno']['default'])){
                 // 优先使用自定义订单号生成规则
                 $user_id = $orderData['member_id'];
@@ -262,12 +262,6 @@ class TrOrder extends Controller
                     $shop_alias_name, 
                     $orderData['country_id']
                 );
-            } elseif(isset($storeSetting['createSn']) && $storeSetting['createSn'] == 20){
-                // 使用 H5+用户id+目的地id 规则
-                $newOrderSn = createSnByUserIdCid($orderData['member_id'], $orderData['country_id']);
-            } else {
-                // 默认使用 createSn() 函数
-                $newOrderSn = createSn();
             }
             
             // 设置新订单的特殊字段

@@ -14,8 +14,6 @@
                             <input type="hidden" name="s" value="/<?= $request->pathinfo() ?>">
                             <div class="am-u-sm-12 am-u-md-12">
                                 <div class="am fl">
-                                    
-                 
                                     <div class="am-form-group am-fl">
                                         <?php $extractStatus = $request->get('status'); ?>
                                         <select name="status"
@@ -141,7 +139,7 @@
                             <tbody id="body">
                             <?php if (count($list)>0): foreach ($list as $item): ?>
                             <?php $status = [1=>'待查验',2=>'待发货',3=>'待发货','4'=>'待发货','5'=>'待发货','6'=>'已发货','7'=>'已收货','8'=>'已完成','-1'=>'问题件']; ?>
-                            <?php $paytime_status = [ 1=>'已支付',2=>'未支付',3=>''] ; ?>
+                            <?php $paytime_status = [ 1=>'已支付',2=>'未支付',3=>'支付待审核'] ; ?>
                                 <tr>
                                     <td class="am-text-middle">
                                        <input name="checkIds" type="checkbox" value="<?= $item['id'] ?>"> 

@@ -110,7 +110,7 @@
                             <thead>
                             <tr>
                                 <th><input id="checkAll" type="checkbox"></th>
-                                <th>拼团订单号</th>
+                                <th>拼团信息</th>
                                 <th>团长</th>
                                 <th>转运信息</th>
                                 <th>国家</th>
@@ -129,6 +129,7 @@
                                     </td>
                                     <td class="am-text-middle">
                                         <?= $item['order_sn'] ?><br>
+                                        <span style="font-size: 16px; font-weight: bold;"><?= $item['title'] ?></span><br>
                                         <?php if ($item['inpack_id']!=0): ?> 
                                         <span class="am-badge am-badge-secondary">国际运单号：<?= $item['inpack_id']; ?></span>
                                         <?php endif ;?>
