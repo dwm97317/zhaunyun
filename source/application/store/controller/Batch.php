@@ -263,9 +263,11 @@ class Batch extends Controller
      */
     public function moving(){
         $model = new BatchModel;
+        $Track = new Track;
         $list = $model->getList(['status'=>1]);
+        $tracklist = $Track->getAllList();
         $type = 1;
-        return $this->fetch('index', compact('list','type'));
+        return $this->fetch('index', compact('list','type','tracklist'));
     }
     
     /**
@@ -276,9 +278,11 @@ class Batch extends Controller
      */
     public function reached(){
         $model = new BatchModel;
+        $Track = new Track;
         $list = $model->getList(['status'=>2]);
+        $tracklist = $Track->getAllList();
         $type = 2;
-        return $this->fetch('index', compact('list','type'));
+        return $this->fetch('index', compact('list','type','tracklist'));
     }
     
     /**

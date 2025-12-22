@@ -2393,6 +2393,8 @@ class Package extends Controller
               Db::rollback();
               return $this->renderError('申请修改失败');
           }
+          $detail = $packModel->getDetails($post['id'],'*');
+          Logistics::add($detail['id'],'用户自行修改包裹单号'.$detail['express_num'].'为'.$post['express_num']);
           if ($classItems){
               // 删除之前的数据
               $map = [
