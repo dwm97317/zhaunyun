@@ -388,6 +388,28 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    集运订单需要审核后才能支付
+                                </label>
+                                  <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_verify_free]" value="1"
+                                               data-am-ucheck  <?= $values['is_verify_free'] == 1 ? 'checked' : '' ?>>
+                                        审核
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_verify_free]" value="0"
+                                               data-am-ucheck <?= $values['is_verify_free'] == 0 ? 'checked' : '' ?>>
+                                        无需审核
+                                    </label>
+                                    <div class="help-block">
+                                        <small>注意：集运订单费用需要审核后才可以支付</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">排序功能设置</div>
                             </div>

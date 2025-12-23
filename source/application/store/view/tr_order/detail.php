@@ -197,12 +197,20 @@
                                                 class="upload-file am-btn am-btn-secondary am-radius">
                                             <i class="am-icon-cloud-upload"></i> 选择图片
                                         </button>
-                                        <div class="uploader-list am-cf">
+                                        <div class="uploader-list am-cf package-image-list">
                                             <?php foreach ($detail['inpackimage'] as $key => $item): ?>
-                                                <div class="file-item">
-                                                    <a href="<?= $item['file_path'] ?>" title="点击查看大图" target="_blank">
-                                                        <img src="<?= $item['file_path'] ?>">
-                                                    </a>
+                                                <div class="file-item" data-image-id="<?= $item['image_id'] ?>" data-image-path="<?= $item['file_path'] ?>">
+                                                    <div class="image-wrapper">
+                                                        <img src="<?= $item['file_path'] ?>" alt="包裹图片" class="package-image-thumb">
+                                                        <div class="image-overlay">
+                                                            <button type="button" class="image-action-btn image-view-btn" title="查看">
+                                                                <i class="am-icon-eye"></i>
+                                                            </button>
+                                                            <button type="button" class="image-action-btn image-edit-btn" title="编辑">
+                                                                <i class="am-icon-edit"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                     <input type="hidden" name="data[images][]"
                                                            value="<?= $item['image_id'] ?>">
                                                     <i class="iconfont icon-shanchu file-item-delete"></i>
@@ -211,7 +219,7 @@
                                         </div>
                                     </div>
                                     <div class="help-block am-margin-top-sm">
-                                        <small>尺寸750x750像素以上，大小2M以下 (可拖拽图片调整显示顺序 )</small>
+                                        <small>尺寸750x750像素以上，大小2M以下 (可拖拽图片调整显示顺序，点击图片可查看、编辑和缩放)</small>
                                     </div>
                                 </div>
                             </div>
@@ -223,12 +231,20 @@
                                                 class="uploadwx-file am-btn am-btn-secondary am-radius">
                                             <i class="am-icon-cloud-upload"></i> 选择图片
                                         </button>
-                                        <div class="uploader-list am-cf">
+                                        <div class="uploader-list am-cf weight-image-list">
                                             <?php foreach ($detail['wvimages'] as $key => $item): ?>
-                                                <div class="file-item">
-                                                    <a href="<?= $item['file_path'] ?>" title="点击查看大图" target="_blank">
-                                                        <img src="<?= $item['file_path'] ?>">
-                                                    </a>
+                                                <div class="file-item" data-image-id="<?= $item['image_id'] ?>" data-image-path="<?= $item['file_path'] ?>">
+                                                    <div class="image-wrapper">
+                                                        <img src="<?= $item['file_path'] ?>" alt="重量/体积重实拍图" class="weight-image-thumb">
+                                                        <div class="image-overlay">
+                                                            <button type="button" class="image-action-btn image-view-btn" title="查看">
+                                                                <i class="am-icon-eye"></i>
+                                                            </button>
+                                                            <button type="button" class="image-action-btn image-edit-btn" title="编辑">
+                                                                <i class="am-icon-edit"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                     <input type="hidden" name="data[wvimages][]"
                                                            value="<?= $item['image_id'] ?>">
                                                     <i class="iconfont icon-shanchu file-item-delete"></i>
@@ -237,7 +253,7 @@
                                         </div>
                                     </div>
                                     <div class="help-block am-margin-top-sm">
-                                        <small>尺寸750x750像素以上，大小2M以下 (可拖拽图片调整显示顺序 )</small>
+                                        <small>尺寸750x750像素以上，大小2M以下 (可拖拽图片调整显示顺序，点击图片可查看、编辑和缩放)</small>
                                     </div>
                                 </div>
                             </div>
@@ -248,6 +264,27 @@
                                            value="<?= $detail['remark']??'' ;?>" placeholder="请输入备注" >
                                 </div>
                             </div>
+                            <?php if(isset($is_verify_free) && $is_verify_free == 1 && $detail['is_pay'] != 1):?>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require">费用审核</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <?php 
+                                    $is_doublecheck = isset($detail['is_doublecheck']) ? $detail['is_doublecheck'] : 0;
+                                    ?>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="data[is_doublecheck]" value="1" data-am-ucheck <?= $is_doublecheck == 1 ? 'checked' : '' ?>>
+                                        已审核
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="data[is_doublecheck]" value="0" data-am-ucheck <?= $is_doublecheck == 0 ? 'checked' : '' ?>>
+                                        未审核
+                                    </label>
+                                    <div class="help-block">
+                                        <small style="color:#ff6666;">订单创建后需要审核费用，未审核的订单不能进行支付</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                             <?php if($detail['status']==1):?>
                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 审核状态 </label>
@@ -308,6 +345,11 @@
 <!-- 文件库弹窗 -->
 {{include file="layouts/_template/file_library" /}}
 
+<!-- Viewer.js CSS -->
+<link rel="stylesheet" href="assets/store/css/viewer.min.css">
+<!-- Viewer.js JS -->
+<script src="assets/store/js/viewer.min.js"></script>
+
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
 <script>
 // 全局变量
@@ -356,14 +398,255 @@ $(function () {
         checkAndCalculate(); // 检查是否需要计算运费
     });
     
-     // 选择图片
+     // 图片查看和编辑功能
+        var packageImageViewer = null;
+        var weightImageViewer = null;
+        
+        // 为新添加的图片项添加查看和编辑功能
+        function enhanceImageItem($item, imageClass) {
+            // 如果已经有增强功能（有 image-wrapper 或 enhanced 类），跳过
+            if ($item.hasClass('enhanced') || $item.find('.image-wrapper').length > 0) {
+                // 确保数据属性存在
+                if (!$item.data('image-path')) {
+                    var imagePath = $item.find('img').attr('src') || $item.find('a').attr('href');
+                    var imageId = $item.find('input[type="hidden"]').val();
+                    if (imagePath) {
+                        $item.attr('data-image-path', imagePath);
+                    }
+                    if (imageId) {
+                        $item.attr('data-image-id', imageId);
+                    }
+                }
+                $item.addClass('enhanced');
+                return;
+            }
+            
+            var imagePath = $item.find('img').attr('src') || $item.find('a').attr('href');
+            var imageId = $item.find('input[type="hidden"]').val();
+            
+            // 添加数据属性
+            if (imagePath) {
+                $item.attr('data-image-path', imagePath);
+            }
+            if (imageId) {
+                $item.attr('data-image-id', imageId);
+            }
+            $item.addClass('enhanced');
+            
+            // 获取现有的图片元素
+            var $img = $item.find('img');
+            var $link = $item.find('a');
+            
+            // 如果存在链接，移除它并重新构建结构
+            if ($link.length) {
+                var imgSrc = $link.attr('href') || $img.attr('src');
+                $link.replaceWith(function() {
+                    return '<div class="image-wrapper">' +
+                           '<img src="' + imgSrc + '" alt="图片" class="' + imageClass + '">' +
+                           '<div class="image-overlay">' +
+                           '<button type="button" class="image-action-btn image-view-btn" title="查看">' +
+                           '<i class="am-icon-eye"></i>' +
+                           '</button>' +
+                           '<button type="button" class="image-action-btn image-edit-btn" title="编辑">' +
+                           '<i class="am-icon-edit"></i>' +
+                           '</button>' +
+                           '</div>' +
+                           '</div>';
+                });
+            } else if ($img.length && !$img.closest('.image-wrapper').length) {
+                // 如果没有链接且图片没有被包装，直接包装图片
+                var imgSrc = $img.attr('src');
+                $img.wrap('<div class="image-wrapper"></div>');
+                $img.addClass(imageClass);
+                $img.after('<div class="image-overlay">' +
+                          '<button type="button" class="image-action-btn image-view-btn" title="查看">' +
+                          '<i class="am-icon-eye"></i>' +
+                          '</button>' +
+                          '<button type="button" class="image-action-btn image-edit-btn" title="编辑">' +
+                          '<i class="am-icon-edit"></i>' +
+                          '</button>' +
+                          '</div>');
+            }
+        }
+        
+        // 初始化图片查看器（直接在图片列表上）
+        function initImageViewer() {
+            // 包裹图片查看器
+            var $packageGallery = $('.package-image-list');
+            if ($packageGallery.length > 0 && $packageGallery.find('.file-item img').length > 0) {
+                // 销毁旧的查看器
+                if (packageImageViewer) {
+                    try {
+                        packageImageViewer.destroy();
+                    } catch(e) {}
+                    packageImageViewer = null;
+                }
+                
+                packageImageViewer = new Viewer($packageGallery[0], {
+                    inline: false,
+                    button: true,
+                    navbar: true,
+                    title: false,
+                    toolbar: {
+                        zoomIn: 1,
+                        zoomOut: 1,
+                        oneToOne: 1,
+                        reset: 1,
+                        prev: 1,
+                        play: 0,
+                        next: 1,
+                        rotateLeft: 1,
+                        rotateRight: 1,
+                        flipHorizontal: 1,
+                        flipVertical: 1,
+                    }
+                });
+            }
+            
+            // 重量/体积重实拍图查看器
+            var $weightGallery = $('.weight-image-list');
+            if ($weightGallery.length > 0 && $weightGallery.find('.file-item img').length > 0) {
+                // 销毁旧的查看器
+                if (weightImageViewer) {
+                    try {
+                        weightImageViewer.destroy();
+                    } catch(e) {}
+                    weightImageViewer = null;
+                }
+                
+                weightImageViewer = new Viewer($weightGallery[0], {
+                    inline: false,
+                    button: true,
+                    navbar: true,
+                    title: false,
+                    toolbar: {
+                        zoomIn: 1,
+                        zoomOut: 1,
+                        oneToOne: 1,
+                        reset: 1,
+                        prev: 1,
+                        play: 0,
+                        next: 1,
+                        rotateLeft: 1,
+                        rotateRight: 1,
+                        flipHorizontal: 1,
+                        flipVertical: 1,
+                    }
+                });
+            }
+        }
+        
+        // 选择图片
         $('.upload-file').selectImages({
-            name: 'data[images][]' , multiple: true
+            name: 'data[images][]',
+            multiple: true,
+            done: function(data, $touch) {
+                // 调用默认处理
+                var list = data;
+                var $html = $(template('tpl-file-item', {list: list, name: 'data[images][]'}));
+                var $imagesList = $('.upload-file').next('.uploader-list');
+                
+                // 注册删除事件
+                $html.find('.file-item-delete').click(function () {
+                    $(this).closest('.file-item').remove();
+                    setTimeout(function() {
+                        initImageViewer();
+                    }, 100);
+                });
+                
+                // 渲染html
+                $imagesList.append($html);
+                
+                // 增强新添加的图片项
+                $html.find('.file-item').each(function() {
+                    enhanceImageItem($(this), 'package-image-thumb');
+                });
+                
+                // 重新初始化查看器
+                setTimeout(function() {
+                    initImageViewer();
+                }, 100);
+            }
         }); 
         
         $('.uploadwx-file').selectImages({
-            name: 'data[wvimages][]' , multiple: true
-        }); 
+            name: 'data[wvimages][]',
+            multiple: true,
+            done: function(data, $touch) {
+                // 调用默认处理
+                var list = data;
+                var $html = $(template('tpl-file-item', {list: list, name: 'data[wvimages][]'}));
+                var $imagesList = $('.uploadwx-file').next('.uploader-list');
+                
+                // 注册删除事件
+                $html.find('.file-item-delete').click(function () {
+                    $(this).closest('.file-item').remove();
+                    setTimeout(function() {
+                        initImageViewer();
+                    }, 100);
+                });
+                
+                // 渲染html
+                $imagesList.append($html);
+                
+                // 增强新添加的图片项
+                $html.find('.file-item').each(function() {
+                    enhanceImageItem($(this), 'weight-image-thumb');
+                });
+                
+                // 重新初始化查看器
+                setTimeout(function() {
+                    initImageViewer();
+                }, 100);
+            }
+        });
+        
+        // 增强现有图片项（包括已有结构的和新添加的）
+        $('.package-image-list .file-item').each(function() {
+            enhanceImageItem($(this), 'package-image-thumb');
+        });
+        
+        $('.weight-image-list .file-item').each(function() {
+            enhanceImageItem($(this), 'weight-image-thumb');
+        });
+        
+        // 初始化图片查看器
+        setTimeout(function() {
+            initImageViewer();
+        }, 300);
+        
+        // 确保图片可以点击查看
+        // Viewer.js 会自动处理图片点击事件
+        // 如果点击的是覆盖层上的按钮，不触发图片查看
+        $(document).on('click', '.image-overlay', function(e) {
+            // 如果点击的是操作按钮，阻止事件冒泡
+            if ($(e.target).closest('.image-action-btn').length > 0) {
+                e.stopPropagation();
+            }
+        });
+        
+        // 点击操作按钮时，手动触发 Viewer.js 查看
+        $(document).on('click', '.image-view-btn, .image-edit-btn', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            var $item = $(this).closest('.file-item');
+            var $gallery = $item.closest('.uploader-list');
+            var viewer = $gallery.hasClass('package-image-list') ? packageImageViewer : weightImageViewer;
+            
+            if (viewer) {
+                var $img = $item.find('img');
+                if ($img.length > 0) {
+                    // 找到图片在列表中的索引
+                    var $allImages = $gallery.find('.file-item img');
+                    var index = $allImages.index($img);
+                    
+                    if (index >= 0) {
+                        viewer.view(index);
+                    }
+                }
+            }
+        });
 
         /**
          * 表单验证提交
@@ -914,4 +1197,149 @@ function caleAmount() {
      .category-btn a { display:inline-block; width:auto; padding:0 5px; font-size:13px;}
      
      .span { display:inline-block; font-size:13px; color:#666; margin-bottom:10px;}
+     
+     /* 图片查看和编辑样式 */
+     .uploader-list.package-image-list .file-item,
+     .uploader-list.weight-image-list .file-item,
+     .uploader-list .file-item.enhanced {
+         position: relative;
+         display: inline-block;
+         margin: 5px;
+         vertical-align: top;
+     }
+     
+     .uploader-list.package-image-list .file-item .image-wrapper,
+     .uploader-list.weight-image-list .file-item .image-wrapper,
+     .uploader-list .file-item.enhanced .image-wrapper {
+         position: relative;
+         display: inline-block;
+         overflow: hidden;
+         border-radius: 4px;
+     }
+     
+     .uploader-list.package-image-list .file-item .package-image-thumb,
+     .uploader-list.weight-image-list .file-item .weight-image-thumb,
+     .uploader-list .file-item.enhanced .package-image-thumb,
+     .uploader-list .file-item.enhanced .weight-image-thumb {
+         display: block;
+         width: 120px;
+        height: 120px;
+        object-fit: cover;
+        cursor: pointer;
+        transition: transform 0.3s;
+     }
+     
+     .uploader-list.package-image-list .file-item .package-image-thumb:hover,
+     .uploader-list.weight-image-list .file-item .weight-image-thumb:hover,
+     .uploader-list .file-item.enhanced .package-image-thumb:hover,
+     .uploader-list .file-item.enhanced .weight-image-thumb:hover {
+         transform: scale(1.05);
+     }
+     
+     .uploader-list.package-image-list .file-item .image-overlay,
+     .uploader-list.weight-image-list .file-item .image-overlay,
+     .uploader-list .file-item.enhanced .image-overlay {
+         position: absolute;
+         top: 0;
+         left: 0;
+         right: 0;
+         bottom: 0;
+         background: rgba(0, 0, 0, 0.5);
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         gap: 10px;
+         opacity: 0;
+         transition: opacity 0.3s;
+         pointer-events: none; /* 允许点击穿透到图片 */
+     }
+     
+     .uploader-list.package-image-list .file-item:hover .image-overlay,
+     .uploader-list.weight-image-list .file-item:hover .image-overlay,
+     .uploader-list .file-item.enhanced:hover .image-overlay {
+         opacity: 1;
+     }
+     
+     /* 操作按钮需要可以点击 */
+     .uploader-list.package-image-list .file-item .image-overlay .image-action-btn,
+     .uploader-list.weight-image-list .file-item .image-overlay .image-action-btn,
+     .uploader-list .file-item.enhanced .image-overlay .image-action-btn {
+         pointer-events: auto;
+     }
+     
+     .uploader-list.package-image-list .file-item .image-action-btn,
+     .uploader-list.weight-image-list .file-item .image-action-btn,
+     .uploader-list .file-item.enhanced .image-action-btn {
+         background: rgba(255, 255, 255, 0.9);
+         border: none;
+         border-radius: 50%;
+         width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: #333;
+        font-size: 16px;
+     }
+     
+     .uploader-list.package-image-list .file-item .image-action-btn:hover,
+     .uploader-list.weight-image-list .file-item .image-action-btn:hover,
+     .uploader-list .file-item.enhanced .image-action-btn:hover {
+         background: #fff;
+         transform: scale(1.1);
+         color: #0b6fa2;
+     }
+     
+     .uploader-list.package-image-list .file-item .file-item-delete,
+     .uploader-list.weight-image-list .file-item .file-item-delete,
+     .uploader-list .file-item.enhanced .file-item-delete {
+         position: absolute;
+         top: -8px;
+        right: -8px;
+        background: #ff4757;
+        color: #fff;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+        z-index: 10;
+        transition: all 0.3s;
+     }
+     
+     .uploader-list.package-image-list .file-item .file-item-delete:hover,
+     .uploader-list.weight-image-list .file-item .file-item-delete:hover,
+     .uploader-list .file-item.enhanced .file-item-delete:hover {
+         background: #ff3838;
+         transform: scale(1.1);
+     }
+     
+     /* Viewer.js 查看器样式 */
+     .uploader-list .file-item img {
+         cursor: pointer;
+         pointer-events: auto;
+     }
+     
+     /* 确保图片包装器不影响点击 */
+     .uploader-list .file-item .image-wrapper {
+         pointer-events: none;
+     }
+     
+     .uploader-list .file-item .image-wrapper img {
+         pointer-events: auto;
+     }
+     
+     /* Viewer.js 工具栏样式调整 */
+     .viewer-toolbar {
+         background: rgba(0, 0, 0, 0.8);
+     }
+     
+     .viewer-container {
+         z-index: 10000;
+     }
 </style>

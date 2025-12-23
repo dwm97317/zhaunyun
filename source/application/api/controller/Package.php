@@ -1048,6 +1048,7 @@ class Package extends Controller
        
         $where[] = ['is_delete','=',0];
         $where[] = ['is_take','=',2];
+        $where[] = ['share_id','=',0];
         $where[] = ['member_id','=',$this->user['user_id']];
         $where[] = ['status','in',[2,3,4,7]];
         $param = $this->request->param();
@@ -1329,6 +1330,14 @@ class Package extends Controller
          $address = (new UserAddress())->find($param['address_id']); //获取地址信息
          $storesetting = SettingModel::getItem('store');
          $packModel = new PackageModel();
+         
+         // 获取审核设置
+         $wxapp_id = \request()->get('wxapp_id');
+         $adminstyle = SettingModel::getItem('adminstyle', $wxapp_id);
+         $is_verify_free = isset($adminstyle['is_verify_free']) ? $adminstyle['is_verify_free'] : 0;
+         // 如果is_verify_free==1需要审核，则is_doublecheck=0（未审核）；否则is_doublecheck=1（已审核/无需审核）
+         $is_doublecheck = $is_verify_free == 1 ? 0 : 1;
+         
         //  dump($ids);die;
          $inpackOrder = [
           'order_sn' => $createSn(),
@@ -1350,7 +1359,8 @@ class Package extends Controller
           'updated_time' => getTime(),
           'status' => 1,
           'line_id' => $param['line_id'],
-          'wxapp_id' => \request()->get('wxapp_id'),
+          'wxapp_id' => $wxapp_id,
+          'is_doublecheck' => $is_doublecheck,
         ];
         $user_id =$this->user['user_id'];
         if($storesetting['usercode_mode']['is_show']==1){
@@ -1417,6 +1427,13 @@ class Package extends Controller
           }
           $wxapp_id = \request()->get('wxapp_id');
           $storesetting = SettingModel::getItem('store');
+          
+          // 获取审核设置
+          $adminstyle = SettingModel::getItem('adminstyle', $wxapp_id);
+          $is_verify_free = isset($adminstyle['is_verify_free']) ? $adminstyle['is_verify_free'] : 0;
+          // 如果is_verify_free==1需要审核，则is_doublecheck=0（未审核）；否则is_doublecheck=1（已审核/无需审核）
+          $is_doublecheck = $is_verify_free == 1 ? 0 : 1;
+          
           $shopname = (new ShopModel())->getDefault();     
           $inpackOrder = [
               'order_sn' =>createSn(),
@@ -1433,6 +1450,7 @@ class Package extends Controller
               'status' => 1,
               'line_id' => $params['line_id'],
               'wxapp_id' => $wxapp_id,
+              'is_doublecheck' => $is_doublecheck,
         ];
         $user_id =$this->user['user_id'];
         if($storesetting['usercode_mode']['is_show']==1){
@@ -1524,6 +1542,14 @@ class Package extends Controller
         }
         $cale_weight = $allWeigth>$volumnweight?$allWeigth:$volumnweight;
         $storesetting = SettingModel::getItem('store');
+        
+        // 获取审核设置
+        $wxapp_id = \request()->get('wxapp_id');
+        $adminstyle = SettingModel::getItem('adminstyle', $wxapp_id);
+        $is_verify_free = isset($adminstyle['is_verify_free']) ? $adminstyle['is_verify_free'] : 0;
+        // 如果is_verify_free==1需要审核，则is_doublecheck=0（未审核）；否则is_doublecheck=1（已审核/无需审核）
+        $is_doublecheck = $is_verify_free == 1 ? 0 : 1;
+        
         // 创建包裹订单
         $inpackOrder = [
           'order_sn' => createSn(),
@@ -1548,7 +1574,8 @@ class Package extends Controller
           'updated_time' => getTime(),
           'status' => 1,
           'line_id' => $line_id,
-          'wxapp_id' => \request()->get('wxapp_id'),
+          'wxapp_id' => $wxapp_id,
+          'is_doublecheck' => $is_doublecheck,
         ];
        
         $user_id =$this->user['user_id'];
@@ -2867,7 +2894,7 @@ class Package extends Controller
      public function packdetails(){
         $field_group = [
            'edit' => [
-              'id,total_goods_value,line_weight,is_need_insure,order_sn,pack_ids,storage_id,free,insure_free,pack_free,other_free,address_id,weight,cale_weight,volume,length,width,height,status,line_id,remark,country_id,t_order_sn,user_coupon_id,user_coupon_money,pay_type,is_pay,is_pay_type'
+              'id,total_goods_value,line_weight,is_need_insure,order_sn,pack_ids,storage_id,free,insure_free,pack_free,other_free,address_id,weight,cale_weight,volume,length,width,height,status,line_id,remark,country_id,t_order_sn,user_coupon_id,user_coupon_money,pay_type,is_pay,is_pay_type,is_doublecheck'
            ],
         ];
         $id = \request()->post('id');

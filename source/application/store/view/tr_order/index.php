@@ -515,6 +515,11 @@
                                         <span class="am-badge <?= $item['pay_type']['value']==1?'am-badge-warning':'am-badge-primary'?>">
                                             <?= $item['pay_type']['text'];?>
                                         </span>
+                                        <?php if(isset($is_verify_free) && $is_verify_free == 1 && isset($item['is_doublecheck']) && $item['is_doublecheck'] == 0): ?>
+                                        <br><span class="am-badge am-badge-warning" style="margin-top:5px;">
+                                            费用未审核
+                                        </span>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="am-text-middle">
                                         <?= $status[$item['status']] ?>

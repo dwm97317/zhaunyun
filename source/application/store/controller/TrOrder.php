@@ -28,6 +28,7 @@ use app\store\model\sharing\SharingOrderItem;
 use app\store\model\PackageService;
 use app\common\model\store\shop\Capital;
 use app\store\model\store\shop\ShopBonus;
+use app\common\model\InpackImage;
 use app\store\model\store\shop\Clerk;
 use app\api\model\dealer\Setting as SettingDealerModel;
 use app\common\model\dealer\User as DealerUser;
@@ -979,14 +980,29 @@ class TrOrder extends Controller
        foreach ($idsArr as $v){
            $order =  $model->where(['id'=>$v])->find();
            $userData = (new User())->where('user_id',$order['member_id'])->find();
-           //处理模板消息
-           $data['id'] = $order['id'];
-           $data['order_sn'] = $order['order_sn'];
-           $data['member_id'] = $order['member_id'];
-           $data['free'] = $order['free'] + $order['pack_free'] + $order['other_free'] + $order['insure_free'] ;
-           $data['weight'] = $order['cale_weight'];
-           $data['wxapp_id'] = $order['wxapp_id'];
-           Message::send('package.payorder',$data);
+           
+           // 获取费用审核设置，判断是否需要审核后才发送支付通知
+           $adminstyle = SettingModel::getItem('adminstyle', $order['wxapp_id']);
+           $is_verify_free = isset($adminstyle['is_verify_free']) ? $adminstyle['is_verify_free'] : 0;
+           $canSendPayOrder = true; // 是否可以发送支付通知
+           
+           // 如果开启了费用审核，需要检查是否已审核
+           if($is_verify_free == 1) {
+               $is_doublecheck = isset($order['is_doublecheck']) ? $order['is_doublecheck'] : 0;
+               $canSendPayOrder = ($is_doublecheck == 1); // 只有已审核才能发送
+           }
+           
+           // 只有满足条件时才发送支付通知
+           if($canSendPayOrder) {
+               //处理模板消息
+               $data['id'] = $order['id'];
+               $data['order_sn'] = $order['order_sn'];
+               $data['member_id'] = $order['member_id'];
+               $data['free'] = $order['free'] + $order['pack_free'] + $order['other_free'] + $order['insure_free'] ;
+               $data['weight'] = $order['cale_weight'];
+               $data['wxapp_id'] = $order['wxapp_id'];
+               Message::send('package.payorder',$data);
+           }
        }    
         return $this->renderSuccess('发送成功');
     }
@@ -1065,7 +1081,10 @@ class TrOrder extends Controller
         if($set['is_auto_free']==1){
             $is_auto_free = 1;
         }
-        return $this->fetch('detail', compact('detail','line','set','is_auto_free'));
+        // 获取审核设置
+        $adminstyle = Setting::getItem('adminstyle', $detail['wxapp_id']);
+        $is_verify_free = isset($adminstyle['is_verify_free']) ? $adminstyle['is_verify_free'] : 0;
+        return $this->fetch('detail', compact('detail','line','set','is_auto_free','is_verify_free'));
     }
     
     
@@ -1531,6 +1550,8 @@ class TrOrder extends Controller
         $set = Setting::detail('store')['values'];
         $userclient =  Setting::detail('userclient')['values'];
         $adminstyle = Setting::detail('adminstyle')['values'];
+        // 获取费用审核设置
+        $is_verify_free = isset($adminstyle['is_verify_free']) ? $adminstyle['is_verify_free'] : 0;
         $params = $this->request->param();
         if(!isset($params['limitnum'])){
             $params['limitnum'] = isset($adminstyle['pageno'])?$adminstyle['pageno']['inpack']:15;
@@ -1544,9 +1565,9 @@ class TrOrder extends Controller
         $shopList = ShopModel::getAllList();
         $lineList = $Line->getListAll();
         if(isset($adminstyle['pageno']['inpacktype']) && $adminstyle['pageno']['inpacktype']==20){
-          return $this->fetch('newindex', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));  
+          return $this->fetch('newindex', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist','is_verify_free'));  
         }
-        return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist'));
+        return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist','is_verify_free'));
     }
     
         //货到付款欠费用户列表
@@ -2326,6 +2347,10 @@ class TrOrder extends Controller
     {
        $model = new Inpack();
        $Package = new Package;
+       $InpackImage = new InpackImage();
+       $InpackItem = new InpackItem();
+       $InpackDetail = new InpackDetail();
+       $InpackService = new InpackService();
        $ids= input();
        $ids = array_keys($ids);
        $idsArr = explode(',',$ids[0]);
@@ -2365,9 +2390,43 @@ class TrOrder extends Controller
           if (!$result){
               return $this->renderSuccess('合并失败');
           }
+          
+          // 迁移包裹到新订单
           foreach ($idsArr as $va){
              $Package->where('inpack_id',$va)->update(['inpack_id'=>$result]); 
           }
+          
+          // 迁移订单图片到新订单（包括订单图片和重量/体积重实拍图）
+          foreach ($idsArr as $va){
+              // 迁移订单图片（image_type = 10）
+              $InpackImage->where('inpack_id',$va)
+                          ->where('image_type', 10)
+                          ->update(['inpack_id'=>$result]);
+              
+              // 迁移重量/体积重实拍图（image_type = 20）
+              $InpackImage->where('inpack_id',$va)
+                          ->where('image_type', 20)
+                          ->update(['inpack_id'=>$result]);
+          }
+          
+          // 迁移订单明细（子订单/分箱清单）
+          foreach ($idsArr as $va){
+              $InpackItem->where('inpack_id',$va)
+                         ->update(['inpack_id'=>$result]);
+          }
+          
+          // 迁移申报信息（海关申报信息）
+          foreach ($idsArr as $va){
+              $InpackDetail->where('inpack_id',$va)
+                           ->update(['inpack_id'=>$result]);
+          }
+          
+          // 迁移服务项目（打包服务项目）
+          foreach ($idsArr as $va){
+              $InpackService->where('inpack_id',$va)
+                            ->update(['inpack_id'=>$result]);
+          }
+          
        //返回成功状态并提示合并成功；
        return $this->renderSuccess('合并成功');
     }
@@ -2430,7 +2489,7 @@ class TrOrder extends Controller
        if(empty($pintuan_id)){
            return $this->renderError($model->getError() ?: '请选择拼团订单');
        }
-       $res = $model->where('id','in',$idsArray)->update(['share_id'=>$pintuan_id]);
+       $res = $model->where('id','in',$idsArray)->update(['share_id'=>$pintuan_id,'inpack_type'=>1]);
         if(!$res){
             return $this->renderError($SharingOrderItem->getError() ?: '添加失败');
         }

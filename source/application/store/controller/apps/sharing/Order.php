@@ -173,6 +173,213 @@ class Order extends Controller
         return $this->fetch('participants', compact('participantsList', 'sharingOrder', 'set', 'setcode', 'shareId', 'lineList'));
     }
     
+    // 导出参与人员列表
+    public function exportParticipants(){
+        $orderId = input('share_id'); // 拼团订单ID
+        $Inpack = new Inpack();
+        $Package = new \app\api\model\Package();
+        
+        // 获取拼团订单信息
+        $sharingOrder = (new SharingOrder())->where('order_id', $orderId)->find();
+        if (!$sharingOrder) {
+            return $this->renderError('拼团订单不存在');
+        }
+        
+        $shareId = $orderId;
+        
+        // 通过 SharingTrUser 表查询参与的用户（通过 order_id）
+        $sharingTrUserList = (new SharingTrUser())->where('order_id', $orderId)
+                                                  ->with(['user'])
+                                                  ->select();
+        
+        if (empty($sharingTrUserList)) {
+            return $this->renderError('该拼团暂无参与人员');
+        }
+        
+        // 通过 share_id 查询该拼团的所有集运单
+        $inpackList = $Inpack->where('share_id', $shareId)
+                             ->where('is_delete', 0)
+                             ->with(['user', 'address'])
+                             ->select();
+        
+        // 通过 share_id 查询该拼团的所有包裹（不依赖 inpack_id）
+        $packages = $Package->where('share_id', $shareId)
+                           ->where('is_delete', 0)
+                           ->with(['packageimage.file', 'country'])
+                           ->select();
+        
+        // 组织参与人员数据（按用户ID分组）
+        $participants = [];
+        foreach ($sharingTrUserList as $sharingTrUser) {
+            $userId = $sharingTrUser['user_id'];
+            
+            // 获取用户信息
+            $user = $sharingTrUser['user'] ?? User::detail($userId);
+            if (!$user) {
+                continue;
+            }
+            
+            // 初始化参与人员数据
+            $participants[$userId] = [
+                'user_id' => $userId,
+                'user_code' => $user['user_code'] ?? '',
+                'nickName' => $user['nickName'] ?? '',
+                'mobile' => $user['mobile'] ?? '',
+                'inpacks' => [],
+                'packages' => []
+            ];
+        }
+        
+        // 遍历集运单，按用户分组
+        foreach ($inpackList as $inpack) {
+            $userId = $inpack['member_id'];
+            
+            if (!isset($participants[$userId])) {
+                continue;
+            }
+            
+            // 添加集运单信息
+            $participants[$userId]['inpacks'][] = [
+                'id' => $inpack['id'],
+                'order_sn' => $inpack['order_sn'],
+                'status' => $inpack['status'],
+                'weight' => $inpack['weight'],
+                'free' => $inpack['free'],
+                'is_pay' => $inpack['is_pay'],
+                'created_time' => $inpack['created_time']
+            ];
+        }
+        
+        // 遍历包裹，按用户分组（通过 member_id）
+        foreach ($packages as $package) {
+            $userId = $package['member_id'];
+            
+            if (!isset($participants[$userId])) {
+                continue;
+            }
+            
+            // 添加包裹信息
+            $participants[$userId]['packages'][] = [
+                'id' => $package['id'],
+                'express_num' => $package['express_num'],
+                'weight' => $package['weight'],
+                'remark' => $package['remark'],
+                'status' => $package['status'],
+                'inpack_id' => $package['inpack_id']
+            ];
+        }
+        
+        // 将关联数组转换为索引数组
+        $participantsList = array_values($participants);
+        
+        // 获取系统设置
+        $setcode = Setting::detail('store')['values']['usercode_mode'];
+        $statusMap = [1=>'待查验',2=>'待支付',3=>'已支付',4=>'已拣货',5=>'已打包',6=>'已发货',7=>'已收货',8=>'已完成',-1=>'问题件'];
+        $packageStatusMap = [1=>'未入库',2=>'已入库',3=>'已拣货上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成',-1=>'问题件'];
+        
+        // 准备导出数据
+        $tileArray = [
+            '序号',
+            $setcode['is_show'] == 1 ? '用户编号' : '用户ID',
+            '昵称',
+            '手机号',
+            '集运单号',
+            '集运单状态',
+            '集运单重量(Kg)',
+            '集运单费用',
+            '集运单支付状态',
+            '集运单创建时间',
+            '包裹快递单号',
+            '包裹重量(Kg)',
+            '包裹状态',
+            '包裹备注',
+            '包裹总数',
+            '可打包数量'
+        ];
+        
+        $dataArray = [];
+        $index = 1;
+        
+        foreach ($participantsList as $participant) {
+            $inpackCount = count($participant['inpacks']);
+            $packageCount = count($participant['packages']);
+            $packableCount = count(array_filter($participant['packages'], function($p) { 
+                return in_array($p['status'], [2, 3, 4, 7]) && empty($p['inpack_id']); 
+            }));
+            
+            // 如果没有集运单，至少输出一行用户信息
+            if ($inpackCount == 0) {
+                $row = [
+                    $index++,
+                    $setcode['is_show'] == 1 && !empty($participant['user_code']) ? $participant['user_code'] : $participant['user_id'],
+                    $participant['nickName'],
+                    $participant['mobile'],
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    $packageCount,
+                    $packableCount
+                ];
+                $dataArray[] = $row;
+            } else {
+                // 如果有集运单，为每个集运单输出一行
+                foreach ($participant['inpacks'] as $inpackIndex => $inpack) {
+                    // 获取该集运单的包裹
+                    $inpackPackages = array_filter($participant['packages'], function($p) use ($inpack) {
+                        return $p['inpack_id'] == $inpack['id'];
+                    });
+                    
+                    $packageNums = [];
+                    $packageWeights = [];
+                    $packageStatuses = [];
+                    $packageRemarks = [];
+                    
+                    foreach ($inpackPackages as $pkg) {
+                        $packageNums[] = $pkg['express_num'];
+                        $packageWeights[] = $pkg['weight'];
+                        $packageStatuses[] = $packageStatusMap[$pkg['status']] ?? '未知';
+                        $packageRemarks[] = $pkg['remark'] ?: '-';
+                    }
+                    
+                    $row = [
+                        $index++,
+                        $setcode['is_show'] == 1 && !empty($participant['user_code']) ? $participant['user_code'] : $participant['user_id'],
+                        $participant['nickName'],
+                        $participant['mobile'],
+                        $inpack['order_sn'],
+                        $statusMap[$inpack['status']] ?? '未知',
+                        $inpack['weight'],
+                        $inpack['free'],
+                        $inpack['is_pay'] == 1 ? '已支付' : '未支付',
+                        $inpack['created_time'],
+                        implode('; ', $packageNums),
+                        implode('; ', $packageWeights),
+                        implode('; ', $packageStatuses),
+                        implode('; ', $packageRemarks),
+                        $packageCount,
+                        $packableCount
+                    ];
+                    
+                    $dataArray[] = $row;
+                }
+            }
+        }
+        
+        // 导出CSV文件
+        $filename = '参与人员列表_' . ($sharingOrder['title'] ?? $orderId) . '_' . date('YmdHis') . '.csv';
+        export_excel($filename, $tileArray, $dataArray);
+        exit;
+    }
+    
     
     //从拼团中移出订单
     public function yichu(){
@@ -650,50 +857,57 @@ class Order extends Controller
             return $this->renderError('地址不属于该用户');
         }
         
-        // 获取设置
-        $noticesetting = setting::getItem('notice');
-        $storesetting = setting::getItem('store');
-        
-        // 计算重量和体积
-        $weight = (new PackageModel())->whereIn('id', $idsArr)->sum('weight');
-        $volumn = (new PackageModel())->whereIn('id', $idsArr)->sum('volume');
-        
-        // 计算体积重
-        $volumnweight = $volumn / $line['volumeweight'] * 1000000;
-        if ($line['volumeweight_type'] == 20) {
-            $volumnweight = round(($weight + ($volumn * 1000000 / $line['volumeweight'] - $weight) * $line['bubble_weight'] / 100), 2);
-        }
-        
-        // 获取用户信息
-        $userinfo = (new User())->where('user_id', $memberId)->find();
-        
-        // 开启事务
-        $Package = new PackageModel();
-        $Package->startTrans();
-        try {
-            // 创建集运单订单号
-            $user_id = $memberId;
-            if ($storesetting['usercode_mode']['is_show'] == 1) {
-                $member = (new User())->where('user_id', $memberId)->find();
-                $user_id = $member['user_code'] ?? $memberId;
+            // 获取设置
+            $noticesetting = setting::getItem('notice');
+            $storesetting = setting::getItem('store');
+            
+            // 获取审核设置
+            $wxapp_id = (new PackageModel())->getWxappId();
+            $adminstyle = setting::getItem('adminstyle', $wxapp_id);
+            $is_verify_free = isset($adminstyle['is_verify_free']) ? $adminstyle['is_verify_free'] : 0;
+            // 如果is_verify_free==1需要审核，则is_doublecheck=0（未审核）；否则is_doublecheck=1（已审核/无需审核）
+            $is_doublecheck = $is_verify_free == 1 ? 0 : 1;
+            
+            // 计算重量和体积
+            $weight = (new PackageModel())->whereIn('id', $idsArr)->sum('weight');
+            $volumn = (new PackageModel())->whereIn('id', $idsArr)->sum('volume');
+            
+            // 计算体积重
+            $volumnweight = $volumn / $line['volumeweight'] * 1000000;
+            if ($line['volumeweight_type'] == 20) {
+                $volumnweight = round(($weight + ($volumn * 1000000 / $line['volumeweight'] - $weight) * $line['bubble_weight'] / 100), 2);
             }
             
-            $createSnfistword = $storesetting['createSnfistword'] ?? 'XS';
-            $xuhao = ((new Inpack())->where(['member_id' => $memberId, 'is_delete' => 0])->count()) + 1;
-            $shopname = ShopModel::detail($storageIds[0]);
-            $shopAliasName = $shopname['shop_alias_name'] ?? 'XS';
+            // 获取用户信息
+            $userinfo = (new User())->where('user_id', $memberId)->find();
             
-            $orderno = createNewOrderSn(
-                $storesetting['orderno']['default'] ?? [],
-                $xuhao,
-                $createSnfistword,
-                $user_id,
-                $shopAliasName,
-                $address['country_id']
-            );
-            
-            // 创建集运单
-            $inpackOrder = [
+            // 开启事务
+            $Package = new PackageModel();
+            $Package->startTrans();
+            try {
+                // 创建集运单订单号
+                $user_id = $memberId;
+                if ($storesetting['usercode_mode']['is_show'] == 1) {
+                    $member = (new User())->where('user_id', $memberId)->find();
+                    $user_id = $member['user_code'] ?? $memberId;
+                }
+                
+                $createSnfistword = $storesetting['createSnfistword'] ?? 'XS';
+                $xuhao = ((new Inpack())->where(['member_id' => $memberId, 'is_delete' => 0])->count()) + 1;
+                $shopname = ShopModel::detail($storageIds[0]);
+                $shopAliasName = $shopname['shop_alias_name'] ?? 'XS';
+                
+                $orderno = createNewOrderSn(
+                    $storesetting['orderno']['default'] ?? [],
+                    $xuhao,
+                    $createSnfistword,
+                    $user_id,
+                    $shopAliasName,
+                    $address['country_id']
+                );
+                
+                // 创建集运单
+                $inpackOrder = [
                 'order_sn' => $orderno,
                 'remark' => $remark,
                 'pack_ids' => $packageIds,
@@ -714,10 +928,11 @@ class Order extends Controller
                 'updated_time' => getTime(),
                 'status' => 1,
                 'source' => 1,
-                'wxapp_id' => (new PackageModel())->getWxappId(),
+                'wxapp_id' => $wxapp_id,
                 'line_id' => $lineId,
                 'share_id' => $shareId, // 关联拼团订单ID
                 'inpack_type' => 1, // 拼团包裹
+                'is_doublecheck' => $is_doublecheck,
             ];
             
             $inpack = (new Inpack())->insertGetId($inpackOrder);

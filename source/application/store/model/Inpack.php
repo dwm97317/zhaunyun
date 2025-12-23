@@ -419,13 +419,28 @@ class Inpack extends InpackModel
             Logistics::addInpackLogs($pack['order_sn'],$noticesetting['check']['describe']);
             //获取模板消息设置，根据设置选择调用的函数
             $tplmsgsetting = SettingModel::getItem('tplMsg',$pack['wxapp_id']);
+            
+            // 获取费用审核设置，判断是否需要审核后才发送支付通知
+            $adminstyle = SettingModel::getItem('adminstyle', $pack['wxapp_id']);
+            $is_verify_free = isset($adminstyle['is_verify_free']) ? $adminstyle['is_verify_free'] : 0;
+            $canSendPayOrder = true; // 是否可以发送支付通知
+            
+            // 如果开启了费用审核，需要检查是否已审核
+            if($is_verify_free == 1) {
+                $is_doublecheck = isset($pack['is_doublecheck']) ? $pack['is_doublecheck'] : 0;
+                $canSendPayOrder = ($is_doublecheck == 1); // 只有已审核才能发送
+            }
+            
             if($tplmsgsetting['is_oldtps']==1){
                   //发送旧版本订阅消息以及模板消息
                   $res =$this->sendEnterMessage([$pack],'payment');
             }else{
                   //发送新版本订阅消息以及模板消息
                   Message::send('package.dabaosuccess',$pack);
-                  Message::send('package.payorder',$pack);
+                  // 只有满足条件时才发送支付通知
+                  if($canSendPayOrder) {
+                      Message::send('package.payorder',$pack);
+                  }
             }
             //发送邮件通知
             $email = SettingModel::getItem('email',$pack['wxapp_id']);
@@ -447,8 +462,38 @@ class Inpack extends InpackModel
             }
         }
         
+        // 检查费用审核状态是否从0变为1（费用审核通过）
+        $needSendPayOrder = false;
+        if(isset($data['is_doublecheck']) && $data['is_doublecheck'] == 1) {
+            $oldPack = $this->where('id',$data['id'])->find();
+            if($oldPack && isset($oldPack['is_doublecheck']) && $oldPack['is_doublecheck'] == 0) {
+                // 费用审核从0变为1，需要发送支付通知
+                $needSendPayOrder = true;
+            }
+        }
+        
         unset($data['item']);
         $rers =  $this->where('id',$data['id'])->update($data);
+        
+        // 如果费用审核刚通过，发送支付通知
+        if($needSendPayOrder) {
+            $packAfterUpdate = $this->where('id',$data['id'])->find();
+            $userData = (new UserModel)->where('user_id',$packAfterUpdate['member_id'])->find();
+            $packAfterUpdate['userName'] = $userData['nickName'];
+            $packAfterUpdate['total_free'] = $packAfterUpdate['free'] + $packAfterUpdate['other_free'] + $packAfterUpdate['pack_free'];
+            
+            $noticesetting = SettingModel::getItem('notice', $packAfterUpdate['wxapp_id']);
+            $packAfterUpdate['remark'] = $noticesetting['check']['describe'];
+            
+            $tplmsgsetting = SettingModel::getItem('tplMsg', $packAfterUpdate['wxapp_id']);
+            if($tplmsgsetting['is_oldtps'] == 1) {
+                // 发送旧版本订阅消息以及模板消息
+                $res = $this->sendEnterMessage([$packAfterUpdate], 'payment');
+            } else {
+                // 发送新版本订阅消息以及模板消息
+                Message::send('package.payorder', $packAfterUpdate);
+            }
+        }
         
        if($rers || $imgres){return true;}
        return false;

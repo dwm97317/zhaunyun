@@ -3,9 +3,16 @@
         <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
             <div class="widget am-cf">
                 <div class="widget-head am-cf">
-                    <div class="widget-title am-cf">
+                    <div class="widget-title am-fl">
                         参与人员列表
                         <small class="tipssmall">(拼团订单：<?= $sharingOrder['title'] ?? $sharingOrder['order_id'] ?>)</small>
+                    </div>
+                    <div class="am-fr">
+                        <a href="<?= url('store/apps.sharing.order/exportParticipants', ['share_id' => $shareId]) ?>" 
+                           class="am-btn am-btn-success am-btn-sm" 
+                           style="margin-right: 10px;">
+                            <i class="am-icon-download"></i> 导出参与人员列表
+                        </a>
                     </div>
                 </div>
                 <div class="widget-body am-fr">
@@ -36,11 +43,10 @@
                                     <td class="am-text-middle"></td>
                                     <td class="am-text-middle"><?= $index++ ?></td>
                                     <td class="am-text-middle">
-                                        <?php if (!empty($participant['user_id'])): ?>
+                                        <?php if($setcode['is_show']==1 && !empty($participant['user_code'])): ?>
+                                        用户编号: <?= $participant['user_code'] ?><br>
+                                        <?php else: ?>
                                         用户ID: <?= $participant['user_id'] ?><br>
-                                        <?php endif; ?>
-                                        <?php if($setcode['is_show']!=0 && !empty($participant['user_code'])): ?>
-                                        用户Code: <?= $participant['user_code'] ?><br>
                                         <?php endif; ?>
                                         昵称: <?= $participant['nickName'] ?><br>
                                         手机: <?= $participant['mobile'] ?>

@@ -675,6 +675,18 @@ class Useropration extends Controller
         $packData = $inpack::detail($data['id']);
         $noticesetting = SettingModel::getItem('notice',$packData['wxapp_id']);
         $tplmsgsetting = SettingModel::getItem('tplMsg',$packData['wxapp_id']);
+        
+        // 获取费用审核设置，判断是否需要审核后才发送支付通知
+        $adminstyle = SettingModel::getItem('adminstyle', $packData['wxapp_id']);
+        $is_verify_free = isset($adminstyle['is_verify_free']) ? $adminstyle['is_verify_free'] : 0;
+        $canSendPayOrder = true; // 是否可以发送支付通知
+        
+        // 如果开启了费用审核，需要检查是否已审核
+        if($is_verify_free == 1) {
+            $is_doublecheck = isset($packData['is_doublecheck']) ? $packData['is_doublecheck'] : 0;
+            $canSendPayOrder = ($is_doublecheck == 1); // 只有已审核才能发送
+        }
+        
         $userData = (new UserModel)->where('user_id',$packData['member_id'])->find();
         $packData['userName']=$userData['nickName'];
         $packData['order'] = $packData;
@@ -686,7 +698,10 @@ class Useropration extends Controller
           Message::send('order.payment',$packData);
         }else{
           //发送新版本订阅消息以及模板消息
-          Message::send('package.payorder',$packData);
+          // 只有满足条件时才发送支付通知
+          if($canSendPayOrder) {
+              Message::send('package.payorder',$packData);
+          }
         }
         if($res || $resimg || $resdeleteimg){
             return $this->renderSuccess('编辑成功');

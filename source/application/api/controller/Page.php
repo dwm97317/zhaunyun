@@ -377,6 +377,7 @@ class Page extends Controller
         $store['blindbox']= SettingModel::detail('blindbox')['values'];
         $store['keeper']= SettingModel::detail('keeper')['values'];
         $store['points']= SettingModel::detail('points')['values'];
+        $store['adminstyle']= SettingModel::detail('adminstyle')['values'];
         return $this->renderSuccess($store);
     }
     

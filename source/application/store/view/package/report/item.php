@@ -204,16 +204,27 @@
                     <div class="widget-head am-cf">
                         <div class="widget-title am-fl">入库信息</div>
                     </div>
-                       <figure style="display: inline-flex;flex-direction: row;flex-wrap: wrap;" data-am-widget="figure" class="am am-figure am-figure-default "   data-am-figure="{  pureview: 'true' }">
-                                <?php  foreach ($detail['packageimage'] as $item): ?>
-                                <img style="max-width: 200px;max-height: 200px;" src="<?= $item['file_path'] ?>"/>
-                                <?php endforeach?>
-                       </figure>
+                    <div class="package-image-gallery" style="display: inline-flex;flex-direction: row;flex-wrap: wrap; gap: 10px;">
+                        <?php  foreach ($detail['packageimage'] as $item): ?>
+                        <div class="package-image-item" style="position: relative; display: inline-block;">
+                            <img style="max-width: 200px;max-height: 200px; cursor: pointer; border-radius: 4px;" 
+                                 src="<?= $item['file_path'] ?>" 
+                                 alt="包裹图片"
+                                 data-original="<?= $item['file_path'] ?>"/>
+                        </div>
+                        <?php endforeach?>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Viewer.js CSS -->
+<link rel="stylesheet" href="assets/store/css/viewer.min.css">
+<!-- Viewer.js JS -->
+<script src="assets/store/js/viewer.min.js"></script>
+
 <script id="tpl-addpackageitem" type="text/template">
     <div class="am-padding-xs am-padding-top">
         <form class="am-form tpl-form-line-form" method="post" action="">
@@ -376,5 +387,49 @@
         // 删除元素
         var url = "<?= url('store/Logistics/delete') ?>";
         $('.item-delete').delete('id', url);
+        
+        // 初始化图片查看器
+        var $gallery = $('.package-image-gallery');
+        if ($gallery.length > 0 && $gallery.find('img').length > 0) {
+            var imageViewer = new Viewer($gallery[0], {
+                inline: false,
+                button: true,
+                navbar: true,
+                title: false,
+                toolbar: {
+                    zoomIn: 1,
+                    zoomOut: 1,
+                    oneToOne: 1,
+                    reset: 1,
+                    prev: 1,
+                    play: 0,
+                    next: 1,
+                    rotateLeft: 1,
+                    rotateRight: 1,
+                    flipHorizontal: 1,
+                    flipVertical: 1,
+                }
+            });
+        }
  });
 </script>
+<style>
+    /* 图片查看器样式 */
+    .package-image-gallery img {
+        transition: transform 0.3s;
+    }
+    
+    .package-image-gallery img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Viewer.js 工具栏样式 */
+    .viewer-toolbar {
+        background: rgba(0, 0, 0, 0.8);
+    }
+    
+    .viewer-container {
+        z-index: 10000;
+    }
+</style>

@@ -347,26 +347,43 @@
                         <div class="widget-title am-fl">订单图片</div>
                     </div>
                     
-                    <figure style="display:inline-flex;" data-am-widget="figure" class="am am-figure am-figure-default "   data-am-figure="{  pureview: 'true' }">
-                            <?php  foreach ($detail['inpackimage'] as $item): ?>
-                            <a href="<?= $item['file_path'] ?>"><img style="max-width: 200px;max-height: 200px;" src="<?= $item['file_path'] ?>"/></a>
-                            <?php endforeach?>
-                    </figure>
+                    <div class="order-image-gallery" style="display: inline-flex;flex-direction: row;flex-wrap: wrap; gap: 10px;">
+                        <?php  foreach ($detail['inpackimage'] as $item): ?>
+                        <div class="order-image-item" style="position: relative; display: inline-block;">
+                            <img style="max-width: 200px;max-height: 200px; cursor: pointer; border-radius: 4px;" 
+                                 src="<?= $item['file_path'] ?>" 
+                                 alt="订单图片"
+                                 data-original="<?= $item['file_path'] ?>"/>
+                        </div>
+                        <?php endforeach?>
+                    </div>
                     
                     <div class="widget-head am-cf">
                         <div class="widget-title am-fl">付款图片</div>
                     </div>
                     
-                    <figure style="display:inline-flex;" data-am-widget="figure" class="am am-figure am-figure-default "  data-am-figure="{  pureview: 'true' }">
-                            <a href="<?= $detail['certimage']['file_path'] ?>"><img style="max-width: 200px;max-height: 200px;" src="<?= $detail['certimage']['file_path'] ?>"/></a>
-                      
-                    </figure>
+                    <div class="payment-image-gallery" style="display: inline-flex;flex-direction: row;flex-wrap: wrap; gap: 10px;">
+                        <?php if (!empty($detail['certimage']['file_path'])): ?>
+                        <div class="payment-image-item" style="position: relative; display: inline-block;">
+                            <img style="max-width: 200px;max-height: 200px; cursor: pointer; border-radius: 4px;" 
+                                 src="<?= $detail['certimage']['file_path'] ?>" 
+                                 alt="付款图片"
+                                 data-original="<?= $detail['certimage']['file_path'] ?>"/>
+                        </div>
+                        <?php endif; ?>
+                    </div>
                     
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Viewer.js CSS -->
+<link rel="stylesheet" href="assets/store/css/viewer.min.css">
+<!-- Viewer.js JS -->
+<script src="assets/store/js/viewer.min.js"></script>
+
 <script id="tpl-inpack" type="text/template">
     <div class="am-padding-xs am-padding-top">
         <form class="am-form tpl-form-line-form" method="post" action="">
@@ -816,6 +833,75 @@
         var urlll = "<?= url('store/TrOrder/deleteInpackDetail') ?>";
         $('.item-deletedetail').delete('id', urlll);
         
+        // 初始化订单图片查看器
+        var $orderGallery = $('.order-image-gallery');
+        if ($orderGallery.length > 0 && $orderGallery.find('img').length > 0) {
+            var orderImageViewer = new Viewer($orderGallery[0], {
+                inline: false,
+                button: true,
+                navbar: true,
+                title: false,
+                toolbar: {
+                    zoomIn: 1,
+                    zoomOut: 1,
+                    oneToOne: 1,
+                    reset: 1,
+                    prev: 1,
+                    play: 0,
+                    next: 1,
+                    rotateLeft: 1,
+                    rotateRight: 1,
+                    flipHorizontal: 1,
+                    flipVertical: 1,
+                }
+            });
+        }
+        
+        // 初始化付款图片查看器
+        var $paymentGallery = $('.payment-image-gallery');
+        if ($paymentGallery.length > 0 && $paymentGallery.find('img').length > 0) {
+            var paymentImageViewer = new Viewer($paymentGallery[0], {
+                inline: false,
+                button: true,
+                navbar: true,
+                title: false,
+                toolbar: {
+                    zoomIn: 1,
+                    zoomOut: 1,
+                    oneToOne: 1,
+                    reset: 1,
+                    prev: 1,
+                    play: 0,
+                    next: 1,
+                    rotateLeft: 1,
+                    rotateRight: 1,
+                    flipHorizontal: 1,
+                    flipVertical: 1,
+                }
+            });
+        }
         
  });
 </script>
+<style>
+    /* 图片查看器样式 */
+    .order-image-gallery img,
+    .payment-image-gallery img {
+        transition: transform 0.3s;
+    }
+    
+    .order-image-gallery img:hover,
+    .payment-image-gallery img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Viewer.js 工具栏样式 */
+    .viewer-toolbar {
+        background: rgba(0, 0, 0, 0.8);
+    }
+    
+    .viewer-container {
+        z-index: 10000;
+    }
+</style>

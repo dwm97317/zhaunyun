@@ -398,7 +398,7 @@ class Setting extends BaseModel
             ],
             'adminstyle' => [
                 'key' => 'adminstyle',
-                'describe' => '仓管端设置',
+                'describe' => '电脑端设置',
                 'values' =>[
                     'is_usermark'=>1, //是否开启唛头
                     'is_force_usermark'=>0,//是否唛头必填
@@ -423,6 +423,7 @@ class Setting extends BaseModel
                     'is_line'=>1,
                     'is_force_line'=>0,
                     'is_phone_secret'=>1,//手机号是否加密 
+                    'is_verify_free'=>0,//集运订单需要审核后才能支付
                     'orderno'=>[
                         'default'=>[90,20,110],
                         'first_title'=>'XS',

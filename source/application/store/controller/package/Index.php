@@ -1218,6 +1218,12 @@ class Index extends Controller
         if (!$line){
             return $this->renderError('线路不存在,请重新选择');
         }
+        // 获取审核设置
+        $adminstyle = setting::getItem('adminstyle', (new Package())->getWxappId());
+        $is_verify_free = isset($adminstyle['is_verify_free']) ? $adminstyle['is_verify_free'] : 0;
+        // 如果is_verify_free==1需要审核，则is_doublecheck=0（未审核）；否则is_doublecheck=1（已审核/无需审核）
+        $is_doublecheck = $is_verify_free == 1 ? 0 : 1;
+        
         // 创建包裹订单
         $inpackOrder = [
           'order_sn' =>createSn(),
@@ -1242,6 +1248,7 @@ class Index extends Controller
           'source' => 1,
           'wxapp_id' => (new Package())->getWxappId(),
           'line_id' => $line_id,
+          'is_doublecheck' => $is_doublecheck,
         ];
         //  dump($inpackOrder);die;
         $user_id = $pack_member[0];
