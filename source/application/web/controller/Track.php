@@ -270,7 +270,7 @@ class Track extends Controller
                 }
                 if(!empty($inpackData['t2_order_sn'])){
                      $logicdd = $Logistics->getZdList($inpackData['t2_order_sn'],$inpackData['t2_number'],$inpackData['wxapp_id']);
-                        //   dump($logicdd);die;
+                   
                 }
                 
                 $logic = array_merge($logicddd,$logicdd);

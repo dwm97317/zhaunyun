@@ -89,14 +89,14 @@ class Referee extends RefereeModel
             // 二级分销商id
             $referee_2_id = self::getRefereeUserId($referee_id, 1, true);
             // 新增关系记录
-            $referee_2_id > 0 && $model->add($referee_2_id, $user_id, 2);
+            $referee_2_id > 0 && $this->add($referee_2_id, $user_id, 2);
         }
         // # 记录三级推荐关系
         if ($setting['level'] == 3) {
             // 三级分销商id
             $referee_3_id = self::getRefereeUserId($referee_id, 2, true);
             // 新增关系记录
-            $referee_3_id > 0 && $model->add($referee_3_id, $user_id, 3);
+            $referee_3_id > 0 && $this->add($referee_3_id, $user_id, 3);
         }
         return true;
     }
