@@ -36,6 +36,27 @@ class SharingOrder extends SharingOrderModel {
         if (isset($query['keyword']) && $query['keyword']){
             $this->where('title','like',"%".$query['keyword']."%");
         }
+        // 已解散订单的显示规则：
+        // 1. 如果提供了 user_id，则显示已解散但用户参团了的订单（包括团长）
+        // 2. 如果没有提供 user_id，则排除所有已解散的订单
+        if (isset($query['user_id']) && $query['user_id']) {
+            $userId = intval($query['user_id']);
+            // 显示条件：非解散状态 OR (解散状态 AND (是团长 OR 用户参团了))
+            $this->whereRaw("(
+                status <> 3 
+                OR (status = 3 AND (
+                    member_id = {$userId} 
+                    OR EXISTS(
+                        SELECT 1 FROM yoshop_sharing_tr_user 
+                        WHERE yoshop_sharing_tr_user.order_id = yoshop_sharing_tr_order.order_id 
+                        AND yoshop_sharing_tr_user.user_id = {$userId}
+                    )
+                ))
+            )");
+        } else {
+            // 如果没有提供 user_id，排除所有已解散的订单
+            $this->where('status', '<>', 3);
+        }
         return $this->where("is_delete",0);
     }
     

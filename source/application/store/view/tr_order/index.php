@@ -90,6 +90,21 @@
                                             </option>
                                         </select>
                                     </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractispay = $request->get('is_doublecheck'); ?>
+                                        <!--支付状态 [1,已支付 2 未支付,3 待审核]-->
+                                        <select name="is_doublecheck"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '费用审核状态'}">
+                                            <option value=""></option>
+                                            <option value="-1">全部</option>
+                                            <option value="0"
+                                                <?= $extractispay === '0' ? 'selected' : '' ?>>未审核
+                                            </option>
+                                            <option value="1"
+                                                <?= $extractispay === '1' ? 'selected' : '' ?>>已审核
+                                            </option>
+                                        </select>
+                                    </div>
                                     <?php if ($store['user']['is_super']==1): ?>
                                     <div class="am-form-group am-fl">
                                         <?php $extractShopId = $request->get('extract_shop_id'); ?>
