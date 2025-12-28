@@ -1967,22 +1967,22 @@ use app\common\enum\DeliveryType as DeliveryTypeEnum;
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl"> 物流查询API</div>
                             </div>
-                            <!--<div class="am-form-group">-->
-                            <!--    <label class="am-u-sm-3 am-form-label"> 快递100 Customer </label>-->
-                            <!--    <div class="am-u-sm-9">-->
-                            <!--        <input type="text" class="tpl-form-input" name="store[kuaidi100][customer]"-->
-                            <!--               value="<?= $values['kuaidi100']['customer'] ?>">-->
-                            <!--        <small>用于查询物流信息，<a href="https://www.kuaidi100.com/openapi/"-->
-                            <!--                           target="_blank">快递100申请</a></small>-->
-                            <!--    </div>-->
-                            <!--</div>-->
-                            <!--<div class="am-form-group">-->
-                            <!--    <label class="am-u-sm-3 am-form-label"> 快递100 Key </label>-->
-                            <!--    <div class="am-u-sm-9">-->
-                            <!--        <input type="text" class="tpl-form-input" name="store[kuaidi100][key]"-->
-                            <!--               value="<?= $values['kuaidi100']['key'] ?>">-->
-                            <!--    </div>-->
-                            <!--</div>-->
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label"> 快递100 Customer </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="store[kuaidi100][customer]"
+                                           value="<?= $values['kuaidi100']['customer'] ?>">
+                                    <small>用于查询物流信息，<a href="https://www.kuaidi100.com/openapi/"
+                                                       target="_blank">快递100申请</a></small>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label"> 快递100 Key </label>
+                                <div class="am-u-sm-9">
+                                    <input type="text" class="tpl-form-input" name="store[kuaidi100][key]"
+                                           value="<?= $values['kuaidi100']['key'] ?>">
+                                </div>
+                            </div>
                            
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label"> 17TRACK Key </label>

@@ -19,6 +19,8 @@ use app\common\library\Ditch\Aolian;
 use app\common\library\Ditch\Yidida;
 use app\api\model\Inpack;
 use app\api\model\Express;
+use app\common\library\express\Kuaidi100;
+use app\common\model\Setting;
 
 /**
  * 用户认证模块
@@ -209,6 +211,36 @@ class Track extends Controller
             if($setting['is_track_yubao']['is_enable']==1){//如果预报推送物流，则查询出来
                 $logib = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
             }
+            // 如果17track查询不到数据，尝试使用快递100查询
+            if(empty($logib) && !empty($express_code)){
+                $storeSetting = Setting::getItem('store', $packData['wxapp_id']);
+                
+                if(!empty($storeSetting['kuaidi100']['customer']) && !empty($storeSetting['kuaidi100']['key'])){
+                    try {
+                        $Kuaidi100 = new Kuaidi100($storeSetting['kuaidi100']);
+                        $kuaidi100Result = $Kuaidi100->query($express_code, $express);
+                       
+                        if($kuaidi100Result !== false && !empty($kuaidi100Result)){
+                            // 转换快递100返回格式为系统格式
+                            $kuaidi100Data = [];
+                            if(is_array($kuaidi100Result)){
+                                foreach($kuaidi100Result as $item){
+                                    $kuaidi100Data[] = [
+                                        'logistics_describe' => isset($item['context']) ? $item['context'] : '',
+                                        'created_time' => isset($item['time']) ? $item['time'] : (isset($item['ftime']) ? $item['ftime'] : ''),
+                                    ];
+                                }
+                            }
+                            if(!empty($kuaidi100Data)){
+                                $logib = $kuaidi100Data;
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        // 快递100查询失败，继续使用其他方式
+                    }
+                }
+            }
+            
             $logicv = array_merge($logia,$logib,$logzd);
             // dump($logicv);die;
             if(!empty($packData['inpack_id'])){
@@ -270,7 +302,7 @@ class Track extends Controller
                 }
                 if(!empty($inpackData['t2_order_sn'])){
                      $logicdd = $Logistics->getZdList($inpackData['t2_order_sn'],$inpackData['t2_number'],$inpackData['wxapp_id']);
-                   
+                        //   dump($logicdd);die;
                 }
                 
                 $logic = array_merge($logicddd,$logicdd);
