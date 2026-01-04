@@ -205,6 +205,7 @@ class Order extends Controller
         $userInfo = $this->getUser();
         $query['user_id'] = $userInfo['user_id'];
         $model = (new SharingOrder());
+        $query['status'] = [1];
         $list = $model->getList($query);
         $shareService = (new SharingOrderService());
          // 获取已拼团包裹重量
@@ -840,7 +841,6 @@ class Order extends Controller
              
              // 获取设置
              $storesetting = SettingModel::getItem('store');
-             
              // 获取地址信息以确定国家ID
              $countryId = 0;
              if ($finalAddressId) {
@@ -856,7 +856,7 @@ class Order extends Controller
              
              // 创建集运订单（使用确定的地址和线路）
              $inpackOrder = [
-                 'order_sn' => $storesetting['createSn']==10 ? createSn() : createSnByUserIdCid($userInfo['user_id'], $countryId),
+                 'order_sn' => createSn(),
                  'remark' => $this->request->param('remark', ''),
                  'pack_ids' => implode(',', $validPackageIds),
                  'storage_id' => $storageIds[0],

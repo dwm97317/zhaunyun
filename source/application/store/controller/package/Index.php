@@ -929,9 +929,11 @@ class Index extends Controller
         $map1 = ['statu' =>2,'is_take'=>1];
         $map2 = \request()->param();
         $map = array_merge($map1,$map2);
+        $adminstyle = Setting::detail('adminstyle')['values'];
+        $map['limitnum'] = isset($map['limitnum'])?$map['limitnum']:(isset($adminstyle['pageno'])?$adminstyle['pageno']['package']:15);
         $list = $packageModel->getList($map);
         $shopList = ShopModel::getAllList();
-        return $this->fetch('nouser', compact('list','shopList'));
+        return $this->fetch('nouser', compact('list','shopList','adminstyle'));
     }
     
     /**

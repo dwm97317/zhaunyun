@@ -29,12 +29,16 @@ class Report extends Controller
         $map1 = ['status' =>1];
         $map2 = \request()->param();
         $map = array_merge($map1,$map2);
+        $adminstyle = Setting::detail('adminstyle')['values'];
+        $map['limitnum'] = isset($map['limitnum'])?$map['limitnum']:(isset($adminstyle['pageno'])?$adminstyle['pageno']['package']:15);
         $list = $packageModel->getReportList($map);
       
         $shopList = ShopModel::getAllList();
         $set = Setting::detail('store')['values'];
-        return $this->fetch('index', compact('list','shopList','set'));
+        return $this->fetch('index', compact('list','shopList','set','adminstyle'));
     }
+    
+    
     //预报包裹入库功能
     public function depot(){
         $id = input('id');

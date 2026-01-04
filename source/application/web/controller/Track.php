@@ -198,28 +198,18 @@ class Track extends Controller
         //如果是包裹单号，可以反查下处于哪个集运单；
         //   dump($inpackData);die;
         
-        if(!empty($packData)){
-            //查出的系统内部物流信息
-            $logzd = $Logistics->getList($express);
-                // dump($logzd);die;
-            if(count($logic)>0){
-                // dump($inpackData);die;
-                $logia = $Logistics->getorderno($logzd[0]['order_sn']);
-            }
-            $express_code = $Express->getValueById($packData['express_id'],'express_code');
-            
-            if($setting['is_track_yubao']['is_enable']==1){//如果预报推送物流，则查询出来
-                $logib = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
-            }
-            // 如果17track查询不到数据，尝试使用快递100查询
-            if(empty($logib) && !empty($express_code)){
-                $storeSetting = Setting::getItem('store', $packData['wxapp_id']);
-                
-                if(!empty($storeSetting['kuaidi100']['customer']) && !empty($storeSetting['kuaidi100']['key'])){
-                    try {
-                        $Kuaidi100 = new Kuaidi100($storeSetting['kuaidi100']);
-                        $kuaidi100Result = $Kuaidi100->query($express_code, $express);
-                       
+        // 如果找不到包裹数据，尝试使用快递100智能识别并查询
+        if(empty($packData) && empty($inpackData)){
+            $storeSetting = Setting::getItem('store', $this->wxapp_id);
+            if(!empty($storeSetting['kuaidi100']['customer']) && !empty($storeSetting['kuaidi100']['key'])){
+                try {
+                    $Kuaidi100 = new Kuaidi100($storeSetting['kuaidi100']);
+                    // 先使用智能识别接口识别快递公司
+                    $detectList = $Kuaidi100->autoDetect($express);
+                    if($detectList !== false && !empty($detectList)){
+                        // 使用第一个识别结果（最可能的快递公司）进行查询
+                        $detectedCode = $detectList[0]['code'];
+                        $kuaidi100Result = $Kuaidi100->query($detectedCode, $express);
                         if($kuaidi100Result !== false && !empty($kuaidi100Result)){
                             // 转换快递100返回格式为系统格式
                             $kuaidi100Data = [];
@@ -233,6 +223,64 @@ class Track extends Controller
                             }
                             if(!empty($kuaidi100Data)){
                                 $logib = $kuaidi100Data;
+                                $logicv = array_merge($logia,$logib,$logzd);
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // 快递100查询失败，继续使用其他方式
+                }
+            }
+        }
+        
+        if(!empty($packData)){
+            //查出的系统内部物流信息
+            $logzd = $Logistics->getList($express);
+                // dump($logzd);die;
+            if(count($logic)>0){
+                // dump($inpackData);die;
+                $logia = $Logistics->getorderno($logzd[0]['order_sn']);
+            }
+            $express_code = $Express->getValueById($packData['express_id'],'express_code');
+            
+            if($setting['is_track_yubao']['is_enable']==1){//如果预报推送物流，则查询出来
+                $logib = $Logistics->getZdList($packData['express_num'],$express_code,$packData['wxapp_id']);
+            }
+            
+            // 如果17track查询不到数据，尝试使用快递100查询
+            if(empty($logib)){
+                $storeSetting = Setting::getItem('store', $packData['wxapp_id']);
+                if(!empty($storeSetting['kuaidi100']['customer']) && !empty($storeSetting['kuaidi100']['key'])){
+                    try {
+                        $Kuaidi100 = new Kuaidi100($storeSetting['kuaidi100']);
+                        $queryCode = $express_code; // 默认使用已有的快递公司代码
+                        
+                        // 如果没有快递公司代码，使用智能识别
+                        if(empty($queryCode)){
+                            $detectList = $Kuaidi100->autoDetect($express);
+                            if($detectList !== false && !empty($detectList)){
+                                // 使用第一个识别结果（最可能的快递公司）
+                                $queryCode = $detectList[0]['code'];
+                            }
+                        }
+                        
+                        // 如果有快递公司代码（已有的或识别到的），进行查询
+                        if(!empty($queryCode)){
+                            $kuaidi100Result = $Kuaidi100->query($queryCode, $express);
+                            if($kuaidi100Result !== false && !empty($kuaidi100Result)){
+                                // 转换快递100返回格式为系统格式
+                                $kuaidi100Data = [];
+                                if(is_array($kuaidi100Result)){
+                                    foreach($kuaidi100Result as $item){
+                                        $kuaidi100Data[] = [
+                                            'logistics_describe' => isset($item['context']) ? $item['context'] : '',
+                                            'created_time' => isset($item['time']) ? $item['time'] : (isset($item['ftime']) ? $item['ftime'] : ''),
+                                        ];
+                                    }
+                                }
+                                if(!empty($kuaidi100Data)){
+                                    $logib = $kuaidi100Data;
+                                }
                             }
                         }
                     } catch (\Exception $e) {
@@ -247,10 +295,10 @@ class Track extends Controller
                 $inpackData = $Inpack->where('id',$packData['inpack_id'])->where(['is_delete' => 0])->find(); //国际单号
             }
         }
-        //   dump($inpackData);die;
-
+        
         if(!empty($inpackData) ){
-          
+            // dump($inpackData['transfer']);die;
+
             if($inpackData['transfer']==0){
                 $ditchdatas = $DitchModel->where('ditch_id','=',$inpackData['t_number'])->find();
                 
@@ -297,6 +345,7 @@ class Track extends Controller
                 }
                 $logic = $result;
             }else{
+               
                 if(!empty($inpackData['t_order_sn'])){
                      $logicddd = $Logistics->getZdList($inpackData['t_order_sn'],$inpackData['t_number'],$inpackData['wxapp_id']);
                 }
@@ -304,8 +353,46 @@ class Track extends Controller
                      $logicdd = $Logistics->getZdList($inpackData['t2_order_sn'],$inpackData['t2_number'],$inpackData['wxapp_id']);
                         //   dump($logicdd);die;
                 }
-                
+               
                 $logic = array_merge($logicddd,$logicdd);
+              
+                // 如果没有查到数据，尝试使用快递100查询
+                if(empty($logic)){
+                    $storeSetting = Setting::getItem('store', $inpackData['wxapp_id']);
+                  
+                    if(!empty($storeSetting['kuaidi100']['customer']) && !empty($storeSetting['kuaidi100']['key'])){
+                        try {
+                            $Kuaidi100 = new Kuaidi100($storeSetting['kuaidi100']);
+                            // 使用原始查询的单号进行智能识别
+                            $queryExpress = $express;
+                            // 如果没有快递公司代码，使用智能识别
+                            $detectList = $Kuaidi100->autoDetect($queryExpress);
+                                dump($detectList);die;
+                            if($detectList !== false && !empty($detectList)){
+                                // 使用第一个识别结果（最可能的快递公司）进行查询
+                                $queryCode = $detectList[0]['code'];
+                                $kuaidi100Result = $Kuaidi100->query($queryCode, $queryExpress);
+                                if($kuaidi100Result !== false && !empty($kuaidi100Result)){
+                                    // 转换快递100返回格式为系统格式
+                                    $kuaidi100Data = [];
+                                    if(is_array($kuaidi100Result)){
+                                        foreach($kuaidi100Result as $item){
+                                            $kuaidi100Data[] = [
+                                                'logistics_describe' => isset($item['context']) ? $item['context'] : '',
+                                                'created_time' => isset($item['time']) ? $item['time'] : (isset($item['ftime']) ? $item['ftime'] : ''),
+                                            ];
+                                        }
+                                    }
+                                    if(!empty($kuaidi100Data)){
+                                        $logic = $kuaidi100Data;
+                                    }
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            // 快递100查询失败，继续使用其他方式
+                        }
+                    }
+                }
             }
            
             $packinck = $PackageModel->where(['inpack_id'=>$inpackData['id'],'is_delete' => 0])->find();

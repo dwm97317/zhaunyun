@@ -186,35 +186,7 @@ class SharingOrder extends SharingOrderModel {
     
     public function getListByDistane($query, $userId = null){
             $this->setWhere($query);
-            // 订单可见性规则：
-            // status=0（待审核）：只对团长可见
-            // status=3（已解散）：只对团长和参与者可见
-            // status=1（开团中）、status=2（已完成）：所有人可见
-            if ($userId && is_numeric($userId)) {
-                // 如果用户已登录
-                $userId = intval($userId);
-                // 构建查询条件：
-                // 1. status <> 0 AND status <> 3 （非待审核且非已解散的订单，所有人可见）
-                // 2. status = 0 AND member_id = userId （待审核订单，只对团长可见）
-                // 3. status = 3 AND (member_id = userId OR EXISTS(参与记录)) （已解散订单，只对团长和参与者可见）
-                // 注：在 EXISTS 子查询中，使用主查询表的 order_id 字段，ThinkPHP 会自动处理表引用
-                $this->whereRaw("(
-                    (status <> 0 AND status <> 3) 
-                    OR (status = 0 AND member_id = {$userId})
-                    OR (status = 3 AND (
-                        member_id = {$userId} 
-                        OR EXISTS(
-                            SELECT 1 FROM yoshop_sharing_tr_user 
-                            WHERE yoshop_sharing_tr_user.order_id = yoshop_sharing_tr_order.order_id 
-                            AND yoshop_sharing_tr_user.user_id = {$userId}
-                        )
-                    ))
-                )");
-            } else {
-                // 如果用户未登录，只显示非待审核且非已解散状态的订单
-                $this->where('status', '<>', 0);
-                $this->where('status', '<>', 3);
-            }
+            $this->where('status', 'in', [1]);
             return $this
             ->with(['country','address'])
             ->order("create_time desc")

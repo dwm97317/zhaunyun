@@ -352,8 +352,11 @@
                                         系统单号：<?= $item['order_sn'] ?><br>
                                         <?php if ($item['inpack_type']==1): ?> 
                                             拼团订单：<a href="<?= url('store/apps.sharing.order/edit', ['order_id' => $item['sharingorder']['order_id']]) ?>">
-                                                <span class="am-badge"><?= $item['sharingorder']['order_sn'] ?></span>
+                                                <span class="am-badge"><?= $item['sharingorder']['title'] ?? $item['sharingorder']['order_sn'] ?></span>
                                             </a>
+                                            <?php if (isset($item['sharingorder']['title'])): ?>
+                                            （<?= $item['sharingorder']['order_sn'] ?>）<br>
+                                            <?php endif; ?>
                                         <?php endif ;?>
                                         <?php if ($item['inpack_type']==1): ?> 
                                             <span class="am-badge am-badge-secondary">拼团订单</span>

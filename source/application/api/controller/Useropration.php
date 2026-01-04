@@ -3585,6 +3585,113 @@ class Useropration extends Controller
         //   dump($shelf['shelf_unit_id']);die;
         return $this->renderError('请扫码货架码');
     }
+    
+ // 查询用户的专属货位，如果没有则自动分配一个
+    public function getOrAllocateUserShelf(){
+        $settingdata = SettingModel::getItem('store');
+        $user_id = $this->postData('user_id')[0];
+        $wxapp_id = \request()->get('wxapp_id');
+        $real_user_id = null;
+        
+        // 如果提供了用户ID或编号，获取用户信息
+        if(!empty($user_id)){
+            // 根据用户编号或用户ID获取用户信息
+            if($settingdata['usercode_mode']['is_show']==1){
+                $userinfo = (new UserModel)->where(['user_code'=>$user_id,'is_delete'=>0])->find();
+                if(!empty($userinfo)){
+                    $real_user_id = $userinfo['user_id'];
+                }
+            }else{
+                $userinfo = UserModel::detail($user_id);
+                if(!empty($userinfo)){
+                    $real_user_id = $userinfo['user_id'];
+                }
+            }
+        }
+        
+        // 如果有用户ID，查询用户的专属货位（基于ShelfUnit表的user_id字段）
+        if(!empty($real_user_id)){
+            $userShelfUnit = $this->getUserBindShelfUnits($real_user_id, $wxapp_id);
+            
+            if(!empty($userShelfUnit)){
+                // 找到专属货位，返回信息
+                $shelf = (new Shelf())->where('id',$userShelfUnit['shelf_id'])->find();
+                $data = [
+                    'shelf_unit_id' => $userShelfUnit['shelf_unit_id'],
+                    'shelf_unit' => $userShelfUnit,
+                    'shelf' => $shelf
+                ];
+                return $this->renderSuccess($data, '查询到专属货位');
+            }
+        }
+        
+        // 没有专属货位或没有用户ID，使用fenpeihuowei的逻辑来分配
+        $keepersetting = SettingModel::getItem('keeper', $wxapp_id);
+        $selectedShelfUnitId = null;
+        
+        // 使用和fenpeihuowei相同的分配逻辑
+        if(!empty($real_user_id)){
+            // 如果有用户ID，但没有专属货位，看后台是否来决定是否给用户自动分配
+            if(isset($keepersetting['shopkeeper']['is_auto_setshelfuser']) && $keepersetting['shopkeeper']['is_auto_setshelfuser']==1){
+                //如果没有专属货位，就查询出空货位并给他分配一个，并绑定货位跟用户
+                $emptyShelfUnits = $this->getEmptyShelfUnits($wxapp_id, 1);
+                if(empty($emptyShelfUnits)){
+                    return $this->renderError('没有可用的空货位，请添加更多货位');
+                }
+                $selectedShelfUnitId = $emptyShelfUnits[0]['shelf_unit_id'];
+                (new ShelfUnit())->where('shelf_unit_id', $selectedShelfUnitId)->update([
+                    'user_id' => $real_user_id
+                ]);
+            }else{
+                //如果没有归属货位，并且也没有需要自动分配货位，就先查询下该用户是否有其他包裹有在货位上的，放在相同货位 
+                $userShelfUnits = $this->getUserOtherPackagesShelfUnits($real_user_id, $wxapp_id, 1);
+                if(!empty($userShelfUnits) && count($userShelfUnits)>0){
+                    // 找到用户其他包裹的货位，优先分配
+                    $selectedShelfUnitId = $userShelfUnits[0]['shelf_unit_id'];
+                }
+                // 找到包裹数量最少的货位分配
+                if(empty($selectedShelfUnitId)){
+                    $leastPackagesShelfUnits = $this->getLeastPackagesShelfUnits($wxapp_id, 1);
+                    if(!empty($leastPackagesShelfUnits) && count($leastPackagesShelfUnits)>0){
+                        $selectedShelfUnitId = $leastPackagesShelfUnits[0]['shelf_unit_id'];
+                    }
+                }
+            }
+        }else{
+            // 如果没有用户ID，查询无主货架，随机分配一个无主货架
+            $emptyShelfUnits = $this->getNouserShelfUnits($wxapp_id);
+            if(!empty($emptyShelfUnits)){
+                $selectedShelfUnitId = $emptyShelfUnits['shelf_unit_id'];
+            }else{
+                //如果没有无主货架，找到包裹数量最少的货位分配
+                $leastPackagesShelfUnits = $this->getLeastPackagesShelfUnits($wxapp_id, 1);
+                if(!empty($leastPackagesShelfUnits) && count($leastPackagesShelfUnits)>0){
+                    $selectedShelfUnitId = $leastPackagesShelfUnits[0]['shelf_unit_id'];
+                }
+            }
+        }
+        
+        if(empty($selectedShelfUnitId)){
+            return $this->renderError('没有可用的货位');
+        }
+        
+        // 查询分配后的货位信息
+        $allocatedShelfUnit = (new ShelfUnit())->where('shelf_unit_id', $selectedShelfUnitId)->find();
+        if(empty($allocatedShelfUnit)){
+            return $this->renderError('货位不存在');
+        }
+        
+        $shelf = (new Shelf())->where('id', $allocatedShelfUnit['shelf_id'])->find();
+        
+        $data = [
+            'shelf_unit_id' => $selectedShelfUnitId,
+            'shelf_unit' => $allocatedShelfUnit,
+            'shelf' => $shelf
+        ];
+        
+        $msg = !empty($real_user_id) ? '已为用户分配专属货位' : '已获取货位';
+        return $this->renderSuccess($data, $msg);
+    }
 
     public function createdOrderByScan(){
        // 员工信息
