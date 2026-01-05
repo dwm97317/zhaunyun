@@ -583,7 +583,7 @@ function loaddingoutexcel() {
         success: function(res) {
             layer.close(loadIndex);
             if(res.code == 1 && res.url) {
-                downloadFile(res.url.file_name, '订单数据_'+getCurrentDate()+'.xlsx');
+                downloadFile(res.url.file_name, '订单数据_'+getCurrentDate()+'.csv');
             } else {
                 layer.msg(res.msg || '导出失败', {icon: 2});
             }
