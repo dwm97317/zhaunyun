@@ -767,7 +767,15 @@ class Index extends Controller
       $packageModel = new Package();
       $idsArr = explode(',',$param['selectId']);
       foreach($idsArr as $key =>$val ){
-           $pack[$key] = $packageModel->where('id',$val)->update(['status' => 2]);
+           // 先查询包裹信息，检查是否有入库时间
+           $package = $packageModel->where('id',$val)->find();
+           if($package){
+               // 如果有入库时间，设置为已入库(status=2)，否则设置为未入库(status=1)
+               $status = !empty($package['entering_warehouse_time']) ? 2 : 1;
+               $pack[$key] = $packageModel->where('id',$val)->update(['status' => $status]);
+           }else{
+               $pack[$key] = 0;
+           }
       }
       $newArr = array_unique($pack);
       if(count($newArr)==1 && $newArr[0] == 1){
