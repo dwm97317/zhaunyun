@@ -30,14 +30,14 @@ class AppUpdate extends Controller
             
             // 最新版本配置 - 直接在这里配置最新版本信息
             $latestVersion = [
-                'version' => '1.206',
-                'version_code' => 1206,
+                'version' => '1.210',
+                'version_code' => 1210,
                 'force_update' => false,
                 'update_type' => 'apk', // wgt: 热更新, apk: 整包更新
                 'update_log' => "请下载最新版",
-                'download_url' => 'https://zhuanyun.sllowly.cn/xsgjv16.apk', // 直接配置下载地址
+                'download_url' => 'https://zhuanyun.sllowly.cn/xsgjv20.apk', // 直接配置下载地址
                 'file_size' => 2048000, // 2MB
-                'min_version' => '1.206'
+                'min_version' => '1.210'
             ];
             
             // 比较版本
