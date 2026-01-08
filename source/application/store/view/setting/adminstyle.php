@@ -52,6 +52,31 @@
                                     </select>
                                 </div>
                             </div>
+                            
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">订单提醒功能设置</div>
+                            </div>
+                            
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
+                                    新集运订单提醒
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_inpack_notify]" value="1"
+                                               data-am-ucheck  <?= (isset($values['is_inpack_notify']) && $values['is_inpack_notify'] == 1) || !isset($values['is_inpack_notify']) ? 'checked' : '' ?>>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_inpack_notify]" value="0"
+                                               data-am-ucheck <?= isset($values['is_inpack_notify']) && $values['is_inpack_notify'] == 0 ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                    <div class="am-margin-top-xs am-text-xs am-text-secondary">
+                                        <i class="am-icon-info-circle"></i> 开启后，当有新集运订单生成时，会在后台页面播放语音提示并显示顶部通知
+                                    </div>
+                                </div>
+                            </div>
                          
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">包裹入库功能设置</div>

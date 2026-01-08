@@ -1065,6 +1065,57 @@ class Index extends Controller
     }
     
     /**
+     * 获取最新集运订单信息（用于订单提醒）
+     * @return mixed
+     */
+    public function getLatestInpackTime()
+    {
+        $wxapp_id = $this->getWxappId();
+        
+        // 获取设置，检查是否启用订单提醒
+        $adminstyle = Setting::getItem('adminstyle', $wxapp_id);
+        $isNotifyEnabled = isset($adminstyle['is_inpack_notify']) ? $adminstyle['is_inpack_notify'] : 1; // 默认启用
+        
+        // 如果未启用，直接返回
+        if ($isNotifyEnabled == 0) {
+            return $this->renderSuccess('获取成功', '', [
+                'notify_enabled' => false,
+                'latest_time' => 0,
+                'latest_order_sn' => '',
+                'latest_id' => 0,
+                'latest_member_id' => 0
+            ]);
+        }
+        
+        // 获取最新的集运订单（状态为1：待支付）
+        $latestInpack = (new Inpack())
+            ->where('wxapp_id', $wxapp_id)
+            ->where('is_delete', 0)
+            ->where('status', 1)  // 只获取待支付的订单
+            ->order('created_time', 'desc')
+            ->find();
+        
+        if ($latestInpack) {
+            return $this->renderSuccess('获取成功', '', [
+                'notify_enabled' => true,
+                'latest_time' => strtotime($latestInpack['created_time']),
+                'latest_order_sn' => $latestInpack['order_sn'],
+                'latest_id' => $latestInpack['id'],
+                'latest_member_id' => $latestInpack['member_id']
+            ]);
+        }
+        
+        // 如果没有订单，返回0
+        return $this->renderSuccess('获取成功', '', [
+            'notify_enabled' => true,
+            'latest_time' => 0,
+            'latest_order_sn' => '',
+            'latest_id' => 0,
+            'latest_member_id' => 0
+        ]);
+    }
+    
+    /**
      * 后台手动后台录入
      * 后台【包裹管理】【后台录入】
      * @param $id
