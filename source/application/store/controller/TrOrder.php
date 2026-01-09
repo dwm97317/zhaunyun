@@ -46,6 +46,7 @@ use app\store\model\Countries;
 use app\store\model\LineService;
 use app\store\model\user\PointsLog as PointsLogModel;
 use think\Db;
+use Mpdf\Mpdf;
 
 /**
  * 订单管理
@@ -4332,130 +4333,269 @@ class TrOrder extends Controller
    
     // 批量打印面单 [生成pdf]
 public function expressBillbatch() {
-    $selectIds = $this->postData("selectIds");
-    if (empty($selectIds)) {
-        throw new Exception("未选择任何订单");
-    }
-
-    $inpack = new Inpack();
-    $data = $inpack->getExpressBatchData($selectIds);
-    if (empty($data)) {
-        throw new Exception("未找到订单数据");
-    }
-
-    $setting = Setting::getItem('store', $data[0]['wxapp_id']);
-    $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG();
-    $htmlArray = [];
-
-    foreach ($data as $order) {
-        $order['setting'] = $setting;
-        $order['barcode'] = $generatorSVG->getBarcode($order['order_sn'], $generatorSVG::TYPE_CODE_128, 2, 50);
-
-        // 拼接收件人信息
-        $recipientInfo = $order['address']['name'];
-        if (isset($order['setting']['address_setting']['is_tel_code']) && $order['setting']['address_setting']['is_tel_code'] == 1) {
-            $recipientInfo .= $order['address']['tel_code'];
+    try {
+        $selectIds = $this->postData("selectIds");
+        if (empty($selectIds)) {
+            return $this->renderError("未选择任何订单");
         }
-        $order['shoujianren'] = $recipientInfo . '  ' . $order['address']['phone'];
 
-        // 拼接详细地址
-        $addressFields = ['country', 'province', 'city', 'region', 'street', 'door'];
-        $fullAddress = '';
-        foreach ($addressFields as $field) {
-            if (isset($order['setting']['address_setting']["is_$field"]) && $order['setting']['address_setting']["is_$field"] == 1) {
-                $fullAddress .= $order['address'][$field];
+        // 如果selectIds是字符串，转换为数组
+        if (is_string($selectIds)) {
+            $selectIds = explode(',', $selectIds);
+            $selectIds = array_filter($selectIds); // 过滤空值
+        }
+        
+        if (empty($selectIds)) {
+            return $this->renderError("未选择任何订单");
+        }
+
+        $inpack = new Inpack();
+        $data = $inpack->getExpressBatchData($selectIds);
+        if (empty($data)) {
+            return $this->renderError("未找到订单数据");
+        }
+
+        $setting = Setting::getItem('store', $data[0]['wxapp_id']);
+        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG();
+        $htmlArray = [];
+
+        foreach ($data as $order) {
+            $order['setting'] = $setting;
+            // 生成条形码并移除XML声明（HTML中嵌入SVG时不需要XML声明）
+            $barcodeSvg = $generatorSVG->getBarcode($order['order_sn'], $generatorSVG::TYPE_CODE_128, 2, 50);
+            // 移除XML声明，保留纯SVG内容
+            $order['barcode'] = preg_replace('/<\?xml[^>]*\?>\s*/is', '', $barcodeSvg);
+
+            // 拼接收件人信息 - 确保UTF-8编码
+            $recipientInfo = isset($order['address']['name']) ? $order['address']['name'] : '';
+            if (!mb_check_encoding($recipientInfo, 'UTF-8')) {
+                $recipientInfo = mb_convert_encoding($recipientInfo, 'UTF-8', 'auto');
+            }
+            if (isset($order['setting']['address_setting']['is_tel_code']) && $order['setting']['address_setting']['is_tel_code'] == 1) {
+                $telCode = isset($order['address']['tel_code']) ? $order['address']['tel_code'] : '';
+                if (!mb_check_encoding($telCode, 'UTF-8')) {
+                    $telCode = mb_convert_encoding($telCode, 'UTF-8', 'auto');
+                }
+                $recipientInfo .= $telCode;
+            }
+            $phone = isset($order['address']['phone']) ? $order['address']['phone'] : '';
+            $order['shoujianren'] = $recipientInfo . '  ' . $phone;
+
+            // 拼接详细地址 - 确保UTF-8编码
+            $addressFields = ['country', 'province', 'city', 'region', 'street', 'door'];
+            $fullAddress = '';
+            foreach ($addressFields as $field) {
+                if (isset($order['setting']['address_setting']["is_$field"]) && $order['setting']['address_setting']["is_$field"] == 1) {
+                    $fieldValue = isset($order['address'][$field]) ? $order['address'][$field] : '';
+                    if (!mb_check_encoding($fieldValue, 'UTF-8')) {
+                        $fieldValue = mb_convert_encoding($fieldValue, 'UTF-8', 'auto');
+                    }
+                    $fullAddress .= $fieldValue;
+                }
+            }
+            $detail = isset($order['address']['detail']) ? $order['address']['detail'] : '';
+            if (!mb_check_encoding($detail, 'UTF-8')) {
+                $detail = mb_convert_encoding($detail, 'UTF-8', 'auto');
+            }
+            $order['address']['xiangxi'] = $fullAddress . $detail;
+
+            // 确保所有字符串字段都是UTF-8编码
+            foreach ($order as $key => $value) {
+                if (is_string($value) && !mb_check_encoding($value, 'UTF-8')) {
+                    $order[$key] = mb_convert_encoding($value, 'UTF-8', 'auto');
+                } elseif (is_array($value)) {
+                    array_walk_recursive($value, function(&$item) {
+                        if (is_string($item) && !mb_check_encoding($item, 'UTF-8')) {
+                            $item = mb_convert_encoding($item, 'UTF-8', 'auto');
+                        }
+                    });
+                    $order[$key] = $value;
+                }
+            }
+
+            // 渲染模板
+            $htmlArray[] = $this->template20($order);
+        }
+
+        // 构建完整的HTML文档
+        $htmlContent = implode('<hr style="page-break-after: always; border: none; margin: 0;">', $htmlArray);
+        
+        // 确保HTML内容本身是UTF-8编码
+        if (!mb_check_encoding($htmlContent, 'UTF-8')) {
+            $htmlContent = mb_convert_encoding($htmlContent, 'UTF-8', 'auto');
+        }
+        
+        // 清理HTML中的旧字体定义（保持兼容）
+        $htmlContent = preg_replace('/@font-face\s*\{[^}]*\}/is', '', $htmlContent);
+        
+        // 添加完整的HTML文档结构，包含meta charset
+        // mPDF对中文支持很好，使用UTF-8即可
+        $html = '<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta charset="UTF-8" />
+</head>
+<body>
+' . $htmlContent . '
+</body>
+</html>';
+        
+        // 使用mPDF生成PDF - 对中文支持很好
+        // 检查mPDF类是否存在（支持 mPDF 6.x 和 7.x）
+        $mpdfClass = null;
+        $mpdfVersion = null;
+        
+        // 检查 mPDF 7.x (新命名空间)
+        if (class_exists('\Mpdf\Mpdf', false)) {
+            $mpdfClass = '\Mpdf\Mpdf';
+            $mpdfVersion = 7;
+        }
+        // 检查 mPDF 6.x (旧命名空间)
+        elseif (class_exists('mPDF', false)) {
+            $mpdfClass = 'mPDF';
+            $mpdfVersion = 6;
+        } else {
+            // 尝试自动加载 mPDF 7.x
+            $mpdfPath = __DIR__ . '/../../../vendor/mpdf/mpdf/src/Mpdf.php';
+            if (file_exists($mpdfPath)) {
+                require_once $mpdfPath;
+                if (class_exists('\Mpdf\Mpdf')) {
+                    $mpdfClass = '\Mpdf\Mpdf';
+                    $mpdfVersion = 7;
+                }
+            }
+            // 尝试自动加载 mPDF 6.x
+            if (!$mpdfClass) {
+                $mpdfPath6 = __DIR__ . '/../../../vendor/mpdf/mpdf/mpdf.php';
+                if (file_exists($mpdfPath6)) {
+                    require_once $mpdfPath6;
+                    if (class_exists('mPDF')) {
+                        $mpdfClass = 'mPDF';
+                        $mpdfVersion = 6;
+                    }
+                }
             }
         }
-        $order['address']['xiangxi'] = $fullAddress . $order['address']['detail'];
+        
+        // 如果仍然找不到类，返回错误
+        if (!$mpdfClass) {
+            return $this->renderError("mPDF库未安装。请按照以下步骤操作：<br/>1. 在项目根目录运行命令：composer require mpdf/mpdf:^7.0（或 ^6.1 如果PHP版本低于7.1）<br/>2. 安装完成后运行：composer dump-autoload<br/>3. 如果无法使用composer，请查看 install_mpdf.md 文件了解手动安装方法");
+        }
+        
+        try {
+            // mPDF配置
+            $tempDir = sys_get_temp_dir() . '/mpdf';
+            if (!is_dir($tempDir)) {
+                @mkdir($tempDir, 0755, true);
+            }
+            
+            // 获取mPDF字体目录（尝试多个可能的位置）
+            $mpdfFontDirs = [];
+            $possibleFontDirs = [
+                __DIR__ . '/../../../vendor/mpdf/mpdf/ttfonts',
+                __DIR__ . '/../../../vendor/mpdf/mpdf/src/Config/../../ttfonts',
+            ];
+            foreach ($possibleFontDirs as $dir) {
+                $realDir = realpath($dir);
+                if ($realDir && is_dir($realDir)) {
+                    $mpdfFontDirs[] = $realDir;
+                    break;
+                }
+            }
+            
+            // mPDF 7.x 配置格式
+            if ($mpdfVersion == 7) {
+                $config = [
+                    'mode' => 'utf-8',
+                    'format' => [100, 150], // 自定义尺寸：100mm x 150mm
+                    'orientation' => 'P',
+                    'margin_left' => 0,
+                    'margin_right' => 0,
+                    'margin_top' => 0,
+                    'margin_bottom' => 0,
+                    'margin_header' => 0,
+                    'margin_footer' => 0,
+                    'tempDir' => $tempDir,
+                    'default_font' => 'dejavusans', // mPDF默认字体，支持中文
+                    'autoScriptToLang' => true,
+                    'autoLangToFont' => true,
+                ];
+                
+                // 如果有字体目录，添加到配置
+                if (!empty($mpdfFontDirs)) {
+                    $config['fontDir'] = $mpdfFontDirs;
+                }
+                
+                $mpdf = new \Mpdf\Mpdf($config);
+            } else {
+                // mPDF 6.x 配置格式（数组参数）
+                // mPDF 6.x 的自定义尺寸格式：使用数组 [宽度, 高度]（单位：毫米）
+                $customFormat = [100, 150]; // 100mm x 150mm
+                
+                $mpdf = new mPDF(
+                    'utf-8',
+                    $customFormat, // 自定义尺寸：100mm x 150mm
+                    '',
+                    '',
+                    0, // margin_left
+                    0, // margin_right
+                    0, // margin_top
+                    0, // margin_bottom
+                    0, // margin_header
+                    0, // margin_footer
+                    'P' // orientation
+                );
+                
+                // 设置临时目录
+                $mpdf->tempDir = $tempDir;
+                
+                // mPDF 6.x 需要单独设置字体
+                $mpdf->autoScriptToLang = true;
+                $mpdf->autoLangToFont = true;
+                if (!empty($mpdfFontDirs)) {
+                    $mpdf->fontDir = $mpdfFontDirs;
+                }
+            }
+            
+            // 设置UTF-8编码
+            mb_internal_encoding('UTF-8');
+            
+            // 写入HTML内容
+            $mpdf->WriteHTML($html);
+            
+            // 确保excel目录存在
+            $excelDir = WEB_PATH . DIRECTORY_SEPARATOR . 'excel';
+            if (!is_dir($excelDir)) {
+                if (!mkdir($excelDir, 0755, true)) {
+                    return $this->renderError("无法创建PDF存储目录");
+                }
+            }
 
-        // 渲染模板
-        $htmlArray[] = $this->template10($order);
+            // 保存PDF
+            $filename = rand(100000, 999999) . '.pdf';
+            $filePath = $excelDir . DIRECTORY_SEPARATOR . $filename;
+            
+            // 输出到文件（mPDF 7.x 使用字符串 'F' 表示保存到文件）
+            $mpdf->Output($filePath, 'F');
+            
+            $pdfOutput = file_get_contents($filePath);
+            if ($pdfOutput === false) {
+                return $this->renderError("读取PDF文件失败");
+            }
+        } catch (\Exception $e) {
+            // 如果mPDF不存在或出错，回退到dompdf
+            return $this->renderError("PDF生成失败: " . $e->getMessage() . "。请先安装mPDF: composer require mpdf/mpdf");
+        }
+
+        $pdfUrl = base_url() . '/excel/' . $filename;
+        return $this->renderSuccess('面单生成成功', '', ['url' => $pdfUrl]);
+        
+    } catch (\Exception $e) {
+        return $this->renderError("生成面单失败: " . $e->getMessage());
     }
-
-    $html = implode('<hr>', $htmlArray);
-    $html = mb_convert_encoding($html, 'UTF-8', 'auto');
-
-    // 生成PDF
-    $options = new Options();
-    $options->set('enable_remote', true);
-    // dump($options);die;
-    $dompdf = new Dompdf($options);
-    $dompdf->loadHtml($html, 'UTF-8');
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
-
-    // 保存PDF
-    $filename = rand(100000, 999999) . '.pdf';
-    $filePath = WEB_PATH . DIRECTORY_SEPARATOR . 'excel' . DIRECTORY_SEPARATOR . $filename;
-    file_put_contents($filePath, $dompdf->output());
-
-    return base_url() . '/excel/' . $filename;
 }
-    // public function expressBillbatch(){
-    //     $selectIds = $this->postData("selectIds");
-    //     $inpack = (new Inpack());   
-        
-        
-    //     $data = $inpack->getExpressBatchData($selectIds);
-    //     // dump($data);die;
-    //     $html = '';
-    //     $setting = Setting::getItem('store',$data[0]['wxapp_id']);
-    //     $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG(); #创建SVG类型条形码
-    //     foreach($data as $v){
-    //       $v['setting'] = $setting;
-    //       $v['barcode'] = $generatorSVG->getBarcode($v['order_sn'], $generatorSVG::TYPE_CODE_128,$widthFactor =2, $totalHeight = 50);
-           
-    //       $v['shoujianren'] = $v['address']['name'];
-    //       isset($v['setting']['address_setting']['is_tel_code'])  && $v['setting']['address_setting']['is_tel_code']==1 && $v['shoujianren']=$v['shoujianren'].$v['address']['tel_code'];
-    //       $v['shoujianren']= $v['shoujianren'].'  '.$v['address']['phone'];
-    
-    //       $v['address']['xiangxi'] = $v['address']['country'];
-    //       isset($v['setting']['address_setting']['is_province'])  && $v['setting']['address_setting']['is_province']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['province'];
-           
-    //       isset($v['setting']['address_setting']['is_city'])  && $v['setting']['address_setting']['is_city']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['city'];
-           
-    //       isset($v['setting']['address_setting']['is_region'])  && $v['setting']['address_setting']['is_region']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['region'];
-           
-    //       isset($v['setting']['address_setting']['is_street'])  && $v['setting']['address_setting']['is_street']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['street'];
-           
-    //       isset($v['setting']['address_setting']['is_door'])  && $v['setting']['address_setting']['is_door']==1 && $v['address']['xiangxi'] = $v['address']['xiangxi'].$v['address']['door'];
-           
-    //       $v['address']['xiangxi'] = $v['address']['xiangxi'] . $v['address']['detail'];
-           
-    //       $html.= $this->template10($v); 
-    //       $html.="</hr>";
-    //     }
-    //     $html = mb_convert_encoding($html,'UTF-8','auto'); 
-    //     $options = new Options();
-    //     $options->set('enable_remote', TRUE);
-    //     $options->set('defaultFont','DejaVu Sans.ttf');
-    //     $dompdf = new Dompdf($options);
-        
-    //     // dump($html);die;
-    //     $dompdf->loadHtml($html, 'UTF-8');
-    //     // 加载HTML到Dompdf
-    //     // $dompdf->loadHtml(charsetToUTF8($html));
-        
-    //     // 设置（纸张大小和方向）
-    //     // 可在https://dompdf.github.io/查看支持的纸张尺寸
-    //     $dompdf->setPaper('A4', 'portrait');
-         
-    //     // 渲染HTML为PDF
-    //     $dompdf->render();
-    //     // $dompdf->stream("output.pdf", array("Attachment" => false));
-    //     // 指定文件名和路径
-    //     $filename =  rand(100000,999999);
-    //     $filePath = WEB_PATH.'/excel/'. $filename .'.pdf';
- 
-    //     // 将PDF内容保存到服务器文件
-    //     file_put_contents($filePath, $dompdf->output()); 
-    //     return base_url().'/excel/'.$filename.'.pdf'; 
-    //     // 输出PDF到浏览器（用于直接预览）
-    //     // echo($html);
-    //     // file_put_contents('expressBill.html', charsetToUTF8($html));
-    // }
-    
-    
+
     // 修改用户地址
     public function updateAddress(){
         $selectIds = $this->postData();

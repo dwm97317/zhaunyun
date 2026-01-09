@@ -8,10 +8,12 @@
 
 namespace Qiniu\Tests;
 
+use PHPUnit\Framework\TestCase;
+
 use Qiniu\Cdn\CdnManager;
 use Qiniu\Http\Client;
 
-class CdnManagerTest extends \PHPUnit_Framework_TestCase
+class CdnManagerTest extends TestCase
 {
     protected $cdnManager;
     protected $encryptKey;
@@ -24,7 +26,10 @@ class CdnManagerTest extends \PHPUnit_Framework_TestCase
     protected $customDomain;
     protected $customDomain2;
 
-    protected function setUp()
+    /**
+     * @before
+     */
+    protected function setUpCdnManager()
     {
         global $testAuth;
         $this->cdnManager = new CdnManager($testAuth);
@@ -121,9 +126,10 @@ class CdnManagerTest extends \PHPUnit_Framework_TestCase
 
     public function testGetCdnLogList()
     {
-        list($ret, $err) = $this->cdnManager->getCdnLogList(array('fake.qiniu.com'), $this->testLogDate);
-        $this->assertNotNull($err);
-        $this->assertNull($ret);
+        $domain = getenv('QINIU_TEST_DOMAIN');
+        list($ret, $err) = $this->cdnManager->getCdnLogList(array($domain), $this->testLogDate);
+        $this->assertNull($err);
+        $this->assertNotNull($ret);
     }
 
     public function testCreateTimestampAntiLeechUrl()

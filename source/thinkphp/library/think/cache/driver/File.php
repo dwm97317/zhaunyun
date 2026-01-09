@@ -104,101 +104,31 @@ class File extends Driver
      * @param mixed  $default 默认值
      * @return mixed
      */
-    // public function get($name, $default = false)
-    // {
-    //     $filename = $this->getCacheKey($name);
-    //     if (!is_file($filename)) {
-    //         return $default;
-    //     }
-    //     $content      = file_get_contents($filename);
-    //     $this->expire = null;
-    //     if (false !== $content) {
-    //         $expire = (int) substr($content, 8, 12);
-    //         if (0 != $expire && time() > filemtime($filename) + $expire) {
-    //             return $default;
-    //         }
-    //         $this->expire = $expire;
-    //         $content      = substr($content, 32);
-    //         if ($this->options['data_compress'] && function_exists('gzcompress')) {
-    //             //启用数据压缩
-    //             $content = gzuncompress($content);
-    //         }
-    //         $content = unserialize($content);
-    //         return $content;
-    //     } else {
-    //         return $default;
-    //     }
-    // }
-    
     public function get($name, $default = false)
-        {
-            $filename = $this->getCacheKey($name);
-            
-            // 文件不存在直接返回默认值
-            if (!is_file($filename)) {
-                return $default;
-            }
-            
-            // 读取文件内容
-            $content = @file_get_contents($filename);
-            if ($content === false) {
-                return $default;
-            }
-            
-            $this->expire = null;
-            
-            // 检查文件内容长度是否足够
-            if (strlen($content) < 32) {
-                $this->unlink($filename);
-                return $default;
-            }
-            
-            // 提取过期时间
-            $expire = (int) substr($content, 8, 12);
-            
-            // 检查是否过期
-            if (0 != $expire && time() > filemtime($filename) + $expire) {
-                $this->unlink($filename); // 过期文件直接删除
-                return $default;
-            }
-            
-            $this->expire = $expire;
-            $content = substr($content, 32);
-            
-            // 处理数据压缩
-            if ($this->options['data_compress'] && function_exists('gzcompress')) {
-                $content = @gzuncompress($content);
-                if ($content === false) {
-                    $this->unlink($filename);
-                    return $default;
-                }
-            }
-            
-            // 安全的反序列化
-            try {
-                // 检查是否是序列化false的特殊情况
-                if ($content === 'b:0;') {
-                    return false;
-                }
-                
-                $result = @unserialize($content);
-                if ($result === false && $content !== 'b:0;') {
-                    throw new \Exception('反序列化数据损坏');
-                }
-                
-                return $result;
-                
-            } catch (\Exception $e) {
-                // 记录错误日志（可选）
-                if (function_exists('think\facade\Log::error')) {
-                    \think\facade\Log::error('缓存反序列化失败: ' . $e->getMessage() . ' File: ' . $filename);
-                }
-                
-                // 删除损坏的文件
-                $this->unlink($filename);
-                return $default;
-            }
+    {
+        $filename = $this->getCacheKey($name);
+        if (!is_file($filename)) {
+            return $default;
         }
+        $content      = file_get_contents($filename);
+        $this->expire = null;
+        if (false !== $content) {
+            $expire = (int) substr($content, 8, 12);
+            if (0 != $expire && time() > filemtime($filename) + $expire) {
+                return $default;
+            }
+            $this->expire = $expire;
+            $content      = substr($content, 32);
+            if ($this->options['data_compress'] && function_exists('gzcompress')) {
+                //启用数据压缩
+                $content = gzuncompress($content);
+            }
+            $content = unserialize($content);
+            return $content;
+        } else {
+            return $default;
+        }
+    }
 
     /**
      * 写入缓存

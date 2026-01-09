@@ -598,14 +598,7 @@
                                                 <i class="iconfont icon-755danzi"></i> 物流更新
                                             </a>
                                             <?php endif ;endif;?>
-                                            <?php if ($item['status'] ==-1): ?>
-                                            <a href="<?= url('store/trOrder/logistics', ['id' => $item['id']]) ?>">
-                                                <i class="am-icon-pencil"></i> 退款
-                                            </a>
-                                            <a href="<?= url('store/trOrder/logistics', ['id' => $item['id']]) ?>">
-                                                <i class="am-icon-pencil"></i> 退货处理
-                                            </a>
-                                            <?php endif ;?>
+                                            
                                             
                                          </div>
                                          <div class="tpl-table-black-operation" style="margin-top:10px">
@@ -2031,23 +2024,107 @@
          * 批量打印面单
          */
         $('#j-batch-print').on('click', function () {
-            var $tabs, data = $(this).data();
             var selectIds = checker.getCheckSelect();
-            if (selectIds.length==0){
-               layer.alert('请先选择集运单', {icon: 5});
+            if (selectIds.length == 0){
+                layer.msg('请先选择要打印的集运单', {icon: 5, time: 1500});
                 return;
             }
+            
+            // 显示加载提示
+            var loadIndex = layer.load(1, { 
+                shade: [0.3, '#000'],
+                content: '正在生成面单PDF，请稍候...'
+            });
+            
             // 请求服务器生成pdf地址
             $.ajax({
-                type:"POST",
-                url:'<?= url('store/trOrder/expressBillbatch') ?>',
-                data:{selectIds:selectIds},
-                dataType:"JSON",
-                success:function(result){
-                    window.open(result, '_blank');
+                type: "POST",
+                url: '<?= url('store/trOrder/expressBillbatch') ?>',
+                data: { 
+                    selectIds: selectIds.join(',') // 数组转字符串
+                },
+                dataType: "json", // 后端返回JSON格式
+                timeout: 30000, // 30秒超时
+                success: function(result) {
+                    layer.close(loadIndex);
+                    
+                    // 检查返回结果
+                    if (!result) {
+                        layer.msg('生成失败: 无效的响应', {icon: 2, time: 2000});
+                        return;
+                    }
+                    
+                    // 处理成功响应
+                    if (result.code === 1) {
+                        var pdfUrl = '';
+                        
+                        // 获取PDF URL
+                        if (result.data && result.data.url) {
+                            pdfUrl = result.data.url;
+                        } else if (result.url) {
+                            pdfUrl = result.url;
+                        } else if (result.data && typeof result.data === 'string') {
+                            pdfUrl = result.data;
+                        }
+                        
+                        // 验证URL格式
+                        if (!pdfUrl || (typeof pdfUrl !== 'string')) {
+                            layer.msg('生成失败: 无效的PDF地址', {icon: 2, time: 2000});
+                            return;
+                        }
+                        
+                        // 统一处理URL格式（修复双斜杠问题）
+                        pdfUrl = pdfUrl.replace(/([^:]\/)\/+/g, '$1');
+                        
+                        // 如果是相对路径，添加BASE_URL前缀
+                        if (pdfUrl.indexOf('http://') !== 0 && pdfUrl.indexOf('https://') !== 0) {
+                            if (typeof BASE_URL !== 'undefined' && BASE_URL) {
+                                pdfUrl = BASE_URL.replace(/\/$/, '') + '/' + pdfUrl.replace(/^\//, '');
+                            } else {
+                                // 如果没有BASE_URL，使用当前域名
+                                pdfUrl = window.location.origin + '/' + pdfUrl.replace(/^\//, '');
+                            }
+                        }
+                        
+                        // 打开新窗口显示PDF
+                        try {
+                            var printWindow = window.open(pdfUrl, '_blank');
+                            if (printWindow) {
+                                layer.msg(result.msg || '面单生成成功，正在打开...', {icon: 1, time: 1500});
+                            } else {
+                                layer.msg('请允许弹出窗口以查看面单', {icon: 2, time: 2000});
+                            }
+                        } catch (e) {
+                            layer.msg('打开打印页面失败: ' + e.message, {icon: 2, time: 2000});
+                        }
+                    } else {
+                        // 处理错误响应
+                        layer.msg(result.msg || '生成失败', {icon: 2, time: 2000});
+                    }
+                },
+                error: function(xhr, status, error) {
+                    layer.close(loadIndex);
+                    var errorMsg = '生成面单失败';
+                    
+                    if (status === 'timeout') {
+                        errorMsg = '请求超时，请稍后重试';
+                    } else if (xhr.responseText) {
+                        try {
+                            var errorResult = JSON.parse(xhr.responseText);
+                            errorMsg = errorResult.msg || errorResult.message || errorMsg;
+                        } catch (e) {
+                            // 如果不是JSON，尝试从响应文本中提取错误信息
+                            if (xhr.responseText.length < 200) {
+                                errorMsg = xhr.responseText;
+                            }
+                        }
+                    } else {
+                        errorMsg = error || '网络错误，请检查网络连接';
+                    }
+                    
+                    layer.msg(errorMsg, {icon: 2, time: 3000});
                 }
-            })
-            
+            });
         });
         
         /**

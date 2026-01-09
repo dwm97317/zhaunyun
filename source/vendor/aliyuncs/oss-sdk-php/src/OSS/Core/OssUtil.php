@@ -31,7 +31,11 @@ class OssUtil
         uksort($options, 'strnatcasecmp');
         foreach ($options as $key => $value) {
             if (is_string($key) && !is_array($value)) {
-                $temp[] = rawurlencode($key) . '=' . rawurlencode($value);
+                if (strlen($value) > 0) {
+                    $temp[] = rawurlencode($key) . '=' . rawurlencode($value);
+                } else {
+                    $temp[] = rawurlencode($key);
+                }
             }
         }
         return implode('&', $temp);
@@ -189,7 +193,6 @@ class OssUtil
      *
      * @param array $options
      * @throws OssException
-     * @return boolean
      */
     public static function validateOptions($options)
     {
@@ -368,7 +371,8 @@ BBB;
      * Get the host:port from endpoint.
      *
      * @param string $endpoint the endpoint.
-     * @return boolean
+     * @return string
+     * @throws OssException
      */
     public static function getHostPortFromEndpoint($endpoint)
     {
@@ -526,5 +530,14 @@ BBB;
         } else {
             throw new OssException("Unrecognized encoding type: " . $encoding);
         }
+    }
+
+    public static function unparseUrl($parsed_url) {
+        $scheme   = isset($parsed_url['scheme']) ? $parsed_url['scheme'] . '://' : '';
+        $host     = isset($parsed_url['host']) ? $parsed_url['host'] : '';
+        $port     = isset($parsed_url['port']) ? ':' . $parsed_url['port'] : '';
+        $path     = isset($parsed_url['path']) ? $parsed_url['path'] : '';
+        $query    = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
+        return "$scheme$host$port$path$query";
     }
 }

@@ -133,12 +133,6 @@ class Controller
     {
         return $this->view->display($content, $vars, $replace, $config);
     }
-    
-    public function makeView($data = '',$is_content=false)
-    {
-        if($is_content)return $this->view->display($data,[],[],[]);
-        else return $this->view->fetch($data,[],[],[]);
-    }
 
     /**
      * 模板变量赋值
@@ -231,14 +225,5 @@ class Controller
         }
 
         return true;
-    }
-    /**
-     * 获取post数据 (数组)
-     * @param string $key
-     * @return mixed
-     */
-    protected final function postForm(string $key = 'form')
-    {
-        return $this->postData($key);
     }
 }
