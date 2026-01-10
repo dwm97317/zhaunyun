@@ -146,15 +146,15 @@
                                         <td class="am-text-middle">
                                             <div class="tpl-table-black-operation">
                                                 <?php if ($item['order_type'] == 'inpack'): ?>
-                                                    <a href="<?= url('store.trorder/detail', ['id' => $item['id']]) ?>" target="_blank">
+                                                    <a href="<?= url('tr_order/orderdetail', ['id' => $item['id']]) ?>" target="_blank">
                                                         <i class="am-icon-eye"></i> 查看
                                                     </a>
                                                 <?php elseif ($item['order_type'] == 'recharge'): ?>
-                                                    <a href="<?= url('store.market.recharge/detail', ['id' => $item['id']]) ?>" target="_blank">
+                                                    <a href="<?= url('user.recharge/detail', ['id' => $item['id']]) ?>" target="_blank">
                                                         <i class="am-icon-eye"></i> 查看
                                                     </a>
                                                 <?php elseif ($item['order_type'] == 'shop'): ?>
-                                                    <a href="<?= url('store.order/detail', ['id' => $item['id']]) ?>" target="_blank">
+                                                    <a href="<?= url('store.order/detail', ['order_id' => $item['id']]) ?>" target="_blank">
                                                         <i class="am-icon-eye"></i> 查看
                                                     </a>
                                                 <?php endif; ?>

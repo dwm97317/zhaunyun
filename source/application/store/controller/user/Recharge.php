@@ -30,5 +30,29 @@ class Recharge extends Controller
             'set' =>  Setting::detail('store')['values']['usercode_mode']
         ]);
     }
+    
+        /**
+     * 充值订单详情
+     * @param $id 订单ID
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function detail($id)
+    {
+        // 获取订单详情，加载关联数据
+        $detail = OrderModel::with(['user', 'orderPlan'])->find($id);
+        if (empty($detail)) {
+            $this->error('订单不存在');
+        }
+        
+        // 获取设置
+        $set = Setting::detail('store')['values']['usercode_mode'];
+        
+        return $this->fetch('detail', [
+            'detail' => $detail,
+            'set' => $set,
+            'attributes' => OrderModel::getAttributes(),
+        ]);
+    }
 
 }
