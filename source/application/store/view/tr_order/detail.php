@@ -123,7 +123,7 @@
                                     <input style="width:80px;color:red;" type="text" class="tpl-form-input" readonly id="oWei" name="data[cale_weight]"
                                            value="<?= $detail['cale_weight']??'' ;?>" placeholder="请输入价格">
                                     <div>
-                                        <button type="button" onclick="caleAmount(this)" class="j-submit am-btn am-btn-secondary">用此参数计算费用
+                                        <button type="button" onclick="caleAmountByChargeWeight()" class="j-submit am-btn am-btn-secondary">用此参数计算费用
                                         </button>
                                     </div>
                                 </div>
@@ -1067,6 +1067,59 @@ function saveGoodsValue(value) {
             layer.alert('网络错误，请重试');
             // 恢复原值
             $('input[name="data[total_goods_value]"]').val(originalValue);
+        }
+    });
+}
+
+// 使用计费重量计算费用（不需要分箱数据）
+function caleAmountByChargeWeight() {
+    const line_id = $('select[name="data[line_id]"]').val();
+    const cale_weight = parseFloat($('#oWei').val()) || 0;
+    
+    if(!line_id) {
+        alert('请先选择集运线路');
+        return false;
+    }
+    
+    if(cale_weight <= 0) {
+        alert('请输入有效的计费重量');
+        return false;
+    }
+    
+    const $priceField = $('#price');
+    const originalPrice = $priceField.val();
+    
+    isCalculating = true;
+    $priceField.val('计算中...').prop('disabled', true);
+    
+    $.ajax({
+        type: "POST",
+        url: "<?= url('store/trOrder/caleAmount')?>",
+        data: {
+            pid: $('input[name="data[id]"]').val(),
+            line_id: line_id,
+            weight: cale_weight
+        },
+        dataType: 'json',
+        success: function(res) {
+            if (res.code == 1) {
+                $('#price').val(res.msg.price);
+                $('#pack_free').val(res.msg.packfree);
+                $('#lineweight').val(res.msg.oWeigth);
+                $('#other_free').val(res.msg.otherfree);
+                MathFree();
+            } else {
+                $priceField.val(originalPrice);
+                alert(res.msg || '计算运费失败');
+            }
+        },
+        error: function() {
+            $priceField.val(originalPrice);
+            alert('网络错误，请重试');
+        },
+        complete: function() {
+            isCalculating = false;
+            $priceField.prop('disabled', false);
         }
     });
 }

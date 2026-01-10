@@ -445,6 +445,7 @@ class Setting extends BaseModel
                     'freestyle'=>10, //10展示全部 20=显示所有费用清单
                     'is_address_secret'=>1,//手机号是否加密 
                     'is_auto_free'=>0, //代用户打包是否计算运费
+                    'is_editauto_free'=>0,
                     'packageorderby'=>[
                         'order_mode'=>'updated_time', //默认使用更新时间
                         'order_type'=>'desc' // desc =  asc 

@@ -415,6 +415,29 @@
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-form-label form-require">
+                                    编辑订单时是否自动计算运费
+                                </label>
+                                <div class="am-u-sm-9">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_editauto_free]" value="1"
+                                               data-am-ucheck
+                                            <?= $values['is_editauto_free'] == '1' ? 'checked' : '' ?>
+                                               required>
+                                        开启
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="adminstyle[is_editauto_free]" value="0"
+                                               data-am-ucheck
+                                            <?= $values['is_editauto_free'] == '0' ? 'checked' : '' ?>>
+                                        关闭
+                                    </label>
+                                    <div class="help-block">
+                                        <small>开启自动计算后，在编辑订单时会自动计算最终运费。</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label form-require">
                                     集运订单需要审核后才能支付
                                 </label>
                                   <div class="am-u-sm-9">

@@ -2286,9 +2286,9 @@ class TrOrder extends Controller
         }
         
        
-        $settingdata  = SettingModel::getItem('store',$line['wxapp_id']);
+        $settingdata  = SettingModel::getItem('adminstyle',$line['wxapp_id']);
         //不需要主动更新费用
-        if($settingdata['is_auto_free']==0){
+        if($settingdata['is_editauto_free']==0){
           $lines['predict']['price'] = 0;
         }
         return $this->renderSuccess([
