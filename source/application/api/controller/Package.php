@@ -3574,6 +3574,13 @@ class Package extends Controller
         return $this->renderSuccess($data);
     }
     
+     // 线路列表   版本20220916
+    public function linefordoor(){
+        $params = $this->request->param();
+        $data = (new Line())->linefordoor($params);
+        return $this->renderSuccess($data);
+    }
+    
         // 线路列表   版本20220916
     public function lineForShop(){
         $param = $this->request->param();

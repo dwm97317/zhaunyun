@@ -23,7 +23,7 @@ class Line extends LineModel
     }
 
     public function getLine($where){
-      return $this->where($where)->field('id,name')->order('sort DESC')->paginate(600);
+      return $this->where($where)->where('line_position','in',[30,40])->field('id,name')->order('sort DESC')->paginate(600);
     }
     
     public function getLineplus($query){
@@ -36,10 +36,30 @@ class Line extends LineModel
            $data =  (new UserAddress())->where('address_id',$query['address_id'])->find();
           
            if($data['country_id']){
-               return $this->where('FIND_IN_SET(:ids,countrys)', ['ids' => $data['country_id']])->where($where)->where('status',1)->field('id,name')->order('sort DESC')->paginate(600);
+               return $this->where('FIND_IN_SET(:ids,countrys)', ['ids' => $data['country_id']])->where($where)->where('status',1)
+               ->where('line_position','in',[20,40])
+               ->field('id,name')->order('sort DESC')->paginate(600);
            }
        }
-       return $this->field('id,name')->where($where)->order('sort DESC')->where('status',1)->paginate(600);
+       return $this->field('id,name')->where($where)->where('line_position','in',[20,40])->order('sort DESC')->where('status',1)->paginate(600);
+    }
+    
+    public function linefordoor($query){
+      $where = [];
+       if(!empty($query['line_category'])){
+           $where['line_category'] = $query['line_category'];
+       } 
+     
+       if(!empty($query['address_id'])){
+           $data =  (new UserAddress())->where('address_id',$query['address_id'])->find();
+          
+           if($data['country_id']){
+               return $this->where('FIND_IN_SET(:ids,countrys)', ['ids' => $data['country_id']])->where($where)->where('status',1)
+               ->where('line_position','in',[10,20,30,40])
+               ->field('id,name')->order('sort DESC')->paginate(600);
+           }
+       }
+       return $this->field('id,name')->where($where)->where('line_position','in',[10,20,30,40])->order('sort DESC')->where('status',1)->paginate(600);
     }
     
     public function getLineForShop($param){
@@ -53,6 +73,7 @@ class Line extends LineModel
                         ->where(function($query) use($param){
                               $query->where('shop_id',0)->whereOr('shop_id',$param['shops']);
                          })
+                        ->where('line_position','in',[10,40])
                        ->field('id,name')
                        ->order('sort DESC')
                        ->paginate(600); 
@@ -60,6 +81,7 @@ class Line extends LineModel
             //   dump(3434);die;
                return $this->where('FIND_IN_SET(:ids,countrys)', ['ids' => $data['country_id']])
                        ->where($where)
+                       ->where('line_position','in',[10,40])
                        ->field('id,name')
                        ->order('sort DESC')
                        ->paginate(600);
@@ -71,11 +93,12 @@ class Line extends LineModel
                         ->where(function($query) use($param){
                               $query->where('shop_id',0)->whereOr('shop_id',$param['shops']);
                          })
+                         ->where('line_position','in',[10,40])
                        ->field('id,name')
                        ->order('sort DESC')
                        ->paginate(600); 
        }
-      return $this->field('id,name')->order('sort DESC')->paginate(600);
+      return $this->where('line_position','in',[10,40])->field('id,name')->order('sort DESC')->paginate(600);
     }
     
     // 推荐路线

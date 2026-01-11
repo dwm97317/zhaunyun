@@ -91,5 +91,62 @@ class Country extends Controller
         return $this->renderSuccess('删除成功');
     }
 
+    /**
+     * 切换状态
+     * @param $id
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function changeStatus($id)
+    {
+        $status = $this->request->param('status', 1);
+        $model = (new CountryModel())->details($id);
+        if (!$model) {
+            return $this->renderError('记录不存在');
+        }
+        if ($model->save(['status' => $status])) {
+            return $this->renderSuccess('操作成功');
+        }
+        return $this->renderError('操作失败');
+    }
+    
+    /**
+     * 批量切换状态
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function batchChangeStatus()
+    {
+        $ids = $this->request->param('ids', '');
+        $status = $this->request->param('status', 1);
+        
+        if (empty($ids)) {
+            return $this->renderError('请选择要操作的国家');
+        }
+        
+        $idsArr = explode(',', $ids);
+        $idsArr = array_filter($idsArr);
+        
+        if (empty($idsArr)) {
+            return $this->renderError('请选择要操作的国家');
+        }
+        
+        $model = new CountryModel();
+        $successCount = 0;
+        foreach ($idsArr as $id) {
+            $country = $model->details($id);
+            if ($country && $country->save(['status' => $status])) {
+                $successCount++;
+            }
+        }
+        
+        if ($successCount > 0) {
+            return $this->renderSuccess('成功操作 ' . $successCount . ' 个国家');
+        }
+        
+        return $this->renderError('操作失败');
+    }
 
 }

@@ -36,6 +36,28 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 使用范围 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[line_position]" value="10" data-am-ucheck <?= (!isset($model['line_position']) || $model['line_position'] == 10) ? 'checked' : '' ?>>
+                                        拼邮
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[line_position]" value="20" data-am-ucheck <?= (isset($model['line_position']) && $model['line_position'] == 20) ? 'checked' : '' ?>>
+                                        直邮
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[line_position]" value="30" data-am-ucheck <?= (isset($model['line_position']) && $model['line_position'] == 30) ? 'checked' : '' ?>>
+                                        拼团
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="line[line_position]" value="40" data-am-ucheck <?= (isset($model['line_position']) && $model['line_position'] == 40) ? 'checked' : '' ?>>
+                                        通用
+                                    </label>
+                                    <div class="help-block"><small>选择通用则此路线可以全部场景使用，选择拼邮，直邮，拼团则只能在对应的场景上使用</small></div>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 支持会员等级 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <select name="line[grade_id]" class="am-form-field" data-am-selected="{searchBox: 1, maxHeight: 200}">
@@ -45,7 +67,7 @@
                                         <option value="<?= $grade['grade_id'] ?>" <?= (isset($model['grade_id']) && $model['grade_id'] == $grade['grade_id']) ? 'selected' : '' ?>><?= $grade['name'] ?></option>
                                         <?php endforeach; endif; ?>
                                     </select>
-                                    <div class="help-block"><small>选择该线路适用的会员等级：-1表示所有人都适用，0表示仅普货会员适用，>0表示针对对应会员等级</small></div>
+                                    <div class="help-block"><small>选择该线路适用的会员等级：-1表示所有人都适用，0表示仅普货会员适用，0表示针对对应会员等级</small></div>
                                 </div>
                             </div>
                             <div class="am-form-group">

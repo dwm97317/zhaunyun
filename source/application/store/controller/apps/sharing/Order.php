@@ -532,7 +532,7 @@ class Order extends Controller
         $model = new SharingOrder;
         if (!$this->request->isAjax()) {
             $shopList = ShopModel::getListName();
-            $line = (new Line())->getListAll();
+            $line = (new Line())->getListForPintuan();
             $countryList = (new Countries())->getListAll();
             return $this->fetch('add',compact('line','shopList','useraddress','countryList'));
         }
@@ -563,7 +563,7 @@ class Order extends Controller
             $id= input('order_id');
             $detail = $model::detail($id);
             $shopList = ShopModel::getListName();
-            $line = (new Line())->getListAll();
+            $line = (new Line())->getListForPintuan();
             $countryList = (new Countries())->getListAll();
             return $this->fetch('edit',compact('detail','shopList','line','countryList'));
         }

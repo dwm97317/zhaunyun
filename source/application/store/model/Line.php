@@ -172,6 +172,14 @@ class Line extends LineModel
         ->order(['sort desc','created_time desc'])
         ->select();
     }
+    
+    public function getListForPintuan(){
+      return $this
+        ->where('wxapp_id', self::$wxapp_id)
+        ->where('line_position','in',[30,40])
+        ->order(['sort desc','created_time desc'])
+        ->select();
+    }
 
     public function setListQueryWhere($query){
         if(!empty($query['name'])){
