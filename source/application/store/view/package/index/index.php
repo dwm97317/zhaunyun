@@ -273,9 +273,9 @@
                         <button type="button" id="j-batch" class="am-btn am-btn-secondary am-radius"><i class="iconfont icon-pintuan"></i> 加入批次</button>
                         <?php endif;?>
                     </div>
-                    <div class="am-scrollable-horizontal am-u-sm-12">
+                    <div class="am-scrollable-horizontal am-u-sm-12" style="overflow-x: auto; position: relative;">
                         <table width="100%" class="am-table am-table-compact am-table-striped
-                         tpl-table-black am-text-nowrap">
+                         tpl-table-black am-text-nowrap fixed-column-table">
                             <thead>
                             <tr>
                                 <th><input id="checkAll" type="checkbox" ></th>
@@ -287,7 +287,8 @@
                                 <th>包裹信息</th>
                                 <th>状态</th>
                                 <th>时间</th>
-                                <th>操作</th>
+                                <th>备注</th>
+                                <th class="fixed-operation">操作</th>
                             </tr>
                             </thead>
                             <tbody id="body">
@@ -369,6 +370,11 @@
                                         <?php endif; ?>
                                     </td>
                                     <td class="am-text-middle">
+                                        <?= !empty($item['remark']) ? htmlspecialchars($item['remark']) : '-' ?>
+                                        </br>
+                                        <?= !empty($item['admin_remark']) ? htmlspecialchars($item['admin_remark']) : '-' ?>
+                                    </td>
+                                    <td class="am-text-middle fixed-operation">
                                         <div class="tpl-table-black-operation">
                                             <!--编辑-->
                                             <?php if (checkPrivilege('package.index/edit')): ?>
@@ -403,7 +409,7 @@
                                 </tr>
                             <?php endforeach; else: ?>
                                 <tr>
-                                    <td colspan="11" class="am-text-center">暂无记录</td>
+                                    <td colspan="12" class="am-text-center">暂无记录</td>
                                 </tr>
                             <?php endif; ?>
                             </tbody>
@@ -1627,5 +1633,78 @@ $(function() {
         right: 15px;
         font-size: 24px;
         color: #666;
+    }
+    
+    /* 固定列样式 */
+    .fixed-column-table {
+        position: relative;
+    }
+    
+    /* 固定列基础样式 - 操作列固定在右侧 */
+    .fixed-operation {
+        position: sticky;
+        right: 0;
+        z-index: 10;
+        background-color: #fff;
+        min-width: 180px;
+        width: 180px;
+        box-shadow: -2px 0 4px rgba(0,0,0,0.1);
+        padding: 8px 12px !important;
+    }
+    
+    /* 表头固定列样式 */
+    .fixed-column-table thead th.fixed-operation {
+        background-color: #f5f5f5 !important;
+        z-index: 11;
+    }
+    
+    /* 斑马纹表格的固定列背景色 */
+    .fixed-column-table tbody tr:nth-child(even) .fixed-operation {
+        background-color: #f9f9f9;
+    }
+    
+    .fixed-column-table tbody tr:nth-child(odd) .fixed-operation {
+        background-color: #fff;
+    }
+    
+    /* 鼠标悬停时保持背景色 */
+    .fixed-column-table tbody tr:hover .fixed-operation {
+        background-color: #e8f4f8 !important;
+    }
+    
+    /* 确保表格可以横向滚动 */
+    .am-scrollable-horizontal {
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* 确保固定列不会超出其容器 */
+    .fixed-column-table {
+        table-layout: auto;
+    }
+    
+    /* 给非固定列添加足够的空间 */
+    .fixed-column-table tbody td:not(.fixed-operation),
+    .fixed-column-table thead th:not(.fixed-operation) {
+        min-width: 100px;
+    }
+    
+    /* 优化滚动条样式 */
+    .am-scrollable-horizontal::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .am-scrollable-horizontal::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    .am-scrollable-horizontal::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+    
+    .am-scrollable-horizontal::-webkit-scrollbar-thumb:hover {
+        background: #555;
     }
 </style>

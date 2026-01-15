@@ -2608,6 +2608,10 @@ class TrOrder extends Controller
                    }
                    return $this->label50($data);
                    break;
+               case '60':
+                   echo $this->label60($data);
+                   break;
+                   
                default:
                     echo $this->label10($data);
                    break;
@@ -2636,6 +2640,9 @@ class TrOrder extends Controller
                         return $this->renderError('国际物流单号为空');
                    }
                         echo $this->label50($data);
+                        break;
+                   case '60':
+                        echo $this->label60($data);
                         break;
                    default:
                         echo $this->label10($data);
@@ -3374,7 +3381,176 @@ class TrOrder extends Controller
 ';
 }
     
+    // 渲染标签模板5
+    public function label60($data){
+        
+    // 处理件数
+    if(count($data['packageitems'])==0){
+        $jianshu = '1/1';
+        $actual_weight = $data['line_weight'] ?? $data['weight'] ?? 0;
+        $chargeable_weight = $data['cale_weight'] ?? $actual_weight;
+        $length = $data['length'] ?? 0;
+        $width = $data['width'] ?? 0;
+        $height = $data['height'] ?? 0;
+    }else{
+        $jianshu = ($data['index'] +1).'/'.count($data['packageitems']);
+        $actual_weight = $data['packageitems'][$data['index']]['line_weight'] ?? $data['packageitems'][$data['index']]['weight'] ?? 0;
+        $chargeable_weight = $data['cale_weight'] ?? $data['line_weight'] ?? $actual_weight;
+        $length = $data['packageitems'][$data['index']]['length'] ?? 0;
+        $width = $data['packageitems'][$data['index']]['width'] ?? 0;
+        $height = $data['packageitems'][$data['index']]['height'] ?? 0;
+    }
     
+    // 获取系统名称（参考模板3）
+    $system_name = !empty($data['setting']['name']) ? $data['setting']['name'] : '';
+    
+    // 格式化地址
+    $full_address = '';
+    if(!empty($data['address'])){
+        $address_parts = [];
+        if(!empty($data['address']['province'])) $address_parts[] = $data['address']['province'];
+        if(!empty($data['address']['city'])) $address_parts[] = $data['address']['city'];
+        if(!empty($data['address']['detail'])) $address_parts[] = $data['address']['detail'];
+        $full_address = implode(' ', $address_parts);
+    }
+    
+    // 生成条形码（优先使用国际单号，否则使用订单号）
+    $barcode_number = !empty($data['t_order_sn']) ? $data['t_order_sn'] : $data['order_sn'];
+    // 如果已有条形码且号码匹配，直接使用；否则生成新的
+    if(!empty($data['barcode']) && !empty($data['order_sn']) && $barcode_number == $data['order_sn']){
+        $barcode = $data['barcode'];
+    }else{
+        $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG();
+        $barcodeSvg = $generatorSVG->getBarcode($barcode_number, $generatorSVG::TYPE_CODE_128, $widthFactor = 2, $totalHeight = 50);
+        $barcode = preg_replace('/<\?xml[^>]*\?>\s*/is', '', $barcodeSvg);
+    }
+       
+    return  $html = '<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    .printdata {
+        width: 100mm;
+        height: 100mm;
+        padding: 3mm;
+        font-family: "Microsoft YaHei", Arial, sans-serif;
+        background: #f0f0f0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .label-row {
+        margin-bottom: 3mm;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #000;
+    }
+    
+    .label-title {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 2mm;
+        padding-bottom: 1mm;
+    }
+    
+    .label-info {
+        margin-bottom: 3mm;
+    }
+    
+    .label-info-row {
+        font-size: 11px;
+        margin-bottom: 2mm;
+        line-height: 1.4;
+    }
+    
+    .member-info-row {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 3mm;
+        line-height: 1.5;
+    }
+    
+    .recipient-row {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 3mm;
+        line-height: 1.5;
+    }
+    
+    .line-info-row {
+        font-size: 11px;
+        margin-bottom: 2mm;
+        line-height: 1.4;
+    }
+    
+    .system-name-row {
+        font-size: 11px;
+        margin-bottom: 2mm;
+        line-height: 1.4;
+        text-align: center;
+        border-top: 2px solid #000;
+        padding-top: 1mm;
+    }
+    
+    .barcode-container {
+        text-align: center;
+        margin-top: 4mm;
+        padding: 2mm 0;
+    }
+    
+    .barcode svg {
+        width: 100%;
+        height: auto;
+        max-width: 75mm;
+        margin: 0 auto;
+    }
+    
+    .barcode-number {
+        font-size: 12px;
+        font-weight: bold;
+        margin-top: 1mm;
+        letter-spacing: 1px;
+        font-family: "Courier New", monospace;
+    }
+    
+    .info-row {
+        font-size: 11px;
+        margin-bottom: 2mm;
+    }
+</style>
+<div class="printdata">
+    <div class="label-info">
+        <div class="member-info-row"><strong>会员ID:</strong> '.$data['member_id'].'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong>件数:</strong> '.$jianshu.'</div>
+    </div>
+    
+    <div class="label-info">
+        <div class="recipient-row"><strong>收件人:</strong> '.($data['address']['name'] ?? '').'</div>
+        <div class="label-info-row"><strong>电话:</strong> '.($data['address']['phone'] ?? '').'</div>
+        <div class="label-info-row"><strong>送貨地址:</strong> '.$full_address.'</div>
+    </div>
+    
+    <div class="label-info">
+        <div class="system-name-row"><strong>'.$system_name.'</strong></div>
+        <div class="line-info-row"><strong>线路渠道:</strong> '.($data['line']['name'] ?? '').'</div>
+    </div>
+    
+    <div class="label-info">
+        <div class="info-row"><strong>实重:</strong> '.number_format($actual_weight, 2).$data['line_type_unit'].' <strong>計費重:</strong> '.number_format($chargeable_weight, 2).$data['line_type_unit'].' <strong>尺寸:</strong> '.$length.'*'.$width.'*'.$height.'</div>
+    </div>
+    
+    <div class="barcode-container">
+        '.$barcode.'
+        <div class="barcode-number">'.$barcode_number.'</div>
+    </div>
+</div>
+';
+}
+    
+
     // 渲染标签模板B
     public function label30($data){
         
@@ -4609,12 +4785,15 @@ public function expressBillbatch() {
         return $this->renderSuccess('修改成功');
     }
 
-    /**包裹导出功能**/
-    //导出成csv文档
+
+/**包裹导出功能**/
+    //导出成csv或excel文档
      public function loaddingOutExcel(){
         //获取需要导出的数据列表
         $ids= input("post.selectId/a");
         $seach= input("post.seach/a");
+        $format = input("post.format", "csv"); // 获取导出格式，默认为csv
+        
         //1 待入库 2 已入库 3 已分拣上架  4 待打包  5 待支付  6 已支付 7 已分拣下架  8 已打包  9 已发货 10 已收货 11 已完成
         $map =[-1=>'问题件',1=>'待入库',2=>'已入库',3=>'已分拣上架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已分拣下架',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成'];
         $status = [1=>'待查验',2=>'待支付',3=>'已支付','4'=>'已拣货','5'=>'已打包','6'=>'已发货','7'=>'已收货','8'=>'已完成','-1'=>'已取消'];
@@ -4663,6 +4842,7 @@ public function expressBillbatch() {
                  $where['express_num'] = $seach['express_num'];  //快递单号
             }
             $data =(new Inpack())->with(['address','user'])->where($where)->select()->each(function ($item, $key) use($map){
+                    $item['t_name'] = (new Line())->where('id',$item['line_id'])->value('name');
                     $item['total_free'] = $item['free']+ $item['pack_free'] +$item['other_free'] +$item['insure_free'];
                     //判断是否有优惠折扣
                     $discountData = (new UserLine())->where(['user_id'=>$item["user"]['user_id'],'line_id'=>$item['line_id']])->find();
@@ -4681,6 +4861,20 @@ public function expressBillbatch() {
         
         $setting = SettingModel::getItem('store',$data[0]['wxapp_id']);
         
+        // 根据格式选择导出方式
+        if($format == 'excel'){
+            // 导出Excel格式
+            return $this->exportToExcel($data, $setting, $status);
+        }else{
+            // 导出CSV格式
+            return $this->exportToCsv($data, $setting, $status);
+        }
+     }
+     
+    /**
+      * 导出为CSV格式
+      */
+     private function exportToCsv($data, $setting, $status){
         // 生成CSV文件名
         if($setting['usercode_mode']['is_show']==0){
             $filename = $data[0]['user']['user_id'].'-'. date("YmdHis") . ".csv";
@@ -4749,6 +4943,149 @@ public function expressBillbatch() {
             "file_name" => "https://".$_SERVER["HTTP_HOST"] . "/excel/" . $filename,
         ]);
      }
+     
+     
+     /**
+      * 导出为Excel格式
+      */
+     private function exportToExcel($data, $setting, $status){
+        //引入excel插件
+        vendor('PHPExcel.PHPExcel');
+        $objPHPExcel = new \PHPExcel();
+        
+        $style_Array=array(
+            'font'    => array (
+               'bold'      => true
+              ),
+             'alignment' => array (
+                      'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+               ),
+              'borders' => array (
+                   'top'     => array (
+                           'style' => \PHPExcel_Style_Border::BORDER_THIN
+                       )
+                ),
+          );
+         
+        $objPHPExcel->getActiveSheet()->getStyle( 'A4:V4')->applyFromArray($style_Array);
+        
+        //第一行的样式 - 合并所有列并加粗放大
+        $objPHPExcel->getActiveSheet()->setCellValue('A1',$setting['name'].'── 业务结算清单');
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(24);
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setBold(true);
+        $objPHPExcel->getActiveSheet()->mergeCells('A1:V1');
+        $objPHPExcel->getActiveSheet()->getRowDimension('1')->setRowHeight(36);
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        
+        //第二行的样式 - 合并所有列并加粗放大
+        $objPHPExcel->getActiveSheet()->setCellValue('A2','致'.$data[0]['address']['name'].'  '.'导出日期：'.getTime());
+        $objPHPExcel->getActiveSheet()->getStyle('A2')->getFont()->setSize(16);
+        $objPHPExcel->getActiveSheet()->getStyle('A2')->getFont()->setBold(true);
+        $objPHPExcel->getActiveSheet()->mergeCells('A2:V2');
+        $objPHPExcel->getActiveSheet()->getRowDimension('2')->setRowHeight(28);
+        $objPHPExcel->getActiveSheet()->getStyle('A2')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        
+        $objPHPExcel->setActiveSheetIndex(0);
+        //5.设置表格头（即excel表格的第一行）
+        $objPHPExcel->setActiveSheetIndex(0)
+                ->setCellValue('A4', '序号')
+                ->setCellValue('B4', '集运线路')
+                ->setCellValue('C4', '平台订单号')
+                ->setCellValue('D4', '目的地')
+                ->setCellValue('E4', '重量')
+                ->setCellValue('F4', '标准价')
+                ->setCellValue('G4', '商品品类')
+                ->setCellValue('H4', '商品价格')
+                ->setCellValue('I4', '用户ID')
+                ->setCellValue('J4', '姓名')
+                ->setCellValue('K4', '手机号')
+                ->setCellValue('L4', '个人通关号码')
+                ->setCellValue('M4', '身份证')
+                ->setCellValue('N4', '地址')
+                ->setCellValue('O4', '邮编')
+                ->setCellValue('P4', '承运商')
+                ->setCellValue('Q4', '发货单号')
+                ->setCellValue('R4', '备注')
+                ->setCellValue('S4', '状态')
+                ->setCellValue('T4', '业务日期')
+                ->setCellValue('U4', '签收时间')
+                ->setCellValue('V4', '专属客服');
+                   
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A:V')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:V4')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        
+        $objPHPExcel->getActiveSheet()->getStyle('A:V')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        //设置行高
+        $objPHPExcel->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
+        //设置颜色
+
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('A')->setWidth(8);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('B')->setWidth(20);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('C')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('D')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('E')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('F')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('G')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('H')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('I')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('J')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('K')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('L')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('M')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('N')->setWidth(25);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('O')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('P')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('Q')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('R')->setWidth(18);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('S')->setWidth(10);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('T')->setWidth(22);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('U')->setWidth(22);
+        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('V')->setWidth(22);
+        for($i=0;$i<count($data);$i++){
+            // dump($data->toArray());die;
+            $objPHPExcel->getActiveSheet()->setCellValue('A'.($i+5),$i+1);//序号
+            $objPHPExcel->getActiveSheet()->setCellValue('B'.($i+5),$data[$i]['t_name']);//集运路线
+            $objPHPExcel->getActiveSheet()->setCellValue('C'.($i+5),$data[$i]['order_sn'].' ');//平台订单号
+            $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+5),$data[$i]['address']['country']);//目的地
+            $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+5),$data[$i]['cale_weight']?$data[$i]['cale_weight']:$data[$i]['weight']);//重量
+            $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+5),$data[$i]['total_free']);//标准价
+            $objPHPExcel->getActiveSheet()->setCellValue('G'.($i+5),isset($data[$i]['packClass'])?$data[$i]['packClass']:'');//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('H'.($i+5),isset($data[$i]['packprice'])?$data[$i]['packprice']:0);//标准价 ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('I'.($i+5),$data[$i]['user']['user_id']);//用户id
+            $objPHPExcel->getActiveSheet()->setCellValue('J'.($i+5),$data[$i]['address']['name']);//用户昵称
+            $objPHPExcel->getActiveSheet()->setCellValue('K'.($i+5),$data[$i]['address']['phone']);//专属客服
+            $objPHPExcel->getActiveSheet()->setCellValue('L'.($i+5),$data[$i]['address']['clearancecode']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('M'.($i+5),$data[$i]['address']['identitycard']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('N'.($i+5),$data[$i]['address']['detail']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('O'.($i+5),$data[$i]['address']['code']);//快递类别  ***********
+            $objPHPExcel->getActiveSheet()->setCellValue('P'.($i+5),$data[$i]['t_name'].' ');//内部单号
+            $objPHPExcel->getActiveSheet()->setCellValue('Q'.($i+5),$data[$i]['t_order_sn'].' ');//内部单号
+            $objPHPExcel->getActiveSheet()->setCellValue('R'.($i+5),$data[$i]['remark']);//备注
+            $objPHPExcel->getActiveSheet()->setCellValue('S'.($i+5),$status[$data[$i]['status']]);//转单号码
+            $objPHPExcel->getActiveSheet()->setCellValue('T'.($i+5),$data[$i]['created_time']);//业务日期
+            $objPHPExcel->getActiveSheet()->setCellValue('U'.($i+5),$data[$i]['receipt_time']);//签收时间
+            $objPHPExcel->getActiveSheet()->setCellValue('V'.($i+5),$data[$i]['user']['user_id']);//专属客服
+        }
+        //7.设置保存的Excel表格名称
+        //8.设置当前激活的sheet表格名称；
+        $objPHPExcel->getActiveSheet()->setTitle('业务结算清单');
+        //9.设置浏览器窗口下载表格
+        if($setting['usercode_mode']['is_show']==0){
+            $filename = $data[0]['user']['user_id'].'-'. date("Ymd") . ".xlsx";
+        }else{
+            $filename = $data[0]['user']['user_code'].'-'. date("Ymd") . ".xlsx";
+        }
+        
+        // $objWriter = new \PHPExcel_Writer_Excel5($objPHPExcel);
+
+        $ov = \PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
+        $ov->save("excel/" . $filename);
+        return $this->renderSuccess("导出成功", [
+            "file_name" => "https://".$_SERVER["HTTP_HOST"] . "/excel/" . $filename,
+        ]);
+     }
+
      
      /**导出批次里所有的集运订单中的包裹明细**/
     //导出成excel文档

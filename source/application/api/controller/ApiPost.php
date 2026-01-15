@@ -816,4 +816,45 @@ class ApiPost extends Controller
             'count' => count($result)
         ]);
     }
+    
+    /**
+     * 包裹出库接口（电子秤扫码出库）
+     * 当电子秤扫到对应的包裹单号后，修改包裹状态为已完成并记录查验时间
+     * @return array
+     */
+    public function outWarehousePackage(){
+        $param = $this->request->param();
+        
+        // 验证包裹单号参数
+        if(!isset($param['express_num']) || empty($param['express_num'])){
+            return $this->renderError("包裹单号不能为空");
+        }
+        
+        $Package = new Package;
+        // 查找包裹记录
+        $result = $Package->where(['express_num' => $param['express_num'], 'is_delete' => 0])->find();
+        
+        if(empty($result)){
+            return $this->renderError("包裹不存在或已被删除");
+        }
+        
+        // 更新包裹状态：status=11(已完成), is_scan=2(已查验), scan_time=当前时间
+        $updateResult = $result->save([
+            'status' => 11,
+            'is_scan' => 2,
+            'scan_time' => getTime(),
+            'updated_time' => getTime()
+        ]);
+        
+        if($updateResult){
+            return $this->renderSuccess("包裹出库成功", [
+                'express_num' => $result['express_num'],
+                'status' => 11,
+                'is_scan' => 2,
+                'scan_time' => getTime()
+            ]);
+        } else {
+            return $this->renderError("包裹出库失败");
+        }
+    }
 }

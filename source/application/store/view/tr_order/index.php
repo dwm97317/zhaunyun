@@ -1147,6 +1147,7 @@
                     <button onclick="printlabel(20,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-secondary ">标签模板2</button>
                     <button onclick="printlabel(30,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-success ">标签模板3</button>
                     <button onclick="printlabel(50,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-success ">标签模板4</button>
+                    <button onclick="printlabel(60,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-danger ">标签模板5</button>
                     <button onclick="printlabel(40,{{ inpack_id }})" style="margin:10px;" type="button" class="am-btn-lg am-btn am-btn-warning ">渠道 标 签</button>
                     
                 </div>
@@ -1572,44 +1573,79 @@
             });
         });
             
-            	/**
-				 * 导出包裹
-				 */
-				$('#j-export').on('click', function() {
-					var $tabs, data = $(this).data();
-					var selectIds = checker.getCheckSelect();
-					var serializeObj = {};
-					var fordata = $(".toolbar-form").serializeArray().forEach(function(item) {
-						if (item.name != 's') {
-							serializeObj[item.name] = item.value;
-						}
+        /**
+		 * 导出包裹
+		 */
+		$('#j-export').on('click', function() {
+			var $tabs, data = $(this).data();
+			var selectIds = checker.getCheckSelect();
+			var serializeObj = {};
+			var fordata = $(".toolbar-form").serializeArray().forEach(function(item) {
+				if (item.name != 's') {
+					serializeObj[item.name] = item.value;
+				}
 
-					});
-					if (isEmpty(serializeObj['search']) && selectIds.length == 0) {
-						layer.alert('请先选择包裹或者搜索后再点导出', {
-							icon: 5
-						});
-						return;
-					}
-					$.ajax({
-						type: 'post',
-						url: "<?= url('store/trOrder/loaddingOutExcel') ?>",
-						data: {
-							selectId: selectIds,
-							seach: serializeObj
-						},
-						dataType: "json",
-						success: function(res) {
-							if (res.code == 1) {
-								console.log(res.url.file_name);
-								var a = document.createElement('a');
-								document.body.appendChild(a);
-								a.href = res.url.file_name;
-								a.click();
-							}
-						}
-					})
+			});
+			if (isEmpty(serializeObj['search']) && selectIds.length == 0) {
+				layer.alert('请先选择包裹或者搜索后再点导出', {
+					icon: 5
 				});
+				return;
+			}
+			// 弹出格式选择窗口
+			layer.open({
+				type: 1,
+				title: '选择导出格式',
+				area: ['400px', '200px'],
+				content: '<div style="padding: 20px;">' +
+						'<div style="margin-bottom: 20px;">' +
+						'<button type="button" class="am-btn am-btn-primary am-btn-block" style="margin-bottom: 10px;" onclick="exportOrder(\'csv\')">导出为 CSV 格式</button>' +
+						'<button type="button" class="am-btn am-btn-success am-btn-block" onclick="exportOrder(\'excel\')">导出为 Excel 格式</button>' +
+						'</div>' +
+						'</div>',
+				success: function(layero, index) {
+					// 将数据存储到全局变量，供导出函数使用
+					window.exportData = {
+						selectIds: selectIds,
+						serializeObj: serializeObj
+					};
+				}
+			});
+		});
+		
+		// 导出订单函数
+		window.exportOrder = function(format) {
+			layer.closeAll();
+			var loadIndex = layer.load(1);
+			var exportData = window.exportData || {};
+			$.ajax({
+				type: 'post',
+				url: "<?= url('store/trOrder/loaddingOutExcel') ?>",
+				data: {
+					selectId: exportData.selectIds,
+					seach: exportData.serializeObj,
+					format: format || 'csv'
+				},
+				dataType: "json",
+				success: function(res) {
+					layer.close(loadIndex);
+					if (res.code == 1) {
+						console.log(res.url.file_name);
+						var a = document.createElement('a');
+						document.body.appendChild(a);
+						a.href = res.url.file_name;
+						a.click();
+						layer.msg('导出成功', {icon: 1});
+					} else {
+						layer.msg(res.msg || '导出失败', {icon: 2});
+					}
+				},
+				error: function() {
+					layer.close(loadIndex);
+					layer.msg('导出失败', {icon: 2});
+				}
+			});
+		};
 				
 				/**
 				 * 导出包裹
