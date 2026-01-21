@@ -1517,12 +1517,34 @@ class TrOrder extends Controller
     // 取消订单
     public function cancelorder($id){
         $model = Inpack::details($id);
-        (new Package())->where('inpack_id',$model['id'])->update(['status' => 2,'inpack_id'=>0,'is_scan'=>1]);
-        if ($model->removedelete($id)) {
-            return $this->renderSuccess('取消成功');
+        
+        // 开启事务
+        Db::startTrans();
+        try {
+            // 判断该订单是否已支付 且 实际付款金额>0
+            if ($model['is_pay'] == 1 && $model['real_payment'] > 0) {
+                // 退款流程：将支付金额退还到用户余额
+                $remark = '集运订单' . $model['order_sn'] . '的支付退款';
+                (new User())->banlanceUpdate('add', $model['member_id'], $model['real_payment'], $remark);
+            }
+            
+            // 更新包裹状态：回退到待打包状态
+            (new Package())->where('inpack_id', $model['id'])->update(['status' => 2, 'inpack_id' => 0, 'is_scan' => 1]);
+            
+            // 删除订单（标记为已删除）
+            if ($model->removedelete($id)) {
+                Db::commit();
+                return $this->renderSuccess('取消成功');
+            }
+            
+            Db::rollback();
+            return $this->renderError($model->getError() ?: '取消失败');
+        } catch (\Exception $e) {
+            Db::rollback();
+            return $this->renderError('取消失败：' . $e->getMessage());
         }
-        return $this->renderError($model->getError() ?: '取消失败');
     }
+    
     
      //集运单删除
     public function delete($id){

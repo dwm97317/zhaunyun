@@ -703,6 +703,14 @@ class Useropration extends Controller
               Message::send('package.payorder',$packData);
           }
         }
+        //发送邮件通知
+        if(isset($packData['member_id']) || !empty($packData['member_id'])){
+            $EmailUser = UserModel::detail($packData['member_id']);
+            $EmailData['code'] = $packData['id'];
+            $EmailData['logistics_describe']=$noticesetting['check']['describe'];
+            (new Email())->sendemail($EmailUser,$EmailData,$type=1);
+        }
+        
         if($res || $resimg || $resdeleteimg){
             return $this->renderSuccess('编辑成功');
         }
@@ -3472,14 +3480,6 @@ class Useropration extends Controller
         // dump($noticesetting);die;
        
         Logistics::addrfidLog($packData['order_sn'],$noticesetting['check']['describe'],getTime(),$clerkdd['clerk_id']);
-        //发送邮件通知
-        if(isset($packData['member_id']) || !empty($packData['member_id'])){
-            $EmailUser = UserModel::detail($packData['member_id']);
-            $EmailData['code'] = $packData['id'];
-            $EmailData['logistics_describe']=$noticesetting['check']['describe'];
-            (new Email())->sendemail($EmailUser,$EmailData,$type=1);
-        }
-        
         // 清理包裹跟货架的关系
         $packlist = (new Package())->where('inpack_id',$id)->where('is_delete',0)->select();
         log_write("打包完成订单ID：".$id);

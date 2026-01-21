@@ -666,7 +666,7 @@
                                         
                                         <div class="tpl-table-black-operation" style="margin-top:10px">
                                             <?php if (checkPrivilege('tr_order/cancelorder') && in_array($item['status'],[1,2,3,4,5,6,7])): ?>
-                                            <a class='tpl-table-black-operation-del j-cancel' href="javascript:void(0);" data-id="<?= $item['id'] ?>">
+                                            <a class='tpl-table-black-operation-del j-cancel' href="javascript:void(0);" data-id="<?= $item['id'] ?>" data-is-pay="<?= $item['is_pay'] ?? 0 ?>" data-real-payment="<?= $item['real_payment'] ?? 0 ?>">
                                                 <i class="iconfont icon-daochu"></i> 取消订单
                                             </a>
                                             <?php endif ;?>
@@ -1378,7 +1378,19 @@
             var $tabs, data = $(this).data();
             console.log(data,7656);
             var hedanurl = "<?= url('store/trOrder/cancelorder') ?>";
-            layer.confirm('请确定是否取消订单，取消订单后订单中的包裹单号将回退到待打包状态', {title: '取消订单'}
+            
+            // 转换数据类型
+            var isPay = parseInt(data.isPay) || 0;
+            var realPayment = parseFloat(data.realPayment) || 0;
+            
+            // 根据订单支付状态显示不同的提示内容
+            var confirmContent = '是否确认取消订单';
+            if (isPay == 1 && realPayment > 0) {
+                confirmContent += '，如订单已支付则将支付的金额（' + realPayment + '）退还到用户余额';
+            }
+            confirmContent += '，取消订单后订单中的包裹单号将回退到待打包状态';
+            
+            layer.confirm(confirmContent, {title: '确认取消订单'}
                     , function (index) {
                         $.post(hedanurl, {id:data.id}, function (result) {
                             result.code === 1 ? $.show_success(result.msg, result.url)
