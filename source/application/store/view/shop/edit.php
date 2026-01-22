@@ -137,10 +137,10 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 仓库邮编 </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 仓库邮编 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="shop[post]"
-                                           placeholder="请输入仓库邮编" required value="<?= $model['post'];?>">
+                                           placeholder="请输入仓库邮编" value="<?= $model['post'];?>">
                                 </div>
                             </div>
                            

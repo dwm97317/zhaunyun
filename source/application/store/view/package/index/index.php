@@ -272,6 +272,8 @@
                         <?php if (checkPrivilege('batch/addpacktobatch')): ?>
                         <button type="button" id="j-batch" class="am-btn am-btn-secondary am-radius"><i class="iconfont icon-pintuan"></i> 加入批次</button>
                         <?php endif;?>
+                        <!--复制单号-->
+                        <button type="button" id="j-copy-express" class="am-btn am-btn-primary am-radius"><i class="iconfont icon-fuzhi am-margin-right-xs"></i>一键复制单号</button>
                     </div>
                     <div class="am-scrollable-horizontal am-u-sm-12" style="overflow-x: auto; position: relative;">
                         <table width="100%" class="am-table am-table-compact am-table-striped
@@ -1415,6 +1417,88 @@ function renderData(datatotal) {
                 }
             })
         });
+
+        /**
+         * 复制单号
+         */
+        $('#j-copy-express').on('click', function () {
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length == 0) {
+                layer.alert('请先选择要复制的包裹', {icon: 5});
+                return;
+            }
+            
+            // 获取所有选中行的快递单号
+            var expressNums = [];
+            var $checkboxes = $('#body input[name="checkIds"]:checked');
+            
+            $checkboxes.each(function() {
+                var $row = $(this).closest('tr');
+                // 从该行中找到包含快递单号的a标签，优先获取value属性，如果没有则获取文本内容
+                var $expressLink = $row.find('td:eq(2) a[onclick="getlog(this)"]');
+                if ($expressLink.length > 0) {
+                    // 优先使用value属性，如果没有则使用文本内容
+                    var expressNum = $expressLink.attr('value');
+                    if (!expressNum || expressNum.trim() === '') {
+                        expressNum = $expressLink.text().trim();
+                    }
+                    // 清理可能的换行符和多余空格
+                    expressNum = expressNum.replace(/\s+/g, ' ').trim();
+                    if (expressNum && expressNums.indexOf(expressNum) === -1) {
+                        expressNums.push(expressNum);
+                    }
+                }
+            });
+            
+            if (expressNums.length === 0) {
+                layer.alert('未找到快递单号', {icon: 5});
+                return;
+            }
+            
+            // 将单号用换行符连接
+            var expressText = expressNums.join('\n');
+            
+            // 复制到剪贴板
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                // 使用现代 Clipboard API
+                navigator.clipboard.writeText(expressText).then(function() {
+                    layer.msg('已复制 ' + expressNums.length + ' 个快递单号', {icon: 1, time: 2000});
+                }).catch(function(err) {
+                    // 如果 Clipboard API 失败，使用备用方法
+                    fallbackCopyText(expressText, expressNums.length);
+                });
+            } else {
+                // 使用备用方法
+                fallbackCopyText(expressText, expressNums.length);
+            }
+        });
+        
+        /**
+         * 备用复制方法（兼容旧浏览器）
+         */
+        function fallbackCopyText(text, count) {
+            var textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    layer.msg('已复制 ' + count + ' 个快递单号', {icon: 1, time: 2000});
+                } else {
+                    layer.alert('复制失败，请手动复制', {icon: 5});
+                }
+            } catch (err) {
+                layer.alert('复制失败，请手动复制', {icon: 5});
+            }
+            
+            document.body.removeChild(textArea);
+        }
 
         /**
          * 注册操作事件
