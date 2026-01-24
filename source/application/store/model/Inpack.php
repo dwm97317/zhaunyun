@@ -987,6 +987,14 @@ class Inpack extends InpackModel
         !empty($query['batch_id']) && $this->where('pa.batch_id','=',$query['batch_id']);
         !empty($query['is_pay']) && $this->where('pa.is_pay','=',$query['is_pay']);
         isset($query['is_doublecheck']) && $query['is_doublecheck']!='' &&  $query['is_doublecheck']>=-1 && $this->where('pa.is_doublecheck','=',$query['is_doublecheck']);
+        // 订单类型筛选：1=拼团 2=直邮 3=拼邮
+        if(isset($query['inpack_type']) && $query['inpack_type']!='') {
+            if($query['inpack_type'] == '3') {
+                $this->where('pa.inpack_type', 'in', [0, 3]); // 拼邮包含inpack_type=0和3
+            } else {
+                $this->where('pa.inpack_type', '=', $query['inpack_type']);
+            }
+        }
         if(!empty($query['time_type'])){
             !empty($query['start_time']) && $this->where($query['time_type'], '>=', $query['start_time']);
             !empty($query['end_time']) && $this->where($query['time_type'], '<=', $query['end_time']." 23:59:59");

@@ -1,9 +1,3 @@
-<style>
-    tbody tr:nth-child(2n){
-        background: #fff !important;
-        color:#ff6666;
-    }
-</style>
 <div class="row-content am-cf">
     <div class="row">
         <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
@@ -21,8 +15,11 @@
                 <div class="widget-body am-fr">
                     <!-- 工具栏 -->
                     <div class="page_toolbar am-margin-bottom-xs am-cf">
-                        <form class="toolbar-form" action="">
+                        <form class="toolbar-form search-content" id="searchContent" action="">
                             <input type="hidden" name="s" value="/<?= $request->pathinfo() ?>">
+                            <?php if($dataType=='all' && isset($_GET['inpack_type'])): ?>
+                            <input type="hidden" name="inpack_type" value="<?= $request->get('inpack_type') ?>">
+                            <?php endif ;?>
                             <div class="am-u-sm-12 am-u-md-12">
                                 <div class="am fl">
                                     <div class="am-form-group am-fl">
@@ -320,6 +317,38 @@
                             </ul>
                         </div>
                     </div>
+                    
+                    <!-- 订单类型Tab（仅在all_list页面显示） -->
+                    <?php if($dataType=='all'): ?>
+                    <?php 
+                        $currentInpackType = $request->get('inpack_type');
+                        $hasInpackType = isset($_GET['inpack_type']) || isset($_REQUEST['inpack_type']);
+                    ?>
+                    <div class="order-type-tabs" style="margin-left: 15px;">
+                        <a class="tab-item <?= !$hasInpackType ? 'active' : '' ?>" 
+                           href="<?= url('store/tr_order/all_list') ?>">全部 <span class="tab-count"><?= isset($inpackTypeCount['all']) ? $inpackTypeCount['all'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentInpackType == '1' ? 'active' : '' ?>" 
+                           href="<?= url('store/tr_order/all_list') ?>&inpack_type=1">拼团 <span class="tab-count"><?= isset($inpackTypeCount['type_1']) ? $inpackTypeCount['type_1'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentInpackType == '2' ? 'active' : '' ?>" 
+                           href="<?= url('store/tr_order/all_list') ?>&inpack_type=2">直邮 <span class="tab-count"><?= isset($inpackTypeCount['type_2']) ? $inpackTypeCount['type_2'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentInpackType == '3' ? 'active' : '' ?>" 
+                           href="<?= url('store/tr_order/all_list') ?>&inpack_type=3">拼邮 <span class="tab-count"><?= isset($inpackTypeCount['type_3']) ? $inpackTypeCount['type_3'] : 0 ?></span></a>
+                        <!-- 搜索折叠按钮 -->
+                        <span class="search-toggle-btn" id="searchToggleBtn" style="margin-left: 20px;">
+                            <i class="am-icon-filter"></i> 筛选条件 <i class="am-icon-chevron-down"></i>
+                        </span>
+                    </div>
+                    <?php endif ;?>
+                    
+                    <?php if($dataType!='all'): ?>
+                    <!-- 非all页面的筛选按钮 -->
+                    <div style="margin-left: 15px; margin-bottom: 15px;">
+                        <span class="search-toggle-btn" id="searchToggleBtn">
+                            <i class="am-icon-filter"></i> 筛选条件 <i class="am-icon-chevron-down"></i>
+                        </span>
+                    </div>
+                    <?php endif ;?>
+                    
                     <div class="am-scrollable-horizontal am-u-sm-12">
                         <table width="100%" class="am-table am-table-compact am-table-striped
                          tpl-table-black ">
@@ -2346,6 +2375,126 @@
 				}
 			}
 		})
-    } 
+    }
+    
+    // 搜索折叠功能
+    $(function() {
+        var $toggleBtn = $('#searchToggleBtn');
+        var $searchContent = $('#searchContent');
+        var isCollapsed = localStorage.getItem('trOrderSearchCollapsed') === 'true';
+        
+        // 初始化状态
+        if (isCollapsed) {
+            $searchContent.addClass('collapsed');
+            $toggleBtn.addClass('collapsed');
+        }
+        
+        // 点击切换
+        $toggleBtn.on('click', function() {
+            isCollapsed = !isCollapsed;
+            if (isCollapsed) {
+                $searchContent.addClass('collapsed');
+                $toggleBtn.addClass('collapsed');
+            } else {
+                $searchContent.removeClass('collapsed');
+                $toggleBtn.removeClass('collapsed');
+            }
+            localStorage.setItem('trOrderSearchCollapsed', isCollapsed);
+        });
+    });
 </script>
 
+<style>
+    tbody tr:nth-child(2n){
+        background: #fff !important;
+        color:#ff6666;
+    }
+    /* 订单类型Tab样式 */
+    .order-type-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 15px 15px;
+        border-bottom: 1px solid #e8e8e8;
+        margin-bottom: 15px;
+        background: #fafafa;
+        align-items: center;
+    }
+    .order-type-tabs a.tab-item {
+        display: inline-flex !important;
+        align-items: center !important;
+        padding: 8px 16px !important;
+        font-size: 14px !important;
+        color: #666 !important;
+        background: #fff !important;
+        border: 1px solid #d9d9d9 !important;
+        border-radius: 20px !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        transition: all 0.3s ease !important;
+        min-width: 80px;
+        justify-content: center;
+        height: 34px;
+        line-height: 18px;
+    }
+    .order-type-tabs a.tab-item:hover {
+        color: #1890ff !important;
+        border-color: #1890ff !important;
+        background: #e6f7ff !important;
+    }
+    .order-type-tabs a.tab-item.active,
+    .order-type-tabs a.tab-item.active:hover,
+    .order-type-tabs a.tab-item.active:focus,
+    .order-type-tabs a.tab-item.active:visited {
+        color: #fff !important;
+        background: #1890ff !important;
+        background-image: linear-gradient(135deg, #1890ff 0%, #096dd9 100%) !important;
+        border-color: #1890ff !important;
+        box-shadow: 0 2px 6px rgba(24, 144, 255, 0.35) !important;
+    }
+    .order-type-tabs .tab-count {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 8px;
+        font-size: 12px;
+        background: rgba(0,0,0,0.08);
+        border-radius: 10px;
+        color: #666;
+    }
+    .order-type-tabs a.tab-item.active .tab-count {
+        background: rgba(255,255,255,0.3) !important;
+        color: #fff !important;
+    }
+    /* 搜索折叠按钮样式 */
+    .search-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 16px;
+        background: #1890ff;
+        color: #fff;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+        height: 34px;
+        line-height: 18px;
+        margin-bottom: 0;
+    }
+    .search-toggle-btn:hover {
+        background: #40a9ff;
+    }
+    .search-toggle-btn i {
+        margin-right: 5px;
+        transition: transform 0.3s;
+    }
+    .search-toggle-btn.collapsed i {
+        transform: rotate(-90deg);
+    }
+    .search-content {
+        transition: all 0.3s ease;
+    }
+    .search-content.collapsed {
+        display: none;
+    }
+</style>

@@ -36,10 +36,21 @@ class Order extends Controller
                                          ->count();
        }
        $list = $lists;
-        // dump($list);die;
+       
+       // 统计各状态订单数量
+       $statusCount = [
+           'all' => $SharingOrder->where('is_delete', 0)->count(),
+           'status_0' => $SharingOrder->where('is_delete', 0)->where('status', 0)->count(), // 待审核
+           'status_1' => $SharingOrder->where('is_delete', 0)->where('status', 1)->count(), // 开团中
+           'status_2' => $SharingOrder->where('is_delete', 0)->where('status', 2)->count(), // 已完成
+           'status_3' => $SharingOrder->where('is_delete', 0)->where('status', 3)->count(), // 已解散
+           'status_4' => $SharingOrder->where('is_delete', 0)->where('status', 4)->count(), // 已发货
+           'status_5' => $SharingOrder->where('is_delete', 0)->where('status', 5)->count(), // 已完结
+       ];
+       
        $set = Setting::detail('store')['values']['address_setting'];
        $setcode = Setting::detail('store')['values']['usercode_mode'];
-       return $this->fetch('index',compact('list','shopList','set','setcode'));
+       return $this->fetch('index',compact('list','shopList','set','setcode','statusCount'));
     }
     
     

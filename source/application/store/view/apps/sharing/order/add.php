@@ -111,9 +111,10 @@
                                     <a class='tpl-table-black-operation-green j-changeaddress' href="javascript:void(0);" >
                                       <i class="am-icon-pencil"></i>选择地址</a>
                                 </div>
-                                <div class="am-u-sm-9 am-u-end" style="width:300px;">
+                                <div class="am-u-sm-9 am-u-end" style="width:600px;">
                                     <div  class='am-form-static'>
                                         <input type="hidden" name="data[address_id]" value="" class="addressId">
+                                        <span class="userinfo" style="color:#1890ff; padding-right:20px;"></span>
                                         <span class="lianxiren" style="padding-right:20px;"></span><span class="shoujihao"></span>    
                                     </div>
                                 </div>
@@ -291,7 +292,7 @@
             // 变更地址
         $('.j-changeaddress').click(function (e) {
             $.selectData({
-                title: '变更地址',
+                title: '选择拼团取货地址',
                 uri: 'Address/AddressAll',
                 dataIndex: 'address_id',
                 done: function (list) {
@@ -303,8 +304,19 @@
                     }
                     console.log(list[0]);
                     //将选择的结果通过dom赋值
-                    // console.log(document.getElementsByClassName("lianxiren"));
                     document.getElementsByClassName("addressId")[0].value = list[0].address_id;
+                    // 显示用户信息
+                    var userInfo = '';
+                    if (list[0].user_id) {
+                        userInfo = '用户ID：' + list[0].user_id;
+                        if (list[0].user_code) {
+                            userInfo += ' | CODE：' + list[0].user_code;
+                        }
+                        if (list[0].nickName) {
+                            userInfo += ' | 昵称：' + list[0].nickName;
+                        }
+                    }
+                    document.getElementsByClassName("userinfo")[0].innerText = userInfo;
                     document.getElementsByClassName("lianxiren")[0].innerText = "联系人：" + list[0].name;
                     document.getElementsByClassName("shoujihao")[0].innerText = "手机号：" + list[0].phone;
                     

@@ -787,6 +787,9 @@ class Package extends PackageModel
         !empty($param['batch_id'])&& $this->where('a.batch_id',$param['batch_id']);
         !empty($param['user_id'])&& $this->where('a.member_id',$param['user_id']);
         !empty($param['extract_shop_id'])&&is_numeric($param['extract_shop_id']) && $param['extract_shop_id'] > -1 && $this->where('storage_id', '=', (int)$param['extract_shop_id']);
+        if(isset($param['is_unclaimed']) && $param['is_unclaimed'] !== ''){
+            $this->where('a.is_unclaimed', '=', (int)$param['is_unclaimed']);
+        }
         if(!empty($param['time_type'])){
             !empty($param['start_time']) && $this->where($param['time_type'], '>=', $param['start_time']);
             !empty($param['end_time']) && $this->where($param['time_type'], '<=', $param['end_time']." 23:59:59");

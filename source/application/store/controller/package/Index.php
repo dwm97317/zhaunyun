@@ -929,7 +929,6 @@ class Index extends Controller
         return $this->fetch('index', compact('i','packlists','list','shopList','title','line','packageService','category','topcategory','type','storeAddress','set','countweight'));
     }
     
-    
     //展示功能
     public function nouser(){
         $list = [];
@@ -939,9 +938,22 @@ class Index extends Controller
         $map = array_merge($map1,$map2);
         $adminstyle = Setting::detail('adminstyle')['values'];
         $map['limitnum'] = isset($map['limitnum'])?$map['limitnum']:(isset($adminstyle['pageno'])?$adminstyle['pageno']['package']:15);
+        
+        // 处理 is_unclaimed 参数过滤（-1表示全部，不过滤）
+        if(isset($map2['is_unclaimed']) && $map2['is_unclaimed'] !== '' && $map2['is_unclaimed'] != '-1'){
+            $map['is_unclaimed'] = $map2['is_unclaimed'];
+        }
+        
         $list = $packageModel->getList($map);
         $shopList = ShopModel::getAllList();
-        return $this->fetch('nouser', compact('list','shopList','adminstyle'));
+        
+        // 获取Tab统计数量（与列表查询条件保持一致：is_take=1）
+        $unclaimedCount = [];
+        $unclaimedCount['total'] = $packageModel->where(['is_take' => 1, 'is_delete' => 0])->count(); // 全部
+        $unclaimedCount['tobind'] = $packageModel->where(['is_take' => 1, 'is_delete' => 0, 'is_unclaimed' => 0])->count(); // 待绑定
+        $unclaimedCount['all'] = $packageModel->where(['is_take' => 1, 'is_delete' => 0, 'is_unclaimed' => 1])->count(); // 待认领
+        
+        return $this->fetch('nouser', compact('list','shopList','adminstyle','unclaimedCount'));
     }
     
     /**
@@ -1014,6 +1026,32 @@ class Index extends Controller
         // dump($detail->toArray());die;
         return $this->fetch('edit', compact('list','detail','shopList','shelf','shelfitem','category','countryList','expressList','set'));
     }
+    
+     /**
+     * 批量设置包裹为地址没有ID的包裹 (is_unclaimed=1)
+     * 
+     * */
+    public function setUnclaimed(){
+        $ids = $this->request->param('selectIds');
+        if (empty($ids)){
+            return $this->renderError('请选择要操作的包裹');
+        }
+        // 兼容数组和字符串两种格式
+        if (is_array($ids)){
+            $idsArr = $ids;
+        } else {
+            $idsArr = explode(',', $ids);
+        }
+        $res = (new Package())->whereIn("id", $idsArr)->update([
+            'is_unclaimed' => 1,
+            'updated_time' => getTime()
+        ]);
+        if ($res === false){
+            return $this->renderError('操作失败');
+        }
+        return $this->renderSuccess('操作成功，已将 ' . count($idsArr) . ' 个包裹标记为"地址没有ID的包裹"');
+    }
+    
     
     
     /**

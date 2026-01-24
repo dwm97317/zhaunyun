@@ -1057,7 +1057,11 @@ var orderTable = table.render({
       }
     },
     {field: 'real_payment', width: 60, title: '实际支付', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;', templet: function(d){
-      return d.real_payment; 
+      // 只有已支付(is_pay==1)或支付失败(is_pay==3)时才显示实际支付金额，待审核状态不显示
+      if(d.is_pay == 1 || d.is_pay == 3) {
+        return d.real_payment; 
+      }
+      return '-';
     }},
     {field: 'waitreceivedmoney', width: 60, title: '代收款', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;', templet: function(d){
       return d.waitreceivedmoney; 

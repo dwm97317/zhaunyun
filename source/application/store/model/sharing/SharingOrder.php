@@ -92,16 +92,17 @@ class SharingOrder extends SharingOrderModel {
         if (isset($query['order_sn']) && $query['order_sn']){
             $this->where(['order_sn'=>$query['order_sn']]);
         }
-        if (isset($query['status']) && $query['status']){
+        // 状态筛选，使用 !== '' 确保状态0也能正确筛选
+        if (isset($query['status']) && $query['status'] !== ''){
             $this->where(['status'=>$query['status']]);
         }
         if (isset($query['extract_shop_id']) && $query['extract_shop_id'] != '-1'){
             $this->where(['storage_id'=>$query['extract_shop_id']]);
         }
          // 起始时间
-        !empty($params['start_time']) && $this->where('order.create_time', '>=', strtotime($params['start_time']));
+        !empty($query['start_time']) && $this->where('create_time', '>=', strtotime($query['start_time']));
         // 截止时间
-        !empty($params['end_time']) && $this->where('order.create_time', '<', strtotime($params['end_time']) + 86400);
+        !empty($query['end_time']) && $this->where('create_time', '<', strtotime($query['end_time']) + 86400);
         return $this->where("is_delete",0);
     }
     

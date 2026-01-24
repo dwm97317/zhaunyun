@@ -712,25 +712,60 @@
 						});
 						return;
 					}
+					// 弹出格式选择窗口
+					layer.open({
+						type: 1,
+						title: '选择导出格式',
+						area: ['400px', '200px'],
+						content: '<div style="padding: 20px;">' +
+								'<div style="margin-bottom: 20px;">' +
+								'<button type="button" class="am-btn am-btn-primary am-btn-block" style="margin-bottom: 10px;" onclick="exportInpackOrder(\'csv\')">导出为 CSV 格式</button>' +
+								'<button type="button" class="am-btn am-btn-success am-btn-block" onclick="exportInpackOrder(\'excel\')">导出为 Excel 格式</button>' +
+								'</div>' +
+								'</div>',
+						success: function(layero, index) {
+							// 将数据存储到全局变量，供导出函数使用
+							window.exportInpackData = {
+								selectIds: selectIds,
+								serializeObj: serializeObj
+							};
+						}
+					});
+				});
+				
+				// 导出订单函数
+				window.exportInpackOrder = function(format) {
+					layer.closeAll();
+					var loadIndex = layer.load(1);
+					var exportData = window.exportInpackData || {};
 					$.ajax({
 						type: 'post',
 						url: "<?= url('store/trOrder/loaddingOutExcel') ?>",
 						data: {
-							selectId: selectIds,
-							seach: serializeObj
+							selectId: exportData.selectIds,
+							seach: exportData.serializeObj,
+							format: format || 'csv'
 						},
 						dataType: "json",
 						success: function(res) {
+							layer.close(loadIndex);
 							if (res.code == 1) {
 								console.log(res.url.file_name);
 								var a = document.createElement('a');
 								document.body.appendChild(a);
 								a.href = res.url.file_name;
 								a.click();
+								layer.msg('导出成功', {icon: 1});
+							} else {
+								layer.msg(res.msg || '导出失败', {icon: 2});
 							}
+						},
+						error: function() {
+							layer.close(loadIndex);
+							layer.msg('导出失败', {icon: 2});
 						}
-					})
-				});
+					});
+				};
         
         /**
          * 修改入库状态

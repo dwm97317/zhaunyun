@@ -75,19 +75,51 @@ class UserAddress extends UserAddressModel
     }
     
     /**
-     * 获取列表记录
+     * 获取列表记录（关联用户信息）
      * @return \think\Paginator
      * @throws \think\exception\DbException
      */
     public function getAll($query)
     {
         // 检索查询条件
-        !empty($query) && $this->setWhere($query);
+        !empty($query) && $this->setWhereAll($query);
         return $this
-            // ->where('address_type',2)//获取代收点的地址
+            ->with(['user'])
             ->paginate(15, false, [
                 'query' => request()->request()
             ]);
+    }
+    
+   /**
+     * 设置检索查询条件（增强搜索，支持用户ID、用户CODE、收件人、手机号、国家）
+     * @param $query
+     */
+    private function setWhereAll($query)
+    {
+        if (isset($query) && !empty($query)) {
+            $query = trim($query);
+            $this->where(function($q) use ($query) {
+                $q->whereOr('country', 'like', '%' . $query . '%')
+                  ->whereOr('name', 'like', '%' . $query . '%')
+                  ->whereOr('phone', 'like', '%' . $query . '%')
+                  ->whereOr('user_id', '=', $query)
+                  ->whereOr('user_id', 'in', function($subQuery) use ($query) {
+                      $subQuery->table('yoshop_user')
+                               ->where('user_code', 'like', '%' . $query . '%')
+                               ->whereOr('nickName', 'like', '%' . $query . '%')
+                               ->field('user_id');
+                  });
+            });
+        }
+    }
+    
+      /**
+     * 关联用户
+     */
+    public function user()
+    {
+        return $this->belongsTo('User', 'user_id', 'user_id')
+            ->field('user_id, user_code, nickName');
     }
     
         /**

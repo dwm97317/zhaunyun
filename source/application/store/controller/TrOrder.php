@@ -1587,10 +1587,23 @@ class TrOrder extends Controller
         $batchlist = (new Batch())->getAllwaitList([]);
         $shopList = ShopModel::getAllList();
         $lineList = $Line->getListAll();
-        if(isset($adminstyle['pageno']['inpacktype']) && $adminstyle['pageno']['inpacktype']==20){
-          return $this->fetch('newindex', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist','is_verify_free'));  
+        
+        // 订单类型数量统计（仅在all页面统计）
+        $inpackTypeCount = [];
+        if($dataType == 'all') {
+            $baseWhere = ['is_delete' => 0];
+            $inpackTypeCount = [
+                'all' => (new Inpack)->where($baseWhere)->count(),
+                'type_1' => (new Inpack)->where($baseWhere)->where('inpack_type', 1)->count(), // 拼团
+                'type_2' => (new Inpack)->where($baseWhere)->where('inpack_type', 2)->count(), // 直邮
+                'type_3' => (new Inpack)->where($baseWhere)->where('inpack_type', 'in', [0, 3])->count(), // 拼邮（包含0和3）
+            ];
         }
-        return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist','is_verify_free'));
+        
+        if(isset($adminstyle['pageno']['inpacktype']) && $adminstyle['pageno']['inpacktype']==20){
+          return $this->fetch('newindex', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist','is_verify_free','inpackTypeCount'));  
+        }
+        return $this->fetch('index', compact('adminstyle','list','dataType','set','pintuanlist','shopList','lineList','servicelist','userclient','batchlist','tracklist','is_verify_free','inpackTypeCount'));
     }
     
         //货到付款欠费用户列表

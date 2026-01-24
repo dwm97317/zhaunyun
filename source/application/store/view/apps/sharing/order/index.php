@@ -6,6 +6,86 @@
                     <div class="widget-title am-cf">拼团列表</div>
                 </div>
                 <div class="widget-body am-fr">
+                    <!-- 状态Tab样式 -->
+                    <style>
+                        .status-tabs {
+                            display: flex !important;
+                            flex-wrap: wrap !important;
+                            gap: 8px !important;
+                            padding: 15px 0 !important;
+                            border-bottom: 1px solid #e8e8e8 !important;
+                            margin-bottom: 15px !important;
+                        }
+                        .status-tabs a.tab-item {
+                            display: inline-block !important;
+                            padding: 8px 20px !important;
+                            font-size: 14px !important;
+                            color: #666 !important;
+                            background: #f5f5f5 !important;
+                            border-radius: 20px !important;
+                            cursor: pointer !important;
+                            text-decoration: none !important;
+                            transition: all 0.3s ease !important;
+                            border: 1px solid transparent !important;
+                        }
+                        .status-tabs a.tab-item:hover {
+                            color: #1890ff !important;
+                            background: #e6f7ff !important;
+                            border-color: #91d5ff !important;
+                        }
+                        .status-tabs a.tab-item.active,
+                        .status-tabs a.tab-item.active:hover,
+                        .status-tabs a.tab-item.active:focus,
+                        .status-tabs a.tab-item.active:visited {
+                            color: #fff !important;
+                            background: #1890ff !important;
+                            background-image: linear-gradient(135deg, #1890ff 0%, #096dd9 100%) !important;
+                            border-color: #1890ff !important;
+                            box-shadow: 0 2px 6px rgba(24, 144, 255, 0.35) !important;
+                        }
+                        .status-tabs a.tab-item .tab-count {
+                            display: inline-block !important;
+                            min-width: 20px !important;
+                            height: 20px !important;
+                            line-height: 20px !important;
+                            padding: 0 6px !important;
+                            margin-left: 6px !important;
+                            font-size: 12px !important;
+                            background: rgba(0,0,0,0.15) !important;
+                            border-radius: 10px !important;
+                            text-align: center !important;
+                        }
+                        .status-tabs a.tab-item.active .tab-count {
+                            background: rgba(255,255,255,0.3) !important;
+                            color: #fff !important;
+                        }
+                    </style>
+                    <!-- 状态Tab -->
+                    <?php 
+                    // 兼容多种方式获取status参数
+                    $currentStatus = $request->param('status');
+                    if ($currentStatus === null || $currentStatus === '') {
+                        $currentStatus = $request->get('status');
+                    }
+                    // 判断是否有status参数
+                    $hasStatus = isset($_GET['status']) || isset($_REQUEST['status']) || $request->param('status') !== null;
+                    ?>
+                    <div class="status-tabs">
+                        <a class="tab-item <?= !$hasStatus ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>">全部 <span class="tab-count"><?= isset($statusCount['all']) ? $statusCount['all'] : 0 ?></span></a>
+                        <a class="tab-item <?= $hasStatus && $currentStatus == '0' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=0">待审核 <span class="tab-count"><?= isset($statusCount['status_0']) ? $statusCount['status_0'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentStatus == '1' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=1">开团中 <span class="tab-count"><?= isset($statusCount['status_1']) ? $statusCount['status_1'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentStatus == '5' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=5">已完结 <span class="tab-count"><?= isset($statusCount['status_5']) ? $statusCount['status_5'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentStatus == '3' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=3">已解散 <span class="tab-count"><?= isset($statusCount['status_3']) ? $statusCount['status_3'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentStatus == '2' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=2">已完成 <span class="tab-count"><?= isset($statusCount['status_2']) ? $statusCount['status_2'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentStatus == '4' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=4">已发货 <span class="tab-count"><?= isset($statusCount['status_4']) ? $statusCount['status_4'] : 0 ?></span></a>
+                    </div>
                     <!-- 工具栏 -->
                     <div class="page_toolbar am-margin-bottom-xs am-cf">
                         <form class="toolbar-form" action="">

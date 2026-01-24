@@ -19,8 +19,8 @@
             <div class="am fr">
                 <div class="am-form-group am-fl">
                     <div class="am-input-group am-input-group-sm tpl-form-border-form">
-                        <input type="text" class="am-form-field" name="title"
-                               placeholder="请输入国家名称或代码"
+                        <input type="text" class="am-form-field" name="title" style="width: 280px;"
+                               placeholder="搜索：用户ID/用户CODE/昵称/收件人/手机号/国家"
                                value="<?= $request->get('title') ?>">
                         <div class="am-input-group-btn">
                             <button class="am-btn am-btn-default am-icon-search"
@@ -42,6 +42,9 @@
                 </label>
             </th>
             <th>地址ID</th>
+            <th>用户ID</th>
+            <th>用户CODE</th>
+            <th>用户昵称</th>
             <th>收件人</th>
             <th>电话</th>
             <th>国家</th>
@@ -57,10 +60,16 @@
                             'address_id' => (string)$item['address_id'],
                             'name' => (string)$item['name'],
                             'phone' => (string)$item['phone'],
-                        ], JSON_UNESCAPED_SLASHES) ?>' type="checkbox">
+                            'user_id' => (string)$item['user_id'],
+                            'user_code' => (string)($item['user']['user_code'] ?? ''),
+                            'nickName' => (string)($item['user']['nickName'] ?? ''),
+                        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>' type="checkbox">
                     </label>
                 </td>
                 <td class="am-text-middle"><?= $item['address_id'] ?></td>
+                <td class="am-text-middle"><?= $item['user_id'] ?></td>
+                <td class="am-text-middle"><?= $item['user']['user_code'] ?? '-' ?></td>
+                <td class="am-text-middle"><?= $item['user']['nickName'] ?? '-' ?></td>
                 <td class="am-text-middle"><?= $item['name'] ?></td>
                 <td class="am-text-middle"><?= $item['phone'] ?></td>
                 <td class="am-text-middle"><?= $item['country'] ?></td>
@@ -68,7 +77,7 @@
             </tr>
         <?php endforeach; else: ?>
             <tr>
-                <td colspan="8" class="am-text-center">暂无记录</td>
+                <td colspan="9" class="am-text-center">暂无记录</td>
             </tr>
         <?php endif; ?>
         </tbody>

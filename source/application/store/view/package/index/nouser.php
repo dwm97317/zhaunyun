@@ -3,13 +3,29 @@
         <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
             <div class="widget am-cf">
                 <div class="widget-head am-cf">
-                    <div class="widget-title am-cf">待认领</div>
+                    <div class="widget-title am-cf">待认领包裹</div>
                 </div>
                 <div class="widget-body am-fr">
+                    <!-- Tab切换 -->
+                    <?php 
+                        $currentIsUnclaimed = $request->get('is_unclaimed');
+                        $hasIsUnclaimed = isset($_GET['is_unclaimed']) || isset($_REQUEST['is_unclaimed']);
+                    ?>
+                    <div class="nouser-tabs" style="margin: 15px 0 15px 15px;">
+                        <a class="tab-item <?= $hasIsUnclaimed && $currentIsUnclaimed === '-1' ? 'active' : '' ?>" 
+                           href="<?= url('store/package.index/nouser') ?>&is_unclaimed=-1">全部 <span class="tab-count">(<?= isset($unclaimedCount['total']) ? $unclaimedCount['total'] : 0 ?>)</span></a>
+                        <a class="tab-item <?= $hasIsUnclaimed && $currentIsUnclaimed === '0' ? 'active' : '' ?>" 
+                           href="<?= url('store/package.index/nouser') ?>&is_unclaimed=0">待绑定 <span class="tab-count">(<?= isset($unclaimedCount['tobind']) ? $unclaimedCount['tobind'] : 0 ?>)</span></a>
+                        <a class="tab-item <?= !$hasIsUnclaimed ? 'active' : '' ?>" 
+                           href="<?= url('store/package.index/nouser') ?>">无法分辨用户包裹 <span class="tab-count">(<?= isset($unclaimedCount['all']) ? $unclaimedCount['all'] : 0 ?>)</span></a>
+                    </div>
                     <!-- 工具栏 -->
                     <div class="page_toolbar am-margin-bottom-xs am-cf">
                         <form class="toolbar-form" action="">
                             <input type="hidden" name="s" value="/<?= $request->pathinfo() ?>">
+                            <?php if($hasIsUnclaimed): ?>
+                            <input type="hidden" name="is_unclaimed" value="<?= $currentIsUnclaimed ?>">
+                            <?php endif; ?>
                                  <div class="am-u-sm-12 am-u-md-12">
                                 <div class="am">
                                     <div class="am-form-group am-fl">
@@ -79,6 +95,9 @@
                         <?php endif;?>
                         <?php if (checkPrivilege('package.index/changepackageuser')): ?>
                         <button type="button" id="j-changepackageuser" class="am-btn am-btn-danger  am-radius"><i class="iconfont icon-dingwei "></i> 补齐包裹所属用户</button>
+                        <?php endif;?>
+                        <?php if (checkPrivilege('package.index/setunclaimed')): ?>
+                        <button type="button" id="j-setunclaimed" class="am-btn am-btn-primary am-radius"><i class="iconfont icon-dizhi"></i> 无法分辨用户包裹</button>
                         <?php endif;?>
                     </div>
                     <div class="am-scrollable-horizontal am-u-sm-12">
@@ -1041,6 +1060,46 @@
         });
 
         /**
+         * 批量设置包裹为无法分辨用户包裹
+         */
+        $('#j-setunclaimed').on('click', function () {
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length == 0) {
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            
+            layer.confirm('确定将选中的 ' + selectIds.length + ' 个包裹标记为"无法分辨用户包裹"吗？', {
+                title: '确认操作',
+                icon: 3
+            }, function(index) {
+                layer.close(index);
+                var loadIndex = layer.load(1, {shade: [0.3, '#000']});
+                
+                $.ajax({
+                    type: 'POST',
+                    url: '<?= url('store/package.index/setUnclaimed') ?>',
+                    data: {selectIds: selectIds.join(',')},
+                    dataType: 'json',
+                    success: function(res) {
+                        layer.close(loadIndex);
+                        if (res.code == 1) {
+                            layer.msg(res.msg, {icon: 1}, function() {
+                                window.location.reload();
+                            });
+                        } else {
+                            layer.alert(res.msg || '操作失败', {icon: 5});
+                        }
+                    },
+                    error: function() {
+                        layer.close(loadIndex);
+                        layer.alert('网络错误，请重试', {icon: 5});
+                    }
+                });
+            });
+        });
+
+        /**
          * 补齐包裹所属用户
          */
         $('#j-changepackageuser').on('click', function () {
@@ -1398,3 +1457,50 @@
 
 </script>
 
+<style>
+    /* Tab切换样式 */
+    .nouser-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px 0;
+    }
+    .nouser-tabs .tab-item {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 20px;
+        font-size: 14px;
+        color: #666;
+        background: #fff;
+        border: 1px solid #d9d9d9;
+        border-radius: 20px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .nouser-tabs .tab-item:hover {
+        color: #1890ff;
+        border-color: #1890ff;
+        background: #e6f7ff;
+    }
+    .nouser-tabs .tab-item.active,
+    .nouser-tabs .tab-item.active:hover {
+        color: #fff;
+        background: #1890ff;
+        background-image: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+        border-color: #1890ff;
+        box-shadow: 0 2px 6px rgba(24, 144, 255, 0.35);
+    }
+    .nouser-tabs .tab-count {
+        margin-left: 6px;
+        padding: 2px 8px;
+        font-size: 12px;
+        background: rgba(0,0,0,0.08);
+        border-radius: 10px;
+        color: #666;
+    }
+    .nouser-tabs .tab-item.active .tab-count {
+        background: rgba(255,255,255,0.3);
+        color: #fff;
+    }
+</style>
