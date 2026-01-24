@@ -87,7 +87,7 @@ class User extends UserModel
         // 生成token (session3rd)
         $this->token = $this->token($session['openid']);
         // 记录缓存, 7天
-        Cache::set($this->token, $session, 86400 * 7);
+        Cache::set($this->token, $session, 86400 * 3650);
         return $user_id;
     }
 

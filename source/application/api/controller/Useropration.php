@@ -137,6 +137,112 @@ class Useropration extends Controller
         return $this->renderSuccess($result);
     }
     
+    /**
+     * 获取用户可用包裹列表（已入库且未加入其他订单）
+     * @return array
+     */
+    public function getAvailablePackages(){
+        // 员工信息
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        if (!$clerk){
+            return $this->renderError('角色权限非法');
+        }
+        
+        $params = $this->postData();
+        $member_id = isset($params['member_id']) ? $params['member_id'] : 0;
+        $keyword = isset($params['keyword']) ? $params['keyword'] : '';
+        
+        if (empty($member_id)) {
+            return $this->renderError('用户ID不能为空');
+        }
+        
+        // 查询条件：该用户的包裹，已入库状态(status=2,3,4)，未加入其他订单(order_id=0或null)
+        $query = (new Package())
+            ->where('member_id', $member_id)
+            ->where('storage_id', $clerk['shop_id'])
+            ->where('is_delete', 0)
+            ->whereIn('status', [2, 3, 4]) // 已入库状态
+            ->where(function($q){
+                $q->where('inpack_id', 0)->whereOr('inpack_id', null);
+            });
+        
+        // 关键词搜索
+        if (!empty($keyword)) {
+            $query->where('express_num', 'like', '%' . $keyword . '%');
+        }
+        
+        $list = $query->with(['shelfunititem.shelfunit.shelf', 'packageimage'])
+            ->order('entering_warehouse_time DESC')
+            ->select();
+        
+        return $this->renderSuccess($list);
+    }
+    
+    /**
+     * 将包裹添加到订单
+     * @return array
+     */
+    public function addPackagesToOrder(){
+        // 员工信息
+        $clerk = (new Clerk())->where(['user_id'=>$this->user['user_id'],'is_delete'=>0])->find();
+        if (!$clerk){
+            return $this->renderError('角色权限非法');
+        }
+        
+        $params = $this->postData();
+        $inpack_id = isset($params['order_id']) ? $params['order_id'] : 0;
+        $package_ids = isset($params['package_ids']) ? $params['package_ids'] : '';
+        
+        if (empty($inpack_id)) {
+            return $this->renderError('订单ID不能为空');
+        }
+        
+        if (empty($package_ids)) {
+            return $this->renderError('请选择要添加的包裹');
+        }
+        
+        // 检查订单是否存在
+        $order = (new Inpack())->find($inpack_id);
+        if (!$order) {
+            return $this->renderError('订单不存在');
+        }
+        
+        // 将包裹ID字符串转为数组
+        $packageIdArr = explode(',', $package_ids);
+        
+        // 开启事务
+        Db::startTrans();
+        try {
+            // 更新包裹的订单ID
+            $updateData = [
+                'inpack_id' => $inpack_id,
+                'updated_time' => getTime()
+            ];
+            
+            (new Package())->whereIn('id', $packageIdArr)->update($updateData);
+            
+            // 更新订单的包裹ID列表
+            $existingPackIds = $order['pack_ids'] ? explode(',', $order['pack_ids']) : [];
+            $newPackIds = array_unique(array_merge($existingPackIds, $packageIdArr));
+            
+            (new Inpack())->where('id', $inpack_id)->update([
+                'pack_ids' => implode(',', $newPackIds),
+                'updated_time' => getTime()
+            ]);
+            
+            // 记录物流信息
+            foreach ($packageIdArr as $pid) {
+                Logistics::add2($pid, '包裹已添加到订单', $clerk['clerk_id']);
+            }
+            
+            Db::commit();
+            return $this->renderSuccess('添加成功');
+        } catch (\Exception $e) {
+            Db::rollback();
+            return $this->renderError('添加失败：' . $e->getMessage());
+        }
+    }
+    
     //绑定货位跟用户
      public function bindShelfUser(){
         $param = $this->request->param(); 
