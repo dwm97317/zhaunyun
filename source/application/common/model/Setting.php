@@ -588,6 +588,7 @@ class Setting extends BaseModel
                         'service_des' => '运输只能够不包破损，建议选择合适的包装方式，可多选，超特大件另议非要。打包后重量会有所增加，实际重量以出货后置！',
                         'is_chargeunit'=>1, //是否显示计费单位
                         'is_shippingfee'=>1,//是否显示运输方式
+                        'result_buttons'=>[], //运费查询结果页按钮列表
                     ],
                     'newuserprocess'=>[
                         'first_title'=>"第一步：复制仓库地址",

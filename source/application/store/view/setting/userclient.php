@@ -1915,6 +1915,66 @@
                                 </div>
                             </div>
 
+                            <!-- 运费查询结果页按钮管理 -->
+                            <div class="widget-head am-cf" style="margin-top: 20px;">
+                                <div class="widget-title am-fl">运费查询结果页按钮管理</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-form-label">结果页按钮</label>
+                                <div class="am-u-sm-9">
+                                    <div id="result-buttons-list" style="margin-bottom: 15px;">
+                                        <?php 
+                                        $result_buttons = isset($values['line']['result_buttons']) && is_array($values['line']['result_buttons']) ? $values['line']['result_buttons'] : [];
+                                        if (!empty($result_buttons)): 
+                                            foreach ($result_buttons as $index => $button): 
+                                        ?>
+                                        <div class="result-button-item" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 4px; background: #f9f9f9;">
+                                            <div class="am-form-group" style="margin-bottom: 10px;">
+                                                <label class="am-u-sm-3 am-form-label">按钮名称</label>
+                                                <div class="am-u-sm-9">
+                                                    <input type="text" name="userclient[line][result_buttons][<?= $index ?>][name]" 
+                                                           class="tpl-form-input" value="<?= htmlspecialchars($button['name'] ?? '') ?>" 
+                                                           placeholder="请输入按钮名称" required>
+                                                </div>
+                                            </div>
+                                            <div class="am-form-group" style="margin-bottom: 10px;">
+                                                <label class="am-u-sm-3 am-form-label">跳转链接</label>
+                                                <div class="am-u-sm-9">
+                                                    <input type="text" name="userclient[line][result_buttons][<?= $index ?>][url]" 
+                                                           class="tpl-form-input" value="<?= htmlspecialchars($button['url'] ?? '') ?>" 
+                                                           placeholder="请输入跳转链接，如：/pages/indexs/xxx/xxx" required>
+                                                </div>
+                                            </div>
+                                            <div class="am-form-group" style="margin-bottom: 10px;">
+                                                <label class="am-u-sm-3 am-form-label">链接类型</label>
+                                                <div class="am-u-sm-9">
+                                                    <select name="userclient[line][result_buttons][<?= $index ?>][link_type]" 
+                                                            class="tpl-form-input" data-am-selected="{btnSize: 'sm'}">
+                                                        <option value="1" <?= (isset($button['link_type']) && $button['link_type'] == 1) ? 'selected' : '' ?>>小程序内页面</option>
+                                                        <option value="2" <?= (isset($button['link_type']) && $button['link_type'] == 2) ? 'selected' : '' ?>>外部链接</option>
+                                                        <option value="3" <?= (isset($button['link_type']) && $button['link_type'] == 3) ? 'selected' : '' ?>>微信客服</option>
+                                                        <option value="4" <?= (isset($button['link_type']) && $button['link_type'] == 4) ? 'selected' : '' ?>>拨打电话</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="am-form-group" style="margin-bottom: 0;">
+                                                <div class="am-u-sm-9 am-u-sm-push-3">
+                                                    <button type="button" class="am-btn am-btn-danger am-btn-sm remove-button" onclick="removeResultButton(this)">删除</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <?php 
+                                            endforeach;
+                                        endif; 
+                                        ?>
+                                    </div>
+                                    <button type="button" class="am-btn am-btn-primary am-btn-sm" onclick="addResultButton()">添加按钮</button>
+                                    <div class="help-block" style="margin-top: 10px;">
+                                        <small>可以在运费查询结果页面添加快捷按钮，方便用户快速跳转到其他功能页面</small>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="widget-head am-cf">
                                 <div class="widget-title am-fl">用户端下单流程功能设置</div>
                             </div>
@@ -2753,6 +2813,70 @@
     // 删除按钮
     function removeButton(btn) {
         $(btn).closest('.button-item').remove();
+    }
+    
+    // 添加运费查询结果页按钮
+    function addResultButton() {
+        var container = $('#result-buttons-list');
+        var btnIndex = container.find('.result-button-item').length;
+        
+        var html = `
+        <div class="result-button-item" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 4px; background: #f9f9f9;">
+            <div class="am-form-group" style="margin-bottom: 10px;">
+                <label class="am-u-sm-3 am-form-label">按钮名称</label>
+                <div class="am-u-sm-9">
+                    <input type="text" name="userclient[line][result_buttons][${btnIndex}][name]" 
+                           class="tpl-form-input" value="" 
+                           placeholder="请输入按钮名称" required>
+                </div>
+            </div>
+            <div class="am-form-group" style="margin-bottom: 10px;">
+                <label class="am-u-sm-3 am-form-label">跳转链接</label>
+                <div class="am-u-sm-9">
+                    <input type="text" name="userclient[line][result_buttons][${btnIndex}][url]" 
+                           class="tpl-form-input" value="" 
+                           placeholder="请输入跳转链接，如：/pages/indexs/xxx/xxx" required>
+                </div>
+            </div>
+            <div class="am-form-group" style="margin-bottom: 10px;">
+                <label class="am-u-sm-3 am-form-label">链接类型</label>
+                <div class="am-u-sm-9">
+                    <select name="userclient[line][result_buttons][${btnIndex}][link_type]" 
+                            class="tpl-form-input" data-am-selected="{btnSize: 'sm'}">
+                        <option value="1">小程序内页面</option>
+                        <option value="2">外部链接</option>
+                        <option value="3">微信客服</option>
+                        <option value="4">拨打电话</option>
+                    </select>
+                </div>
+            </div>
+            <div class="am-form-group" style="margin-bottom: 0;">
+                <div class="am-u-sm-9 am-u-sm-push-3">
+                    <button type="button" class="am-btn am-btn-danger am-btn-sm remove-button" onclick="removeResultButton(this)">删除</button>
+                </div>
+            </div>
+        </div>
+        `;
+        
+        container.append(html);
+        // 重新初始化 select
+        $('select[data-am-selected]').selected();
+    }
+    
+    // 删除运费查询结果页按钮
+    function removeResultButton(btn) {
+        $(btn).closest('.result-button-item').remove();
+        // 重新索引
+        reindexResultButtons();
+    }
+    
+    // 重新索引按钮
+    function reindexResultButtons() {
+        $('#result-buttons-list .result-button-item').each(function(index) {
+            $(this).find('input[name*="[name]"]').attr('name', 'userclient[line][result_buttons][' + index + '][name]');
+            $(this).find('input[name*="[url]"]').attr('name', 'userclient[line][result_buttons][' + index + '][url]');
+            $(this).find('select[name*="[link_type]"]').attr('name', 'userclient[line][result_buttons][' + index + '][link_type]');
+        });
     }
 </script>
 
