@@ -51,7 +51,7 @@
                                          <option value="">选择承运商</option>
                                      <?php if (isset($ditchlist)):
                                             foreach ($ditchlist as $item): ?>
-                                                <option value="<?= $item['ditch_id'] ?>"><?= $item['ditch_name'] ?>-<?= $item['ditch_no'] ?></option>
+                                                <option value="<?= $item['ditch_id'] ?>" data-ditch-no="<?= isset($item['ditch_no'])?$item['ditch_no']:'' ?>"><?= $item['ditch_name'] ?>-<?= $item['ditch_no'] ?></option>
                                             <?php endforeach; endif; ?>
                                      </select>
                                      
@@ -76,6 +76,13 @@
                                      <button type="button" class="am-btn am-btn-success"><span onclick="tuiClick()">推送至渠道系统</span></button>
                                 </div>
                                 
+                            </div>
+                            <div class="am-form-group" id="push-third" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 推送到第三方 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <button type="button" class="am-btn am-btn-success am-radius"><span onclick="pushToThird()">推送到第三方系统</span></button>
+                                    <small class="am-margin-left-sm">将订单推送至中通等渠道创建运单，成功后可自动回填转运单号</small>
+                                </div>
                             </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 转运单 </label>
@@ -122,7 +129,10 @@
 <script>
     var selectDitch = function(_this){
         var selectditch = $('#selectditch option:selected').val();
+        var ditchNo = $('#selectditch option:selected').data('ditch-no');
         var $selectNum = $('#selectnumber');
+        $('#push-third').hide();
+        if (!selectditch) return;
         $.ajax({
                type:'post',
                url:"<?= url('store/setting.ditch/getdicthNumberList') ?>",
@@ -131,7 +141,6 @@
                success:function (res) {
                    if (res.code==1){
                         if(res.data.length==0){
-                            console.log($selectNum,999)
                             $selectNum[0].innerHTML = '';
                             $('#choosenumber').hide();
                         }else{
@@ -141,38 +150,35 @@
                             }
                         }
                    }else{
-                       that.data = res.msg;
-                       that.render();
                        $('#choosenumber').hide();
                    }
                }
-           })
-           
-           
-            var ProductList = $('#ProductList');   
-            $.ajax({
-                   type:'post',
-                   url:"<?= url('store/tr_order/getProductList') ?>",
-                   data:{ditch_no:selectditch},
-                   dataType:'json',
-                   success:function (res) {
-                       if (res.code==1){
-                            if(res.data.length==0){
-                                console.log(ProductList,999)
-                                ProductList[0].innerHTML = '';
-                                $('#product').hide();
-                            }else{
-                                $('#product').show();
-                                for (var i=0;i<res.data.length;i++){
-                                    ProductList.append('<option value="' + res.data[i]['product_id'] +'">' + res.data[i]['product_shortname'] + '</option>');
-                                }
+           });
+        var ProductList = $('#ProductList');   
+        $.ajax({
+               type:'post',
+               url:"<?= url('store/tr_order/getProductList') ?>",
+               data:{ditch_no:selectditch},
+               dataType:'json',
+               success:function (res) {
+                   if (res.code==1){
+                        if(res.data.length==0){
+                            ProductList[0].innerHTML = '';
+                            $('#product').hide();
+                            if (ditchNo == 10009 || ditchNo == '10009') $('#push-third').show();
+                        }else{
+                            $('#product').show();
+                            for (var i=0;i<res.data.length;i++){
+                                ProductList.append('<option value="' + res.data[i]['product_id'] +'">' + res.data[i]['product_shortname'] + '</option>');
                             }
-                       }else{
-                           ProductList[0].innerHTML = '';
-                           $('#product').hide();
-                       }
+                        }
+                   }else{
+                       ProductList[0].innerHTML = '';
+                       $('#product').hide();
+                       if (ditchNo == 10009 || ditchNo == '10009') $('#push-third').show();
                    }
-               })
+               }
+           });
     }
 
     function selectNumberS(){
@@ -199,7 +205,7 @@
     function tuiClick(){
         var hedanurl = "<?= url('store/tr_order/sendtoqudaoshang') ?>";
         var selectditch = $('#selectditch option:selected').val();
-        var product_id = $('#ProductList option:selected').val();
+        var product_id = $('#ProductList option:selected').val() || '';
         layer.confirm('请确定是否将订单推送至渠道商系统', {title: '推送订单至渠道商系统'}
         , function (index) {
             $.post(hedanurl,{
@@ -210,16 +216,45 @@
                 if(result.code == 1){
                     if(result.data.ack=='true'){
                         $("#t_order_sn").val(result.data.tracking_number);
+                        layer.msg('推送成功，已回填转运单号');
                     }else{
-                        $.show_error(decodeURIComponent(result.data.message)); 
+                        $.show_error(result.data && result.data.message ? decodeURIComponent(result.data.message) : '推送失败');
                     }
-                    
                 }else{
-                  $.show_error(decodeURIComponent(result.data.message)); 
+                    $.show_error((result.data && result.data.message) ? decodeURIComponent(result.data.message) : (result.msg || '推送失败'));
                 }
             });
             layer.close(index);
-        });        
+        });
+    }
+
+    function pushToThird(){
+        var selectditch = $('#selectditch option:selected').val();
+        if (!selectditch) {
+            $.show_error('请先选择渠道商');
+            return;
+        }
+        var hedanurl = "<?= url('store/tr_order/sendtoqudaoshang') ?>";
+        layer.confirm('确定将订单推送到第三方系统（如中通）创建运单？', {title: '推送到第三方系统'}
+        , function (index) {
+            $.post(hedanurl,{
+                id: <?= $detail['id'] ?>,
+                ditch_id: selectditch,
+                product_id: ''
+            }, function (result) {
+                if (result.code == 1) {
+                    if (result.data && result.data.ack == 'true') {
+                        $("#t_order_sn").val(result.data.tracking_number || '');
+                        layer.msg('推送成功，已回填转运单号');
+                    } else {
+                        $.show_error(result.data && result.data.message ? (result.data.message + '') : '推送失败');
+                    }
+                } else {
+                    $.show_error((result.data && result.data.message) ? (result.data.message + '') : (result.msg || '推送失败'));
+                }
+            });
+            layer.close(index);
+        });
     } 
     /**
      * 设置坐标
@@ -237,6 +272,9 @@
     function onChange(tab){
        $('.c').hide();
        $('#'+tab).show();
+       if (tab === 'c1') {
+           $('#choosenumber, #product, #push-third').hide();
+       }
     }
     function getkey(e){
        console.log(e); 

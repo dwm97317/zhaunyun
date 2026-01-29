@@ -47,6 +47,7 @@ use app\store\model\LineService;
 use app\store\model\user\PointsLog as PointsLogModel;
 use think\Db;
 use Mpdf\Mpdf;
+use app\common\library\Ditch\Zto;
 
 /**
  * 订单管理
@@ -676,7 +677,7 @@ class TrOrder extends Controller
      * @throws \Exception
      */
     public function sendtoqudaoshang()
-    {
+    {   
         $param = $this->request->param();
         $Inpack =new Inpack;
         $DitchModel = new DitchModel();
@@ -686,6 +687,8 @@ class TrOrder extends Controller
         $address = (new UserAddress())->where(['address_id'=>$detail['address_id']])->find();
         $ditchdetail = $DitchModel::detail($param['ditch_id']);
         $countrydetail = (new Countries())->where('id',$detail['address']['country_id'])->find();
+        $result = [];
+
         if($ditchdetail['ditch_no']==10004){
             $orderInvoiceParam = [];
             $orderVolumeParam = [];
@@ -754,7 +757,56 @@ class TrOrder extends Controller
                 ]);
             }
         }
-       
+            
+        if($ditchdetail['ditch_no']==10009){
+            $storage = ($shopname && is_object($shopname)) ? $shopname->toArray() : [];
+            $region = isset($storage['region']) && is_array($storage['region']) ? $storage['region'] : [];
+            $data = [
+                'partnerOrderCode'   => $detail['order_sn'],
+                'order_customerinvoicecode' => $detail['order_sn'],
+                'order_sn'           => $detail['order_sn'],
+                'weight'             => $detail['cale_weight'],
+                'quantity'           => 1,
+                'consignee_name'     => $detail['address']['name'],
+                'consignee_mobile'   => $detail['address']['phone'],
+                'consignee_telephone'=> $detail['address']['phone'],
+                'consignee_address'  => $detail['address']['detail'],
+                'consignee_state'    => $detail['address']['province'],
+                'consignee_city'     => $detail['address']['city'],
+                'consignee_suburb'   => $detail['address']['region'],
+                'consignee_postcode' => $detail['address']['code'],
+                'country'            => $countrydetail['code'],
+                'sender_name'        => isset($storage['linkman']) ? $storage['linkman'] : '',
+                'sender_phone'       => isset($storage['phone']) ? $storage['phone'] : '',
+                'sender_mobile'      => isset($storage['phone']) ? $storage['phone'] : '',
+                'sender_province'    => isset($region['province']) ? $region['province'] : '上海',
+                'sender_city'        => isset($region['city']) ? $region['city'] : '上海市',
+                'sender_district'    => isset($region['region']) ? $region['region'] : '青浦区',
+                'sender_address'     => isset($storage['address']) ? $storage['address'] : '',
+            ];
+            $ztoConfig = [
+                'key'    => $ditchdetail['app_key'],
+                'token'  => $ditchdetail['app_token'],
+                'apiurl' => isset($ditchdetail['api_url']) ? $ditchdetail['api_url'] : '',
+            ];
+            if (!empty($ditchdetail['account_id'])) {
+                $data['accountId'] = $ditchdetail['account_id'];
+                $data['accountPassword'] = isset($ditchdetail['account_password']) && $ditchdetail['account_password'] !== '' ? $ditchdetail['account_password'] : 'ZTO123';
+            } elseif (!empty($ditchdetail['customer_code'])) {
+                $ztoConfig['customer_code'] = $ditchdetail['customer_code'];
+            }
+            if (!empty($ditchdetail['use_timestamp'])) {
+                $ztoConfig['use_timestamp'] = 1;
+            }
+            $Zto = new Zto($ztoConfig);
+            $result = $Zto->createOrder($data);
+            if (isset($result['ack']) && $result['ack'] === 'true' && isset($result['tracking_number']) && $result['tracking_number'] !== '') {
+                $detail->save([
+                    't_order_sn' => $result['tracking_number'],
+                    't_order_id' => isset($result['order_id']) ? $result['order_id'] : '',
+                ]);
+            }
+        }
         return $this->renderSuccess('获取成功','',$result);
     }
     

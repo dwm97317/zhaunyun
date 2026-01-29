@@ -51,6 +51,7 @@ use app\api\model\InpackItem;
 use app\api\model\user\PointsLog as PointsLogModel;
 use app\api\model\PackageClaim;
 use app\api\model\LineCategory;
+use app\common\library\Ditch\Zto;
 
 /**
  * 页面控制器
@@ -3206,6 +3207,11 @@ class Package extends Controller
                     $Yidida =  new Yidida(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
                     $result = $Yidida->query($express);
                 }
+                //中通
+                if($ditchdatas['ditch_no']==10009){
+                    $Zto = new Zto(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>isset($ditchdatas['api_url'])?$ditchdatas['api_url']:'']);
+                    $result = $Zto->query($express);
+                }
                 //当是自有专线物流时
                 // $logictjki = [];
                 // if($ditchdatas['type']==0){
@@ -3357,6 +3363,11 @@ class Package extends Controller
                 if($ditchdatas['ditch_no']==10007){
                     $Yidida =  new Yidida(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
                     $result = $Yidida->query($express);
+                }
+                //中通
+                if($ditchdatas['ditch_no']==10009){
+                    $Zto = new Zto(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>isset($ditchdatas['api_url'])?$ditchdatas['api_url']:'']);
+                    $result = $Zto->query($express);
                 }
                 is_array($result)  && $logic = $result;
                

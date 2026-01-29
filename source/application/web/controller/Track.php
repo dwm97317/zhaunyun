@@ -21,6 +21,7 @@ use app\api\model\Inpack;
 use app\api\model\Express;
 use app\common\library\express\Kuaidi100;
 use app\common\model\Setting;
+use app\common\library\Ditch\Zto;
 
 /**
  * 用户认证模块
@@ -128,6 +129,11 @@ class Track extends Controller
                 if($ditchdatas['ditch_no']==10007){
                     $Yidida =  new Yidida(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
                     $result = $Yidida->query($express);
+                }
+                //中通
+                if($ditchdatas['ditch_no']==10009){
+                    $Zto = new Zto(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>isset($ditchdatas['api_url'])?$ditchdatas['api_url']:'']);
+                    $result = $Zto->query($express);
                 }
                 $logic = $result;
             }else{
@@ -342,6 +348,11 @@ class Track extends Controller
                 if($ditchdatas['ditch_no']==10007){
                     $Yidida =  new Yidida(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
                     $result = $Yidida->query($express);
+                }
+                //中通
+                if($ditchdatas['ditch_no']==10009){
+                    $Zto = new Zto(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>isset($ditchdatas['api_url'])?$ditchdatas['api_url']:'']);
+                    $result = $Zto->query($express);
                 }
                 $logic = $result;
             }else{

@@ -51,6 +51,19 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 渠道类型 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="ditch[ditch_type]" value="1" data-am-ucheck checked id="ditch_type_1">
+                                        专线
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="ditch[ditch_type]" value="2" data-am-ucheck id="ditch_type_2">
+                                        中通
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 渠道公司官网</label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input id="website" type="text" class="tpl-form-input" name="ditch[website]" value="">
@@ -78,6 +91,27 @@
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 密钥（Token）</label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input id="app_token" type="text" class="tpl-form-input" name="ditch[app_token]" value="" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group" id="customer_code_group" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 客户编号 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input id="customer_code" type="text" class="tpl-form-input" name="ditch[customer_code]" value="" placeholder="中通渠道时填写（集团客户）">
+                                    <small>集团客户时填写，与电子面单二选一</small>
+                                </div>
+                            </div>
+                            <div class="am-form-group" id="account_id_group" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 电子面单账号 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input id="account_id" type="text" class="tpl-form-input" name="ditch[account_id]" value="" placeholder="如 KDGJ221000015957">
+                                    <small>非集团电子面单时必填；与客户编号二选一</small>
+                                </div>
+                            </div>
+                            <div class="am-form-group" id="account_password_group" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 电子面单密码 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input id="account_password" type="text" class="tpl-form-input" name="ditch[account_password]" value="" placeholder="测试环境可填 ZTO123">
+                                    <small>非集团电子面单时填写；测试环境默认 ZTO123</small>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -119,9 +153,31 @@
       var a =  _this.options[_this.selectedIndex].value;
       $("#ditch_no").val(a);
     }
-    
-    
+
+    function toggleCustomerCode() {
+        var v = $('input[name="ditch[ditch_type]"]:checked').val();
+        var $g = $('#customer_code_group');
+        var $g2 = $('#account_id_group');
+        var $g3 = $('#account_password_group');
+        var $i = $('#customer_code');
+        if (v == '2') {
+            $g.show();
+            $g2.show();
+            $g3.show();
+            $i.prop('required', false);
+        } else {
+            $g.hide();
+            $g2.hide();
+            $g3.hide();
+            $i.prop('required', false).val('');
+            $('#account_id').val('');
+            $('#account_password').val('');
+        }
+    }
+
     $(function () {
+        $('input[name="ditch[ditch_type]"]').on('change', toggleCustomerCode);
+        toggleCustomerCode();
 
         /**
          * 表单验证提交

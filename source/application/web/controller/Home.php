@@ -11,6 +11,14 @@ use app\web\model\WebLink as WebLinkModel;
 use app\web\model\Wxapp as WxappModel;
 use app\web\model\Article as ArticleModel;
 use app\web\model\article\Category as CategoryModel;
+use app\common\library\Ditch\BaiShunDa\bsdexp;
+use app\common\library\Ditch\Jlfba\jlfba;
+use app\common\library\Ditch\kingtrans;
+use app\common\library\Ditch\Hualei;
+use app\common\library\Ditch\Xzhcms5;
+use app\common\library\Ditch\Aolian;
+use app\common\library\Ditch\Yidida;
+use app\common\library\Ditch\Zto;
 
 /**
  * web
@@ -212,6 +220,11 @@ class Home extends Controller
                 if($ditchdatas['ditch_no']==10007){
                     $Yidida =  new Yidida(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>$ditchdatas['api_url']]);
                     $result = $Yidida->query($express);
+                }
+                //中通
+                if($ditchdatas['ditch_no']==10009){
+                    $Zto = new Zto(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>isset($ditchdatas['api_url'])?$ditchdatas['api_url']:'']);
+                    $result = $Zto->query($express);
                 }
                 $logic = $result;
             }else{

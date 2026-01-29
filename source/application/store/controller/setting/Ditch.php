@@ -5,6 +5,7 @@ namespace app\store\controller\setting;
 use app\store\controller\Controller;
 use app\store\model\Ditch as DitchModel;
 use app\store\model\DitchNumber as DitchNumberModel;
+use think\Db;
 /**
  * 渠道商
  * Class Express
@@ -88,8 +89,12 @@ class Ditch extends Controller
         }
         // 新增记录
         $model = new DitchModel;
-        // dump($this->postData('ditch'));die;
-        if ($model->add($this->postData('ditch'))) {
+        $data = $this->postData('ditch');
+        if (!isset($data['ditch_type']) || !in_array((int)$data['ditch_type'], [1, 2], true)) {
+            $data['ditch_type'] = 1;
+        }
+        $this->stripAccountFieldsIfMissing($model, $data);
+        if ($model->add($data)) {
             return $this->renderSuccess('添加成功', url('setting.ditch/index'));
         }
         return $this->renderError($model->getError() ?: '添加失败');
@@ -111,7 +116,12 @@ class Ditch extends Controller
             return $this->fetch('edit', compact('model','track'));
         }
         // 更新记录
-        if ($model->edit($this->postData('express'))) {
+        $data = $this->postData('express');
+        if (isset($data['ditch_type']) && !in_array((int)$data['ditch_type'], [1, 2], true)) {
+            $data['ditch_type'] = 1;
+        }
+        $this->stripAccountFieldsIfMissing($model, $data);
+        if ($model->edit($data)) {
             return $this->renderSuccess('更新成功', url('setting.ditch/index'));
         }
         return $this->renderError($model->getError() ?: '更新失败');
@@ -153,6 +163,24 @@ class Ditch extends Controller
         return $this->fetch('company',compact('track'));
     }
     
+    /**
+     * 若 ditch 表无 account_id / account_password 列，则从 $data 中移除，避免保存报错
+     * @param DitchModel $model
+     * @param array      $data
+     */
+    protected function stripAccountFieldsIfMissing($model, &$data)
+    {
+        try {
+            $table = $model->getTable();
+            $row = Db::query("SHOW COLUMNS FROM `{$table}` LIKE 'account_id'");
+            if (empty($row)) {
+                unset($data['account_id'], $data['account_password']);
+            }
+        } catch (\Throwable $e) {
+            unset($data['account_id'], $data['account_password']);
+        }
+    }
+
      // 文件导入处理
     public function importdo(){
        $post = request()->param();

@@ -33,6 +33,7 @@
                                 <th>渠道公司ID</th>
                                 <th>渠道公司名称</th>
                                 <th>渠道公司代码</th>
+                                <th>渠道类型</th>
                                 <th>状态</th>
                                 <th>排序</th>
                                 <th>添加时间</th>
@@ -46,6 +47,7 @@
                                         <td class="am-text-middle"><?= $item['ditch_id'] ?></td>
                                         <td class="am-text-middle"><?= $item['ditch_name'] ?></td>
                                         <td class="am-text-middle"><?= $item['ditch_no'] ?></td>
+                                        <td class="am-text-middle"><?= (isset($item['ditch_type']) && (int)$item['ditch_type'] === 2) ? '中通' : '专线' ?></td>
                                         <td class="am-text-middle"><?= $item['status']==0?'启用':'不启用' ?></td>
                                         <td class="am-text-middle"><?= $item['sort'] ?></td>
                                         <td class="am-text-middle"><?= $item['create_time'] ?></td>
@@ -77,7 +79,7 @@
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="6" class="am-text-center">暂无记录</td>
+                                    <td colspan="8" class="am-text-center">暂无记录</td>
                                 </tr>
                             <?php endif; ?>
                             </tbody>

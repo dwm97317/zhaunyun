@@ -52,6 +52,20 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 渠道类型 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <?php $dt = isset($model['ditch_type']) ? (int)$model['ditch_type'] : 1; ?>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="express[ditch_type]" value="1" data-am-ucheck <?= $dt == 1 ? 'checked' : '' ?> id="ditch_type_1">
+                                        专线
+                                    </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="express[ditch_type]" value="2" data-am-ucheck <?= $dt == 2 ? 'checked' : '' ?> id="ditch_type_2">
+                                        中通
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 渠道公司官网 </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input id="website" type="text" class="tpl-form-input" name="express[website]"
@@ -84,6 +98,30 @@
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="express[app_token]"
                                            value="<?= $model['app_token'] ?>" required>
+                                </div>
+                            </div>
+                            <div class="am-form-group" id="customer_code_group" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 客户编号 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input id="customer_code" type="text" class="tpl-form-input" name="express[customer_code]"
+                                           value="<?= isset($model['customer_code']) ? htmlspecialchars($model['customer_code']) : '' ?>" placeholder="中通渠道时填写（集团客户）">
+                                    <small>集团客户时填写，与电子面单二选一</small>
+                                </div>
+                            </div>
+                            <div class="am-form-group" id="account_id_group" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 电子面单账号 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input id="account_id" type="text" class="tpl-form-input" name="express[account_id]"
+                                           value="<?= isset($model['account_id']) ? htmlspecialchars($model['account_id']) : '' ?>" placeholder="如 KDGJ221000015957">
+                                    <small>非集团电子面单时必填；与客户编号二选一</small>
+                                </div>
+                            </div>
+                            <div class="am-form-group" id="account_password_group" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 电子面单密码 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input id="account_password" type="text" class="tpl-form-input" name="express[account_password]"
+                                           value="<?= isset($model['account_password']) ? htmlspecialchars($model['account_password']) : '' ?>" placeholder="测试环境可填 ZTO123">
+                                    <small>非集团电子面单时填写；测试环境默认 ZTO123</small>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -132,7 +170,29 @@
       var a =  _this.options[_this.selectedIndex].value;
       $("#ditch_no").val(a);
     }
+
+    function toggleCustomerCode() {
+        var v = $('input[name="express[ditch_type]"]:checked').val();
+        var $g = $('#customer_code_group');
+        var $g2 = $('#account_id_group');
+        var $g3 = $('#account_password_group');
+        var $i = $('#customer_code');
+        if (v == '2') {
+            $g.show();
+            $g2.show();
+            $g3.show();
+            $i.prop('required', false);
+        } else {
+            $g.hide();
+            $g2.hide();
+            $g3.hide();
+            $i.prop('required', false);
+        }
+    }
+
     $(function () {
+        $('input[name="express[ditch_type]"]').on('change', toggleCustomerCode);
+        toggleCustomerCode();
 
         /**
          * 表单验证提交

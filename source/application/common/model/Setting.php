@@ -923,6 +923,13 @@ class Setting extends BaseModel
                             'secret_key' => '',
                             'domain' => 'http://'
                         ],
+                        'cloudflare' => [
+                            'bucket' => '',
+                            'access_key' => '',
+                            'secret_key' => '',
+                            'account_id' => '',
+                            'domain' => 'http://'
+                        ],
                     ]
                 ],
             ],

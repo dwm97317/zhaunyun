@@ -9,6 +9,7 @@ use app\common\library\Ditch\Hualei;
 use app\common\library\Ditch\Xzhcms5;
 use app\common\library\Ditch\Aolian;
 use app\common\library\Ditch\Yidida;
+use app\common\library\Ditch\Zto;
 /**
  * 包裹日志模型
  * Class OrderAddress
@@ -306,7 +307,12 @@ class Logistics extends BaseModel
             $Yidida =  new Yidida(['key'=>$params['app_key'],'token'=>$params['app_token'],'apiurl'=>$params['api_url']]);
             $result = $Yidida->query($express);
         }
-        return $result;
+        //中通
+        if($params['ditch_no']==10009){
+            $Zto = new Zto(['key'=>$params['app_key'],'token'=>$params['app_token'],'apiurl'=>isset($params['api_url'])?$params['api_url']:'']);
+            $result = $Zto->query($express);
+        }
+        return isset($result) ? $result : [];
     }
     
     
