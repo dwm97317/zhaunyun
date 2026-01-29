@@ -199,6 +199,14 @@ class Sf
             $msgData['remark'] = $params['remark'];
         }
 
+        // 子母单支持
+        if (isset($params['is_mother_child']) && in_array($params['is_mother_child'], [1, 2])) {
+            $msgData['isMother'] = (string)$params['is_mother_child'];
+            if ($params['is_mother_child'] == 2 && !empty($params['mother_waybill_no'])) {
+                $msgData['motherWaybillNo'] = $params['mother_waybill_no'];
+            }
+        }
+
         $requestData = [
             'partnerID'   => isset($this->config['key']) ? $this->config['key'] : '',
             'requestID'   => $this->generateRequestId(),

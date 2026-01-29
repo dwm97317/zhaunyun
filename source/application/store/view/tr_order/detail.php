@@ -74,6 +74,12 @@
                                              <div class="span">
                                                  <input type="hidden" class="tpl-form-input" style="width:60px;border: 1px solid #c2cad8;" name="data[item][id][]" value="<?= $item['id'] ?>">
                                              </div>
+                                             <?php if (!empty($item['t_order_sn'])): ?>
+                                             <div class="span" style="margin-left:10px;">
+                                                 <span style="color:#1890ff;font-size:12px;">运单号:</span>
+                                                 <span style="cursor:pointer;color:#333;font-size:12px;" onclick="copyText(this)"><?= $item['t_order_sn'] ?></span>
+                                             </div>
+                                             <?php endif; ?>
                                             <div class="span jiahao">
                                                  <span class="cursor" onclick="addfreeRule(this)">+</span>
                                                  <span class="cursor" onclick="freeRuleDel(this)" style="margin-left:5px;">-</span>
@@ -1396,3 +1402,22 @@ function caleAmount() {
          z-index: 10000;
      }
 </style>
+
+<script>
+// 复制文本到剪贴板
+function copyText(element) {
+    var text = $(element).text();
+    var $temp = $("<textarea>");
+    $("body").append($temp);
+    $temp.val(text).select();
+    
+    try {
+        document.execCommand("copy");
+        layer.msg('已复制: ' + text, {icon: 1});
+    } catch (err) {
+        layer.msg('复制失败', {icon: 2});
+    }
+    
+    $temp.remove();
+}
+</script>

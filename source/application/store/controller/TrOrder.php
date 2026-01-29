@@ -762,12 +762,9 @@ class TrOrder extends Controller
         if($ditchdetail['ditch_no']==10009 || (isset($ditchdetail['ditch_type']) && in_array((int)$ditchdetail['ditch_type'], [2, 3], true))){
             $storage = ($shopname && is_object($shopname)) ? $shopname->toArray() : [];
             $region = isset($storage['region']) && is_array($storage['region']) ? $storage['region'] : [];
-            $data = [
-                'partnerOrderCode'   => $detail['order_sn'],
-                'order_customerinvoicecode' => $detail['order_sn'],
-                'order_sn'           => $detail['order_sn'],
-                'weight'             => $detail['cale_weight'],
-                'quantity'           => 1,
+            
+            // 构造基础地址
+            $commonData = [
                 'consignee_name'     => isset($detail['address']['name']) ? $detail['address']['name'] : '',
                 'consignee_mobile'   => isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
                 'consignee_telephone'=> isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
@@ -785,6 +782,7 @@ class TrOrder extends Controller
                 'sender_district'    => isset($region['region']) ? $region['region'] : '青浦区',
                 'sender_address'     => isset($storage['address']) ? $storage['address'] : '',
             ];
+            
             $ztoConfig = [
                 'key'    => $ditchdetail['app_key'],
                 'token'  => $ditchdetail['app_token'],
@@ -792,9 +790,11 @@ class TrOrder extends Controller
                 'ditch_type' => isset($ditchdetail['ditch_type']) ? $ditchdetail['ditch_type'] : 1,
                 'shop_key' => isset($ditchdetail['shop_key']) ? $ditchdetail['shop_key'] : '',
             ];
+            
+            $extraData = [];
             if (!empty($ditchdetail['account_id'])) {
-                $data['accountId'] = $ditchdetail['account_id'];
-                $data['accountPassword'] = isset($ditchdetail['account_password']) && $ditchdetail['account_password'] !== '' ? $ditchdetail['account_password'] : 'ZTO123';
+                $extraData['accountId'] = $ditchdetail['account_id'];
+                $extraData['accountPassword'] = isset($ditchdetail['account_password']) && $ditchdetail['account_password'] !== '' ? $ditchdetail['account_password'] : 'ZTO123';
             } elseif (!empty($ditchdetail['customer_code'])) {
                 $ztoConfig['customer_code'] = $ditchdetail['customer_code'];
             }
@@ -802,16 +802,73 @@ class TrOrder extends Controller
                 $ztoConfig['use_timestamp'] = 1;
             }
             $Zto = new Zto($ztoConfig);
-            $result = $Zto->createOrder($data);
-            if (isset($result['ack']) && $result['ack'] === 'true') {
-                $saveData = [
-                    't_order_id' => isset($result['order_id']) ? $result['order_id'] : '',
-                ];
-                // 只有当有运单号时才保存运单号
-                if(isset($result['tracking_number']) && $result['tracking_number'] !== ''){
-                    $saveData['t_order_sn'] = $result['tracking_number'];
+            
+            // 获取箱子列表
+            $boxes = isset($detail['packageitems']) ? $detail['packageitems'] : [];
+            $isMultiBox = count($boxes) > 0;
+            
+            if (!$isMultiBox) {
+                // === 单包裹模式 ===
+                $data = array_merge($commonData, $extraData, [
+                    'partnerOrderCode'   => $detail['order_sn'],
+                    'order_customerinvoicecode' => $detail['order_sn'],
+                    'order_sn'           => $detail['order_sn'],
+                    'weight'             => $detail['cale_weight'],
+                    'quantity'           => 1,
+                ]);
+                
+                $result = $Zto->createOrder($data);
+                if (isset($result['ack']) && $result['ack'] === 'true') {
+                    $saveData = [
+                        't_order_id' => isset($result['order_id']) ? $result['order_id'] : '',
+                    ];
+                    if(isset($result['tracking_number']) && $result['tracking_number'] !== ''){
+                        $saveData['t_order_sn'] = $result['tracking_number'];
+                    }
+                    $detail->save($saveData);
                 }
-                $detail->save($saveData);
+            } else {
+                // === 多包裹独立下单模式 ===
+                $resultsLog = [];
+                $hasError = false;
+                $firstWaybillNo = '';
+                
+                foreach ($boxes as $index => $box) {
+                    $subOrderSn = $detail['order_sn'] . '_' . $box['id'];
+                    $boxWeight = isset($box['weight']) && $box['weight'] > 0 ? $box['weight'] : 1;
+                    
+                    $data = array_merge($commonData, $extraData, [
+                        'partnerOrderCode'   => $subOrderSn,
+                        'order_customerinvoicecode' => $subOrderSn,
+                        'order_sn'           => $subOrderSn,
+                        'weight'             => $boxWeight,
+                        'quantity'           => 1,
+                    ]);
+                    
+                    $res = $Zto->createOrder($data);
+                    
+                    if (isset($res['ack']) && $res['ack'] === 'true') {
+                        $tn = isset($res['tracking_number']) ? $res['tracking_number'] : '';
+                        if (is_object($box)) {
+                            $box->save(['t_order_sn' => $tn]);
+                        }
+                        if ($index === 0) {
+                            $firstWaybillNo = $tn;
+                             // 仅保存第一个作为显示，不覆盖
+                            $detail->save(['t_order_sn' => $tn]);
+                        }
+                        $resultsLog[] = "箱" . ($index+1) . "成功";
+                    } else {
+                        $hasError = true;
+                        $resultsLog[] = "箱" . ($index+1) . "失败: " . (isset($res['message']) ? $res['message'] : '');
+                    }
+                }
+                
+                 $result = [
+                    'ack' => $hasError ? 'false' : 'true',
+                    'message' => implode('; ', $resultsLog),
+                    'tracking_number' => $firstWaybillNo
+                ];
             }
         }
         
@@ -819,11 +876,9 @@ class TrOrder extends Controller
         if($ditchdetail['ditch_no']==10010 || (isset($ditchdetail['ditch_type']) && (int)$ditchdetail['ditch_type'] === 4)){
             $storage = ($shopname && is_object($shopname)) ? $shopname->toArray() : [];
             $region = isset($storage['region']) && is_array($storage['region']) ? $storage['region'] : [];
-            $data = [
-                'partnerOrderCode'   => $detail['order_sn'],
-                'order_sn'           => $detail['order_sn'],
-                'weight'             => $detail['cale_weight'],
-                'quantity'           => 1,
+            
+            // 构造基础地址与联系人信息 (共用)
+            $commonData = [
                 'consignee_name'     => isset($detail['address']['name']) ? $detail['address']['name'] : '',
                 'consignee_mobile'   => isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
                 'consignee_telephone'=> isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
@@ -841,6 +896,7 @@ class TrOrder extends Controller
                 'sender_district'    => isset($region['region']) ? $region['region'] : '青浦区',
                 'sender_address'     => isset($storage['address']) ? $storage['address'] : '',
             ];
+
             $sfConfig = [
                 'key'    => $ditchdetail['app_key'],
                 'token'  => $ditchdetail['app_token'],
@@ -849,16 +905,88 @@ class TrOrder extends Controller
                 'sf_express_type' => isset($ditchdetail['sf_express_type']) ? (int)$ditchdetail['sf_express_type'] : 1,
             ];
             $Sf = new Sf($sfConfig);
-            $result = $Sf->createOrder($data);
-            if (isset($result['ack']) && $result['ack'] === 'true') {
-                $saveData = [
-                    't_order_id' => isset($result['order_id']) ? $result['order_id'] : '',
-                ];
-                // 保存运单号
-                if(isset($result['tracking_number']) && $result['tracking_number'] !== ''){
-                    $saveData['t_order_sn'] = $result['tracking_number'];
+            
+            // 获取箱子列表
+            $boxes = isset($detail['packageitems']) ? $detail['packageitems'] : [];
+            $isMultiBox = count($boxes) > 0;
+            
+            if (!$isMultiBox) {
+                // === 单包裹模式 (兼容原有逻辑) ===
+                $data = array_merge($commonData, [
+                    'partnerOrderCode'   => $detail['order_sn'],
+                    'order_sn'           => $detail['order_sn'],
+                    'weight'             => $detail['cale_weight'],
+                    'quantity'           => 1,
+                ]);
+                
+                $result = $Sf->createOrder($data);
+                if (isset($result['ack']) && $result['ack'] === 'true') {
+                    $saveData = ['t_order_id' => isset($result['order_id']) ? $result['order_id'] : ''];
+                    if(isset($result['tracking_number']) && $result['tracking_number'] !== ''){
+                        $saveData['t_order_sn'] = $result['tracking_number'];
+                    }
+                    $detail->save($saveData);
                 }
-                $detail->save($saveData);
+            } else {
+                // === 多包裹 (子母单) 模式 ===
+                $motherWaybillNo = '';
+                $resultsLog = [];
+                $hasError = false;
+                
+                foreach ($boxes as $index => $box) {
+                    $isMother = ($index === 0);
+                    // 构造唯一的子单号
+                    $subOrderSn = $detail['order_sn'] . '_' . $box['id'];
+                    $boxWeight = isset($box['weight']) && $box['weight'] > 0 ? $box['weight'] : 1;
+                    
+                    $data = array_merge($commonData, [
+                        'partnerOrderCode'   => $subOrderSn,
+                        'order_sn'           => $subOrderSn,
+                        'weight'             => $boxWeight,
+                        'quantity'           => 1,
+                    ]);
+                    
+                    if ($isMother) {
+                        $data['is_mother_child'] = 1;
+                    } else {
+                        $data['is_mother_child'] = 2;
+                        $data['mother_waybill_no'] = $motherWaybillNo;
+                    }
+                    
+                    $res = $Sf->createOrder($data);
+                    
+                    if (isset($res['ack']) && $res['ack'] === 'true') {
+                        $tn = $res['tracking_number'];
+                        // 保存到 InpackItem (子表)
+                        if (is_object($box)) {
+                            $box->save(['t_order_sn' => $tn]);
+                        }
+                        
+                        $resultsLog[] = "箱" . ($index+1) . "成功";
+                        
+                        // 如果是母单，更新主表并记录母单号
+                        if ($isMother) {
+                            $motherWaybillNo = $tn;
+                            $detail->save(['t_order_sn' => $tn]);
+                        }
+                    } else {
+                        $hasError = true;
+                        $errMsg = isset($res['message']) ? $res['message'] : '未知错误';
+                        $resultsLog[] = "箱" . ($index+1) . "失败: " . $errMsg;
+                        
+                        if ($isMother) {
+                             $resultsLog[] = "母单失败，中止后续推送";
+                             break;
+                        }
+                    }
+                }
+                
+                // 汇总结果
+                $result = [
+                    'ack' => $hasError ? 'false' : 'true',
+                    'message' => implode('; ', $resultsLog),
+                    'tracking_number' => $motherWaybillNo
+                ];
             }
         }
         

@@ -414,8 +414,46 @@
                                         <?php if (!empty($item['t_order_sn'])): ?> 
                                         承运商:
                                         <span style="cursor:pointer" text="<?= $item['t_name'] ?>" onclick="copyUrl2(this)"><?= $item['t_name'] ?></span></br>
-                                        国际单号:
-                                        <span style="cursor:pointer" text="<?= $item['t_order_sn'] ?>" onclick="copyUrl2(this)"><?= $item['t_order_sn'] ?></span><a href="javascript:;" onclick="getlog(this)" value="<?= $item['id'] ?>" >[物流]</a></br>
+                                        <?php 
+                                        // 检查是否有多个箱子
+                                        $hasMultipleBoxes = !empty($item['packageitems']) && count($item['packageitems']) > 1;
+                                        ?>
+                                        <?php if ($hasMultipleBoxes): ?>
+                                            <!-- 多箱情况：显示母单 + 子单 -->
+                                            国际单号:
+                                            <span style="cursor:pointer" text="<?= $item['t_order_sn'] ?>" onclick="copyUrl2(this)"><?= $item['t_order_sn'] ?></span>
+                                            <?php 
+                                            // 获取母单（第一个箱子）的重量
+                                            $motherWeight = isset($item['packageitems'][0]['weight']) ? $item['packageitems'][0]['weight'] : 0;
+                                            if ($motherWeight > 0): 
+                                            ?>
+                                            <span style="color:#999;font-size:11px;">(<?= $motherWeight ?>kg)</span>
+                                            <?php endif; ?>
+                                            <span class="am-badge am-badge-primary am-radius" style="font-size:10px;">母单</span>
+                                            <a href="javascript:;" onclick="getlog(this)" value="<?= $item['id'] ?>" >[物流]</a>
+                                            <a href="javascript:;" onclick="copyAllWaybills(this)" data-waybills="<?php 
+                                                $waybills = [];
+                                                foreach ($item['packageitems'] as $box) {
+                                                    if (!empty($box['t_order_sn'])) {
+                                                        $waybills[] = $box['t_order_sn'];
+                                                    }
+                                                }
+                                                echo implode(',', $waybills);
+                                            ?>" style="margin-left:5px;">[复制全部]</a></br>
+                                            <?php foreach ($item['packageitems'] as $index => $box): ?>
+                                                <?php if ($index > 0 && !empty($box['t_order_sn'])): ?>
+                                                    <span style="margin-left:20px;color:#999;">└ 子单:</span>
+                                                    <span style="cursor:pointer" text="<?= $box['t_order_sn'] ?>" onclick="copyUrl2(this)"><?= $box['t_order_sn'] ?></span>
+                                                    <span style="color:#999;font-size:11px;">(<?= $box['weight'] ?>kg)</span>
+                                                    <a href="javascript:;" onclick="getlog(this)" value="<?= $item['id'] ?>" >[物流]</a></br>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <!-- 单箱：正常显示 -->
+                                            国际单号:
+                                            <span style="cursor:pointer" text="<?= $item['t_order_sn'] ?>" onclick="copyUrl2(this)"><?= $item['t_order_sn'] ?></span>
+                                            <a href="javascript:;" onclick="getlog(this)" value="<?= $item['id'] ?>" >[物流]</a></br>
+                                        <?php endif; ?>
                                         <?php endif ;?>
                                         <?php if (!empty($item['t2_order_sn'])): ?>
                                         转运商:
@@ -2502,3 +2540,28 @@
         display: none;
     }
 </style>
+
+<script>
+// 批量复制所有运单号
+function copyAllWaybills(element) {
+    var waybills = $(element).data('waybills');
+    if (!waybills) {
+        layer.msg('没有可复制的运单号', {icon: 2});
+        return;
+    }
+    
+    // 创建临时文本域
+    var $temp = $("<textarea>");
+    $("body").append($temp);
+    $temp.val(waybills.replace(/,/g, '\n')).select();
+    
+    try {
+        document.execCommand("copy");
+        layer.msg('已复制所有运单号到剪贴板', {icon: 1});
+    } catch (err) {
+        layer.msg('复制失败，请手动复制', {icon: 2});
+    }
+    
+    $temp.remove();
+}
+</script>
