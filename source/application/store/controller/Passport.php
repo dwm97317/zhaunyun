@@ -25,6 +25,7 @@ class Passport extends Controller
         if ($this->request->isAjax()) {
             $model = new StoreUser;
             if ($model->login($this->postData('User'))) {
+                http_response_code(200);
                 return $this->renderSuccess('登录成功', url('index/index'));
             }
             return $this->renderError($model->getError() ?: '登录失败');

@@ -51,7 +51,7 @@
                                          <option value="">选择承运商</option>
                                      <?php if (isset($ditchlist)):
                                             foreach ($ditchlist as $item): ?>
-                                                <option value="<?= $item['ditch_id'] ?>" data-ditch-no="<?= isset($item['ditch_no'])?$item['ditch_no']:'' ?>"><?= $item['ditch_name'] ?>-<?= $item['ditch_no'] ?></option>
+                                            <option value="<?= $item['ditch_id'] ?>" data-ditch-type="<?= isset($item['ditch_type']) ? $item['ditch_type'] : '' ?>" data-ditch-no="<?= isset($item['ditch_no'])?$item['ditch_no']:'' ?>"><?= $item['ditch_name'] ?>-<?= $item['ditch_no'] ?></option>
                                             <?php endforeach; endif; ?>
                                      </select>
                                      
@@ -130,9 +130,26 @@
     var selectDitch = function(_this){
         var selectditch = $('#selectditch option:selected').val();
         var ditchNo = $('#selectditch option:selected').data('ditch-no');
+        var ditchType = $('#selectditch option:selected').data('ditch-type');
+        console.log('selectDitch check:', {ditchNo: ditchNo, ditchType: ditchType});
         var $selectNum = $('#selectnumber');
+        
+        // 重置所有相关区域
         $('#push-third').hide();
+        $('#product').hide();
+        $('#choosenumber').hide();
+        
         if (!selectditch) return;
+        
+        // 类型转换，确保比较正确
+        ditchType = parseInt(ditchType);
+        
+        // 顺丰(4) 或 中通(3) 或 特定编号：直接显示推送按钮
+        if (ditchType === 4 || ditchType === 3 || ditchNo == 10009) {
+            $('#push-third').show();
+        }
+
+        // 获取单号列表（保留此逻辑，以防万一有预存单号）
         $.ajax({
                type:'post',
                url:"<?= url('store/setting.ditch/getdicthNumberList') ?>",
@@ -154,6 +171,12 @@
                    }
                }
            });
+           
+        // 如果是顺丰或中通，不需要获取产品列表，直接结束
+        if (ditchType === 4 || ditchType === 3 || ditchNo == 10009) {
+            return;
+        }
+           
         var ProductList = $('#ProductList');   
         $.ajax({
                type:'post',
@@ -161,11 +184,15 @@
                data:{ditch_no:selectditch},
                dataType:'json',
                success:function (res) {
+                   // 清空此前内容
+                   ProductList[0].innerHTML = '<option value="">选择渠道</option>';
+                   
                    if (res.code==1){
                         if(res.data.length==0){
-                            ProductList[0].innerHTML = '';
                             $('#product').hide();
-                            if (ditchNo == 10009 || ditchNo == '10009') $('#push-third').show();
+                            // 兜底逻辑：如果API没返回产品，且符合特定条件，显示推送按钮
+                            // (虽然上面已经处理了主要类型的显示，这里保留作为兼容)
+                            if (ditchNo == 10009 || ditchNo == '10009' || ditchType == 3 || ditchType == 4) $('#push-third').show();
                         }else{
                             $('#product').show();
                             for (var i=0;i<res.data.length;i++){
@@ -173,9 +200,8 @@
                             }
                         }
                    }else{
-                       ProductList[0].innerHTML = '';
                        $('#product').hide();
-                       if (ditchNo == 10009 || ditchNo == '10009') $('#push-third').show();
+                       if (ditchNo == 10009 || ditchNo == '10009' || ditchType == 2 || ditchType == 3 || ditchType == 4) $('#push-third').show();
                    }
                }
            });
@@ -237,21 +263,46 @@
         var hedanurl = "<?= url('store/tr_order/sendtoqudaoshang') ?>";
         layer.confirm('确定将订单推送到第三方系统（如中通）创建运单？', {title: '推送到第三方系统'}
         , function (index) {
+            var loadIndex = layer.load(1); // 显示加载中
             $.post(hedanurl,{
                 id: <?= $detail['id'] ?>,
                 ditch_id: selectditch,
                 product_id: ''
             }, function (result) {
+                layer.close(loadIndex); 
                 if (result.code == 1) {
-                    if (result.data && result.data.ack == 'true') {
-                        $("#t_order_sn").val(result.data.tracking_number || '');
-                        layer.msg('推送成功，已回填转运单号');
+                    // 兼容 boolean 和 string 类型的 ack
+                    var isAck = result.data && (result.data.ack === 'true' || result.data.ack === true);
+                    if (isAck) {
+                        var trackingNum = result.data.tracking_number;
+                        // 确保输入框存在并赋值
+                        var $input = $("#t_order_sn");
+                        if ($input.length > 0) {
+                            $input.val(trackingNum);
+                            layer.msg('推送成功，已回填转运单号: ' + trackingNum);
+                        } else {
+                            layer.msg('推送成功，但未找到单号输入框，单号: ' + trackingNum);
+                        }
                     } else {
-                        $.show_error(result.data && result.data.message ? (result.data.message + '') : '推送失败');
+                        var errMsg = (result.data && result.data.message) ? result.data.message : '推送失败';
+                        try { errMsg = decodeURIComponent(errMsg); } catch(e){}
+                        $.show_error(errMsg);
                     }
                 } else {
-                    $.show_error((result.data && result.data.message) ? (result.data.message + '') : (result.msg || '推送失败'));
+                    var errMsg = (result.data && result.data.message) ? result.data.message : (result.msg || '推送失败');
+                    try { errMsg = decodeURIComponent(errMsg); } catch(e){}
+                    $.show_error(errMsg);
                 }
+            }, 'json')
+            .fail(function(xhr) {
+                layer.close(loadIndex);
+                var errInfo = '服务器响应异常';
+                if (xhr && xhr.responseText) {
+                    // 尝试截取错误信息的前150个字符，方便排查（可能是PHP报错或BOM头）
+                    var resp = xhr.responseText.replace(/<[^>]+>/g, ''); // 去除HTML标签
+                    errInfo += ': ' + resp.substring(0, 150);
+                }
+                $.show_error(errInfo);
             });
             layer.close(index);
         });
@@ -286,6 +337,10 @@
          * @type {*}
          */
         $('#my-form').superForm();
+        // 页面加载后自动触发一次检查，确保按钮显示（延迟500ms等待UI初始化）
+        setTimeout(function(){ 
+            if(window.selectDitch) window.selectDitch(); 
+        }, 500);
 
     });
 </script>

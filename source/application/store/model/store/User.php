@@ -249,8 +249,8 @@ class User extends StoreUserModel
         Session::set('yoshop_store.user', [
             'store_user_id' => $this['store_user_id'],
             'user_name' => $data['user_name'],
-            'shop_id' => $this['shop_id'],
-            'clerk_id'=> $this['clerk_id'],
+            'shop_id' => isset($this['shop_id']) ? $this['shop_id'] : 0,
+            'clerk_id'=> isset($this['clerk_id']) ? $this['clerk_id'] : 0,
             'is_super' => $this['is_super'],
         ]);
         return true;

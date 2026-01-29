@@ -68,11 +68,13 @@ class BaseModel extends Model
     protected static function setStoreWxappId()
     {
         $session = Session::get('yoshop_store');
-        self::$wxapp_id = $session['wxapp']['wxapp_id'];
-        self::$shop_id =  $session['user']['shop_id'];
-        self::$line_id =  isset($session['user']['line_id'])?$session['user']['line_id']:'';
-        self::$country_id =  isset($session['user']['country_id'])?$session['user']['country_id']:'';
-        self::$clerk_id =  isset($session['user']['clerk_id'])?$session['user']['clerk_id']:'';
+        if (!empty($session)) {
+            self::$wxapp_id = isset($session['wxapp']['wxapp_id']) ? $session['wxapp']['wxapp_id'] : 0;
+            self::$shop_id =  isset($session['user']['shop_id']) ? $session['user']['shop_id'] : 0;
+            self::$line_id =  isset($session['user']['line_id'])?$session['user']['line_id']:'';
+            self::$country_id =  isset($session['user']['country_id'])?$session['user']['country_id']:'';
+            self::$clerk_id =  isset($session['user']['clerk_id'])?$session['user']['clerk_id']:'';
+        }
     }
 
     /**

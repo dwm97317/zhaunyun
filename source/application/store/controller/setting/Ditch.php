@@ -90,7 +90,7 @@ class Ditch extends Controller
         // 新增记录
         $model = new DitchModel;
         $data = $this->postData('ditch');
-        if (!isset($data['ditch_type']) || !in_array((int)$data['ditch_type'], [1, 2], true)) {
+        if (!isset($data['ditch_type']) || !in_array((int)$data['ditch_type'], [1, 2, 3, 4], true)) {
             $data['ditch_type'] = 1;
         }
         $this->stripAccountFieldsIfMissing($model, $data);
@@ -117,7 +117,7 @@ class Ditch extends Controller
         }
         // 更新记录
         $data = $this->postData('express');
-        if (isset($data['ditch_type']) && !in_array((int)$data['ditch_type'], [1, 2], true)) {
+        if (isset($data['ditch_type']) && !in_array((int)$data['ditch_type'], [1, 2, 3, 4], true)) {
             $data['ditch_type'] = 1;
         }
         $this->stripAccountFieldsIfMissing($model, $data);
@@ -164,7 +164,7 @@ class Ditch extends Controller
     }
     
     /**
-     * 若 ditch 表无 account_id / account_password 列，则从 $data 中移除，避免保存报错
+     * 若 ditch 表无 account_id / account_password / sf_express_type / product_json 列，则从 $data 中移除，避免保存报错
      * @param DitchModel $model
      * @param array      $data
      */
@@ -172,12 +172,26 @@ class Ditch extends Controller
     {
         try {
             $table = $model->getTable();
+            
+            // 检查 account_id 和 account_password 字段
             $row = Db::query("SHOW COLUMNS FROM `{$table}` LIKE 'account_id'");
             if (empty($row)) {
                 unset($data['account_id'], $data['account_password']);
             }
+            
+            // 检查 sf_express_type 字段（顺丰快递产品类型）
+            $sfRow = Db::query("SHOW COLUMNS FROM `{$table}` LIKE 'sf_express_type'");
+            if (empty($sfRow)) {
+                unset($data['sf_express_type']);
+            }
+            
+            // 检查 product_json 字段（渠道产品配置）
+            $productRow = Db::query("SHOW COLUMNS FROM `{$table}` LIKE 'product_json'");
+            if (empty($productRow)) {
+                unset($data['product_json']);
+            }
         } catch (\Throwable $e) {
-            unset($data['account_id'], $data['account_password']);
+            unset($data['account_id'], $data['account_password'], $data['sf_express_type'], $data['product_json']);
         }
     }
 

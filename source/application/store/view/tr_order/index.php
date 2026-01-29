@@ -440,6 +440,7 @@
                                         用户Code:<?= $item['user']['user_code']; ?>
                                         <span style="color:#ff6666;cursor:pointer" text="<?= $item['user']['user_code']; ?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         <?php endif;?>
+                                        <?php if(!empty($item['address'])): ?>
                                         收件人:<?= $item['address']['name'] ?>
                                         <span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['name'];?>" onclick="copyUrl2(this)">[复制]</span></br>
                                         
@@ -476,6 +477,9 @@
                                         <?php if ($userclient['address']['reciveaddress_setting']['is_email']==1): ?> 
                                         邮箱：<?= !isset($item['address']['email'])?'未填':$item['address']['email'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['email'];?>" onclick="copyUrl2(this)">[复制]</span>
                                         <?php endif ;?>
+                                        <?php else: ?>
+                                        暂无收货地址信息
+                                        <?php endif; ?>
                                     </td>
                                     <?php if (checkPrivilege('tr_order/freelist')): ?>
                                     <td class="am-text-middle">

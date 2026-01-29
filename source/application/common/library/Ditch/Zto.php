@@ -83,6 +83,111 @@ class Zto
      */
     public function createOrder(array $params)
     {
+        if (isset($this->config['ditch_type']) && (int)$this->config['ditch_type'] === 3) {
+            // 推送到中通管家 (ZTO Manager)
+            $baseUrl = isset($this->config['apiurl']) && $this->config['apiurl'] !== ''
+                ? rtrim($this->config['apiurl'], '/')
+                : 'https://japi.zto.com';
+            $path = '/zto.ehk.receiveOpenOrder'; // 中通管家接单接口
+            // 如果apiurl本身包含了方法名，就不追加
+            $url = (strpos($baseUrl, 'receiveOpenOrder') !== false) ? $baseUrl : $baseUrl . $path;
+
+            $partnerOrderCode = isset($params['partnerOrderCode']) ? $params['partnerOrderCode'] : (isset($params['order_customerinvoicecode']) ? $params['order_customerinvoicecode'] : (isset($params['order_sn']) ? $params['order_sn'] : ''));
+
+            // 构造商品列表
+            $goodInfoList = [];
+            if (isset($params['orderInvoiceParam']) && is_array($params['orderInvoiceParam'])) {
+                foreach ($params['orderInvoiceParam'] as $item) {
+                     $goodInfoList[] = [
+                        'goodsNum' => isset($item['invoice_pcs']) ? (int)$item['invoice_pcs'] : 1,
+                        'goodsTitle' => isset($item['sku']) ? $item['sku'] : (isset($item['invoice_title']) ? $item['invoice_title'] : '商品'),
+                        'unitPrice' => 1, // 默认单价
+                        // 'skuPropertiesName' => '',
+                     ];
+                }
+            } else {
+                 $goodInfoList[] = [
+                    'goodsNum' => isset($params['quantity']) ? (int)$params['quantity'] : 1,
+                    'goodsTitle' => '商品',
+                    'unitPrice' => 1,
+                 ];
+            }
+
+            // 发件人信息
+            $sender = $this->buildSenderInfo($params);
+            // 收件人信息
+            $receiver = $this->buildReceiveInfo($params);
+
+            $bodyArr = [
+                'orderType' => 0, // 普通订单
+                'orderId' => $partnerOrderCode,
+                'shopKey' => isset($this->config['shop_key']) ? $this->config['shop_key'] : '',
+                'sendCompany' => '中通物流', // 可配置
+                'sendMan' => $sender['senderName'],
+                'sendPhone' => isset($sender['senderPhone']) ? $sender['senderPhone'] : (isset($sender['senderMobile']) ? $sender['senderMobile'] : ''),
+                'sendMobile' => isset($sender['senderMobile']) ? $sender['senderMobile'] : (isset($sender['senderPhone']) ? $sender['senderPhone'] : ''),
+                'sendProvince' => $sender['senderProvince'],
+                'sendCity' => $sender['senderCity'],
+                'sendCounty' => $sender['senderDistrict'],
+                'sendAddress' => $sender['senderAddress'],
+                'receiveCompany' => '个人',
+                'receiveMan' => $receiver['receiverName'],
+                'receivePhone' => isset($receiver['receiverPhone']) ? $receiver['receiverPhone'] : (isset($receiver['receiverMobile']) ? $receiver['receiverMobile'] : ''),
+                'receiveMobile' => isset($receiver['receiverMobile']) ? $receiver['receiverMobile'] : (isset($receiver['receiverPhone']) ? $receiver['receiverPhone'] : ''),
+                'receiveProvince' => $receiver['receiverProvince'],
+                'receiveCity' => $receiver['receiverCity'],
+                'receiveCounty' => $receiver['receiverDistrict'],
+                'receiveAddress' => $receiver['receiverAddress'],
+                'orderDate' => date('Y-m-d H:i:s'),
+                'goodInfoList' => $goodInfoList,
+                // 'buyerMessage' => isset($params['remark']) ? $params['remark'] : '',
+            ];
+            
+            // 确保手机/电话必填其一
+            if (empty($bodyArr['sendMobile']) && empty($bodyArr['sendPhone'])) {
+                 $bodyArr['sendMobile'] = '13800138000';
+            }
+             if (empty($bodyArr['receiveMobile']) && empty($bodyArr['receivePhone'])) {
+                 $bodyArr['receiveMobile'] = '13900139000';
+            }
+
+            $body = json_encode($bodyArr, JSON_UNESCAPED_UNICODE);
+            $appSecret = isset($this->config['token']) ? $this->config['token'] : '';
+            // 中通管家签名方式 x-dataDigest
+            $digest = base64_encode(md5($body . $appSecret, true));
+            $headers = [
+                'Content-Type: application/json; charset=UTF-8',
+                'x-appKey: ' . (isset($this->config['key']) ? $this->config['key'] : ''),
+                'x-dataDigest: ' . $digest,
+            ];
+
+            $resp = $this->httpPost($url, $body, $headers);
+             if ($resp === false) {
+                return ['ack' => 'false', 'tracking_number' => '', 'message' => $this->getError() ?: '请求失败', 'order_id' => ''];
+            }
+
+            $data = json_decode($resp, true);
+            if (!is_array($data)) {
+                return ['ack' => 'false', 'tracking_number' => '', 'message' => '响应解析失败', 'order_id' => ''];
+            }
+
+            // 中通管家接口说明：
+            // 该接口只负责接单，不直接返回运单号。运单号需在管家系统中生成。
+            // 因此此处 tracking_number 返回空是正常的，系统层不应报错，仅记录 order_id.
+            $ok = isset($data['status']) && $data['status'] === true;
+            $msg = isset($data['message']) ? $data['message'] : '';
+            $orderId = isset($params['partnerOrderCode']) ? $params['partnerOrderCode'] : ''; 
+
+            return [
+                'ack'             => $ok ? 'true' : 'false',
+                'tracking_number' => '', // 明确：接口不直接返回运单号，此处留空是安全的
+                'message'         => $msg !== '' ? $msg : ($ok ? '推送成功' : '推送失败'),
+                'order_id'        => (string) $orderId,
+            ];
+
+        }
+
+        // --- 以下为原有标准中通逻辑 ---
         $baseUrl = isset($this->config['apiurl']) && $this->config['apiurl'] !== ''
             ? rtrim($this->config['apiurl'], '/')
             : 'https://japi.zto.com';

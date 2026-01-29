@@ -48,6 +48,7 @@ use app\store\model\user\PointsLog as PointsLogModel;
 use think\Db;
 use Mpdf\Mpdf;
 use app\common\library\Ditch\Zto;
+use app\common\library\Ditch\Sf;
 
 /**
  * 订单管理
@@ -758,7 +759,7 @@ class TrOrder extends Controller
             }
         }
             
-        if($ditchdetail['ditch_no']==10009){
+        if($ditchdetail['ditch_no']==10009 || (isset($ditchdetail['ditch_type']) && in_array((int)$ditchdetail['ditch_type'], [2, 3], true))){
             $storage = ($shopname && is_object($shopname)) ? $shopname->toArray() : [];
             $region = isset($storage['region']) && is_array($storage['region']) ? $storage['region'] : [];
             $data = [
@@ -767,14 +768,14 @@ class TrOrder extends Controller
                 'order_sn'           => $detail['order_sn'],
                 'weight'             => $detail['cale_weight'],
                 'quantity'           => 1,
-                'consignee_name'     => $detail['address']['name'],
-                'consignee_mobile'   => $detail['address']['phone'],
-                'consignee_telephone'=> $detail['address']['phone'],
-                'consignee_address'  => $detail['address']['detail'],
-                'consignee_state'    => $detail['address']['province'],
-                'consignee_city'     => $detail['address']['city'],
-                'consignee_suburb'   => $detail['address']['region'],
-                'consignee_postcode' => $detail['address']['code'],
+                'consignee_name'     => isset($detail['address']['name']) ? $detail['address']['name'] : '',
+                'consignee_mobile'   => isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
+                'consignee_telephone'=> isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
+                'consignee_address'  => isset($detail['address']['detail']) ? $detail['address']['detail'] : '',
+                'consignee_state'    => isset($detail['address']['province']) ? $detail['address']['province'] : '',
+                'consignee_city'     => isset($detail['address']['city']) ? $detail['address']['city'] : '',
+                'consignee_suburb'   => isset($detail['address']['region']) ? $detail['address']['region'] : '',
+                'consignee_postcode' => isset($detail['address']['code']) ? $detail['address']['code'] : '',
                 'country'            => $countrydetail['code'],
                 'sender_name'        => isset($storage['linkman']) ? $storage['linkman'] : '',
                 'sender_phone'       => isset($storage['phone']) ? $storage['phone'] : '',
@@ -788,6 +789,8 @@ class TrOrder extends Controller
                 'key'    => $ditchdetail['app_key'],
                 'token'  => $ditchdetail['app_token'],
                 'apiurl' => isset($ditchdetail['api_url']) ? $ditchdetail['api_url'] : '',
+                'ditch_type' => isset($ditchdetail['ditch_type']) ? $ditchdetail['ditch_type'] : 1,
+                'shop_key' => isset($ditchdetail['shop_key']) ? $ditchdetail['shop_key'] : '',
             ];
             if (!empty($ditchdetail['account_id'])) {
                 $data['accountId'] = $ditchdetail['account_id'];
@@ -800,12 +803,68 @@ class TrOrder extends Controller
             }
             $Zto = new Zto($ztoConfig);
             $result = $Zto->createOrder($data);
-            if (isset($result['ack']) && $result['ack'] === 'true' && isset($result['tracking_number']) && $result['tracking_number'] !== '') {
-                $detail->save([
-                    't_order_sn' => $result['tracking_number'],
+            if (isset($result['ack']) && $result['ack'] === 'true') {
+                $saveData = [
                     't_order_id' => isset($result['order_id']) ? $result['order_id'] : '',
-                ]);
+                ];
+                // 只有当有运单号时才保存运单号
+                if(isset($result['tracking_number']) && $result['tracking_number'] !== ''){
+                    $saveData['t_order_sn'] = $result['tracking_number'];
+                }
+                $detail->save($saveData);
             }
+        }
+        
+        // 顺丰快递下单逻辑（type=4）
+        if($ditchdetail['ditch_no']==10010 || (isset($ditchdetail['ditch_type']) && (int)$ditchdetail['ditch_type'] === 4)){
+            $storage = ($shopname && is_object($shopname)) ? $shopname->toArray() : [];
+            $region = isset($storage['region']) && is_array($storage['region']) ? $storage['region'] : [];
+            $data = [
+                'partnerOrderCode'   => $detail['order_sn'],
+                'order_sn'           => $detail['order_sn'],
+                'weight'             => $detail['cale_weight'],
+                'quantity'           => 1,
+                'consignee_name'     => isset($detail['address']['name']) ? $detail['address']['name'] : '',
+                'consignee_mobile'   => isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
+                'consignee_telephone'=> isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
+                'consignee_address'  => isset($detail['address']['detail']) ? $detail['address']['detail'] : '',
+                'consignee_state'    => isset($detail['address']['province']) ? $detail['address']['province'] : '',
+                'consignee_city'     => isset($detail['address']['city']) ? $detail['address']['city'] : '',
+                'consignee_suburb'   => isset($detail['address']['region']) ? $detail['address']['region'] : '',
+                'consignee_postcode' => isset($detail['address']['code']) ? $detail['address']['code'] : '',
+                'country'            => $countrydetail['code'],
+                'sender_name'        => isset($storage['linkman']) ? $storage['linkman'] : '',
+                'sender_phone'       => isset($storage['phone']) ? $storage['phone'] : '',
+                'sender_mobile'      => isset($storage['phone']) ? $storage['phone'] : '',
+                'sender_province'    => isset($region['province']) ? $region['province'] : '上海',
+                'sender_city'        => isset($region['city']) ? $region['city'] : '上海市',
+                'sender_district'    => isset($region['region']) ? $region['region'] : '青浦区',
+                'sender_address'     => isset($storage['address']) ? $storage['address'] : '',
+            ];
+            $sfConfig = [
+                'key'    => $ditchdetail['app_key'],
+                'token'  => $ditchdetail['app_token'],
+                'apiurl' => isset($ditchdetail['api_url']) ? $ditchdetail['api_url'] : '',
+                'customer_code' => isset($ditchdetail['customer_code']) ? $ditchdetail['customer_code'] : '',
+                'sf_express_type' => isset($ditchdetail['sf_express_type']) ? (int)$ditchdetail['sf_express_type'] : 1,
+            ];
+            $Sf = new Sf($sfConfig);
+            $result = $Sf->createOrder($data);
+            if (isset($result['ack']) && $result['ack'] === 'true') {
+                $saveData = [
+                    't_order_id' => isset($result['order_id']) ? $result['order_id'] : '',
+                ];
+                // 保存运单号
+                if(isset($result['tracking_number']) && $result['tracking_number'] !== ''){
+                    $saveData['t_order_sn'] = $result['tracking_number'];
+                }
+                $detail->save($saveData);
+            }
+        }
+        
+        // 清除缓冲区，防止之前的输出（如BOM头、Notice警告）破坏JSON格式
+        if (ob_get_level() > 0) {
+            ob_clean();
         }
         return $this->renderSuccess('获取成功','',$result);
     }
@@ -1624,6 +1683,22 @@ class TrOrder extends Controller
         $Track = new Track;
         $set = Setting::detail('store')['values'];
         $userclient =  Setting::detail('userclient')['values'];
+        // 修复userclient配置缺失address导致视图报错的问题
+        if (!isset($userclient['address'])) {
+            $userclient['address'] = [
+                'reciveaddress_setting' => [
+                    'is_identitycard' => '0',
+                    'is_clearancecode' => '0',
+                    'is_province' => '1',
+                    'is_city' => '1',
+                    'is_street' => '1',
+                    'is_door' => '1',
+                    'is_detail' => '1',
+                    'is_code' => '1',
+                    'is_email' => '0'
+                ]
+            ];
+        }
         $adminstyle = Setting::detail('adminstyle')['values'];
         // 获取费用审核设置
         $is_verify_free = isset($adminstyle['is_verify_free']) ? $adminstyle['is_verify_free'] : 0;

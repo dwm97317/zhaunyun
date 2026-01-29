@@ -43,7 +43,7 @@ class Shelf extends ShelfModel
        $res = $this->allowField(false)->insertGetId($data);
        if ($res) {
            if ($data['shelf_column'] && $data['shelf_row']){
-              $shelf_data = (new ShelfUnit())->getShelfUnitData($data,$res,$data['barcode_type']);
+              $shelf_data = (new ShelfUnit())->getShelfUnitData($data,$res);
               $result = (new ShelfUnit())->insertAll($shelf_data);
               if(!$result){return false;}
            }

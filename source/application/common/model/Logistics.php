@@ -308,7 +308,7 @@ class Logistics extends BaseModel
             $result = $Yidida->query($express);
         }
         //中通
-        if($params['ditch_no']==10009){
+        if($params['ditch_no']==10009 || (isset($params['ditch_type']) && in_array((int)$params['ditch_type'], [2, 3], true))){
             $Zto = new Zto(['key'=>$params['app_key'],'token'=>$params['app_token'],'apiurl'=>isset($params['api_url'])?$params['api_url']:'']);
             $result = $Zto->query($express);
         }

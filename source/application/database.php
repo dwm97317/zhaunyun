@@ -1,10 +1,10 @@
 <?php
 // 数据库配置
 $config = [
-    'host' => '127.0.0.1',
-    'database' => 'zhuanyun_sllowly',
-    'username' => 'zhuanyun_sllowly',
-    'password' => 'yZTcir3KtdtikFQJ',
+    'host' => '103.119.1.84',
+    'database' => 'xinsuju',
+    'username' => 'xinsuju',
+    'password' => 'cJGzwZTDCLHzWXN4',
     'port' => '3306',
     'charset' => 'utf8',
 ];

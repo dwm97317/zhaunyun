@@ -131,7 +131,7 @@ class Track extends Controller
                     $result = $Yidida->query($express);
                 }
                 //中通
-                if($ditchdatas['ditch_no']==10009){
+                if($ditchdatas['ditch_no']==10009 || (isset($ditchdatas['ditch_type']) && in_array((int)$ditchdatas['ditch_type'], [2, 3], true))){
                     $Zto = new Zto(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>isset($ditchdatas['api_url'])?$ditchdatas['api_url']:'']);
                     $result = $Zto->query($express);
                 }
@@ -350,7 +350,7 @@ class Track extends Controller
                     $result = $Yidida->query($express);
                 }
                 //中通
-                if($ditchdatas['ditch_no']==10009){
+                if($ditchdatas['ditch_no']==10009 || (isset($ditchdatas['ditch_type']) && in_array((int)$ditchdatas['ditch_type'], [2, 3], true))){
                     $Zto = new Zto(['key'=>$ditchdatas['app_key'],'token'=>$ditchdatas['app_token'],'apiurl'=>isset($ditchdatas['api_url'])?$ditchdatas['api_url']:'']);
                     $result = $Zto->query($express);
                 }
