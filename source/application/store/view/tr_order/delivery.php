@@ -84,14 +84,51 @@
                                     <small class="am-margin-left-sm">将订单推送至中通等渠道创建运单，成功后可自动回填转运单号</small>
                                 </div>
                             </div>
-                            <div class="am-form-group">
+                            <?php 
+                            // 检查是否有分箱信息
+                            $isMultiBox = isset($detail['packageitems']) && count($detail['packageitems']) > 0;
+                            ?>
+                            
+                            <!-- 主单转运单号 (兼容字段) -->
+                            <!-- 如果是多箱模式，此字段隐藏自动同步；如果是单箱模式，此字段正常显示 -->
+                            <div class="am-form-group" style="<?= $isMultiBox ? 'display:none;' : '' ?>">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 转运单 </label>
                                 <div class="am-u-sm-4 am-u-end">
                                     <input type="text" id="t_order_sn" class="tpl-form-input" name="delivery[t_order_sn]"
-                                           placeholder="请输入转运单号" required>
+                                           value="<?= isset($detail['t_order_sn']) ? $detail['t_order_sn'] : '' ?>"
+                                           placeholder="请输入转运单号" <?= $isMultiBox ? '' : 'required' ?>>
                                 </div>
                                 <button type="button" class="am-btn am-btn-secondary"><span onclick="toClick()">生成单号</span></button>
                             </div>
+                            
+                            <?php if($isMultiBox): ?>
+                            <!-- 多箱模式：分箱单号列表 -->
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 包裹分箱信息 </label>
+                                <div class="am-u-sm-9 am-u-end" style="padding-left: 0;">
+                                    <?php foreach($detail['packageitems'] as $index => $item): ?>
+                                    <div class="am-u-sm-12 am-margin-bottom-xs">
+                                        <label class="am-u-sm-3 am-form-label am-text-sm" style="font-weight:normal; text-align: right;">
+                                            <?php if($index === 0): ?>
+                                            <span class="am-badge am-badge-success am-radius">母单</span> 
+                                            <?php endif; ?>
+                                            箱<?= $index + 1 ?> (ID:<?= $item['id'] ?>)
+                                        </label>
+                                        <div class="am-u-sm-5 am-u-end">
+                                            <input type="text" 
+                                                   class="tpl-form-input son-tracking-input <?= $index === 0 ? 'box-first-input' : '' ?>" 
+                                                   style="display:inline-block;"
+                                                   name="delivery[sonitem][<?= $item['id'] ?>][t_order_sn]"
+                                                   value="<?= isset($item['t_order_sn']) ? $item['t_order_sn'] : '' ?>"
+                                                   data-box-id="<?= $item['id'] ?>"
+                                                   placeholder="请输入分箱运单号" 
+                                                   <?= $index === 0 ? 'required' : '' ?> >
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                             <div class="am-form-group">
                                 <input type="hidden" name="delivery[type]" value="delivery"/>
                                 <input type="hidden" name="delivery[id]" value="<?= $detail['id'] ?>"/>
@@ -283,6 +320,27 @@
                         } else {
                             layer.msg('推送成功，但未找到单号输入框，单号: ' + trackingNum);
                         }
+                        
+                        // 自动回填子单号
+                        if (result.data.sub_tracking_numbers && result.data.sub_tracking_numbers.length > 0) {
+                            $.each(result.data.sub_tracking_numbers, function(i, item) {
+                                 var $input = $('input[data-box-id="' + item.id + '"]');
+                                 if ($input.length > 0) {
+                                     $input.val(item.tn);
+                                     // 如果是箱1，触发 input 事件以确保同步
+                                     if ($input.hasClass('box-first-input')) {
+                                         $input.trigger('input');
+                                     }
+                                 }
+                            });
+                            layer.msg('推送成功，已回填 ' + result.data.sub_tracking_numbers.length + ' 个分箱单号');
+                        } else {
+                            // 兜底：如果没有返回详细子单列表，尝试把主单号填入第一箱（多箱模式下）
+                            var $firstBox = $('.box-first-input');
+                            if ($firstBox.length > 0 && trackingNum) {
+                                $firstBox.val(trackingNum);
+                            }
+                        }
                     } else {
                         var errMsg = (result.data && result.data.message) ? result.data.message : '推送失败';
                         try { errMsg = decodeURIComponent(errMsg); } catch(e){}
@@ -341,6 +399,17 @@
         setTimeout(function(){ 
             if(window.selectDitch) window.selectDitch(); 
         }, 500);
+
+        // 多箱模式下，箱1输入同步到主单号
+        $(document).on('input propertychange', '.box-first-input', function() {
+            var val = $(this).val();
+            // console.log('Syncing box-1 to master:', val);
+            $('#t_order_sn').val(val);
+        });
+        // 初始同步
+        if ($('.box-first-input').length > 0) {
+            $('#t_order_sn').val($('.box-first-input').val());
+        }
 
     });
 </script>

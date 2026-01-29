@@ -774,13 +774,13 @@ class TrOrder extends Controller
                 'consignee_suburb'   => isset($detail['address']['region']) ? $detail['address']['region'] : '',
                 'consignee_postcode' => isset($detail['address']['code']) ? $detail['address']['code'] : '',
                 'country'            => $countrydetail['code'],
-                'sender_name'        => isset($storage['linkman']) ? $storage['linkman'] : '',
-                'sender_phone'       => isset($storage['phone']) ? $storage['phone'] : '',
-                'sender_mobile'      => isset($storage['phone']) ? $storage['phone'] : '',
+                'sender_name'        => isset($storage['linkman']) && $storage['linkman'] ? $storage['linkman'] : '集运仓',
+                'sender_phone'       => isset($storage['phone']) && $storage['phone'] ? $storage['phone'] : '13800138000',
+                'sender_mobile'      => isset($storage['phone']) && $storage['phone'] ? $storage['phone'] : '13800138000',
                 'sender_province'    => isset($region['province']) ? $region['province'] : '上海',
                 'sender_city'        => isset($region['city']) ? $region['city'] : '上海市',
                 'sender_district'    => isset($region['region']) ? $region['region'] : '青浦区',
-                'sender_address'     => isset($storage['address']) ? $storage['address'] : '',
+                'sender_address'     => isset($storage['address']) && $storage['address'] ? $storage['address'] : '默认地址',
             ];
             
             $ztoConfig = [
@@ -832,6 +832,7 @@ class TrOrder extends Controller
                 $resultsLog = [];
                 $hasError = false;
                 $firstWaybillNo = '';
+                $subTrackingNumbers = []; // 收集子单号
                 
                 foreach ($boxes as $index => $box) {
                     $subOrderSn = $detail['order_sn'] . '_' . $box['id'];
@@ -858,6 +859,7 @@ class TrOrder extends Controller
                             $detail->save(['t_order_sn' => $tn]);
                         }
                         $resultsLog[] = "箱" . ($index+1) . "成功";
+                        $subTrackingNumbers[] = ['id' => $box['id'], 'tn' => $tn];
                     } else {
                         $hasError = true;
                         $resultsLog[] = "箱" . ($index+1) . "失败: " . (isset($res['message']) ? $res['message'] : '');
@@ -867,7 +869,8 @@ class TrOrder extends Controller
                  $result = [
                     'ack' => $hasError ? 'false' : 'true',
                     'message' => implode('; ', $resultsLog),
-                    'tracking_number' => $firstWaybillNo
+                    'tracking_number' => $firstWaybillNo,
+                    'sub_tracking_numbers' => $subTrackingNumbers
                 ];
             }
         }
@@ -888,13 +891,13 @@ class TrOrder extends Controller
                 'consignee_suburb'   => isset($detail['address']['region']) ? $detail['address']['region'] : '',
                 'consignee_postcode' => isset($detail['address']['code']) ? $detail['address']['code'] : '',
                 'country'            => $countrydetail['code'],
-                'sender_name'        => isset($storage['linkman']) ? $storage['linkman'] : '',
-                'sender_phone'       => isset($storage['phone']) ? $storage['phone'] : '',
-                'sender_mobile'      => isset($storage['phone']) ? $storage['phone'] : '',
+                'sender_name'        => isset($storage['linkman']) && $storage['linkman'] ? $storage['linkman'] : '集运仓',
+                'sender_phone'       => isset($storage['phone']) && $storage['phone'] ? $storage['phone'] : '13800138000',
+                'sender_mobile'      => isset($storage['phone']) && $storage['phone'] ? $storage['phone'] : '13800138000',
                 'sender_province'    => isset($region['province']) ? $region['province'] : '上海',
                 'sender_city'        => isset($region['city']) ? $region['city'] : '上海市',
                 'sender_district'    => isset($region['region']) ? $region['region'] : '青浦区',
-                'sender_address'     => isset($storage['address']) ? $storage['address'] : '',
+                'sender_address'     => isset($storage['address']) && $storage['address'] ? $storage['address'] : '默认地址',
             ];
 
             $sfConfig = [
@@ -932,6 +935,7 @@ class TrOrder extends Controller
                 $motherWaybillNo = '';
                 $resultsLog = [];
                 $hasError = false;
+                $subTrackingNumbers = []; // 收集子单号
                 
                 foreach ($boxes as $index => $box) {
                     $isMother = ($index === 0);
@@ -963,6 +967,7 @@ class TrOrder extends Controller
                         }
                         
                         $resultsLog[] = "箱" . ($index+1) . "成功";
+                        $subTrackingNumbers[] = ['id' => $box['id'], 'tn' => $tn];
                         
                         // 如果是母单，更新主表并记录母单号
                         if ($isMother) {
@@ -985,7 +990,8 @@ class TrOrder extends Controller
                 $result = [
                     'ack' => $hasError ? 'false' : 'true',
                     'message' => implode('; ', $resultsLog),
-                    'tracking_number' => $motherWaybillNo
+                    'tracking_number' => $motherWaybillNo,
+                    'sub_tracking_numbers' => $subTrackingNumbers
                 ];
             }
         }
@@ -1089,7 +1095,7 @@ class TrOrder extends Controller
         $set = Setting::detail('store')['values'];
         $userclient =  Setting::getItem('userclient',$detail['wxapp_id']);
         return $this->fetch('orderdetail', compact(
-            'detail','line','package','packageItem','packageService','set','userclient'
+            'detail','line','packageItem','packageService','set','userclient'
         ));
     }
     
@@ -1703,11 +1709,23 @@ class TrOrder extends Controller
     
     // 发货物流
     public function deliverySave(){
-       $model = (new Inpack());
-       if ($model->modify($this->postData('delivery'))){
-           return $this->renderSuccess('操作成功');
-       } 
-       return $this->renderError($model->getError() ?: '操作失败');
+        $model = (new Inpack());
+        $data = $this->postData('delivery');
+        if ($model->modify($data)){
+            // 保存分箱单号
+            if(isset($data['sonitem']) && is_array($data['sonitem'])){
+                foreach($data['sonitem'] as $itemId => $itemData){
+                    if(isset($itemData['t_order_sn'])){
+                         (new InpackItem())->save(
+                             ['t_order_sn' => $itemData['t_order_sn']],
+                             ['id' => $itemId]
+                         );
+                    }
+                }
+            }
+            return $this->renderSuccess('操作成功');
+        } 
+        return $this->renderError($model->getError() ?: '操作失败');
     }
 
     /**

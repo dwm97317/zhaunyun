@@ -148,7 +148,7 @@ class Sf
             'expressTypeId'   => $expressTypeId,
             'payMethod'       => isset($params['payMethod']) ? $params['payMethod'] : 1, // 1-寄方付
             'cargoDetails'    => $cargoDetails,
-            'monthlyCard'     => isset($this->config['customer_code']) ? $this->config['customer_code'] : '',
+            'monthlyCard'     => (strpos($baseUrl, 'sbox') !== false) ? '7551234567' : (isset($this->config['customer_code']) ? $this->config['customer_code'] : ''),
             'language'        => 'zh_CN',
         ];
 

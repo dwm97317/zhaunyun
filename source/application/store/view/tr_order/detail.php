@@ -361,12 +361,12 @@
 // 全局变量
 let currentVolRatio = <?= $detail['line']['volumeweight'] ?? 5000 ?>;
 let isCalculating = false;
-let lastLineId = <?= $detail['line_id'] ?>;
-let weightvol_integer = <?= $detail['line']['weightvol_integer'] ?>;
+let lastLineId = <?= $detail['line_id'] ?? 0 ?>;
+let weightvol_integer = <?= $detail['line']['weightvol_integer'] ?? 0 ?>;
 let volumeweight_weight = <?= $detail['line']['volumeweight_weight'] ?? 1 ?>;
-let volumeweight_type = <?= $detail['line']['volumeweight_type'] ?>;
-let billing_method = <?= $detail['line']['billing_method'] ?>;
-let bubble_weight = <?= $detail['line']['bubble_weight'] ?>;
+let volumeweight_type = <?= $detail['line']['volumeweight_type'] ?? 0 ?>;
+let billing_method = <?= $detail['line']['billing_method'] ?? 0 ?>;
+let bubble_weight = <?= $detail['line']['bubble_weight'] ?? 0 ?>;
 let lastChargeableWeight = 0;
 
 $(function () {
