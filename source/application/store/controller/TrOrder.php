@@ -763,7 +763,51 @@ class TrOrder extends Controller
             $storage = ($shopname && is_object($shopname)) ? $shopname->toArray() : [];
             $region = isset($storage['region']) && is_array($storage['region']) ? $storage['region'] : [];
             
+            // 优先检查渠道配置中的自定义发货地址 (sender_json)
+            $customSender = [];
+            if (!empty($ditchdetail['sender_json'])) { // 假设DB字段叫 sender_json 或者 product_json 里的某个key，这里先假设有个扩展字段
+                 $decodedSender = json_decode(html_entity_decode($ditchdetail['sender_json']), true);
+                 if (is_array($decodedSender) && !empty($decodedSender['province'])) {
+                     $customSender = $decodedSender;
+                 }
+            }
+
             // 构造基础地址
+            $senderProvince = '上海';
+            $senderCity = '上海市';
+            $senderDistrict = '青浦区';
+            $senderAddress = '默认地址';
+            $senderName = '集运仓';
+            $senderPhone = '13800138000';
+
+            // 1. 尝试从渠道配置获取 (Highest Priority)
+            // 优先检查独立字段，其次检查 JSON
+            if (!empty($ditchdetail['sender_province'])) {
+                $senderProvince = $ditchdetail['sender_province'];
+                $senderCity     = $ditchdetail['sender_city'];
+                $senderDistrict = $ditchdetail['sender_district'];
+                $senderAddress  = $ditchdetail['sender_address'];
+                $senderName     = $ditchdetail['sender_name'] ?: $senderName;
+                $senderPhone    = $ditchdetail['sender_phone'] ?: $senderPhone;
+            } elseif (!empty($customSender)) {
+                $senderProvince = isset($customSender['province']) ? $customSender['province'] : $senderProvince;
+                $senderCity     = isset($customSender['city'])     ? $customSender['city']     : $senderCity;
+                $senderDistrict = isset($customSender['district']) ? $customSender['district'] : $senderDistrict;
+                $senderAddress  = isset($customSender['address'])  ? $customSender['address']  : $senderAddress;
+                if (!empty($customSender['name'])) $senderName = $customSender['name'];
+                if (!empty($customSender['phone'])) $senderPhone = $customSender['phone'];
+            }
+            // 2. 尝试从仓库获取 (Fallback)
+            elseif (!empty($region) && !empty($region['province'])) {
+                $senderProvince = $region['province'];
+                $senderCity     = isset($region['city']) ? $region['city'] : $region['city'];
+                $senderDistrict = isset($region['region']) ? $region['region'] : $region['region'];
+                $senderAddress  = isset($storage['address']) && $storage['address'] ? $storage['address'] : $senderAddress;
+                // 仓库联系人
+                $senderName = isset($storage['linkman']) && $storage['linkman'] ? $storage['linkman'] : $senderName;
+                $senderPhone = isset($storage['phone']) && $storage['phone'] ? $storage['phone'] : $senderPhone;
+            }
+            
             $commonData = [
                 'consignee_name'     => isset($detail['address']['name']) ? $detail['address']['name'] : '',
                 'consignee_mobile'   => isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
@@ -774,14 +818,80 @@ class TrOrder extends Controller
                 'consignee_suburb'   => isset($detail['address']['region']) ? $detail['address']['region'] : '',
                 'consignee_postcode' => isset($detail['address']['code']) ? $detail['address']['code'] : '',
                 'country'            => $countrydetail['code'],
-                'sender_name'        => isset($storage['linkman']) && $storage['linkman'] ? $storage['linkman'] : '集运仓',
-                'sender_phone'       => isset($storage['phone']) && $storage['phone'] ? $storage['phone'] : '13800138000',
-                'sender_mobile'      => isset($storage['phone']) && $storage['phone'] ? $storage['phone'] : '13800138000',
-                'sender_province'    => isset($region['province']) ? $region['province'] : '上海',
-                'sender_city'        => isset($region['city']) ? $region['city'] : '上海市',
-                'sender_district'    => isset($region['region']) ? $region['region'] : '青浦区',
-                'sender_address'     => isset($storage['address']) && $storage['address'] ? $storage['address'] : '默认地址',
+                'sender_name'        => $senderName,
+                'sender_phone'       => $senderPhone,
+                'sender_mobile'      => $senderPhone,
+                'sender_province'    => $senderProvince,
+                'sender_city'        => $senderCity,
+                'sender_district'    => $senderDistrict,
+                'sender_address'     => $senderAddress,
             ];
+
+            // --- 快递管家 (ZTO Manager) 功能升级 2026-01-30 ---
+            $pushConfigStr = !empty($ditchdetail['push_config_json']) ? html_entity_decode($ditchdetail['push_config_json']) : '';
+            $pushConfig = !empty($pushConfigStr) ? json_decode($pushConfigStr, true) : [];
+            
+            // 1. goodsPath (图片 URL)
+            $goodsPath = '';
+            if (!empty($detail['inpackimage']) && count($detail['inpackimage']) > 0) {
+                $firstImage = $detail['inpackimage'][0];
+                if (isset($firstImage['file']['file_path'])) {
+                    $goodsPath = $firstImage['file']['file_path'];
+                }
+            }
+            $commonData['goodsPath'] = $goodsPath;
+
+            // 2. skuPropertiesName (包裹单号拼接)
+            if (isset($pushConfig['enableSkuPropertiesName']) && $pushConfig['enableSkuPropertiesName']) {
+                $packageNos = [];
+                if (isset($detail['packagelist'])) {
+                    foreach ($detail['packagelist'] as $pkg) {
+                        if (!empty($pkg['express_num'])) $packageNos[] = $pkg['express_num'];
+                    }
+                }
+                $skuName = implode(',', $packageNos);
+                $commonData['skuPropertiesName'] = mb_substr($skuName, 0, 200);
+            }
+
+            // 3. goodsTitle (商品标题规则匹配)
+            if (isset($pushConfig['enableGoodsTitle']) && $pushConfig['enableGoodsTitle'] && !empty($pushConfig['goodsTitleRules'])) {
+                $rules = $pushConfig['goodsTitleRules'];
+                usort($rules, function($a, $b) {
+                    return (isset($a['priority']) ? $a['priority'] : 99) - (isset($b['priority']) ? $b['priority'] : 99);
+                });
+                
+                $matchedTitle = '';
+                foreach ($rules as $rule) {
+                    if (isset($rule['status']) && (int)$rule['status'] === 1) {
+                         $matchedTitle = $rule['title'];
+                         break;
+                    }
+                }
+                if (!empty($matchedTitle)) {
+                    $commonData['goodsTitle'] = $matchedTitle;
+                }
+            }
+
+            // 4. payDate (支付时间 yyyy-MM-dd)
+            if (isset($pushConfig['enablePayDate']) && $pushConfig['enablePayDate'] && !empty($detail['pay_time'])) {
+                 $payTime = is_numeric($detail['pay_time']) ? $detail['pay_time'] : strtotime($detail['pay_time']);
+                 if ($payTime > 0) {
+                     $commonData['payDate'] = date('Y-m-d H:i:s', $payTime);
+                 }
+            }
+
+            // 5. buyerMessage (留言截取 500 字符)
+            if (isset($pushConfig['enableBuyerMessage']) && $pushConfig['enableBuyerMessage']) {
+                 $commonData['buyerMessage'] = mb_substr($detail['remark'], 0, 500);
+            }
+
+            // 6. sellerMessage (后台备注截取 500 字符)
+            if (isset($pushConfig['enableSellerMessage']) && $pushConfig['enableSellerMessage']) {
+                 // 优先使用 inpack 表的 remark (如果区分的话) 或其他备注字段
+                 // 这里尝试寻找 admin_remark 或类似字段，由于 DESC 限制，暂用逻辑兼容
+                 $sellerRemark = isset($detail['admin_remark']) ? $detail['admin_remark'] : '';
+                 $commonData['sellerMessage'] = mb_substr($sellerRemark, 0, 500);
+            }
             
             $ztoConfig = [
                 'key'    => $ditchdetail['app_key'],
@@ -796,6 +906,9 @@ class TrOrder extends Controller
                 $extraData['accountId'] = $ditchdetail['account_id'];
                 $extraData['accountPassword'] = isset($ditchdetail['account_password']) && $ditchdetail['account_password'] !== '' ? $ditchdetail['account_password'] : 'ZTO123';
             } elseif (!empty($ditchdetail['customer_code'])) {
+                // 如果 account_id 为空但 customer_code有值，尝试将其作为 accountId 使用 (兼容某些配置习惯)
+                $extraData['accountId'] = $ditchdetail['customer_code'];
+                $extraData['accountPassword'] = 'ZTO123'; // 默认密码或需要额外配置
                 $ztoConfig['customer_code'] = $ditchdetail['customer_code'];
             }
             if (!empty($ditchdetail['use_timestamp'])) {
@@ -994,7 +1107,7 @@ class TrOrder extends Controller
                     'sub_tracking_numbers' => $subTrackingNumbers
                 ];
             }
-            } elseif ($ditch_type_id == 5) {
+            } elseif (isset($ditchdetail['ditch_type']) && (int)$ditchdetail['ditch_type'] == 5) {
                 // === 京东物流 (JD) ===
                 // 获取仓库信息作为发件人
                 $storage = ($shopname && is_object($shopname)) ? $shopname->toArray() : [];

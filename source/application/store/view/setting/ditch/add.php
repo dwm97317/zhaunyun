@@ -218,6 +218,58 @@
                                     <small>请选择京东物流主产品类型。标快/特快适用于大部分B2C/C2C场景。</small>
                                 </div>
                             </div>
+
+                            <!-- 快递管家推送增强配置 -->
+                            <div id="zto_manager_config_group" style="display:none;">
+                                <div class="widget-head am-cf">
+                                    <div class="widget-title am-fl">快递管家推送增强配置</div>
+                                </div>
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 功能开关 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <label class="am-checkbox-inline">
+                                            <input type="checkbox" id="enableSkuPropertiesName"> 推送包裹单号 (skuPropertiesName)
+                                        </label>
+                                        <label class="am-checkbox-inline">
+                                            <input type="checkbox" id="enablePayDate"> 推送支付时间 (payDate)
+                                        </label>
+                                        <label class="am-checkbox-inline">
+                                            <input type="checkbox" id="enableBuyerMessage"> 推送用户留言 (buyerMessage)
+                                        </label>
+                                        <label class="am-checkbox-inline">
+                                            <input type="checkbox" id="enableSellerMessage"> 推送后台备注 (sellerMessage)
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 商品标题策略 (goodsTitle) </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <label class="am-checkbox-inline">
+                                            <input type="checkbox" id="enableGoodsTitle"> 启用动态标题映射
+                                        </label>
+                                        <div id="goods_title_rules_container" style="margin-top: 15px; display: none;">
+                                            <table class="am-table am-table-compact am-table-bordered am-table-centered">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 40%;">商品标题文本</th>
+                                                        <th style="width: 20%;">优先级</th>
+                                                        <th style="width: 20%;">状态</th>
+                                                        <th>操作</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="rules_body">
+                                                    <!-- Javascript rendered -->
+                                                </tbody>
+                                            </table>
+                                            <button type="button" class="am-btn am-btn-xs am-btn-primary am-round" onclick="addTitleRule()">
+                                                <i class="am-icon-plus"></i> 添加新标题规则
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="ditch[push_config_json]" id="push_config_json_input" value="">
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否启用 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -239,6 +291,49 @@
                                     <small>数字越小越靠前</small>
                                 </div>
                             </div>
+
+                            <!-- 发货人信息配置 (新增) -->
+                            <div class="widget-head am-cf">
+                                <div class="widget-title am-fl">发货人信息设置 (可选 - 用于覆盖仓库默认地址)</div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">发货人姓名</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input sender-field" id="s_name" name="ditch[sender_name]" value="">
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">发货人电话</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input sender-field" id="s_phone" name="ditch[sender_phone]" value="">
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">省份</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input sender-field" id="s_province" name="ditch[sender_province]" value="" placeholder="如：广西壮族自治区">
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">城市</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input sender-field" id="s_city" name="ditch[sender_city]" value="" placeholder="如：防城港市">
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">区/县</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input sender-field" id="s_district" name="ditch[sender_district]" value="" placeholder="如：东兴市">
+                                </div>
+                            </div>
+                            <div class="am-form-group">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label">详细地址</label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <input type="text" class="tpl-form-input sender-field" id="s_address" name="ditch[sender_address]" value="" placeholder="街道门牌号">
+                                </div>
+                            </div>
+                            <!-- 隐藏域存储 JSON -->
+                            <input type="hidden" name="ditch[sender_json]" id="sender_json_input" value="">
                             <div class="am-form-group">
                                 <div class="am-u-sm-9 am-u-sm-push-3 am-margin-top-lg">
                                     <button type="submit" class="j-submit am-btn am-btn-secondary">提交
@@ -281,6 +376,7 @@
         $g4.hide();
         $g5.hide();
         $g6.hide();
+        $('#zto_manager_config_group').hide();
 
         if (v == '2') { // 中通
             $g.show();
@@ -288,6 +384,7 @@
             $g3.show();
         } else if (v == '3') { // 中通管家
             $g4.show();
+            $('#zto_manager_config_group').show();
         } else if (v == '4') { // 顺丰快递
             $g.show(); // 显示客户编号（月结卡号）
             $g5.show(); // 显示快递产品类型选择器
@@ -301,12 +398,89 @@
             $('input[name="ditch[customer_code]"]').next('small').html('填写京东 <strong>CustomerCode (商家编码)</strong>');
             $('input[name="ditch[print_url]"]').parent().prev('label').text('京东 AccessToken');
         }
-        
+    }
+
+    // --- 快递管家增强配置 JS ---
+    var titleRules = [];
+
+    function renderRules() {
+        var html = '';
+        titleRules.forEach(function(rule, index) {
+            html += `<tr>
+                <td><input type="text" class="am-form-field am-input-sm" value="${rule.title}" onchange="updateRule(${index}, 'title', this.value)"></td>
+                <td><input type="number" class="am-form-field am-input-sm" value="${rule.priority}" onchange="updateRule(${index}, 'priority', this.value)"></td>
+                <td>
+                    <select class="am-input-sm" onchange="updateRule(${index}, 'status', this.value)">
+                        <option value="1" ${rule.status == 1 ? 'selected' : ''}>启用</option>
+                        <option value="0" ${rule.status == 0 ? 'selected' : ''}>禁用</option>
+                    </select>
+                </td>
+                <td><button type="button" class="am-btn am-btn-xs am-btn-danger" onclick="removeRule(${index})">删除</button></td>
+            </tr>`;
+        });
+        $('#rules_body').html(html);
+        updatePushConfigJson();
+    }
+
+    function addTitleRule() {
+        titleRules.push({title: '默认商品', priority: 10, status: 1});
+        renderRules();
+    }
+
+    function updateRule(index, field, value) {
+        titleRules[index][field] = value;
+        updatePushConfigJson();
+    }
+
+    function removeRule(index) {
+        titleRules.splice(index, 1);
+        renderRules();
+    }
+
+    function updatePushConfigJson() {
+        var config = {
+            enableSkuPropertiesName: $('#enableSkuPropertiesName').is(':checked'),
+            enablePayDate: $('#enablePayDate').is(':checked'),
+            enableBuyerMessage: $('#enableBuyerMessage').is(':checked'),
+            enableSellerMessage: $('#enableSellerMessage').is(':checked'),
+            enableGoodsTitle: $('#enableGoodsTitle').is(':checked'),
+            goodsTitleRules: titleRules
+        };
+        $('#push_config_json_input').val(JSON.stringify(config));
+    }
+
+    function updateSenderJson() {
+        var data = {
+            name: $('#s_name').val(),
+            phone: $('#s_phone').val(),
+            province: $('#s_province').val(),
+            city: $('#s_city').val(),
+            district: $('#s_district').val(),
+            address: $('#s_address').val()
+        };
+        // Simple validation: If no province, assume empty config
+        if (!data.province) {
+            $('#sender_json_input').val('');
+        } else {
+            $('#sender_json_input').val(JSON.stringify(data));
+        }
     }
 
     $(function () {
         $('input[name="ditch[ditch_type]"]').on('change', toggleCustomerCode);
         toggleCustomerCode();
+        renderRules();
+
+        // Listen for switch changes
+        $('#enableSkuPropertiesName, #enablePayDate, #enableBuyerMessage, #enableSellerMessage, #enableGoodsTitle').change(function() {
+            if ($(this).attr('id') === 'enableGoodsTitle') {
+                $('#goods_title_rules_container').toggle($(this).is(':checked'));
+            }
+            updatePushConfigJson();
+        });
+
+        // Listen for changes in sender fields
+        $('.sender-field').on('input change', updateSenderJson);
 
         /**
          * 表单验证提交
@@ -314,5 +488,10 @@
          */
         $('#my-form').superForm();
 
+        // 提交前强制同步一次配置
+        $('.j-submit').on('click', function() {
+            updatePushConfigJson();
+            updateSenderJson();
+        });
     });
 </script>

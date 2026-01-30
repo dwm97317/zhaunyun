@@ -6,6 +6,7 @@ use app\store\controller\Controller;
 use app\store\model\Ditch as DitchModel;
 use app\store\model\DitchNumber as DitchNumberModel;
 use think\Db;
+use think\Cache;
 /**
  * 渠道商
  * Class Express
@@ -83,16 +84,26 @@ class Ditch extends Controller
     public function add()
     {
         $track = getFileData('assets/track.json');
-        // $track = array_slice($track,0,20000,true);
+        
+        $model = new DitchModel;
+        $this->refreshSenderSchema($model);
+
         if (!$this->request->isAjax()) {
             return $this->fetch('add',compact('track'));
         }
         // 新增记录
-        $model = new DitchModel;
         $data = $this->postData('ditch');
-        if (!isset($data['ditch_type']) || !in_array((int)$data['ditch_type'], [1, 2, 3, 4], true)) {
+        if (!isset($data['ditch_type']) || !in_array((int)$data['ditch_type'], [1, 2, 3, 4, 5], true)) {
             $data['ditch_type'] = 1;
         }
+
+        // Decode HTML entities for JSON fields (Fixing ThinkPHP global filter issue)
+        foreach (['push_config_json', 'sender_json', 'product_json'] as $jsonField) {
+            if (isset($data[$jsonField]) && is_string($data[$jsonField])) {
+                $data[$jsonField] = htmlspecialchars_decode($data[$jsonField], ENT_QUOTES);
+            }
+        }
+
         $this->stripAccountFieldsIfMissing($model, $data);
         if ($model->add($data)) {
             return $this->renderSuccess('添加成功', url('setting.ditch/index'));
@@ -110,16 +121,28 @@ class Ditch extends Controller
     {
         // 模板详情
         $track = getFileData('assets/track.json');
+        
+        // Ensure schema is fresh even for GET requests to ensure form renders correctly
+        $model = new DitchModel;
+        $this->refreshSenderSchema($model);
+        
         $model = DitchModel::detail($ditch_id);
-        // dump($model);die;
         if (!$this->request->isAjax()) {
             return $this->fetch('edit', compact('model','track'));
         }
         // 更新记录
         $data = $this->postData('express');
-        if (isset($data['ditch_type']) && !in_array((int)$data['ditch_type'], [1, 2, 3, 4], true)) {
+        if (isset($data['ditch_type']) && !in_array((int)$data['ditch_type'], [1, 2, 3, 4, 5], true)) {
             $data['ditch_type'] = 1;
         }
+        
+        // Decode HTML entities for JSON fields (Fixing ThinkPHP global filter issue)
+        foreach (['push_config_json', 'sender_json', 'product_json'] as $jsonField) {
+            if (isset($data[$jsonField]) && is_string($data[$jsonField])) {
+                $data[$jsonField] = htmlspecialchars_decode($data[$jsonField], ENT_QUOTES);
+            }
+        }
+
         $this->stripAccountFieldsIfMissing($model, $data);
         if ($model->edit($data)) {
             return $this->renderSuccess('更新成功', url('setting.ditch/index'));
@@ -190,9 +213,52 @@ class Ditch extends Controller
             if (empty($productRow)) {
                 unset($data['product_json']);
             }
+
+            // 检查 push_config_json 字段 (快递管家功能升级)
+            $pushRow = Db::query("SHOW COLUMNS FROM `{$table}` LIKE 'push_config_json'");
+            if (empty($pushRow)) {
+                // 如果字段缺失，尝试静默补全 (遵循 Persistence Doc 经验)
+                try {
+                    Db::execute("ALTER TABLE `{$table}` ADD COLUMN `push_config_json` TEXT COMMENT '接口推送详细配置'");
+                } catch (\Exception $e2) {
+                    unset($data['push_config_json']);
+                }
+            }
         } catch (\Throwable $e) {
-            unset($data['account_id'], $data['account_password'], $data['sf_express_type'], $data['product_json']);
+            // 发生异常时，对每个字段进行按需确认，避免全部 unset
+            $fields = ['account_id', 'account_password', 'sf_express_type', 'product_json', 'push_config_json', 'shop_key', 'print_url'];
+            foreach ($fields as $field) {
+                try {
+                    Db::query("SELECT `{$field}` FROM `{$table}` LIMIT 1");
+                } catch (\Exception $e3) {
+                    unset($data[$field]);
+                }
+            }
         }
+    }
+
+    protected function refreshSenderSchema($model)
+    {
+        try {
+            $table = $model->getTable();
+            $row = Db::query("SHOW COLUMNS FROM `{$table}` LIKE 'sender_json'");
+            $row2 = Db::query("SHOW COLUMNS FROM `{$table}` LIKE 'push_config_json'");
+            if (!empty($row) || !empty($row2)) {
+                $runtimePath = ROOT_PATH . 'runtime';
+                $schemaPath = $runtimePath . '/schema';
+                if (is_dir($schemaPath)) {
+                    $files = glob($schemaPath . '/*');
+                    foreach ($files as $file) {
+                        if (is_file($file)) {
+                            @unlink($file);
+                        }
+                    }
+                }
+                try {
+                    Cache::clear();
+                } catch (\Exception $e) {}
+            }
+        } catch (\Throwable $e) {}
     }
 
      // 文件导入处理

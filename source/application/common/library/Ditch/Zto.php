@@ -100,16 +100,19 @@ class Zto
                 foreach ($params['orderInvoiceParam'] as $item) {
                      $goodInfoList[] = [
                         'goodsNum' => isset($item['invoice_pcs']) ? (int)$item['invoice_pcs'] : 1,
-                        'goodsTitle' => isset($item['sku']) ? $item['sku'] : (isset($item['invoice_title']) ? $item['invoice_title'] : '商品'),
-                        'unitPrice' => 1, // 默认单价
-                        // 'skuPropertiesName' => '',
+                        'goodsTitle' => isset($params['goodsTitle']) ? $params['goodsTitle'] : (isset($item['sku']) ? $item['sku'] : (isset($item['invoice_title']) ? $item['invoice_title'] : '商品')),
+                        'unitPrice' => 1,
+                        'goodsPath' => isset($params['goodsPath']) && !empty($params['goodsPath']) ? $params['goodsPath'] : '123',
+                        'skuPropertiesName' => isset($params['skuPropertiesName']) ? $params['skuPropertiesName'] : '',
                      ];
                 }
             } else {
                  $goodInfoList[] = [
                     'goodsNum' => isset($params['quantity']) ? (int)$params['quantity'] : 1,
-                    'goodsTitle' => '商品',
+                    'goodsTitle' => isset($params['goodsTitle']) ? $params['goodsTitle'] : '商品',
                     'unitPrice' => 1,
+                    'goodsPath' => isset($params['goodsPath']) && !empty($params['goodsPath']) ? $params['goodsPath'] : '123',
+                    'skuPropertiesName' => isset($params['skuPropertiesName']) ? $params['skuPropertiesName'] : '',
                  ];
             }
 
@@ -126,22 +129,29 @@ class Zto
                 'sendMan' => $sender['senderName'],
                 'sendPhone' => isset($sender['senderPhone']) ? $sender['senderPhone'] : (isset($sender['senderMobile']) ? $sender['senderMobile'] : ''),
                 'sendMobile' => isset($sender['senderMobile']) ? $sender['senderMobile'] : (isset($sender['senderPhone']) ? $sender['senderPhone'] : ''),
+                'sendZip' => isset($params['sender_postcode']) ? $params['sender_postcode'] : (isset($params['sendZip']) ? $params['sendZip'] : '000000'),
                 'sendProvince' => $sender['senderProvince'],
                 'sendCity' => $sender['senderCity'],
-                'sendCounty' => $sender['senderDistrict'],
+                'sendCounty' => !empty($sender['senderDistrict']) ? $sender['senderDistrict'] : $sender['senderCity'],
                 'sendAddress' => $sender['senderAddress'],
                 'receiveCompany' => '个人',
                 'receiveMan' => $receiver['receiverName'],
                 'receivePhone' => isset($receiver['receiverPhone']) ? $receiver['receiverPhone'] : (isset($receiver['receiverMobile']) ? $receiver['receiverMobile'] : ''),
                 'receiveMobile' => isset($receiver['receiverMobile']) ? $receiver['receiverMobile'] : (isset($receiver['receiverPhone']) ? $receiver['receiverPhone'] : ''),
+                'receiveZip' => isset($params['consignee_postcode']) ? $params['consignee_postcode'] : (isset($params['receiveZip']) ? $params['receiveZip'] : '000000'),
                 'receiveProvince' => $receiver['receiverProvince'],
                 'receiveCity' => $receiver['receiverCity'],
-                'receiveCounty' => $receiver['receiverDistrict'],
+                'receiveCounty' => !empty($receiver['receiverDistrict']) ? $receiver['receiverDistrict'] : $receiver['receiverCity'],
                 'receiveAddress' => $receiver['receiverAddress'],
+                'payment' => isset($params['real_payment']) ? (float)$params['real_payment'] : (isset($params['payment']) ? (float)$params['payment'] : 0.0),
                 'orderDate' => date('Y-m-d H:i:s'),
                 'goodInfoList' => $goodInfoList,
-                // 'buyerMessage' => isset($params['remark']) ? $params['remark'] : '',
             ];
+
+            // 补充可选字段
+            if (!empty($params['buyerMessage'])) $bodyArr['buyerMessage'] = $params['buyerMessage'];
+            if (!empty($params['sellerMessage'])) $bodyArr['sellerMessage'] = $params['sellerMessage'];
+            if (!empty($params['payDate'])) $bodyArr['payDate'] = $params['payDate'];
             
             // 确保手机/电话必填其一
             if (empty($bodyArr['sendMobile']) && empty($bodyArr['sendPhone'])) {
@@ -251,7 +261,7 @@ class Zto
         $ok = !empty($data['status']);
         $msg = isset($data['message']) ? $data['message'] : (isset($data['msg']) ? $data['msg'] : '');
         if ($msg === '无权限访问' || (is_string($msg) && strpos($msg, '无权限') !== false)) {
-            $msg .= '。请确认：1) 开放平台应用已开通「创建订单」；2) 客户编号、AppKey、AppSecret 正确；3) 正式/测试环境与 api_url 一致';
+            $msg .= '。DEBUG_RAW_JSON: ' . json_encode($data, JSON_UNESCAPED_UNICODE);
         }
         $res = isset($data['result']) && is_array($data['result']) ? $data['result'] : [];
         $waybill = isset($res['billCode']) ? $res['billCode'] : '';
@@ -342,6 +352,10 @@ class Zto
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 30,
             CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
+            CURLOPT_USERAGENT      => 'Mozilla/5.0 (ZTO_MANAGER_SDK)',
+            CURLOPT_FORBID_REUSE   => true,
             CURLOPT_HTTPHEADER     => $headers,
         ]);
         $result = curl_exec($ch);

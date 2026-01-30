@@ -17,7 +17,9 @@ class Ditch extends DitchModel
     public function add($data)
     {
         $data['wxapp_id'] = self::$wxapp_id;
-        return $this->allowField(true)->save($data);
+        $data['create_time'] = time();
+        $res = Db::table($this->getTable())->insert($data);
+        return $res;
     }
     
     /**
@@ -27,7 +29,14 @@ class Ditch extends DitchModel
      */
     public function edit($data)
     {
-        return $this->allowField(true)->save($data);
+        // Use Db directly to bypass any potential stale Model schema/cache issues
+        $res = Db::table($this->getTable())
+            ->where($this->getPk(), $this[$this->getPk()])
+            ->update($data);
+        
+        // In ThinkPHP update() returns number of rows affected. 
+        // 0 means nothing changed, which is success in this context.
+        return $res !== false;
     }
 
     /**
