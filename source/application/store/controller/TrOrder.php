@@ -881,17 +881,75 @@ class TrOrder extends Controller
             }
 
             // 5. buyerMessage (留言截取 500 字符)
-            if (isset($pushConfig['enableBuyerMessage']) && $pushConfig['enableBuyerMessage']) {
-                 $commonData['buyerMessage'] = mb_substr($detail['remark'], 0, 500);
-            }
+            // 总是传递原始留言，由 Zto.php 决定是否使用积木配置覆盖
+            $commonData['buyerMessage'] = mb_substr($detail['remark'], 0, 500);
 
             // 6. sellerMessage (后台备注截取 500 字符)
-            if (isset($pushConfig['enableSellerMessage']) && $pushConfig['enableSellerMessage']) {
-                 // 优先使用 inpack 表的 remark (如果区分的话) 或其他备注字段
-                 // 这里尝试寻找 admin_remark 或类似字段，由于 DESC 限制，暂用逻辑兼容
-                 $sellerRemark = isset($detail['admin_remark']) ? $detail['admin_remark'] : '';
-                 $commonData['sellerMessage'] = mb_substr($sellerRemark, 0, 500);
+            // 优先使用 inpack 表的 remark (如果区分的话) 或其他备注字段
+            $sellerRemark = isset($detail['admin_remark']) ? $detail['admin_remark'] : '';
+            $commonData['sellerMessage'] = mb_substr($sellerRemark, 0, 500);
+            
+            // 构造 MessageBuilder 所需的完整上下文数据 (Full Context)
+            $goodsNames = [];
+            $goodsList = [];
+            if (isset($detail['inpackdetail']) && is_array($detail['inpackdetail'])) {
+                foreach ($detail['inpackdetail'] as $item) {
+                    $goodsNames[] = isset($item['goods_name']) ? $item['goods_name'] : '';
+                    $goodsList[] = [
+                        'goodsTitle' => isset($item['goods_name']) ? $item['goods_name'] : '',
+                        'sku' => isset($item['goods_name']) ? $item['goods_name'] : '',
+                        'qty' => isset($item['unit_num']) ? $item['unit_num'] : 1,
+                        'price' => isset($item['total_free']) ? $item['total_free'] : 0,
+                    ];
+                }
             }
+            
+            // 获取服务列表
+            $serviceNames = [];
+            try {
+                // 手动加载服务关联 (因为 details 默认可能不包含)
+                if (isset($detail['id'])) {
+                     $services = \app\store\model\InpackService::where('inpack_id', $detail['id'])
+                        ->with(['service'])
+                        ->select();
+                     foreach ($services as $svc) {
+                         if (isset($svc['service']['name'])) {
+                             $serviceNames[] = $svc['service']['name'];
+                         }
+                     }
+                }
+            } catch (\Exception $e) {
+                // 忽略错误，防止阻断流程
+            }
+
+            // 支付状态映射
+            $payStatusMap = [
+                1 => '已支付',
+                2 => '未支付',
+                3 => '待审核',
+            ];
+            $payStatusText = isset($payStatusMap[$detail['is_pay']]) ? $payStatusMap[$detail['is_pay']] : '未知';
+
+            $fullContext = [
+                'create_time' => isset($detail['create_time']) ? $detail['create_time'] : 0,
+                'pay_time' => isset($detail['pay_time']) ? $detail['pay_time'] : 0,
+                'goodsName' => implode(', ', array_filter($goodsNames)),
+                'buyer_remark' => isset($detail['remark']) ? $detail['remark'] : '',
+                'admin_remark' => isset($detail['admin_remark']) ? $detail['admin_remark'] : '',
+                'items' => $goodsList,
+                // Receiver Shortcuts
+                'receiverName' => isset($detail['address']['name']) ? $detail['address']['name'] : '',
+                'receiverMobile' => isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
+                'receiverAddress' => isset($detail['address']['detail']) ? $detail['address']['detail'] : '',
+                // Enhanced Fields 2026-01-30
+                'volume_weight' => isset($detail['volume']) ? $detail['volume'] : 0, // 体积重 (Assuming 'volume' field)
+                'chargeable_weight' => isset($detail['cale_weight']) ? $detail['cale_weight'] : 0, // 计费重量
+                'warehouse_name' => isset($detail['storage']['shop_name']) ? $detail['storage']['shop_name'] : '', // 寄送仓库
+                'pay_status' => $payStatusText, // 支付状态
+                'apply_time' => isset($detail['create_time']) ? $detail['create_time'] : 0, // 申请打包时间 (Use create_time)
+                'sub_order_count' => isset($detail['inpackdetail']) ? count($detail['inpackdetail']) : 0, // 子订单数量
+                'service_items' => implode(', ', $serviceNames), // 打包服务项目
+            ];
             
             $ztoConfig = [
                 'key'    => $ditchdetail['app_key'],
@@ -899,6 +957,7 @@ class TrOrder extends Controller
                 'apiurl' => isset($ditchdetail['api_url']) ? $ditchdetail['api_url'] : '',
                 'ditch_type' => isset($ditchdetail['ditch_type']) ? $ditchdetail['ditch_type'] : 1,
                 'shop_key' => isset($ditchdetail['shop_key']) ? $ditchdetail['shop_key'] : '',
+                'push_config_json' => isset($ditchdetail['push_config_json']) ? $ditchdetail['push_config_json'] : '',
             ];
             
             $extraData = [];
@@ -922,7 +981,7 @@ class TrOrder extends Controller
             
             if (!$isMultiBox) {
                 // === 单包裹模式 ===
-                $data = array_merge($commonData, $extraData, [
+                $data = array_merge($commonData, $extraData, $fullContext, [
                     'partnerOrderCode'   => $detail['order_sn'],
                     'order_customerinvoicecode' => $detail['order_sn'],
                     'order_sn'           => $detail['order_sn'],
@@ -951,7 +1010,7 @@ class TrOrder extends Controller
                     $subOrderSn = $detail['order_sn'] . '_' . $box['id'];
                     $boxWeight = isset($box['weight']) && $box['weight'] > 0 ? $box['weight'] : 1;
                     
-                    $data = array_merge($commonData, $extraData, [
+                    $data = array_merge($commonData, $extraData, $fullContext, [
                         'partnerOrderCode'   => $subOrderSn,
                         'order_customerinvoicecode' => $subOrderSn,
                         'order_sn'           => $subOrderSn,

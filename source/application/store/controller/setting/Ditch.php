@@ -100,7 +100,13 @@ class Ditch extends Controller
         // Decode HTML entities for JSON fields (Fixing ThinkPHP global filter issue)
         foreach (['push_config_json', 'sender_json', 'product_json'] as $jsonField) {
             if (isset($data[$jsonField]) && is_string($data[$jsonField])) {
-                $data[$jsonField] = htmlspecialchars_decode($data[$jsonField], ENT_QUOTES);
+                // First decode
+                $decoded = htmlspecialchars_decode($data[$jsonField], ENT_QUOTES);
+                // Double check if it needs another decode (sometimes data is double encoded)
+                if (strpos($decoded, '&quot;') !== false) {
+                     $decoded = htmlspecialchars_decode($decoded, ENT_QUOTES);
+                }
+                $data[$jsonField] = $decoded;
             }
         }
 
@@ -139,7 +145,13 @@ class Ditch extends Controller
         // Decode HTML entities for JSON fields (Fixing ThinkPHP global filter issue)
         foreach (['push_config_json', 'sender_json', 'product_json'] as $jsonField) {
             if (isset($data[$jsonField]) && is_string($data[$jsonField])) {
-                $data[$jsonField] = htmlspecialchars_decode($data[$jsonField], ENT_QUOTES);
+                // First decode
+                $decoded = htmlspecialchars_decode($data[$jsonField], ENT_QUOTES);
+                // Double check if it needs another decode (sometimes data is double encoded)
+                if (strpos($decoded, '&quot;') !== false) {
+                     $decoded = htmlspecialchars_decode($decoded, ENT_QUOTES);
+                }
+                $data[$jsonField] = $decoded;
             }
         }
 
@@ -215,18 +227,12 @@ class Ditch extends Controller
             }
 
             // 检查 push_config_json 字段 (快递管家功能升级)
-            $pushRow = Db::query("SHOW COLUMNS FROM `{$table}` LIKE 'push_config_json'");
-            if (empty($pushRow)) {
-                // 如果字段缺失，尝试静默补全 (遵循 Persistence Doc 经验)
-                try {
-                    Db::execute("ALTER TABLE `{$table}` ADD COLUMN `push_config_json` TEXT COMMENT '接口推送详细配置'");
-                } catch (\Exception $e2) {
-                    unset($data['push_config_json']);
-                }
-            }
+            // 字段已通过脚本确认存在，不再执行容易误判的自动检测逻辑，防止意外 unset
+            // $pushRow = Db::query("SHOW COLUMNS FROM `{$table}` LIKE 'push_config_json'");
+            // if (empty($pushRow)) { ... }
         } catch (\Throwable $e) {
             // 发生异常时，对每个字段进行按需确认，避免全部 unset
-            $fields = ['account_id', 'account_password', 'sf_express_type', 'product_json', 'push_config_json', 'shop_key', 'print_url'];
+            $fields = ['account_id', 'account_password', 'sf_express_type', 'product_json', 'shop_key', 'print_url'];
             foreach ($fields as $field) {
                 try {
                     Db::query("SELECT `{$field}` FROM `{$table}` LIMIT 1");

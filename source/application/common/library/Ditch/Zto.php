@@ -2,6 +2,8 @@
 
 namespace app\common\library\Ditch;
 
+use app\common\library\Ditch\MessageBuilder;
+
 /**
  * 中通快递开放平台对接（ditch_no=10009）
  * 配置来源于渠道商：app_key、app_token、api_url、customer_code（客户编号，集团必填）
@@ -149,55 +151,36 @@ class Zto
             ];
 
             // 补充可选字段
-            if (!empty($params['buyerMessage'])) $bodyArr['buyerMessage'] = $params['buyerMessage'];
-            if (!empty($params['sellerMessage'])) $bodyArr['sellerMessage'] = $params['sellerMessage'];
-            if (!empty($params['payDate'])) $bodyArr['payDate'] = $params['payDate'];
-
-            // --- 快递管家推送增强 Start ---
-            if (!empty($this->config['push_config_json'])) {
-                $pushConfig = json_decode($this->config['push_config_json'], true);
-                
-                // 仅当配置有效时尝试生成
-                if (json_last_error() === JSON_ERROR_NONE && (!empty($pushConfig['buyerMessage']) || !empty($pushConfig['sellerMessage']))) {
-                    try {
-                        // 尝试查找订单
-                        $inpackModel = new \app\common\model\Inpack();
-                        // 尝试用 partnerOrderCode (order_sn) 查找
-                        $inpack = $inpackModel->with(['user', 'address', 'line'])->where('order_sn', $partnerOrderCode)->find();
-                        
-                        if ($inpack) {
-                            $inpackData = $inpack->toArray();
-                            
-                            // 渲染 buyerMessage
-                            if (!empty($pushConfig['buyerMessage'])) {
-                                $generatedBuyerMsg = \app\common\service\ditch\PushConfig::renderMessage($pushConfig['buyerMessage'], $inpackData);
-                                if (!empty($generatedBuyerMsg)) {
-                                    $bodyArr['buyerMessage'] = $generatedBuyerMsg;
-                                }
-                            }
-                            
-                            // 渲染 sellerMessage
-                            if (!empty($pushConfig['sellerMessage'])) {
-                                $generatedSellerMsg = \app\common\service\ditch\PushConfig::renderMessage($pushConfig['sellerMessage'], $inpackData);
-                                if (!empty($generatedSellerMsg)) {
-                                    $bodyArr['sellerMessage'] = $generatedSellerMsg;
-                                }
-                            }
-
-                            // 特殊开关处理 (兼容旧配置)
-                            if (isset($pushConfig['enablePayDate']) && $pushConfig['enablePayDate']) {
-                                if (!empty($inpackData['pay_time'])) {
-                                    $bodyArr['payDate'] = date('Y-m-d H:i:s', $inpackData['pay_time']);
-                                }
-                            }
-                        }
-                    } catch (\Exception $e) {
-                        // 容错：生成失败不影响主流程，记录日志
-                        \think\Log::error('PushConfig Render Error: ' . $e->getMessage());
-                    }
-                }
+            // 补充可选字段 (增强逻辑)
+            $pushConfig = isset($this->config['push_config_json']) ? json_decode($this->config['push_config_json'], true) : [];
+            $buildData = $params;
+            if (isset($params['orderInvoiceParam'])) {
+                $buildData['items'] = $params['orderInvoiceParam'];
             }
-            // --- 快递管家推送增强 End ---
+            // Map receiver info for builder
+            $buildData['receiver'] = [
+                'name' => isset($receiver['receiverName']) ? $receiver['receiverName'] : '',
+                'mobile' => isset($receiver['receiverMobile']) ? $receiver['receiverMobile'] : '',
+                'phone' => isset($receiver['receiverPhone']) ? $receiver['receiverPhone'] : '',
+                'address' => isset($receiver['receiverAddress']) ? $receiver['receiverAddress'] : '',
+                'city' => isset($receiver['receiverCity']) ? $receiver['receiverCity'] : ''
+            ];
+
+            // Buyer Message
+            if (isset($pushConfig['enableBuyerMessage']) && $pushConfig['enableBuyerMessage'] && !empty($pushConfig['buyerSchema'])) {
+                 $bodyArr['buyerMessage'] = MessageBuilder::build($buildData, $pushConfig['buyerSchema']);
+            } elseif (!empty($params['buyerMessage'])) {
+                 $bodyArr['buyerMessage'] = $params['buyerMessage'];
+            }
+
+            // Seller Message
+            if (isset($pushConfig['enableSellerMessage']) && $pushConfig['enableSellerMessage'] && !empty($pushConfig['sellerSchema'])) {
+                 $bodyArr['sellerMessage'] = MessageBuilder::build($buildData, $pushConfig['sellerSchema']);
+            } elseif (!empty($params['sellerMessage'])) {
+                 $bodyArr['sellerMessage'] = $params['sellerMessage'];
+            }
+
+            if (!empty($params['payDate'])) $bodyArr['payDate'] = $params['payDate'];
             
             // 确保手机/电话必填其一
             if (empty($bodyArr['sendMobile']) && empty($bodyArr['sendPhone'])) {

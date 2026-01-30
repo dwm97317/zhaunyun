@@ -247,12 +247,44 @@
                                         <label class="am-checkbox-inline">
                                             <input type="checkbox" id="enablePayDate" <?= (isset($pushConfig['enablePayDate']) && $pushConfig['enablePayDate']) ? 'checked' : '' ?>> 推送支付时间 (payDate)
                                         </label>
+                                    </div>
+                                </div>
+
+                                <!-- Buyer Message Config -->
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 用户留言 (buyerMessage) </label>
+                                    <div class="am-u-sm-9 am-u-end">
                                         <label class="am-checkbox-inline">
-                                            <input type="checkbox" id="enableBuyerMessage" <?= (isset($pushConfig['enableBuyerMessage']) && $pushConfig['enableBuyerMessage']) ? 'checked' : '' ?>> 推送用户留言 (buyerMessage)
+                                            <input type="checkbox" id="enableBuyerMessage" <?= (isset($pushConfig['enableBuyerMessage']) && $pushConfig['enableBuyerMessage']) ? 'checked' : '' ?>> 启用自定义配置
                                         </label>
+                                        <div class="config-editor" id="buyer-config-editor" style="display:none; border: 1px solid #eee; padding: 10px; margin-top: 10px;">
+                                            <div class="field-list" style="margin-bottom: 10px;">
+                                                <small>点击添加字段:</small><br>
+                                                <!-- JS populated -->
+                                            </div>
+                                            <div class="block-container" id="buyer-blocks" style="min-height: 50px; background: #f9f9f9; padding: 5px;">
+                                                <!-- Blocks go here -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Seller Message Config -->
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 后台备注 (sellerMessage) </label>
+                                    <div class="am-u-sm-9 am-u-end">
                                         <label class="am-checkbox-inline">
-                                            <input type="checkbox" id="enableSellerMessage" <?= (isset($pushConfig['enableSellerMessage']) && $pushConfig['enableSellerMessage']) ? 'checked' : '' ?>> 推送后台备注 (sellerMessage)
+                                            <input type="checkbox" id="enableSellerMessage" <?= (isset($pushConfig['enableSellerMessage']) && $pushConfig['enableSellerMessage']) ? 'checked' : '' ?>> 启用自定义配置
                                         </label>
+                                        <div class="config-editor" id="seller-config-editor" style="display:none; border: 1px solid #eee; padding: 10px; margin-top: 10px;">
+                                            <div class="field-list" style="margin-bottom: 10px;">
+                                                <small>点击添加字段:</small><br>
+                                                <!-- JS populated -->
+                                            </div>
+                                            <div class="block-container" id="seller-blocks" style="min-height: 50px; background: #f9f9f9; padding: 5px;">
+                                                <!-- Blocks go here -->
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -365,6 +397,29 @@
     </div>
 </div>
 <script>
+    // Dictionary
+    var fieldDictionary = [
+        {key: 'text', label: '自定义文本', type: 'text'},
+        {key: 'order_sn', label: '订单号', type: 'field'},
+        {key: 'create_time', label: '创建时间', type: 'field'},
+        {key: 'pay_time', label: '支付时间', type: 'field'},
+        {key: 'apply_time', label: '申请打包时间', type: 'field'},
+        {key: 'pay_status', label: '支付状态', type: 'field'},
+        {key: 'weight', label: '总重量', type: 'field'},
+        {key: 'volume_weight', label: '体积重', type: 'field'},
+        {key: 'chargeable_weight', label: '计费重量', type: 'field'},
+        {key: 'warehouse_name', label: '寄送仓库', type: 'field'},
+        {key: 'sub_order_count', label: '子订单数量', type: 'field'},
+        {key: 'service_items', label: '打包服务项目', type: 'field'},
+        {key: 'goods_name', label: '商品名称', type: 'field'},
+        {key: 'buyer_remark', label: '用户留言', type: 'field'},
+        {key: 'seller_remark', label: '后台备注', type: 'field'},
+        {key: 'receiver.name', label: '收件人姓名', type: 'field'},
+        {key: 'receiver.mobile', label: '收件人手机', type: 'field'},
+        {key: 'receiver.address', label: '收件地址', type: 'field'},
+        {key: 'items', label: '包裹列表(循环)', type: 'loop'}
+    ];
+
     function changeexpress(_this){
       var a =  _this.options[_this.selectedIndex].value;
       $("#ditch_no").val(a);
@@ -419,6 +474,72 @@
 
     // --- 快递管家增强配置 JS ---
     var titleRules = <?= isset($pushConfig['goodsTitleRules']) ? json_encode($pushConfig['goodsTitleRules']) : '[]' ?>;
+    var buyerSchema = <?= isset($pushConfig['buyerSchema']) ? json_encode($pushConfig['buyerSchema']) : '[]' ?>;
+    var sellerSchema = <?= isset($pushConfig['sellerSchema']) ? json_encode($pushConfig['sellerSchema']) : '[]' ?>;
+
+    function renderFieldButtonsFor(containerId) {
+        var html = '';
+        fieldDictionary.forEach(function(field) {
+            html += `<button type="button" class="am-btn am-btn-xs am-btn-default am-round" style="margin-right:5px; margin-bottom:5px;" onclick="addBlock('${containerId}', '${field.type}', '${field.key}', '${field.label}')">${field.label}</button>`;
+        });
+        $('#' + containerId).prev('.field-list').html(html + '<br><small>点击上方按钮添加到对应配置区域</small>');
+    }
+
+    function renderBlocks(containerId, schema) {
+        var $container = $('#' + containerId);
+        $container.empty();
+        if (!schema) return;
+        schema.forEach(function(block, index) {
+            var label = block.type === 'text' ? '文本' : (block.label || block.key);
+            var value = block.type === 'text' ? (block.value || '') : block.key;
+            var prefix = block.prefix || '';
+            var suffix = block.suffix || '';
+            
+            var html = `<div class="block-item" style="background:#fff; border:1px solid #ddd; padding:5px; margin-bottom:5px; display:flex; align-items:center;">
+                <span class="am-badge am-badge-primary am-radius" style="margin-right:5px;">${label}</span>
+                <input type="hidden" class="block-type" value="${block.type}">
+                <input type="hidden" class="block-key" value="${block.key}">
+                
+                ${block.type === 'text' ? 
+                    `<input type="text" class="block-value am-form-field am-input-sm" style="width:150px; display:inline-block;" value="${value}" placeholder="文本内容">` :
+                    `<div style="display:flex; align-items:center;">
+                        <input type="text" class="block-prefix am-form-field am-input-sm" style="width:80px;" value="${prefix}" placeholder="前缀">
+                        <span style="margin:0 5px;">${value}</span>
+                        <input type="text" class="block-suffix am-form-field am-input-sm" style="width:80px;" value="${suffix}" placeholder="后缀">
+                     </div>`
+                }
+                
+                <button type="button" class="am-btn am-btn-xs am-btn-danger am-round" style="margin-left:auto;" onclick="$(this).parent().remove(); updatePushConfigJson();">x</button>
+            </div>`;
+            $container.append(html);
+        });
+    }
+
+    function addBlock(containerId, type, key, label) {
+        var block = {type: type, key: key, label: label};
+        if (type === 'text') block.value = ' - ';
+        var schema = getSchemaFromBlocks(containerId);
+        schema.push(block);
+        renderBlocks(containerId, schema);
+        updatePushConfigJson();
+    }
+
+    function getSchemaFromBlocks(containerId) {
+        var schema = [];
+        $('#' + containerId).find('.block-item').each(function() {
+            var type = $(this).find('.block-type').val();
+            var block = {type: type};
+            if (type === 'text') {
+                block.value = $(this).find('.block-value').val();
+            } else {
+                block.key = $(this).find('.block-key').val();
+                block.prefix = $(this).find('.block-prefix').val();
+                block.suffix = $(this).find('.block-suffix').val();
+            }
+            schema.push(block);
+        });
+        return schema;
+    }
 
     function renderRules() {
         var html = '';
@@ -461,7 +582,9 @@
             enableBuyerMessage: $('#enableBuyerMessage').is(':checked'),
             enableSellerMessage: $('#enableSellerMessage').is(':checked'),
             enableGoodsTitle: $('#enableGoodsTitle').is(':checked'),
-            goodsTitleRules: titleRules
+            goodsTitleRules: titleRules,
+            buyerSchema: getSchemaFromBlocks('buyer-blocks'),
+            sellerSchema: getSchemaFromBlocks('seller-blocks')
         };
         $('#push_config_json_input').val(JSON.stringify(config));
     }
@@ -488,24 +611,54 @@
         toggleCustomerCode();
         renderRules();
 
+        renderFieldButtonsFor('buyer-blocks');
+        renderFieldButtonsFor('seller-blocks');
+        renderBlocks('buyer-blocks', buyerSchema);
+        renderBlocks('seller-blocks', sellerSchema);
+
         // Listen for switch changes
-        $('#enableSkuPropertiesName, #enablePayDate, #enableBuyerMessage, #enableSellerMessage, #enableGoodsTitle').change(function() {
+        $('#enableSkuPropertiesName, #enablePayDate, #enableGoodsTitle').change(function() {
             if ($(this).attr('id') === 'enableGoodsTitle') {
                 $('#goods_title_rules_container').toggle($(this).is(':checked'));
             }
             updatePushConfigJson();
         });
 
+        $('#enableBuyerMessage').change(function() {
+             $('#buyer-config-editor').toggle($(this).is(':checked'));
+             updatePushConfigJson();
+        });
+        $('#enableSellerMessage').change(function() {
+             $('#seller-config-editor').toggle($(this).is(':checked'));
+             updatePushConfigJson();
+        });
+        
+        // Initial visibility
+        $('#buyer-config-editor').toggle($('#enableBuyerMessage').is(':checked'));
+        $('#seller-config-editor').toggle($('#enableSellerMessage').is(':checked'));
+
         // Listen for changes in sender fields
         $('.sender-field').on('input change', updateSenderJson);
+        
+        // Bind input changes to update json
+        $(document).on('input', '.block-value, .block-prefix, .block-suffix', function() {
+            updatePushConfigJson();
+        });
 
         /**
          * 表单验证提交
          * @type {*}
          */
-        $('#my-form').superForm();
+        $('#my-form').superForm({
+            // 自定义验证函数
+            validation: function () {
+                updatePushConfigJson();
+                updateSenderJson();
+                return true;
+            }
+        });
 
-        // 提交前强制同步一次配置
+        // 提交前强制同步一次配置 (Backup)
         $('.j-submit').on('click', function() {
             updatePushConfigJson();
             updateSenderJson();
