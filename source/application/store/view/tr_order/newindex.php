@@ -1096,7 +1096,88 @@ var orderTable = table.render({
     {field: 'batch_name', width: 100, align: 'center',title: '批次号', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
     {field: 'batch_no', width: 100,align: 'center', title: '提单号/装箱号', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
     {field: 't_name', width: 100, title: '承运商', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
-    {field: 't_order_sn', width: 100, title: '国际单号', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
+    {field: 't_order_sn', width: 250, title: '国际单号', templet: function(d) { 
+        var html = '';
+        var hasMultipleBoxes = d.packageitems && d.packageitems.length > 1;
+        
+        // Fallback: If mother SN is empty, use the first package's SN
+        var mainSn = d.t_order_sn || (d.packageitems && d.packageitems.length > 0 ? d.packageitems[0].t_order_sn : '');
+
+        // Status Badge Helper
+        var getStatusBadge = function(code) {
+           var strCode = String(code || '').trim();
+           if (!strCode || strCode == '0') return '';
+
+           if (strCode == '44') {
+                return '<span class="am-badge am-badge-warning am-radius" style="font-size:10px;padding:2px 4px;margin-left:2px">派送中</span>';
+            } else if (strCode == '80') {
+                return '<span class="am-badge am-badge-success am-radius" style="font-size:10px;padding:2px 4px;margin-left:2px">已签收</span>';
+            } else if (['50', '3036', '30'].includes(strCode)) {
+                return '<span class="am-badge am-badge-secondary am-radius" style="font-size:10px;padding:2px 4px;margin-left:2px">已揽收</span>';
+            }
+            return '';
+        };
+
+        // Determine Mother Status (Frontend Force Fallback)
+        var mainStatus = d.last_trace_code;
+        if ((!mainStatus || String(mainStatus) == '0') && d.packageitems && d.packageitems.length > 0) {
+             mainStatus = d.packageitems[0].last_trace_code;
+        }
+
+        if (hasMultipleBoxes) {
+            // Mother Order Line
+            html += '<div>国际单号: <span style="cursor:pointer;color:#1E9FFF" class="copyable-text" data-text="' + (mainSn || '') + '">' + (mainSn || '-') + '</span>';
+
+            // Mother Weight (from first package)
+            var motherWeight = (d.packageitems && d.packageitems[0]) ? d.packageitems[0].weight : 0;
+            if (motherWeight > 0) {
+                html += '<span style="color:#999;font-size:11px;">(' + motherWeight + 'kg)</span>';
+            }
+            html += '<span class="am-badge am-badge-primary am-radius" style="font-size:10px;">母单</span>';
+            
+            // Mother Order Status (Use calculated mainStatus)
+            html += getStatusBadge(mainStatus);
+
+            html += '<a href="javascript:;" onclick="getlog(this)" value="' + d.id + '" style="margin-left:5px;color:blue">[物流]</a>';
+
+            // Copy all logic
+             var waybills = [];
+             if(d.packageitems){
+                 d.packageitems.forEach(function(box){
+                     if(box.t_order_sn) waybills.push(box.t_order_sn);
+                 });
+             }
+             var waybillsStr = waybills.join(',');
+             html += '<a href="javascript:;" onclick="copyAllWaybills(this)" data-waybills="' + waybillsStr + '" style="margin-left:5px;color:blue">[复制全部]</a></div>';
+
+            // Sub orders (Skip index 0 as it serves as the mother/main SN)
+            if(d.packageitems) {
+                d.packageitems.forEach(function(box, index) {
+                    if (index > 0 && box.t_order_sn) {
+                         html += '<div style="margin-top:5px;margin-left:10px;color:#999;">└ 子单: ';
+                         html += '<span style="cursor:pointer;color:#1E9FFF" class="copyable-text" data-text="' + box.t_order_sn + '">' + box.t_order_sn + '</span>';
+                         html += '<span style="color:#999;font-size:11px;">(' + box.weight + 'kg)</span>';
+
+                         // Sub Order Status
+                         html += getStatusBadge(box.last_trace_code);
+
+                         html += '<a href="javascript:;" onclick="getlog(this)" value="' + d.id + '" style="margin-left:5px;color:blue">[物流]</a></div>';
+                    }
+                });
+            }
+
+        } else {
+             // Single Box
+             html += '国际单号: <span style="cursor:pointer;color:#1E9FFF" class="copyable-text" data-text="' + (mainSn || '') + '">' + (mainSn || '-') + '</span>';
+             
+             // Single Order Status
+             html += getStatusBadge(d.last_trace_code);
+             
+             html += '<a href="javascript:;" onclick="getlog(this)" value="' + d.id + '" style="margin-left:5px;color:blue">[物流]</a>';
+        }
+
+        return html;
+    }},
     {field: 't2_name', width: 100, title: '转运商', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
     {field: 't2_order_sn', width: 100, title: '转单单号', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
     {field: 'created_time', width: 130, title: '提交打包', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;',},
@@ -1264,6 +1345,14 @@ function copyToClipboard(text) {
     }
     
     $temp.remove();
+}
+
+// 复制全部运单号
+function copyAllWaybills(element) {
+    var waybills = $(element).data('waybills');
+    if(waybills) {
+        copyToClipboard(waybills);
+    }
 } 
   
 // 更新URL参数的辅助函数

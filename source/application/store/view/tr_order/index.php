@@ -445,6 +445,15 @@
                                                     <span style="margin-left:20px;color:#999;">└ 子单:</span>
                                                     <span style="cursor:pointer" text="<?= $box['t_order_sn'] ?>" onclick="copyUrl2(this)"><?= $box['t_order_sn'] ?></span>
                                                     <span style="color:#999;font-size:11px;">(<?= $box['weight'] ?>kg)</span>
+                                                    <?php 
+                                                        $traceCode = isset($box['last_trace_code']) ? $box['last_trace_code'] : '';
+                                                        if ($traceCode == '44'): ?>
+                                                            <span class="am-badge am-badge-warning am-radius" style="font-size:10px;padding:2px 4px;">派送中</span>
+                                                        <?php elseif ($traceCode == '80'): ?>
+                                                            <span class="am-badge am-badge-success am-radius" style="font-size:10px;padding:2px 4px;">已签收</span>
+                                                        <?php elseif (in_array($traceCode, ['50', '3036'])): ?>
+                                                            <span class="am-badge am-badge-secondary am-radius" style="font-size:10px;padding:2px 4px;">已揽收</span>
+                                                        <?php endif; ?>
                                                     <a href="javascript:;" onclick="getlog(this)" value="<?= $item['id'] ?>" >[物流]</a></br>
                                                 <?php endif; ?>
                                             <?php endforeach; ?>

@@ -69,6 +69,10 @@
                                         <input type="radio" name="ditch[ditch_type]" value="4" data-am-ucheck id="ditch_type_4">
                                         顺丰快递
                                     </label>
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="ditch[ditch_type]" value="5" data-am-ucheck id="ditch_type_5">
+                                        京东快递
+                                    </label>
                                 </div>
                             </div>
                             <div class="am-form-group">
@@ -196,6 +200,24 @@
                                     <small>不同产品类型时效和价格不同，请根据业务需求选择。常用产品：特快、标快、电商标快</small>
                                 </div>
                             </div>
+                            <div class="am-form-group" id="jd_product_code_group" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 京东主产品 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <select class="tpl-form-input" name="ditch[product_json]" id="jd_product_code">
+                                        <option value="ed-m-0001">京东标快 (ed-m-0001) - 推荐</option>
+                                        <option value="ed-m-0002">京东特快 (ed-m-0002)</option>
+                                        <option value="ed-m-0012">特惠包裹 (ed-m-0012)</option>
+                                        <option value="ed-m-0059">电商标快 (ed-m-0059)</option>
+                                        <option value="ed-m-0019">电商特惠 (ed-m-0019)</option>
+                                        <option value="fr-m-0004">特快重货 (fr-m-0004)</option>
+                                        <option value="fr-m-0017">特惠专配 (fr-m-0017)</option>
+                                        <option value="LL-HD-M">生鲜标快 (LL-HD-M)</option>
+                                        <option value="LL-SD-M">生鲜特快 (LL-SD-M)</option>
+                                        <option value="ed-m-0005">同城急送 (ed-m-0005)</option>
+                                    </select>
+                                    <small>请选择京东物流主产品类型。标快/特快适用于大部分B2C/C2C场景。</small>
+                                </div>
+                            </div>
                             <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否启用 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -243,10 +265,14 @@
         var $g3 = $('#account_password_group');
         var $g4 = $('#shop_key_group');
         var $g5 = $('#sf_express_type_group');
+        var $g6 = $('#jd_product_code_group');
         var $i = $('#customer_code');
         
-        // Reset requirements
+        // Reset requirements and labels
         $i.prop('required', false);
+        $('input[name="ditch[app_key]"]').next('small').html('顺丰填写 partnerID，中通填写 AppKey');
+        $('input[name="ditch[app_token]"]').next('small').html('顺丰填写 appSecret，中通填写 AppSecret');
+        $('input[name="ditch[print_url]"]').parent().prev('label').text('渠道打印地址');
         
         // Hide all optional groups first
         $g.hide();
@@ -254,6 +280,7 @@
         $g3.hide();
         $g4.hide();
         $g5.hide();
+        $g6.hide();
 
         if (v == '2') { // 中通
             $g.show();
@@ -264,11 +291,17 @@
         } else if (v == '4') { // 顺丰快递
             $g.show(); // 显示客户编号（月结卡号）
             $g5.show(); // 显示快递产品类型选择器
+        } else if (v == '5') { // 京东快递
+            $g.show(); // 显示客户编号 (CustomerCode)
+            $g6.show(); // 显示京东产品选择器
+            
+            // Update Labels for JD
+            $('input[name="ditch[app_key]"]').next('small').html('填写京东 <strong>AppKey</strong>');
+            $('input[name="ditch[app_token]"]').next('small').html('填写京东 <strong>AppSecret</strong>');
+            $('input[name="ditch[customer_code]"]').next('small').html('填写京东 <strong>CustomerCode (商家编码)</strong>');
+            $('input[name="ditch[print_url]"]').parent().prev('label').text('京东 AccessToken');
         }
         
-        // Clear values when switching? Maybe better to keep them if user switches back and forth, 
-        // but if saving, we might want to clear irrelevant ones. 
-        // For now, let's leave values as is to avoid data loss during editing toggles.
     }
 
     $(function () {

@@ -10,3 +10,14 @@ web/uploads
 web/datascreen
 web/barcode
 web/lang
+
+# User Requested Exclusions
+*.md
+*.docx
+*.pdf
+test_*.php
+test_*.py
+test_*.ps1
+web/test_*.php
+temp_*.php
+*_old.php

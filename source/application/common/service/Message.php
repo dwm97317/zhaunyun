@@ -59,6 +59,13 @@ class Message extends Basics
         'package.VisitOrdersuccess'=>'app\common\service\message\package\VisitOrdersuccess',
         //下单成功通知
         'package.claimpackage'=>'app\common\service\message\package\Claimpackage',
+        //下单成功通知
+        'package.claimpackage'=>'app\common\service\message\package\Claimpackage',
+        
+        // 自动推送：派送中
+        'trace.delivery' => 'app\common\service\message\trace\Delivery',
+        // 自动推送：已签收
+        'trace.signed' => 'app\common\service\message\trace\Signed',
     ];
 
     /**

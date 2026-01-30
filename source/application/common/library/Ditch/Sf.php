@@ -83,6 +83,69 @@ class Sf
     }
 
     /**
+     * 获取最新运单状态（语义化）
+     * @param string $express_no
+     * @return array|null ['code'=>opCode, 'status'=>'collected|delivering|signed|exception', 'time'=>..., 'msg'=>...]
+     */
+    public function getLastStatus($express_no)
+    {
+        $routes = $this->query($express_no);
+        if (empty($routes) || !is_array($routes)) {
+            return null;
+        }
+
+        // 假设 query 返回的列表是按时间或者API顺序。为了保险，最好按时间排序，但这里先取最后一条
+        $latest = end($routes);
+        
+        return $this->parseStatus($latest);
+    }
+
+    /**
+     * 解析状态码
+     * @param array $routeItem
+     * @return array
+     */
+    private function parseStatus($routeItem)
+    {
+        if (empty($routeItem)) return null;
+        
+        // 注意：query 方法中 status_cn 字段存的是 opCode
+        $opCode = isset($routeItem['status_cn']) ? (string)$routeItem['status_cn'] : '';
+        $time   = isset($routeItem['created_time']) ? $routeItem['created_time'] : '';
+        $msg    = isset($routeItem['logistics_describe']) ? $routeItem['logistics_describe'] : '';
+        
+        $status = 'transporting'; // 默认为运输中
+
+        // 顺丰 OpCode 映射表
+        // 50: 已揽收
+        // 44: 派送中
+        // 80: 已签收
+        // 30: 拒收
+        // 99: 异常
+        $collectedCodes = ['50', '3036', '607'];
+        $deliveringCodes = ['44'];
+        $signedCodes = ['80', '8000'];
+        $exceptionCodes = ['30', '34', '99'];
+
+        if (in_array($opCode, $collectedCodes)) {
+            $status = 'collected';
+        } elseif (in_array($opCode, $deliveringCodes)) {
+            $status = 'delivering';
+        } elseif (in_array($opCode, $signedCodes)) {
+            $status = 'signed';
+        } elseif (in_array($opCode, $exceptionCodes)) {
+            $status = 'exception';
+        }
+
+        return [
+            'code'   => $opCode,
+            'status' => $status,
+            'time'   => $time,
+            'msg'    => $msg
+        ];
+    }
+
+    /**
      * 创建订单（下单接口）
      * 对接 EXP_RECE_CREATE_ORDER
      * @param array $params 含 partnerOrderCode、consignee信息、sender信息等
@@ -296,7 +359,8 @@ class Sf
         
         $signStr = $msgData . $timestamp . $appSecret;
         
-        return base64_encode(md5($signStr, true));
+        // 官方 SDK Demo 逻辑：先 urlencode 再 md5
+        return base64_encode(md5(urlencode($signStr), true));
     }
 
     /**

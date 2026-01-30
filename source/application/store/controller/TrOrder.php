@@ -994,7 +994,134 @@ class TrOrder extends Controller
                     'sub_tracking_numbers' => $subTrackingNumbers
                 ];
             }
-        }
+            } elseif ($ditch_type_id == 5) {
+                // === 京东物流 (JD) ===
+                // 获取仓库信息作为发件人
+                $storage = ($shopname && is_object($shopname)) ? $shopname->toArray() : [];
+                $region = isset($storage['region']) && is_array($storage['region']) ? $storage['region'] : [];
+                
+                // 构造基础地址与联系人信息（使用仓库信息作为发件人）
+                $commonData = [
+                    'consignee_name'     => isset($detail['address']['name']) ? $detail['address']['name'] : '',
+                    'consignee_mobile'   => isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
+                    'consignee_telephone'=> isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
+                    'consignee_address'  => isset($detail['address']['detail']) ? $detail['address']['detail'] : '',
+                    'consignee_state'    => isset($detail['address']['province']) ? $detail['address']['province'] : '',
+                    'consignee_city'     => isset($detail['address']['city']) ? $detail['address']['city'] : '',
+                    'consignee_suburb'   => isset($detail['address']['region']) ? $detail['address']['region'] : '',
+                    'consignee_postcode' => isset($detail['address']['code']) ? $detail['address']['code'] : '',
+                    'country'            => $countrydetail['code'],
+                    'sender_name'        => isset($storage['linkman']) && $storage['linkman'] ? $storage['linkman'] : '集运仓',
+                    'sender_phone'       => isset($storage['phone']) && $storage['phone'] ? $storage['phone'] : '13800138000',
+                    'sender_mobile'      => isset($storage['phone']) && $storage['phone'] ? $storage['phone'] : '13800138000',
+                    'sender_province'    => isset($region['province']) ? $region['province'] : '上海',
+                    'sender_city'        => isset($region['city']) ? $region['city'] : '上海市',
+                    'sender_district'    => isset($region['region']) ? $region['region'] : '青浦区',
+                    'sender_address'     => isset($storage['address']) && $storage['address'] ? $storage['address'] : '默认地址',
+                    // 京东特有字段
+                    'name'               => isset($detail['address']['name']) ? $detail['address']['name'] : '',
+                    'phone'              => isset($detail['address']['phone']) ? $detail['address']['phone'] : '',
+                    'detail'             => isset($detail['address']['detail']) ? $detail['address']['detail'] : '',
+                    'province'           => isset($detail['address']['province']) ? $detail['address']['province'] : '',
+                    'city'               => isset($detail['address']['city']) ? $detail['address']['city'] : '',
+                    'region'             => isset($detail['address']['region']) ? $detail['address']['region'] : '',
+                ];
+                
+                $jdConfig = [
+                    'app_key'       => $ditchdetail['app_key'],
+                    'app_secret'    => $ditchdetail['app_token'],
+                    'access_token'  => $ditchdetail['print_url'], // 复用字段
+                    'customer_code' => $ditchdetail['customer_code'],
+                    'api_url'       => isset($ditchdetail['api_url']) ? $ditchdetail['api_url'] : '',
+                ];
+                $Jd = new \app\common\library\Ditch\Jd($jdConfig);
+
+                // 京东产品编码 (从 product_json 字段读取，或者默认京东标快)
+                $productCode = isset($ditchdetail['product_json']) && !empty($ditchdetail['product_json']) 
+                               ? $ditchdetail['product_json'] 
+                               : 'ed-m-0001';
+
+                $boxes = isset($detail['packageitems']) ? $detail['packageitems'] : [];
+                $isMultiBox = count($boxes) > 0;
+
+                if (!$isMultiBox) {
+                    // === 单包裹 ===
+                    $data = array_merge($commonData, [
+                        'order_sn'     => $detail['order_sn'],
+                        'weight'       => $detail['cale_weight'],
+                        'product_code' => $productCode,
+                        'quantity'     => 1
+                    ]);
+                    
+                    $res = $Jd->createOrder($data);
+                    
+                    if ($res['code'] == 1) {
+                        $tn = $res['data']['waybillCode'];
+                        $detail->save(['t_order_sn' => $tn]);
+                        $result = [
+                            'ack' => 'true',
+                            'tracking_number' => $tn,
+                            'message' => '推送成功'
+                        ];
+                    } else {
+                         $result = [
+                            'ack' => 'false', 
+                            'message' => 'JD Error: ' . $res['msg']
+                        ];
+                    }
+                } else {
+                    // === 多包裹 (循环下单) ===
+                    $motherWaybillNo = '';
+                    $resultsLog = [];
+                    $hasError = false;
+                    $subTrackingNumbers = [];
+
+                    foreach ($boxes as $index => $box) {
+                         $isMother = ($index === 0);
+                         $subOrderSn = $detail['order_sn'] . '_' . $box['id'];
+                         $boxWeight = isset($box['weight']) && $box['weight'] > 0 ? $box['weight'] : 1;
+                         
+                         $data = array_merge($commonData, [
+                            'order_sn'     => $subOrderSn,
+                            'weight'       => $boxWeight,
+                            'product_code' => $productCode,
+                            'quantity'     => 1
+                        ]);
+                        
+                        $res = $Jd->createOrder($data);
+                        
+                        if ($res['code'] == 1) {
+                            $tn = $res['data']['waybillCode'];
+                            // 更新箱子单号
+                            if (is_object($box)) {
+                                $box->save(['t_order_sn' => $tn]);
+                            }
+                            $subTrackingNumbers[] = ['id' => $box['id'], 'tn' => $tn];
+                            $resultsLog[] = "箱" . ($index+1) . "成功";
+                            
+                            if ($isMother) {
+                                $motherWaybillNo = $tn;
+                                $detail->save(['t_order_sn' => $tn]);
+                            }
+                        } else {
+                            $hasError = true;
+                            $errMsg = $res['msg'];
+                            $resultsLog[] = "箱" . ($index+1) . "失败: " . $errMsg;
+                            if ($isMother) {
+                                $resultsLog[] = "母单失败，中止"; 
+                                break;
+                            }
+                        }
+                    }
+                    
+                    $result = [
+                        'ack' => $hasError ? 'false' : 'true',
+                        'message' => implode('; ', $resultsLog),
+                        'tracking_number' => $motherWaybillNo,
+                        'sub_tracking_numbers' => $subTrackingNumbers
+                    ];
+                }
+            }
         
         // 清除缓冲区，防止之前的输出（如BOM头、Notice警告）破坏JSON格式
         if (ob_get_level() > 0) {

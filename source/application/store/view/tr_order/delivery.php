@@ -181,8 +181,8 @@
         // 类型转换，确保比较正确
         ditchType = parseInt(ditchType);
         
-        // 顺丰(4) 或 中通(3) 或 特定编号：直接显示推送按钮
-        if (ditchType === 4 || ditchType === 3 || ditchNo == 10009) {
+        // 顺丰(4) 或 中通(3) 或 京东(5) 或 特定编号：直接显示推送按钮
+        if (ditchType === 4 || ditchType === 3 || ditchType === 5 || ditchNo == 10009) {
             $('#push-third').show();
         }
 
@@ -209,8 +209,8 @@
                }
            });
            
-        // 如果是顺丰或中通，不需要获取产品列表，直接结束
-        if (ditchType === 4 || ditchType === 3 || ditchNo == 10009) {
+        // 如果是顺丰或中通或京东，不需要获取产品列表，直接结束
+        if (ditchType === 4 || ditchType === 3 || ditchType === 5 || ditchNo == 10009) {
             return;
         }
            
@@ -229,7 +229,7 @@
                             $('#product').hide();
                             // 兜底逻辑：如果API没返回产品，且符合特定条件，显示推送按钮
                             // (虽然上面已经处理了主要类型的显示，这里保留作为兼容)
-                            if (ditchNo == 10009 || ditchNo == '10009' || ditchType == 3 || ditchType == 4) $('#push-third').show();
+                            if (ditchNo == 10009 || ditchNo == '10009' || ditchType == 3 || ditchType == 4 || ditchType == 5) $('#push-third').show();
                         }else{
                             $('#product').show();
                             for (var i=0;i<res.data.length;i++){
@@ -238,7 +238,7 @@
                         }
                    }else{
                        $('#product').hide();
-                       if (ditchNo == 10009 || ditchNo == '10009' || ditchType == 2 || ditchType == 3 || ditchType == 4) $('#push-third').show();
+                       if (ditchNo == 10009 || ditchNo == '10009' || ditchType == 2 || ditchType == 3 || ditchType == 4 || ditchType == 5) $('#push-third').show();
                    }
                }
            });

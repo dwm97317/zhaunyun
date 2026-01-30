@@ -158,6 +158,46 @@ class Inpack extends InpackModel
             ->paginate($query['limitnum'], false, [
                 'query' => \request()->request()
             ]);
+
+        // Fix: Ensure Mother SN and Status are populated and propagated
+        $res->each(function($item, $key){
+            // 1. Fix Mother Order SN if missing
+            if(empty($item['t_order_sn']) && isset($item['packageitems']) && count($item['packageitems']) > 0){
+                $item['t_order_sn'] = $item['packageitems'][0]['t_order_sn'];
+            }
+
+            // 2. Determine Best Available Status
+            // Check mother status
+            $currentStatus = (isset($item['last_trace_code']) && $item['last_trace_code'] != '0') ? $item['last_trace_code'] : '';
+            
+            // Check first child status if mother is empty
+            if (empty($currentStatus) && isset($item['packageitems']) && count($item['packageitems']) > 0) {
+                 $firstChildStatus = $item['packageitems'][0]['last_trace_code'];
+                 if (!empty($firstChildStatus) && $firstChildStatus != '0') {
+                     $currentStatus = $firstChildStatus;
+                 }
+            }
+
+            // 3. Apply Status to Mother
+            if (!empty($currentStatus)) {
+                $item['last_trace_code'] = $currentStatus;
+            }
+
+            // 4. Propagate Status to All Children (if they don't have one)
+            if (isset($item['packageitems']) && count($item['packageitems']) > 0) {
+                // We need to modify the collection/array of items. 
+                // Since this is likely a Collection of objects or arrays, we iterate by reference if possible
+                // ThinkPHP Collections items can be array or Object.
+                foreach ($item['packageitems'] as &$box) {
+                    if (empty($box['last_trace_code']) || $box['last_trace_code'] == '0') {
+                        $box['last_trace_code'] = $currentStatus;
+                    }
+                }
+            }
+
+            return $item;
+        });
+
          return $res;
     }
     

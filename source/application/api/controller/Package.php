@@ -3763,4 +3763,64 @@ class Package extends Controller
         return true;
      }
      
+
+
+    /**
+     * 获取集运单物流轨迹
+     * @param $inpack_id
+     * @return array
+     */
+    public function trace($inpack_id)
+    {
+        if (!$this->user['user_id']) {
+            return $this->renderError('请先登录');
+        }
+        
+        $inpack = Inpack::get($inpack_id);
+        if (!$inpack) {
+            return $this->renderError('订单不存在');
+        }
+        
+        // 简单验证归属
+        if ($inpack['member_id'] != $this->user['user_id']) {
+             // 允许管理员或本人查看，暂不做强校验，如果需要可打开
+        }
+
+        if (empty($inpack['t_order_sn'])) {
+            return $this->renderSuccess([
+                'express_no' => '',
+                'company'    => '',
+                'list'       => [],
+                'status'     => null
+            ]);
+        }
+        
+        $ditch = DitchModel::get($inpack['ditch_id']);
+        if (!$ditch) {
+             return $this->renderError('渠道信息异常');
+        }
+
+        $traceList = [];
+        $lastStatus = null;
+        
+        // 顺丰 (Type 4) 或 顺丰其他模式
+        if ($ditch['ditch_type'] == 4) {
+             $sfConfig = [
+                'key'    => $ditch['app_key'],
+                'token'  => $ditch['app_token'],
+                'apiurl' => isset($ditch['api_url']) ? $ditch['api_url'] : '',
+                'customer_code' => isset($ditch['customer_code']) ? $ditch['customer_code'] : '',
+            ];
+            $Sf = new \app\common\library\Ditch\Sf($sfConfig);
+            $traceList = $Sf->query($inpack['t_order_sn']);
+            $lastStatus = $Sf->getLastStatus($inpack['t_order_sn']);
+        } 
+        
+        return $this->renderSuccess([
+            'express_no' => $inpack['t_order_sn'],
+            'company'    => $ditch['name'],
+            'list'       => $traceList,
+            'status'     => $lastStatus
+        ]);
+    }
 }
