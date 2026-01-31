@@ -44,10 +44,28 @@ class SfCallback extends Controller
             }
 
             $msgDataStr = $postData['msgData'];
-            $msgData = json_decode($msgDataStr, true);
+            
+            // 尝试处理转义字符问题
+            // 如果已经是数组，直接使用
+            if (is_array($msgDataStr)) {
+                $msgData = $msgDataStr;
+            } else {
+                // 如果是字符串，尝试解码
+                $msgData = json_decode($msgDataStr, true);
+                
+                // 如果解码失败，尝试去除反斜杠再解码 (处理双重转义情况)
+                if (!$msgData && is_string($msgDataStr)) {
+                    $cleanStr = stripslashes($msgDataStr);
+                    $msgData = json_decode($cleanStr, true);
+                    
+                    if ($msgData) {
+                         file_put_contents($logFile, "警告: msgData 包含多余转义，已自动修复\n", FILE_APPEND);
+                    }
+                }
+            }
             
             if (!$msgData) {
-                file_put_contents($logFile, "错误: msgData 解析失败\n", FILE_APPEND);
+                file_put_contents($logFile, "错误: msgData 解析失败，原始数据: " . print_r($msgDataStr, true) . "\n", FILE_APPEND);
                 return json(['apiResultCode' => 'A1002', 'apiErrorMsg' => 'JSON解析失败']);
             }
             
