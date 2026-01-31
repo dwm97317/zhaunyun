@@ -129,7 +129,10 @@ class SfCallback extends Controller
 
             if (empty($files)) {
                 file_put_contents($logFile, "警告: 未识别到有效的文件结构\n", FILE_APPEND);
-                return json(['apiResultCode' => 'A1000', 'apiResultData' => '{"success": true, "msg": "无文件需处理"}']);
+                return json([
+                    'apiResultCode' => 'A1000', 
+                    'apiResultData' => json_encode(['success' => 'true', 'msg' => '无文件需处理'])
+                ]);
             }
 
             // 4. 处理每个文件
@@ -167,11 +170,13 @@ class SfCallback extends Controller
             file_put_contents($logFile, "处理完成，共下载 {$downloadCount} 个文件\n--------------------\n", FILE_APPEND);
             
             // 5. 返回成功响应
+            // 顺丰文档要求 apiResultData 中包含 {"success": "true", "msg": ""}
+            // 注意 success 必须是字符串 "true"
             return json([
                 'apiResultCode' => 'A1000',
                 'apiErrorMsg' => '',
                 'apiResponseID' => !empty($requestID) ? $requestID : uniqid(),
-                'apiResultData' => json_encode(['success' => true])
+                'apiResultData' => json_encode(['success' => 'true', 'msg' => ''])
             ]);
 
         } catch (\Exception $e) {
