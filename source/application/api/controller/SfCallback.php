@@ -10,88 +10,96 @@ use think\Request;
 
 class SfCallback extends Controller
 {
-    /**
-     * 接收顺丰云打印面单推送
-     * 路由建议: /api/sf_callback/notify
-     * @param array|null $mockData 用于测试的模拟数据
-     */
-    public function notify($mockData = null)
+    public function notify()
     {
-        // 1. 获取所有 POST 参数
-        // 如果传入了模拟数据，优先使用
-        $param = $mockData !== null ? $mockData : $this->request->param();
+        $logFile = ROOT_PATH . 'logs' . DS . 'sf_callback.log';
         
-        // 记录原始日志用于调试
-        Log::info('SF Cloud Print Callback Raw Data: ' . json_encode($param, JSON_UNESCAPED_UNICODE));
+        // 1. 获取原始 POST 数据
+        $rawContent = file_get_contents('php://input');
+        $postData = input('post.');
         
-        if (empty($param)) {
-            return json(['apiResultCode' => 'A1001', 'apiErrorMsg' => 'Empty Request']);
-        }
-
-        // 2. 提取关键参数
-        $msgDataStr = isset($param['msgData']) ? $param['msgData'] : '';
-        $msgDigest = isset($param['msgDigest']) ? $param['msgDigest'] : '';
-        $requestID = isset($param['requestID']) ? $param['requestID'] : '';
-        // $timestamp = isset($param['timestamp']) ? $param['timestamp'] : ''; // 顺丰推送可能带 timestamp
-
-        if (empty($msgDataStr)) {
-            return json(['apiResultCode' => 'A1001', 'apiErrorMsg' => 'Missing msgData']);
-        }
-
-        // 3. 获取配置 (用于验签)
-        // 假设系统中只有一个顺丰配置，或者通过 msgData 中的信息匹配
-        // 这里简化处理，查询 ditch_type 为顺丰(假设type=3或根据 key 查询)
-        // 由于参数中可能不包含 partnerID，我们尝试用系统中的第一个顺丰配置来验签
+        $logContent = "[" . date('Y-m-d H:i:s') . "] 收到回调请求:\n";
+        $logContent .= "Client IP: " . request()->ip() . "\n";
+        $logContent .= "Raw Input: " . $rawContent . "\n";
+        $logContent .= "POST Data: " . json_encode($postData, JSON_UNESCAPED_UNICODE) . "\n";
         
-        $ditch = Ditch::where('ditch_type', 3)->find(); // 假设 3 是顺丰，或者遍历查找
-        if (!$ditch && isset($param['partnerID'])) {
-             // 如果请求带了 partnerID，尝试用 key 查
-             $key = $param['partnerID'];
-             // Ditch 模型中 config 是 json 字符串? 需要确认 Ditch 存储结构
-             // 这里假设 config 存储在 push_config_json 或类似字段，需遍历匹配
-             // 为简化，先不强制验签，只记录日志，或者假设 key 已知
+        // 确保日志目录存在
+        if (!is_dir(dirname($logFile))) {
+            mkdir(dirname($logFile), 0755, true);
         }
+        file_put_contents($logFile, $logContent, FILE_APPEND);
 
-        // TODO: 完善验签逻辑 (需要知道 token)
-        // $token = ...;
-        // $sign = base64_encode(md5($msgDataStr . $timestamp . $token, true));
-        // if ($sign !== $msgDigest) { ... }
-
-        // 4. 解析业务数据
-        $msgData = json_decode($msgDataStr, true);
-        if (!$msgData) {
-            return json(['apiResultCode' => 'A1002', 'apiErrorMsg' => 'Invalid JSON']);
-        }
-
-        // 5. 处理文件保存
-        // 结构参考: {"obj":{"files":[{"url":"...","token":"...","waybillNo":"..."}]}}
-        
-        $files = isset($msgData['obj']['files']) ? $msgData['obj']['files'] : [];
-        if (empty($files)) {
-            Log::error('SF Callback: No files found in msgData');
-            return json(['apiResultCode' => 'A1000', 'apiResultData' => 'No files processed']);
-        }
-
-        $successCount = 0;
-        foreach ($files as $file) {
-            $waybillNo = isset($file['waybillNo']) ? $file['waybillNo'] : '';
-            $url = isset($file['url']) ? $file['url'] : '';
-            $token = isset($file['token']) ? $file['token'] : '';
-
-            if ($waybillNo && $url) {
-                if ($this->savePdf($waybillNo, $url, $token)) {
-                    $successCount++;
+        try {
+            // 2. 验证参数
+            if (empty($postData['msgData'])) {
+                // 有时候顺丰可能发送 Content-Type: application/json，需要手动解析
+                $jsonInput = json_decode($rawContent, true);
+                if (isset($jsonInput['msgData'])) {
+                     $postData = $jsonInput;
+                     file_put_contents($logFile, "解析 JSON Body 成功\n", FILE_APPEND);
+                } else {
+                     file_put_contents($logFile, "错误: 缺少 msgData 参数\n", FILE_APPEND);
+                     return json(['apiResultCode' => 'A1001', 'apiErrorMsg' => '缺少关键参数']);
                 }
             }
+
+            $msgDataStr = $postData['msgData'];
+            $msgData = json_decode($msgDataStr, true);
+            
+            if (!$msgData) {
+                file_put_contents($logFile, "错误: msgData 解析失败\n", FILE_APPEND);
+                return json(['apiResultCode' => 'A1002', 'apiErrorMsg' => 'JSON解析失败']);
+            }
+            
+            file_put_contents($logFile, "解析 msgData 成功: " . json_encode($msgData, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
+
+            // 3. 提取文件列表
+            $files = [];
+            if (isset($msgData['obj']['files'])) {
+                $files = $msgData['obj']['files'];
+            } elseif (isset($msgData['files'])) {
+                 // 兼容不同层级
+                $files = $msgData['files'];
+            }
+
+            if (empty($files)) {
+                file_put_contents($logFile, "警告: 未找到 files 字段\n", FILE_APPEND);
+                return json(['apiResultCode' => 'A1000', 'apiResultData' => '{"success": true, "msg": "无文件需处理"}']);
+            }
+
+            // 4. 处理每个文件
+            $downloadCount = 0;
+            foreach ($files as $fileInfo) {
+                $url = $fileInfo['url'] ?? '';
+                $waybillNo = $fileInfo['waybillNo'] ?? 'unknown';
+                $token = $fileInfo['token'] ?? '';
+                
+                if (empty($url)) continue;
+
+                file_put_contents($logFile, "开始下载运单: {$waybillNo}, URL: {$url}\n", FILE_APPEND);
+                
+                if ($this->savePdf($waybillNo, $url, $token)) {
+                    $downloadCount++;
+                    file_put_contents($logFile, "下载成功: {$waybillNo}\n", FILE_APPEND);
+                } else {
+                    file_put_contents($logFile, "下载失败: {$waybillNo}\n", FILE_APPEND);
+                }
+            }
+
+            file_put_contents($logFile, "处理完成，共下载 {$downloadCount} 个文件\n--------------------\n", FILE_APPEND);
+            
+            // 5. 返回成功响应
+            return json([
+                'apiResultCode' => 'A1000',
+                'apiErrorMsg' => '',
+                'apiResponseID' => isset($postData['requestID']) ? $postData['requestID'] : uniqid(),
+                'apiResultData' => json_encode(['success' => true])
+            ]);
+
+        } catch (\Exception $e) {
+            file_put_contents($logFile, "异常: " . $e->getMessage() . "\n--------------------\n", FILE_APPEND);
+            return json(['apiResultCode' => 'E1000', 'apiErrorMsg' => 'System Error: ' . $e->getMessage()]);
         }
-
-        Log::info("SF Callback Processed: {$successCount} files saved.");
-
-        return json([
-            'apiResultCode' => 'A1000',
-            'apiErrorMsg' => 'Success',
-            'apiResponseID' => $requestID
-        ]);
     }
 
     private function savePdf($waybillNo, $url, $token)
