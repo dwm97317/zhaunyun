@@ -479,55 +479,34 @@ class Sf
     }
 
     /**
+     * 获取 OAuth2 AccessToken (通用鉴权)
+     *使用了公共提取的方法 app\common\library\Sf\OAuth
+     * @return string|false Token
+     */
+    public function getOAuth2AccessToken()
+    {
+        $partnerId = isset($this->config['key']) ? $this->config['key'] : '';
+        $secret    = isset($this->config['token']) ? $this->config['token'] : '';
+        $isSandbox = isset($this->config['apiurl']) && strpos($this->config['apiurl'], 'sbox') !== false;
+
+        $token = \app\common\library\Sf\OAuth::getAccessToken($partnerId, $secret, $isSandbox);
+        
+        if ($token === false) {
+             $this->error = '获取AccessToken失败，请查看日志';
+             return false;
+        }
+
+        return $token;
+    }
+
+    /**
      * 获取云打印 AccessToken (用于前端 JS SDK)
+     * 兼容旧方法名，实际调用通用的 getOAuth2AccessToken
      * @return string|false Token
      */
     public function getCloudPrintAccessToken()
     {
-        // 缓存 Key，避免频繁请求 (Token 有效期通常为 1-2 小时)
-        $cacheKey = 'sf_cloud_print_token_' . (isset($this->config['key']) ? $this->config['key'] : '');
-        $token = \think\Cache::get($cacheKey);
-        if ($token) {
-            return $token;
-        }
-
-        // OAuth2 认证接口地址 (与普通丰桥接口不同，不走统一网关)
-        // 沙箱环境: https://sfapi-sbox.sf-express.com/oauth2/accessToken
-        // 生产环境: https://sfapi.sf-express.com/oauth2/accessToken
-        
-        $isSandbox = isset($this->config['apiurl']) && strpos($this->config['apiurl'], 'sbox') !== false;
-        $authUrl = $isSandbox 
-            ? 'https://sfapi-sbox.sf-express.com/oauth2/accessToken'
-            : 'https://sfapi.sf-express.com/oauth2/accessToken';
-
-        $postData = [
-            'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
-            'secret'    => isset($this->config['token']) ? $this->config['token'] : '',
-            'grantType' => 'password'
-        ];
-
-        // 注意：OAuth2 接口直接 POST 表单数据，不需要 msgData/requestID 加密封装
-        $resp = $this->httpPost($authUrl, http_build_query($postData));
-        
-        if ($resp === false) {
-            $this->error = 'Token请求网络失败';
-            return false;
-        }
-
-        $data = json_decode($resp, true);
-        
-        // OAuth2 接口成功通过 apiResultCode 判断
-        if (isset($data['apiResultCode']) && $data['apiResultCode'] === 'A1000' && isset($data['accessToken'])) {
-             $accessToken = $data['accessToken'];
-             // 缓存 3600 秒
-             \think\Cache::set($cacheKey, $accessToken, 3600);
-             return $accessToken;
-        }
-        
-        // 错误处理
-        $errorMsg = isset($data['apiErrorMsg']) ? $data['apiErrorMsg'] : '未知错误';
-        $this->error = '获取AccessToken失败: ' . $errorMsg . ' Resp:' . $resp;
-        return false;
+        return $this->getOAuth2AccessToken();
     }
 
     /**
