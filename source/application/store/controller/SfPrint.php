@@ -12,6 +12,114 @@ use app\store\model\Inpack;
 class SfPrint extends Controller
 {
     /**
+     * 本地测试顺丰面单打印
+     * 访问地址: /index.php?s=/store/sf_print/test
+     */
+    public function test()
+    {
+        // 1. 获取顺丰真实/沙箱配置
+        $ditch = DitchModel::where('ditch_id', 10076)->find();
+        
+        if (!$ditch) {
+            $config = [
+                'key' => 'THGJH89TNITE',           
+                'token' => '7D88D4D6DC58914624F087796D1244C3',         
+                'apiurl' => 'https://sfapi-sbox.sf-express.com/std/service',
+                'template_code' => 'fm_76130_standard_THGJH89TNITE', 
+                'sync_mode' => 0 
+            ];
+        } else {
+            $config = [
+                'key' => $ditch['app_key'],
+                'token' => $ditch['app_token'],
+                'apiurl' => 'https://sfapi-sbox.sf-express.com/std/service', // 强制沙箱
+                'customer_code' => isset($ditch['customer_code']) ? $ditch['customer_code'] : '',
+                'template_code' => 'fm_76130_standard_' . $ditch['app_key'],
+                'sync_mode' => 0
+            ];
+        }
+
+        $orderSn = 'TEST_LOC_' . date('YmdHis');
+        $sf = new Sf($config);
+        
+        // 2. 下单
+        $orderParams = [
+            'partnerOrderCode' => $orderSn,
+            'order_sn' => $orderSn,
+            'consignee_name' => '本地测试',
+            'consignee_mobile' => '13800138000',
+            'consignee_province' => '广东省',
+            'consignee_city' => '深圳市',
+            'consignee_suburb' => '南山区',
+            'consignee_address' => '科技南十二路2号',
+            'sender_name' => '本地寄件',
+            'sender_mobile' => '13800138000',
+            'sender_province' => '广东省',
+            'sender_city' => '广州市',
+            'sender_district' => '越秀区',
+            'sender_address' => '建设六马路',
+            'quantity' => 1,
+            'weight' => 1.0,
+            'payMethod' => 1,
+        ];
+        
+        $res = $sf->createOrder($orderParams);
+        if ($res['ack'] !== 'true') {
+             return json(['code' => 0, 'msg' => '下单失败: ' . $res['message']]);
+        }
+        $waybillNo = $res['tracking_number'];
+        
+        // 3. 存入数据库
+        $orderId = $this->createTempOrder($orderSn, $waybillNo);
+        if (!$orderId) {
+             return json(['code' => 0, 'msg' => '创建临时订单记录失败']);
+        }
+        
+        // 4. 调用打印
+        try {
+            $resultUrl = $sf->printlabelParsedData($orderId);
+            if ($resultUrl) {
+                return json([
+                    'code' => 1, 
+                    'msg' => '测试成功', 
+                    'data' => [
+                        'order_sn' => $orderSn,
+                        'waybill_no' => $waybillNo,
+                        'url' => $resultUrl,
+                        'is_local' => strpos($resultUrl, '/uploads/sf_label/') !== false
+                    ]
+                ]);
+            } else {
+                return json(['code' => 0, 'msg' => '打印接口调用失败: ' . $sf->getError()]);
+            }
+        } catch (\Exception $e) {
+            return json(['code' => 0, 'msg' => '异常: ' . $e->getMessage()]);
+        }
+    }
+    
+    private function createTempOrder($orderSn, $waybillNo)
+    {
+         try {
+            $model = new Inpack();
+            $exist = $model->where('order_sn', $orderSn)->find();
+            if ($exist) return $exist['id'];
+            $data = [
+                'order_sn' => $orderSn,
+                't_order_sn' => $waybillNo,
+                'wxapp_id' => 10001,
+                'member_id' => 1, 
+                'created_time' => date('Y-m-d H:i:s'),
+                'inpack_type' => 2
+            ];
+            $model->save($data);
+            return $model->id;
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+
+    /**
      * 获取 JS 打印所需的配置参数 (Ajax)
      */
     public function getPrintConfig()
