@@ -157,6 +157,16 @@ class SfPrint extends Controller
             return json(['code' => 0, 'msg' => '订单ID不能为空']);
         }
 
+        // 获取订单信息
+        $order = Inpack::detail($orderId);
+        if (!$order) {
+            return json(['code' => 0, 'msg' => '订单不存在']);
+        }
+        $waybillNo = $order['t_order_sn'] ?? $order['order_sn'] ?? '';
+        if (empty($waybillNo)) {
+            return json(['code' => 0, 'msg' => '运单号不存在']);
+        }
+
         // 1. 获取配置
         $ditch = DitchModel::where('ditch_id', 10076)->find();
         
@@ -198,17 +208,17 @@ class SfPrint extends Controller
         }
 
         // 4. 组装打印数据 (符合 SCPPrint.print 格式)
-        // 注意：当使用 parsedData 模式时，我们将后端返回的 contents 直接传给 documents
-        // 但 SCPPrint.print 的 data 结构通常是 { requestID, accessToken, templateCode, documents }
-        // 文档中 COM_RECE_CLOUD_PRINT_PARSEDDATA 返回的是一份 contents 数据
-        // 在 JS SDK 中，如果是传递已解析的数据，通常直接作为 document 的 contents
+        // 修复：确保 documents[0] 包含 masterWaybillNo
+        $document = array_merge([
+            'masterWaybillNo' => $waybillNo
+        ], $parsedData);
         
         $printData = [
             'requestID' => uniqid('PRT'),
             'accessToken' => $accessToken,
             'templateCode' => $config['template_code'],
             'documents' => [
-                 $parsedData // parsedData 是包含 contents 字段的对象
+                $document
             ]
         ];
 
@@ -320,8 +330,11 @@ class SfPrint extends Controller
             <div class="setting-group">
                 <label>纸张模式</label>
                 <select id="paperType" class="setting-control" onchange="saveConfig()">
-                    <option value="">模板默认尺寸</option>
-                    <option value="A4">A4 纸张</option>
+                    <option value="">模板默认尺寸 (76x130mm)</option>
+                    <option value="76x130">快递单 76x130mm (推荐)</option>
+                    <option value="100x100">小面单 100x100mm</option>
+                    <option value="100x150">大面单 100x150mm</option>
+                    <option value="A4">A4 纸张 (210x297mm)</option>
                     <option value="A4_copy">A4 包含留底</option>
                 </select>
             </div>
@@ -700,10 +713,29 @@ class SfPrint extends Controller
                     state.scp.setPrinter(cfg.printer);
                 }
                 
+                // 处理纸张尺寸
                 const options = {
-                    lodopFn: cfg.preview ? 'PREVIEW' : 'PRINT',
-                    pageType: cfg.paper || undefined
+                    lodopFn: cfg.preview ? 'PREVIEW' : 'PRINT'
                 };
+                
+                if (cfg.paper) {
+                    if (cfg.paper.includes('x')) {
+                        // 自定义尺寸格式: "76x130"
+                        const sizes = cfg.paper.split('x');
+                        const width = parseInt(sizes[0]);
+                        const height = parseInt(sizes[1]);
+                        
+                        // 使用 LODOP 的尺寸单位（0.1mm）
+                        options.pageWidth = width * 10;
+                        options.pageHeight = height * 10;
+                        
+                        log(`自定义纸张: \${width}x\${height}mm`, 'info');
+                    } else {
+                        // 预定义纸张类型
+                        options.pageType = cfg.paper;
+                        log(`纸张模式: \${cfg.paper}`, 'info');
+                    }
+                }
                 
                 log(`下发指令 (RID: \${data.requestID})`, 'info');
                 
