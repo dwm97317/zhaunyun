@@ -9,7 +9,7 @@ use app\store\model\Inpack;
 /**
  * 顺丰 JS 打印测试控制器
  */
-class SfJsPrint extends Controller
+class SfPrint extends Controller
 {
     /**
      * 获取 JS 打印所需的配置参数 (Ajax)
@@ -150,7 +150,8 @@ class SfJsPrint extends Controller
             log('正在获取打印配置...');
 
             // 1. 请求后端获取 AccessToken 和打印数据
-            $.get('/index.php?s=/store/sf_js_print/getPrintConfig', { order_id: orderId }, function(res) {
+            // 注意 URL 变更: sf_print
+            $.get('/index.php?s=/store/sf_print/getPrintConfig', { order_id: orderId }, function(res) {
                 if (res.code !== 1) {
                     log('获取配置失败: ' + res.msg);
                     $('#btnPrint').prop('disabled', false).text('立即打印');
