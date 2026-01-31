@@ -73,8 +73,10 @@ class SfE2eTest extends Controller
             'quantity' => 1,
             'weight' => 1.0,
             'payMethod' => 1, // 寄方付
-            // 模拟快递管家推送配置：将买家留言和卖家备注合并到 remark
-            'remark' => '买家留言: 请尽快发货(测试); 卖家备注: 优先派送(测试)',
+            // 模拟业务场景：传递 buyer_remark 和 seller_remark
+            // 真实的 Ditch/Sf 类内部逻辑应该会将这些字段合并到 remark 中
+            'buyer_remark' => '请尽快发货(测试)',
+            'seller_remark' => '优先派送(测试)',
         ];
 
         $res = $sf->createOrder($orderParams);

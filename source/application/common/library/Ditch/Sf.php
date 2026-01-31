@@ -260,9 +260,23 @@ class Sf
             $msgData['totalWeight'] = (float)$params['weight'];
         }
 
-        // 如果有备注
+        // 处理备注：合并买家留言和卖家备注
+        $remarkParts = [];
+        if (!empty($params['buyer_remark'])) {
+            $remarkParts[] = '买家留言: ' . $params['buyer_remark'];
+        }
+        if (!empty($params['seller_remark'])) {
+            $remarkParts[] = '卖家备注: ' . $params['seller_remark'];
+        }
+        
+        // 如果外部直接传了 remark，也加进去 (或者覆盖，视需求而定，这里选择追加)
         if (!empty($params['remark'])) {
-            $msgData['remark'] = $params['remark'];
+            $remarkParts[] = $params['remark'];
+        }
+        
+        if (!empty($remarkParts)) {
+            // 顺丰 remark 字段长度限制较短(通常几十个字符)，注意截断，这里暂不做强截断
+            $msgData['remark'] = implode('; ', $remarkParts);
         }
 
         // 子母单支持
