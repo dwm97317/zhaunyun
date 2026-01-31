@@ -338,6 +338,8 @@ class SfPrint extends Controller
                 <div style="display: flex; gap: 10px; flex-direction: column;">
                     <button class="setting-control" style="cursor:pointer; background:#fff; color:#d63031; border-color:#d63031" onclick="runTDD('connectivity')">🛠 1. 测试本地打印机 (TDD)</button>
                     <button class="setting-control" style="cursor:pointer; background:#fff; color:#0984e3; border-color:#0984e3" onclick="runTDD('datalink')">🔍 2. 检查云端数据链路</button>
+                    <button class="setting-control" style="cursor:pointer; background:#fff; color:#00b894; border-color:#00b894" onclick="window.open('https://localhost:8443/CLodopfuncs.js', '_blank')">🔓 3. 信任本地证书 (关键)</button>
+                    <div style="font-size:11px; color:#e17055; padding:4px;">*点击按钮3，若浏览器提示"不安全"，请务必点"高级"->"继续前往"。这是HTTPS打印的关键！</div>
                     <button class="setting-control" style="cursor:pointer; background:#fff; color:#636e72;" onclick="$('#console').html('')">🧹 清空日志</button>
                 </div>
             </div>
@@ -445,28 +447,76 @@ class SfPrint extends Controller
                  const orderId = $('#orderInput').val();
                  if (!orderId) return alert('请输入订单 ID');
                  
-                 log(`--- TDD: 检查订单 [\${orderId}] 数据有效性 ---`, 'cmd');
+                 log(`--- TDD: 深度分析订单 [\${orderId}] 数据载荷 ---`, 'cmd');
+                 
+                 // Avoid utilizing 'event' directly to prevent scope issues
+                 const btn = $('#btn-datalink');
+                 btn.prop('disabled', true).text('分析中...');
+
                  $.get('/index.php?s=/store/sf_print/getPrintConfig', { order_id: orderId }, (res) => {
+                     btn.prop('disabled', false).text('🔍 2. 检查云端数据链路');
+                     
                      if (res.code !== 1) return log('API Error: ' + res.msg, 'error');
                      
-                     const data = res.data;
-                     log('验证 AccessToken: ' + (data.accessToken ? 'OK' : 'MISSING'), data.accessToken ? 'info' : 'error');
-                     log('验证 RequestID: ' + data.requestID, 'info');
+                     const d = res.data;
+                     let score = 100;
+                     let issues = [];
+
+                     // 1. 基础字段检查
+                     if(d.accessToken) log(` - accessToken: [OK]`, 'success'); 
+                     else { log(` - accessToken: MISSING`, 'error'); score -= 30; }
                      
-                     // Deep check documents
-                     if (data.documents && data.documents.length) {
-                         data.documents.forEach((doc, idx) => {
-                             log(`文档[${idx}] 类型: \${doc.masterWaybillNo}`, 'info');
-                             // 顺丰通常不直接给 URL，而是给 content 里的加密串或业务字段
-                             // 但如果涉及 URL，通常在 extendedData 或特定的区域
-                             log('Content Preview: ' + JSON.stringify(doc).substring(0, 150) + '...', 'warn');
+                     if(d.requestID) log(` - requestID: \${d.requestID} [OK]`, 'success');
+                     else { log(` - requestID: MISSING`, 'error'); score -= 10; }
+
+                     // 2. 文档结构检查
+                     if (d.documents && Array.isArray(d.documents) && d.documents.length > 0) {
+                         log(` - 包含文档数量: \${d.documents.length}`, 'success');
+                         d.documents.forEach((doc, i) => {
+                             log(`   > 文档 #\${i+1} (运单: \${doc.masterWaybillNo})`, 'info');
+                             if(!doc.masterWaybillNo) issues.push(`文档 #\${i+1} 缺少运单号`);
                          });
-                         log('结论: 请检查上述数据中是否有 URL 字段？如有，该 URL 必须允许外网访问。', 'success');
                      } else {
-                         log('FAIL: 返回数据中没有 documents 节点！', 'error');
+                         log(` - documents 数组为空! 无法打印!`, 'error');
+                         score -= 50;
+                         issues.push("没有文档数据");
                      }
-                 }, 'json');
+
+                     // 3. 模板与网络资源检查
+                     if(d.customTemplateUrls && d.customTemplateUrls.length > 0) {
+                         const uri = d.customTemplateUrls[0];
+                         log(` - 自定义模板URL: \${uri}`, 'warn');
+                         log(`   (正在检测该 URL 是否允许跨域访问...)`, 'info');
+                         checkUrlReachability(uri);
+                     } else {
+                         log(` - 使用标准模板 (Code: \${d.templateCode || 'Default'})`, 'info');
+                     }
+
+                     // 4. 结论
+                     log(`------------------------------------------------`, 'cmd');
+                     const currentPrinter = jQuery('#printerSelect').val();
+                     if(score > 80) {
+                         log(`✅ 数据完整度: \${score}/100.`, 'success');
+                         log(`若打印仍超时，请重点排查:`, 'info');
+                         log(`1. 目标打印机 "\${currentPrinter}" 是否脱机？`, 'warn');
+                         log(`2. 上述自定义模板 URL 是否被防火墙/CORS拦截？`, 'warn');
+                     } else {
+                         log(`❌ 数据严重缺失: \${issues.join(', ')}`, 'error');
+                     }
+
+                 }, 'json').fail(() => {
+                     btn.prop('disabled', false).text('🔍 2. 检查云端数据链路');
+                     log('后端 API 请求失败', 'error');
+                 });
              }
+        }
+
+        function checkUrlReachability(url) {
+            log(`正在检测模板 URL 可达性: \${url}`, 'info');
+            const img = new Image();
+            img.onload = () => log('模板 URL 可访问 (200 OK)', 'success');
+            img.onerror = () => log('❌ 模板 URL 无法访问 (可能是跨域或404)', 'error');
+            img.src = url;
         }
 
         // Init
