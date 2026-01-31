@@ -505,7 +505,7 @@ class Sf
         $requestData = [
             'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
             'requestID' => $this->generateRequestId(),
-            'serviceCode' => 'COM_RECE_CLOUD_PRINT_ACCESS_TOKEN',
+            'serviceCode' => 'ACCT_ACCESS_TOKEN_GET', // 修正：通用鉴权 Token 接口
             'timestamp' => time(),
             'msgData' => json_encode($msgData, JSON_UNESCAPED_UNICODE),
         ];
