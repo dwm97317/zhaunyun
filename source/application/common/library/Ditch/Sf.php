@@ -529,10 +529,15 @@ class Sf
                 [
                     'masterWaybillNo' => $waybillNo,
                     // 云打印 2.0 接口说明：
-                    // 用户只需要提供运单号等关键字段即可，云打印会查询订单系统的订单数据。
-                    // 因此不需要传递详细的 sender/consignee 等 content 信息。
-                    // 仅当需要自定义区域备注时传 remark
-                    // 'remark' => '...' 
+                    // 自定义区域备注通过 remark 字段传递
+                    'remark' => isset($order['remark']) ? $order['remark'] : (
+                        // 如果 order 表没有 remark，尝试从 Inpack 扩展字段或者临时拼接获取
+                        // 这里我们假设 createOrder 时并没有把 remark 存入 order 表的 remark 字段
+                        // 而是需要实时传入，或者从订单详情中获取。
+                        // 由于 printlabel 只接收 order_id，我们可能需要 Inpack 模型有 remark 字段
+                        // 暂时使用一个默认值测试，或者修改 createOrder 逻辑让它保存 remark
+                        '自定义区域备注测试' 
+                    )
                 ]
             ]
         ];

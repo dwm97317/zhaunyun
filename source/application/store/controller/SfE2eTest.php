@@ -90,7 +90,9 @@ class SfE2eTest extends Controller
         $this->log("下单成功! 运单号: {$waybillNo}");
         
         // 为了调用 printlabel，我们需要在数据库中有一个对应的订单记录
-        $orderId = $this->createTempOrder($orderSn, $waybillNo);
+        // 传入 remark 以便 printlabel 获取
+        $remark = '买家留言: 请尽快发货(测试); 卖家备注: 优先派送(测试)';
+        $orderId = $this->createTempOrder($orderSn, $waybillNo, $remark);
         if (!$orderId) {
             $this->log("无法创建临时数据库订单", true);
             return;
@@ -118,27 +120,33 @@ class SfE2eTest extends Controller
         $this->log("===== 测试结束 =====");
     }
 
-    private function createTempOrder($orderSn, $waybillNo)
+    private function createTempOrder($orderSn, $waybillNo, $remark = '')
     {
         // 插入一条临时数据供 printlabel 查询
         try {
             $model = new \app\store\model\Inpack();
             // 检查是否存在
             $exist = $model->where('order_sn', $orderSn)->find();
-            if ($exist) return $exist['id']; // 注意主键可能是 inpack_id 或 id
+            if ($exist) {
+                // 如果存在，更新 remark
+                if ($remark) {
+                    $exist->save(['remark' => $remark]);
+                }
+                return $exist['id'];
+            }
 
             $data = [
                 'order_sn' => $orderSn,
                 't_order_sn' => $waybillNo,
                 'wxapp_id' => 10001,
-                'member_id' => 1, // 修正字段名为 member_id
-                'created_time' => date('Y-m-d H:i:s'), // 修正为 DATETIME 格式
-                'inpack_type' => 2, // 直邮
+                'member_id' => 1, 
+                'created_time' => date('Y-m-d H:i:s'),
+                'inpack_type' => 2,
+                'remark' => $remark // 保存 remark 到数据库
             ];
             // 简单插入，这里可能需要根据实际 Inpack 模型字段调整
-            // 假设 save 方法可用
             $model->save($data);
-            return $model->id; // 假设主键是 id
+            return $model->id;
         } catch (\Exception $e) {
             $this->log("数据库插入失败: " . $e->getMessage(), true);
             return 0;
