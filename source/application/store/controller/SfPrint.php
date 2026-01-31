@@ -334,10 +334,12 @@ class SfPrint extends Controller
             </div>
 
              <div class="setting-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="showTips" checked onchange="saveConfig()">
-                    显示顺丰提示弹窗
-                </label>
+                <label>故障排查</label>
+                <div style="display: flex; gap: 10px; flex-direction: column;">
+                    <button class="setting-control" style="cursor:pointer; background:#fff; color:#d63031; border-color:#d63031" onclick="runTDD('connectivity')">🛠 1. 测试本地打印机 (TDD)</button>
+                    <button class="setting-control" style="cursor:pointer; background:#fff; color:#0984e3; border-color:#0984e3" onclick="runTDD('datalink')">🔍 2. 检查云端数据链路</button>
+                    <button class="setting-control" style="cursor:pointer; background:#fff; color:#636e72;" onclick="$('#console').html('')">🧹 清空日志</button>
+                </div>
             </div>
 
             <div style="margin-top: 30px; font-size: 12px; color: #999;">
@@ -382,7 +384,7 @@ class SfPrint extends Controller
 
             <!-- 日志控制台 -->
             <div class="console-card" id="console">
-                <div class="log-entry info"><span class="log-time">[System]</span> 欢迎使用顺丰云打印工作台</div>
+                <div class="log-entry info"><span class="log-time">[System]</span> 欢迎使用顺丰云打印工作台 - TDD 模式</div>
             </div>
         </main>
     </div>
@@ -413,6 +415,58 @@ class SfPrint extends Controller
             if(status === 'ok') el.addClass('active').css('background', '#00b894'); // Green
             else if(status === 'err') el.addClass('error').css('background', '#d63031'); // Red
             else el.css('background', '#ccc'); // Reset
+        }
+        
+        // TDD Tools
+        function runTDD(mode) {
+             if (mode === 'connectivity') {
+                 log('--- TDD: 正在测试本地 C-LODOP 基础通信 ---', 'cmd');
+                 if (typeof getCLodop === 'undefined') {
+                     return log('FAIL: C-LODOP 未加载，无法测试', 'error');
+                 }
+                 try {
+                     const printer = $('#printerSelect').val();
+                     log(`目标打印机: \${printer || '默认'}`, 'info');
+                     LODOP.PRINT_INIT("TDD_TEST_TASK");
+                     if(printer) LODOP.SET_PRINTER_INDEX(printer);
+                     LODOP.ADD_PRINT_TEXT(50, 50, 300, 50, "C-LODOP Test OK! 打印服务正常。");
+                     LODOP.SET_PRINT_MODE("CATCH_PRINT_STATUS", true);
+                     
+                     // 仅仅预览，不浪费纸张
+                     LODOP.PREVIEW(); 
+                     log('PASS: 已发送预览指令。如果弹出窗口，说明本地服务完好。', 'success');
+                     log('结论: 如果此步成功但云打印失败，说明是[云端数据/URL]问题，而非插件问题。', 'info');
+                 } catch(e) {
+                     log('FAIL: 调用 LODOP 异常: ' + e.message, 'error');
+                 }
+             }
+             
+             if (mode === 'datalink') {
+                 const orderId = $('#orderInput').val();
+                 if (!orderId) return alert('请输入订单 ID');
+                 
+                 log(`--- TDD: 检查订单 [\${orderId}] 数据有效性 ---`, 'cmd');
+                 $.get('/index.php?s=/store/sf_print/getPrintConfig', { order_id: orderId }, (res) => {
+                     if (res.code !== 1) return log('API Error: ' + res.msg, 'error');
+                     
+                     const data = res.data;
+                     log('验证 AccessToken: ' + (data.accessToken ? 'OK' : 'MISSING'), data.accessToken ? 'info' : 'error');
+                     log('验证 RequestID: ' + data.requestID, 'info');
+                     
+                     // Deep check documents
+                     if (data.documents && data.documents.length) {
+                         data.documents.forEach((doc, idx) => {
+                             log(`文档[${idx}] 类型: \${doc.masterWaybillNo}`, 'info');
+                             // 顺丰通常不直接给 URL，而是给 content 里的加密串或业务字段
+                             // 但如果涉及 URL，通常在 extendedData 或特定的区域
+                             log('Content Preview: ' + JSON.stringify(doc).substring(0, 150) + '...', 'warn');
+                         });
+                         log('结论: 请检查上述数据中是否有 URL 字段？如有，该 URL 必须允许外网访问。', 'success');
+                     } else {
+                         log('FAIL: 返回数据中没有 documents 节点！', 'error');
+                     }
+                 }, 'json');
+             }
         }
 
         // Init
