@@ -479,6 +479,64 @@ class Sf
     }
 
     /**
+     * 获取云打印 AccessToken (用于前端 JS SDK)
+     * @return string|false Token
+     */
+    public function getCloudPrintAccessToken()
+    {
+        // 缓存 Key，避免频繁请求 (Token 有效期通常为 1-2 小时)
+        $cacheKey = 'sf_cloud_print_token_' . (isset($this->config['key']) ? $this->config['key'] : '');
+        $token = \think\Cache::get($cacheKey);
+        if ($token) {
+            return $token;
+        }
+
+        $baseUrl = isset($this->config['apiurl']) && $this->config['apiurl'] !== ''
+            ? rtrim($this->config['apiurl'], '/')
+            : 'https://sfapi.sf-express.com/std/service';
+
+        // 构造请求数据
+        // 顺丰云打印 Token 接口服务码: COM_RECE_CLOUD_PRINT_ACCESS_TOKEN
+        $msgData = [
+            'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
+            'secret' => isset($this->config['token']) ? $this->config['token'] : '' // 注意：这里通常用 checkword/secret
+        ];
+
+        $requestData = [
+            'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
+            'requestID' => $this->generateRequestId(),
+            'serviceCode' => 'COM_RECE_CLOUD_PRINT_ACCESS_TOKEN',
+            'timestamp' => time(),
+            'msgData' => json_encode($msgData, JSON_UNESCAPED_UNICODE),
+        ];
+
+        $requestData['msgDigest'] = $this->generateSignature($requestData);
+
+        $resp = $this->httpPost($baseUrl, http_build_query($requestData));
+        if ($resp === false) {
+            return false;
+        }
+
+        $data = json_decode($resp, true);
+        if (!is_array($data) || !isset($data['apiResultCode']) || $data['apiResultCode'] !== 'A1000') {
+            $this->error = isset($data['apiErrorMsg']) ? $data['apiErrorMsg'] : 'Token获取失败';
+            return false;
+        }
+
+        $apiResultData = isset($data['apiResultData']) ? json_decode($data['apiResultData'], true) : [];
+        $accessToken = isset($apiResultData['accessToken']) ? $apiResultData['accessToken'] : '';
+
+        if ($accessToken) {
+            // 缓存 3600 秒 (1小时)，顺丰 Token 一般有效期 2小时
+            \think\Cache::set($cacheKey, $accessToken, 3600);
+            return $accessToken;
+        }
+
+        $this->error = '未获取到有效的 AccessToken';
+        return false;
+    }
+
+    /**
      * 获取面单图片（云打印插件接口）
      * 对接 COM_RECE_CLOUD_PRINT_PARSEDDATA
      * @param int $order_id 订单ID
