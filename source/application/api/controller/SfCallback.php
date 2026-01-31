@@ -12,16 +12,23 @@ class SfCallback extends Controller
 {
     public function notify()
     {
+        // 增加内存限制和执行时间，防止大文件处理超时
+        ini_set('memory_limit', '256M');
+        set_time_limit(120);
+
         $logFile = ROOT_PATH . 'logs' . DS . 'sf_callback.log';
         
         // 1. 获取原始 POST 数据
         $rawContent = file_get_contents('php://input');
-        $postData = input('post.');
         
-        $logContent = "[" . date('Y-m-d H:i:s') . "] 收到回调请求:\n";
+        // 记录简要日志 (避免记录 70KB+ 的 Base64 内容导致日志爆炸)
+        $rawLength = strlen($rawContent);
+        $logContent = "[" . date('Y-m-d H:i:s') . "] 收到回调请求 (Length: {$rawLength}):\n";
         $logContent .= "Client IP: " . request()->ip() . "\n";
-        $logContent .= "Raw Input: " . $rawContent . "\n";
-        $logContent .= "POST Data: " . json_encode($postData, JSON_UNESCAPED_UNICODE) . "\n";
+        
+        // 只记录前 500 个字符用于调试格式
+        $previewContent = substr($rawContent, 0, 500) . ($rawLength > 500 ? "..." : "");
+        $logContent .= "Raw Input Preview: " . $previewContent . "\n";
         
         // 确保日志目录存在
         if (!is_dir(dirname($logFile))) {
@@ -30,48 +37,69 @@ class SfCallback extends Controller
         file_put_contents($logFile, $logContent, FILE_APPEND);
 
         try {
-            // 2. 验证参数
-            if (empty($postData['msgData'])) {
-                // 有时候顺丰可能发送 Content-Type: application/json，需要手动解析
-                $jsonInput = json_decode($rawContent, true);
-                if (isset($jsonInput['msgData'])) {
-                     $postData = $jsonInput;
-                     file_put_contents($logFile, "解析 JSON Body 成功\n", FILE_APPEND);
-                } else {
-                     file_put_contents($logFile, "错误: 缺少 msgData 参数\n", FILE_APPEND);
-                     return json(['apiResultCode' => 'A1001', 'apiErrorMsg' => '缺少关键参数']);
-                }
-            }
-
-            $msgDataStr = $postData['msgData'];
+            // 2. 解析数据
+            // 顺丰数据通常是 x-www-form-urlencoded，php://input 获取到的是 key=value&...
+            // 但如果 msgData 非常大，parse_str 可能会有问题 (php.ini max_input_vars 限制)
+            // 所以我们手动尝试解析，或者优先使用 input('post.') 如果它没被截断
             
-            // 尝试处理转义字符问题
-            // 如果已经是数组，直接使用
-            if (is_array($msgDataStr)) {
-                $msgData = $msgDataStr;
-            } else {
-                // 如果是字符串，尝试解码
-                $msgData = json_decode($msgDataStr, true);
-                
-                // 如果解码失败，尝试去除反斜杠再解码 (处理双重转义情况)
-                if (!$msgData && is_string($msgDataStr)) {
-                    $cleanStr = stripslashes($msgDataStr);
-                    $msgData = json_decode($cleanStr, true);
-                    
-                    if ($msgData) {
-                         file_put_contents($logFile, "警告: msgData 包含多余转义，已自动修复\n", FILE_APPEND);
+            $msgDataStr = input('post.msgData', '', null); // 获取原始内容不经过过滤
+            $requestID = input('post.requestID');
+
+            // 如果 input() 获取为空，尝试手动解析 rawContent
+            if (empty($msgDataStr) && !empty($rawContent)) {
+                // 简单的 query string 解析
+                parse_str($rawContent, $parsedParams);
+                if (isset($parsedParams['msgData'])) {
+                    $msgDataStr = $parsedParams['msgData'];
+                    file_put_contents($logFile, "手动解析 rawContent 成功提取 msgData\n", FILE_APPEND);
+                } else {
+                    // 尝试 JSON 解析 (Content-Type: application/json)
+                    $jsonParams = json_decode($rawContent, true);
+                    if (isset($jsonParams['msgData'])) {
+                        $msgDataStr = $jsonParams['msgData']; // 注意：这里可能是数组或字符串
+                        if (is_array($msgDataStr)) {
+                            $msgDataStr = json_encode($msgDataStr); // 转回字符串统一处理
+                        }
+                        file_put_contents($logFile, "JSON 解析 rawContent 成功提取 msgData\n", FILE_APPEND);
                     }
                 }
             }
+
+            if (empty($msgDataStr)) {
+                file_put_contents($logFile, "错误: 无法获取 msgData 参数\n", FILE_APPEND);
+                return json(['apiResultCode' => 'A1001', 'apiErrorMsg' => '缺少关键参数']);
+            }
+
+            file_put_contents($logFile, "msgData 长度: " . strlen($msgDataStr) . "\n", FILE_APPEND);
+
+            // 3. 解析 JSON 业务数据
+            // 处理转义字符
+            if (is_string($msgDataStr)) {
+                $msgData = json_decode($msgDataStr, true);
+                // 双重转义修复
+                if (!$msgData) {
+                    $cleanStr = stripslashes($msgDataStr);
+                    $msgData = json_decode($cleanStr, true);
+                    if ($msgData) {
+                        file_put_contents($logFile, "警告: msgData 包含多余转义，已自动修复\n", FILE_APPEND);
+                    }
+                }
+            } else {
+                $msgData = $msgDataStr;
+            }
             
             if (!$msgData) {
-                file_put_contents($logFile, "错误: msgData 解析失败，原始数据: " . print_r($msgDataStr, true) . "\n", FILE_APPEND);
+                // 记录最后一次解析错误的错误码
+                $jsonError = json_last_error_msg();
+                file_put_contents($logFile, "错误: JSON 解析失败 ({$jsonError})\n", FILE_APPEND);
+                // 调试：记录头尾字符看是否完整
+                $head = substr($msgDataStr, 0, 100);
+                $tail = substr($msgDataStr, -100);
+                file_put_contents($logFile, "数据片段: HEAD[{$head}] ... TAIL[{$tail}]\n", FILE_APPEND);
                 return json(['apiResultCode' => 'A1002', 'apiErrorMsg' => 'JSON解析失败']);
             }
             
-            file_put_contents($logFile, "解析 msgData 成功: " . json_encode($msgData, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
-
-            // 3. 提取文件列表 (兼容 Base64 推送模式)
+            // 4. 提取文件列表 (兼容 Base64 推送模式)
             $files = [];
             
             // 模式 A: 只有单个文件对象直接在 msgData 中
@@ -134,7 +162,7 @@ class SfCallback extends Controller
             return json([
                 'apiResultCode' => 'A1000',
                 'apiErrorMsg' => '',
-                'apiResponseID' => isset($postData['requestID']) ? $postData['requestID'] : uniqid(),
+                'apiResponseID' => !empty($requestID) ? $requestID : uniqid(),
                 'apiResultData' => json_encode(['success' => true])
             ]);
 
