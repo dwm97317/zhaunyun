@@ -162,6 +162,72 @@ class SfTester extends Controller
         }
     }
 
+    public function testBase64Callback()
+    {
+        $waybillNo = "SF_MOCK_" . time();
+        $mockPdfContent = "This is a mock PDF content for testing Base64 decode.";
+        $base64Content = base64_encode($mockPdfContent);
+
+        // 构造符合 Base64 模式的报文
+        // 模式 A: 单个对象直接在 msgData 中
+        $msgData = [
+            "content" => $base64Content,
+            "fileName" => $waybillNo . ".pdf",
+            "waybillNo" => $waybillNo,
+            "fileType" => "pdf"
+        ];
+        
+        $postData = [
+            'msgData' => json_encode($msgData),
+            'requestID' => 'TEST_REQ_' . time()
+        ];
+        
+        $this->log("===== 开始 Base64 回调测试 =====");
+        
+        try {
+            $callback = new \app\api\controller\SfCallback();
+            
+            // 模拟 POST 环境 (SfCallback 使用 input('post.'))
+            // 注意: 单元测试中直接调用控制器方法可能取不到 input('post.')，
+            // 这里我们修改 SfCallback 让其支持传参，或者临时注入请求
+            
+            // 为了不修改 SfCallback 签名，我们这里直接构造 Request 对象注入 (ThinkPHP 5.0 特性)
+            \think\Request::instance()->post($postData);
+            
+            $res = $callback->notify();
+            
+            if ($res instanceof \think\response\Json) {
+                $data = $res->getData();
+                $this->log("响应: " . json_encode($data, JSON_UNESCAPED_UNICODE));
+                
+                if (isset($data['apiResultCode']) && $data['apiResultCode'] === 'A1000') {
+                    $this->log("测试通过: 控制器返回成功");
+                    
+                    // 验证文件是否存在
+                    $filePath = ROOT_PATH . 'web/uploads/sf_label/' . $waybillNo . '_' . time() . '_async.pdf';
+                    // 由于文件名包含时间戳，这里不好精确匹配，我们检查目录下是否有该运单号的文件
+                    $files = glob(ROOT_PATH . 'web/uploads/sf_label/' . $waybillNo . '*_async.pdf');
+                    if (!empty($files)) {
+                        $this->log("验证通过: 找到生成的文件 " . basename($files[0]));
+                        $content = file_get_contents($files[0]);
+                        if ($content === $mockPdfContent) {
+                             $this->log("验证通过: 文件内容匹配");
+                        } else {
+                             $this->log("验证失败: 文件内容不匹配");
+                        }
+                    } else {
+                        $this->log("验证失败: 未找到生成的文件");
+                    }
+                    
+                } else {
+                    $this->log("测试失败: 响应码错误");
+                }
+            }
+        } catch (\Exception $e) {
+            $this->log("测试异常: " . $e->getMessage());
+        }
+    }
+
     private function log($msg, $isError = false)
     {
         $time = date('Y-m-d H:i:s');
