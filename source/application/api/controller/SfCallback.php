@@ -75,8 +75,16 @@ class SfCallback extends Controller
             // 3. 解析 JSON 业务数据
             // 处理转义字符
             if (is_string($msgDataStr)) {
+                // 优先尝试 HTML 实体解码 (&quot; -> ")
+                // 某些环境下 input() 会自动进行 htmlspecialchars 过滤，导致 JSON 损坏
+                if (strpos($msgDataStr, '&quot;') !== false) {
+                    $msgDataStr = htmlspecialchars_decode($msgDataStr);
+                    file_put_contents($logFile, "检测到 HTML 实体编码，已自动修复\n", FILE_APPEND);
+                }
+
                 $msgData = json_decode($msgDataStr, true);
-                // 双重转义修复
+                
+                // 双重转义修复 (反斜杠)
                 if (!$msgData) {
                     $cleanStr = stripslashes($msgDataStr);
                     $msgData = json_decode($cleanStr, true);
