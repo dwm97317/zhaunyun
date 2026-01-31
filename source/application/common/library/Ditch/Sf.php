@@ -2,11 +2,14 @@
 
 namespace app\common\library\Ditch;
 
+use app\store\model\Inpack;
+
 /**
  * 顺丰快递开放平台对接（ditch_no=10010）
  * 配置来源于渠道商：app_key、app_token、api_url、customer_code（月结卡号）
  * 下单接口：EXP_RECE_CREATE_ORDER
  * 路由查询：EXP_RECE_SEARCH_ROUTES
+ * 面单图片：EXP_RECE_SEARCH_WAYBILL_PICTURE
  * 官方文档：https://open.sf-express.com/
  */
 class Sf
@@ -271,11 +274,11 @@ class Sf
         }
 
         $requestData = [
-            'partnerID'   => isset($this->config['key']) ? $this->config['key'] : '',
-            'requestID'   => $this->generateRequestId(),
-            'serviceCode' => 'EXP_RECE_CREATE_ORDER',
-            'timestamp'   => time(),
-            'msgData'     => json_encode($msgData, JSON_UNESCAPED_UNICODE),
+            'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
+            'requestID' => $this->generateRequestId(),
+            'serviceCode' => 'EXP_RECE_CREATE_ORDER', // 下单接口
+            'timestamp' => time(),
+            'msgData' => json_encode($msgData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         ];
 
         $requestData['msgDigest'] = $this->generateSignature($requestData);
@@ -335,6 +338,23 @@ class Sf
         ];
     }
 
+    private function getUploadUrl($fileName)
+    {
+        // 假设 Web 根目录在 web/，且配置了域名
+        // 由于这里是在 CLI 或 API 上下文，REQUEST_SCHEME 可能获取不到，需根据配置
+        $request = \think\Request::instance();
+        $domain = $request->domain();
+        
+        // 如果是命令行模式，domain() 可能返回空或 localhost，需兜底
+        if (empty($domain) || $domain == 'localhost') {
+            // 尝试读取配置中的 base_url，如果没有则使用本地测试地址
+            // $domain = \think\Config::get('app_host') ?: 'http://127.0.0.1:8080';
+            // 这里为了通用性，暂不强制硬编码，但如果是在本地测试，需要注意
+        }
+        
+        return $domain . '/uploads/sf_label/' . $fileName;
+    }
+
     /**
      * 生成请求ID（唯一标识）
      * @return string
@@ -354,13 +374,14 @@ class Sf
         $appSecret = isset($this->config['token']) ? $this->config['token'] : '';
         
         // 顺丰签名规则：msgData + timestamp + appSecret
+        // 注意：msgData 必须是发送给顺丰的原始字符串 (如果是 json_encode 后的)
         $msgData = isset($data['msgData']) ? $data['msgData'] : '';
         $timestamp = isset($data['timestamp']) ? $data['timestamp'] : '';
         
+        // 根据最新文档：去除 URLEncoder 过程
+        // String toVerifyText = msgData + timestamp + checkWord;
         $signStr = $msgData . $timestamp . $appSecret;
-        
-        // 官方 SDK Demo 逻辑：先 urlencode 再 md5
-        return base64_encode(md5(urlencode($signStr), true));
+        return base64_encode(md5($signStr, true));
     }
 
     /**
@@ -383,12 +404,51 @@ class Sf
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => $body,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_TIMEOUT        => 30, // 恢复超时时间
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_HTTPHEADER     => $headers,
         ]);
-        $result = curl_exec($ch);
-        $err = curl_error($ch);
+
+
+
+        $maxRetries = 1; // 减少重试次数
+        $attempt = 0;
+        $result = false;
+        $err = '';
+
+        do {
+            $attempt++;
+            $result = curl_exec($ch);
+            $err = curl_error($ch);
+            
+            // 记录日志
+            $logData = [
+                'time' => date('Y-m-d H:i:s'),
+                'url' => $url,
+                'attempt' => $attempt,
+                'request_body' => $body,
+                'response' => $result,
+                'error' => $err,
+                'http_code' => curl_getinfo($ch, CURLINFO_HTTP_CODE)
+            ];
+            // 简单写入日志文件
+            $logDir = dirname(ROOT_PATH) . DS . 'runtime' . DS . 'log' . DS . 'sf_express';
+            if (!is_dir($logDir)) {
+                mkdir($logDir, 0755, true);
+            }
+            file_put_contents($logDir . DS . date('Ym') . '.log', json_encode($logData, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
+
+            if (!$err && $result !== false) {
+                break;
+            }
+            
+            // 重试间隔
+            if ($attempt <= $maxRetries) {
+                usleep(500000); // 500ms
+            }
+
+        } while ($attempt <= $maxRetries);
+
         curl_close($ch);
         
         if ($err) {
@@ -402,5 +462,188 @@ class Sf
     public function getError()
     {
         return $this->error;
+    }
+
+    /**
+     * 获取面单图片（云打印）
+     * 对接 COM_RECE_CLOUD_PRINT_WAYBILLS
+     * @param int $order_id 订单ID
+     * @return string|false 图片/PDF URL
+     */
+    public function printlabel($order_id)
+    {
+        // 1. 获取订单信息
+        $order = Inpack::detail($order_id);
+        if (!$order) {
+            $this->error = '订单不存在';
+            return false;
+        }
+
+        $waybillNo = isset($order['t_order_sn']) ? $order['t_order_sn'] : '';
+        if (empty($waybillNo)) {
+            // 尝试取 order_sn 或者 partner_order_code
+            $waybillNo = isset($order['order_sn']) ? $order['order_sn'] : '';
+        }
+
+        if (empty($waybillNo)) {
+            $this->error = '运单号不存在';
+            return false;
+        }
+
+        // 2. 调用顺丰云打印接口
+        $baseUrl = isset($this->config['apiurl']) && $this->config['apiurl'] !== ''
+            ? rtrim($this->config['apiurl'], '/')
+            : 'https://sfapi.sf-express.com/std/service';
+
+        // 动态构建模板编码: fm_76130_standard_{partnerID}
+        $partnerID = isset($this->config['key']) ? $this->config['key'] : '';
+        $templateCode = 'fm_76130_standard_' . $partnerID;
+        
+        // 获取同步/异步配置 (默认同步)
+        // 1: 异步, 0/null: 同步 (根据通常习惯，或者反过来，需看具体配置定义。这里假设 config['sync_mode'] == 1 为异步)
+        // 修正：用户通常习惯 "开启异步" -> sync_mode = 1.
+        // SF 接口参数 sync: true (同步), false (异步)
+        $isAsync = isset($this->config['sync_mode']) && $this->config['sync_mode'] == 1;
+        $syncParam = !$isAsync;
+
+        $msgData = [
+            'templateCode' => $templateCode, 
+            'version' => '2.0',
+            'fileType' => 'pdf', // 请求返回 PDF 格式
+            'sync' => $syncParam, // 根据配置设置
+            'documents' => [
+                [
+                    'masterWaybillNo' => $waybillNo,
+                    // 云打印 2.0 接口说明：
+                    // 用户只需要提供运单号等关键字段即可，云打印会查询订单系统的订单数据。
+                    // 因此不需要传递详细的 sender/consignee 等 content 信息。
+                    // 仅当需要自定义区域备注时传 remark
+                    // 'remark' => '...' 
+                ]
+            ]
+        ];
+        
+        // 更新: 移除之前错误的 content 嵌套结构
+        // $content = [ ... ];
+        // $msgData['documents'][0]['content'] = $content;
+
+        $requestData = [
+            'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
+            'requestID' => $this->generateRequestId(),
+            'serviceCode' => 'COM_RECE_CLOUD_PRINT_WAYBILLS', // 云打印接口
+            'timestamp' => time(),
+            'msgData' => json_encode($msgData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ];
+
+        $requestData['msgDigest'] = $this->generateSignature($requestData);
+
+        $resp = $this->httpPost($baseUrl, http_build_query($requestData));
+        if ($resp === false) {
+            return false;
+        }
+
+        $data = json_decode($resp, true);
+        if (!is_array($data) || !isset($data['apiResultCode']) || $data['apiResultCode'] !== 'A1000') {
+            $this->error = isset($data['apiErrorMsg']) ? $data['apiErrorMsg'] : '云打印接口调用失败';
+            return false;
+        }
+
+        // 如果是异步模式，直接返回提示
+        if ($isAsync) {
+             // 返回符合规范的成功响应结构 (如果调用方需要解析 JSON)
+             // 或者直接返回简单字符串，视上层业务逻辑而定
+             // 这里保持原样返回字符串，但在日志或外层可以处理
+             return '异步请求已发送，请等待回调推送';
+        }
+
+        $apiResultData = isset($data['apiResultData']) ? json_decode($data['apiResultData'], true) : [];
+        
+        // 3. 解析返回的文件数据
+        // 云打印接口返回结构：obj -> files -> [ { "url": "...", "token": "..." } ]
+        $files = isset($apiResultData['obj']['files']) ? $apiResultData['obj']['files'] : [];
+        if (empty($files)) {
+             $this->error = '未返回打印文件数据';
+             return false;
+        }
+        
+        $fileData = $files[0];
+        $picData = isset($fileData['url']) ? $fileData['url'] : '';
+        // 获取 Token
+        $fileToken = isset($fileData['token']) ? $fileData['token'] : '';
+
+        if (empty($picData)) {
+            $this->error = '未获取到有效的 PDF 链接';
+            return false;
+        }
+
+        $webPath = ROOT_PATH . 'web' . DS . 'uploads' . DS . 'sf_label';
+        // 如果目录不存在则创建
+        if (!file_exists($webPath)) {
+            mkdir($webPath, 0755, true);
+        }
+
+        $fileName = $waybillNo . '_' . time() . '_sync.pdf'; // 默认 PDF
+        $filePath = $webPath . DS . $fileName;
+
+        // 尝试保存
+        if (filter_var($picData, FILTER_VALIDATE_URL)) {
+             // 使用 curl 下载 PDF
+             $ch = curl_init($picData);
+             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+             // 优化下载速度：
+             // 1. 减少超时时间 (默认30s可能过长，如果服务器响应慢)
+             // 2. 启用 TCP_FASTOPEN (如果系统支持)
+             // 3. 禁用不必要的检查
+             curl_setopt($ch, CURLOPT_TIMEOUT, 60); // 恢复并增加超时时间，确保下载完成
+             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30); // 连接超时 30s
+             curl_setopt($ch, CURLOPT_TCP_NODELAY, true); // 禁用 Nagle 算法
+             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); // 不校验 Host
+             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 不校验 Peer
+             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // 跟随重定向
+             
+             // 如果有 Token，添加到 Header
+             if (!empty($fileToken)) {
+                 curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                     'X-Auth-Token: ' . $fileToken
+                 ]);
+             }
+             
+             $content = curl_exec($ch);
+             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+             
+             if ($httpCode == 200 && $content) {
+                 $res = file_put_contents($filePath, $content);
+                 curl_close($ch); // 关闭要在使用完后
+                 if ($res) {
+                     return $this->getUploadUrl($fileName);
+                 } else {
+                    $this->error = '文件保存失败，请检查目录权限';
+                    return false;
+                 }
+             } else {
+                 // 下载失败，记录日志
+                 $curlError = curl_error($ch);
+                 $this->error = "云打印文件下载失败 HTTP: {$httpCode}, CURL: {$curlError}";
+                 curl_close($ch); // 关闭
+                 \think\Log::error($this->error);
+                 return false; // 强制失败，不降级
+             }
+        } else {
+             // Base64 解码保存
+             $result = file_put_contents($filePath, base64_decode($picData));
+             if ($result === false) {
+                $this->error = '面单保存失败';
+                return false;
+             }
+        }
+
+        // 返回 URL
+        // 假设 public URL 映射
+        $request = \think\Request::instance();
+        $domain = $request->domain();
+        $url = $domain . '/uploads/sf_label/' . $fileName;
+
+        return $url;
     }
 }
