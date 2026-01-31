@@ -189,15 +189,27 @@ class SfPrint extends Controller
             ];
         }
 
-        // 2. 获取 Token
+        // 2. 获取 Token（使用企业级缓存）
         $sf = new Sf($config);
-        $accessToken = $sf->getCloudPrintAccessToken();
+        
+        $accessToken = \app\common\service\SfCache::getAccessToken(
+            $config['key'],
+            function() use ($sf) {
+                return $sf->getCloudPrintAccessToken();
+            }
+        );
+        
         if (!$accessToken) {
             return json(['code' => 0, 'msg' => '获取 AccessToken 失败: ' . $sf->getError()]);
         }
 
-        // 3. 获取订单信息 & 调用 PARSEDDATA 获取云打印数据
-        $parsedData = $sf->printlabelParsedData($orderId);
+        // 3. 获取 ParsedData（使用企业级缓存）
+        $parsedData = \app\common\service\SfCache::getParsedData(
+            $waybillNo,
+            function() use ($sf, $orderId) {
+                return $sf->printlabelParsedData($orderId);
+            }
+        );
         if (!$parsedData) {
              return json(['code' => 0, 'msg' => '获取云打印数据失败: ' . $sf->getError()]);
         }
