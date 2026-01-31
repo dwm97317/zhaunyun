@@ -77,26 +77,42 @@ class SfPrint extends Controller
         
         // 4. 调用打印
         try {
-            $resultUrl = $sf->printlabelParsedData($orderId);
+            $result = $sf->printlabelParsedData($orderId);
             
-            if ($resultUrl === 'ASYNC_REQUEST_SENT') {
+            if ($result === 'ASYNC_REQUEST_SENT') {
                 return json(['code' => 1, 'msg' => '异步请求已发送，请等待回调', 'data' => ['order_sn' => $orderSn, 'waybill_no' => $waybillNo]]);
             }
 
-            if ($resultUrl) {
-                return json([
-                    'code' => 1, 
-                    'msg' => '测试成功', 
-                    'data' => [
-                        'order_sn' => $orderSn,
-                        'waybill_no' => $waybillNo,
-                        'url' => $resultUrl,
-                        'is_local' => strpos($resultUrl, '/uploads/sf_label/') !== false
-                    ]
-                ]);
-            } else {
-                return json(['code' => 0, 'msg' => '打印接口调用失败: ' . $sf->getError()]);
+            if ($result) {
+                // 如果返回的是 URL 字符串（兼容旧模式/PDF模式）
+                if (is_string($result)) {
+                    return json([
+                        'code' => 1, 
+                        'msg' => '测试成功(PDF模式)', 
+                        'data' => [
+                            'order_sn' => $orderSn,
+                            'waybill_no' => $waybillNo,
+                            'url' => $result,
+                            'is_local' => strpos($result, '/uploads/sf_label/') !== false
+                        ]
+                    ]);
+                } 
+                // 如果返回的是数组（ParsedData 模式，返回 contents）
+                else if (is_array($result)) {
+                     return json([
+                        'code' => 1, 
+                        'msg' => '测试成功(Plugin接口数据模式)', 
+                        'data' => [
+                            'order_sn' => $orderSn,
+                            'waybill_no' => $waybillNo,
+                            'plugin_data' => $result // 直接返回给前端查看，或者供插件使用
+                        ]
+                    ]);
+                }
             }
+            
+            return json(['code' => 0, 'msg' => '打印接口调用失败: ' . $sf->getError()]);
+
         } catch (\Exception $e) {
             return json(['code' => 0, 'msg' => '异常: ' . $e->getMessage()]);
         }
@@ -156,26 +172,29 @@ class SfPrint extends Controller
             return json(['code' => 0, 'msg' => '获取 AccessToken 失败: ' . $sf->getError()]);
         }
 
-        // 3. 获取订单信息
-        $order = Inpack::detail($orderId);
-        if (!$order) {
-            return json(['code' => 0, 'msg' => '订单不存在']);
+        // 3. 获取订单信息 & 调用 PARSEDDATA 获取云打印数据
+        $parsedData = $sf->printlabelParsedData($orderId);
+        if (!$parsedData) {
+             return json(['code' => 0, 'msg' => '获取云打印数据失败: ' . $sf->getError()]);
         }
-        $waybillNo = isset($order['t_order_sn']) ? $order['t_order_sn'] : $order['order_sn'];
-        if (empty($waybillNo)) {
-             return json(['code' => 0, 'msg' => '运单号不存在']);
+        
+        // 如果返回的是字符串(URL), 说明可能配置错误或者是PDF模式
+        if (is_string($parsedData)) {
+            return json(['code' => 0, 'msg' => '接口返回了文件URL而不是数据，请检查配置。URL: ' . $parsedData]);
         }
 
         // 4. 组装打印数据 (符合 SCPPrint.print 格式)
+        // 注意：当使用 parsedData 模式时，我们将后端返回的 contents 直接传给 documents
+        // 但 SCPPrint.print 的 data 结构通常是 { requestID, accessToken, templateCode, documents }
+        // 文档中 COM_RECE_CLOUD_PRINT_PARSEDDATA 返回的是一份 contents 数据
+        // 在 JS SDK 中，如果是传递已解析的数据，通常直接作为 document 的 contents
+        
         $printData = [
             'requestID' => uniqid('PRT'),
             'accessToken' => $accessToken,
             'templateCode' => $config['template_code'],
             'documents' => [
-                [
-                    'masterWaybillNo' => $waybillNo,
-                    'remark' => isset($order['remark']) ? $order['remark'] : 'JS打印测试备注'
-                ]
+                 $parsedData // parsedData 是包含 contents 字段的对象
             ]
         ];
 

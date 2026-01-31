@@ -567,6 +567,7 @@ class Sf
             : 'https://sfapi.sf-express.com/std/service';
 
         // 动态构建模板编码
+        // 插件接口通常需要明确的模板编码，如果未配置则尝试通用模板
         if (isset($this->config['template_code']) && !empty($this->config['template_code'])) {
             $templateCode = $this->config['template_code'];
         } else {
@@ -574,14 +575,11 @@ class Sf
             $templateCode = 'fm_76130_standard_' . $partnerID;
         }
         
-        // 强制同步
-        $syncParam = true;
-
         $msgData = [
             'templateCode' => $templateCode, 
             'version' => '2.0',
-            'fileType' => 'pdf', 
-            'sync' => $syncParam,
+            'fileType' => 'json', // 插件接口通常返回 json 格式的点阵/绘制指令
+            'sync' => true,
             'documents' => [
                 [
                     'masterWaybillNo' => $waybillNo,
@@ -593,7 +591,7 @@ class Sf
         $requestData = [
             'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
             'requestID' => $this->generateRequestId(),
-            'serviceCode' => 'COM_RECE_CLOUD_PRINT_WAYBILLS', // 只能用 WAYBILLS 接口获取 PDF
+            'serviceCode' => 'COM_RECE_CLOUD_PRINT_PARSEDDATA', // 插件接口
             'timestamp' => time(),
             'msgData' => json_encode($msgData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         ];
@@ -613,44 +611,40 @@ class Sf
 
         $apiResultData = isset($data['apiResultData']) ? json_decode($data['apiResultData'], true) : [];
         
-        // 3. 解析返回的文件数据
-        // COM_RECE_CLOUD_PRINT_WAYBILLS 返回结构 obj -> files
+        // 3. 解析返回的数据
         $files = isset($apiResultData['obj']['files']) ? $apiResultData['obj']['files'] : [];
 
         if (empty($files)) {
-             $this->error = '未返回打印文件数据: ' . json_encode($apiResultData, JSON_UNESCAPED_UNICODE);
+             $this->error = '未返回面单数据: ' . json_encode($apiResultData, JSON_UNESCAPED_UNICODE);
              return false;
         }
         
         $fileData = $files[0];
         
-        // 如果返回的是 images 数组 (PDF 图片模式)
-        // 注意：有些时候 SF 会返回 images 列表而不是单一 url
-        if (isset($fileData['images']) && is_array($fileData['images']) && !empty($fileData['images'])) {
-             // 这种情况下通常不返回 PDF URL，可能是图片URL列表
-             // 简单处理：取第一张图
-             $picData = $fileData['images'][0];
-             // 图片通常也是 url
-             return $this->downloadAndSave($waybillNo, $picData, '');
+        // 场景A: 返回 contents (JSON 渲染数据) -> 这是 PARSEDDATA 接口的正常返回
+        if (isset($fileData['contents'])) {
+            // 直接返回原始数据，供前端插件使用
+            // 也可以选择在这里处理，但通常是给前端
+            return $fileData; 
         }
 
+        // 场景B: 返回 url / images / content (PDF/图片)
+        // 某些配置下 PARSEDDATA 也可能返回文件
         $picData = isset($fileData['url']) ? $fileData['url'] : '';
-        $fileToken = isset($fileData['token']) ? $fileData['token'] : '';
-
-        if (empty($picData)) {
-            // 尝试检查是否直接返回了 content
-            if (isset($fileData['content']) && !empty($fileData['content'])) {
-                 return $this->saveBase64Directly($waybillNo, $fileData['content']);
-            }
-            
-            // 检查是否是被误判为 JSON 结构的 items 数据 (用户遇到的情况)
-            // 用户返回的数据里包含 "contents" 字段，这说明请求的是 PARSEDDATA 接口，返回的是打印元素数据，而不是 PDF
-            // 我们必须使用 COM_RECE_CLOUD_PRINT_WAYBILLS 接口才能拿到 PDF
-            $this->error = '未获取到有效的 PDF 链接或内容. Resp: ' . json_encode($fileData, JSON_UNESCAPED_UNICODE);
-            return false;
+        if (isset($fileData['images']) && is_array($fileData['images'])) {
+            $picData = $fileData['images'][0];
+        }
+        
+        if (!empty($picData)) {
+             return $this->downloadAndSave($waybillNo, $picData, isset($fileData['token']) ? $fileData['token'] : '');
         }
 
-        return $this->downloadAndSave($waybillNo, $picData, $fileToken);
+        if (isset($fileData['content']) && !empty($fileData['content'])) {
+             return $this->saveBase64Directly($waybillNo, $fileData['content']);
+        }
+        
+        $this->error = '未识别的返回数据格式. Resp: ' . json_encode($fileData, JSON_UNESCAPED_UNICODE);
+        return false;
     }
 
     private function saveBase64Directly($waybillNo, $content)
