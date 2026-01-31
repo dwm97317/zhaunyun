@@ -320,7 +320,7 @@ class SfPrint extends Controller
             <div class="setting-group">
                 <label>纸张模式</label>
                 <select id="paperType" class="setting-control" onchange="saveConfig()">
-                    <option value="">默认尺寸</option>
+                    <option value="">模板默认尺寸</option>
                     <option value="A4">A4 纸张</option>
                     <option value="A4_copy">A4 包含留底</option>
                 </select>
@@ -329,7 +329,7 @@ class SfPrint extends Controller
             <div class="setting-group">
                 <label class="checkbox-label">
                     <input type="checkbox" id="isPreview" onchange="saveConfig()">
-                    打印前预览
+                    打印前预览 (如无反应请检查弹窗拦截)
                 </label>
             </div>
 
@@ -407,15 +407,42 @@ class SfPrint extends Controller
 
         // Init
         window.onload = function() {
+            if (location.protocol === 'https:') {
+                diagnoseLocalHttps();
+            }
             loadSdk();
             loadConfig();
         };
+
+        function diagnoseLocalHttps() {
+            log('正在检测本地 HTTPS 打印服务 (localhost:8443)...', 'info');
+            const s = document.createElement('script');
+            s.src = "https://localhost:8443/CLodopfuncs.js?priority=1";
+            s.onload = function() {
+                log('检测成功：本地插件支持 HTTPS！理论上无需特殊设置即可打印。', 'success');
+                $('#statusConnect').addClass('active').css('background', '#00b894'); // 预判连接成功
+            };
+            s.onerror = function() {
+                log('检测失败：本地插件未响应 HTTPS 请求。', 'err');
+                showHttpsWarning();
+            };
+            document.head.appendChild(s);
+        }
+
+        function showHttpsWarning() {
+            const msg = '❌ <b>严重警告：HTTPS 阻断</b><br>您的网站是 HTTPS，但本地打印插件无法通过 HTTPS 连接。<br>浏览器已拦截打印指令。<br><br><b>解决方案：</b><br>请点击地址栏左侧“🔒锁图标” -> 网站设置 -> 将 <b>“不安全内容 (Insecure Content)”</b> 设置为 <b>“允许 (Allow)”</b>。<br>设置后请刷新页面重试。';
+            const banner = document.createElement('div');
+            banner.style.cssText = 'background:#f8d7da; color:#721c24; padding:20px; border-bottom:1px solid #f5c6cb; text-align:center; font-size:15px; line-height:1.6;';
+            banner.innerHTML = msg;
+            document.body.insertBefore(banner, document.body.firstChild);
+        }
 
         function loadConfig() {
             const cfg = JSON.parse(localStorage.getItem('sf_print_config') || '{}');
             if(cfg.printer) $('#printerSelect').val(cfg.printer);
             if(cfg.paper) $('#paperType').val(cfg.paper);
-            $('#isPreview').prop('checked', !!cfg.preview);
+            // 默认不勾选预览，防止拦截
+            if(cfg.preview !== undefined) $('#isPreview').prop('checked', !!cfg.preview);
         }
 
         function saveConfig() {
@@ -548,10 +575,30 @@ class SfPrint extends Controller
                 };
                 
                 log(`发送指令 (RID: \${data.requestID})`, 'info');
-                state.scp.print(data, (ret) => {
-                    handlePrintCallback(ret);
-                    domBtn.prop('disabled', false).removeClass('loading');
-                }, options);
+                
+                // --- 超时检测 ---
+                let callbackReceived = false;
+                const tmr = setTimeout(() => {
+                    if(!callbackReceived) {
+                        log('Warning: 插件响应超时(15s)！可能原因：', 'warn');
+                        log('1. 预览窗口被浏览器拦截 (请留意地址栏)', 'warn');
+                        log('2. 打印服务无响应', 'warn');
+                        domBtn.prop('disabled', false).removeClass('loading');
+                    }
+                }, 15000); // 15s Timeout
+
+                try {
+                    state.scp.print(data, (ret) => {
+                        callbackReceived = true;
+                        clearTimeout(tmr); // 清除超时
+                        handlePrintCallback(ret);
+                        domBtn.prop('disabled', false).removeClass('loading');
+                    }, options);
+                } catch(e) {
+                     clearTimeout(tmr);
+                     log('Execute Error: ' + e.message, 'error');
+                     domBtn.prop('disabled', false).removeClass('loading');
+                }
 
             }, 'json').fail((err) => {
                 log('网络请求失败: ' + err.statusText, 'error');
@@ -562,6 +609,7 @@ class SfPrint extends Controller
         function handlePrintCallback(res) {
             if (res.code === 1) {
                 log('指令执行成功', 'success');
+                // 可选：成功后清除输入框或提示
             } else if (res.code === 2 || res.code === 3) {
                  log('需安装/更新插件', 'error');
                  if( confirm(`需要安装打印插件: \${res.msg}\n点击确定下载`) ) {
@@ -571,7 +619,6 @@ class SfPrint extends Controller
                 log(`错误 (Code \${res.code}): \${res.msg}`, 'error');
             }
         }
-
     </script>
 </body>
 </html>
