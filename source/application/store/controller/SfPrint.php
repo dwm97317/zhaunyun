@@ -89,107 +89,178 @@ class SfPrint extends Controller
     <title>顺丰云打印 JS 模式测试</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
-        .box { border: 1px solid #ddd; padding: 20px; margin-top: 20px; border-radius: 5px; }
+        .box { border: 1px solid #ddd; padding: 20px; margin-top: 20px; border-radius: 5px; background: #fff; }
         button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #d0021b; color: #fff; border: none; border-radius: 4px; }
         button:disabled { background: #ccc; }
-        #log { background: #f5f5f5; padding: 10px; margin-top: 10px; height: 300px; overflow-y: scroll; font-family: monospace; }
+        #log { background: #f5f5f5; padding: 10px; margin-top: 10px; height: 300px; overflow-y: scroll; font-family: monospace; border: 1px solid #ccc; }
+        .status { margin-bottom: 10px; font-weight: bold; }
+        .success { color: green; }
+        .error { color: red; }
     </style>
-    <!-- 引入顺丰云打印 SDK (2.7 版本) -->
-    <script src="https://scp-tcdn.sf-express.com/prd/sdk/lodop/2.7/SCPPrint.js"></script>
+    <!-- 引入 jQuery -->
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
     <h1>顺丰云打印 (JS 插件模式) 测试</h1>
     
+    <div class="status" id="sdkStatus">SDK 加载状态: 等待加载...</div>
+
     <div class="box">
         <label>输入订单ID (Inpack ID): </label>
-        <input type="text" id="orderId" value="" placeholder="例如: 69451">
+        <input type="text" id="orderId" value="" placeholder="例如: 69451" style="padding: 8px; width: 200px;">
         <button id="btnPrint" onclick="doPrint()">立即打印</button>
+        <button onclick="checkLodop()" style="background: #333; margin-left: 10px;">检查插件状态</button>
     </div>
 
     <div class="box">
-        <h3>打印日志:</h3>
+        <h3>操作日志:</h3>
         <div id="log"></div>
     </div>
 
+    <!-- 动态加载顺丰 SDK，防止阻塞 -->
     <script>
-        // 顺丰打印实例
-        var scpPrint = null;
+        // 屏蔽无关的全局错误，防止 common.js 干扰
+        window.onerror = function(msg, url, line) {
+            console.warn('捕获到全局错误(已忽略):', msg);
+            return true; // 返回 true 阻止错误冒泡
+        };
 
-        function log(msg) {
+        var scpPrint = null;
+        var sdkLoaded = false;
+
+        function log(msg, type) {
             var el = document.getElementById('log');
-            el.innerHTML += '<div>[' + new Date().toLocaleTimeString() + '] ' + msg + '</div>';
+            var color = type === 'error' ? 'red' : (type === 'success' ? 'green' : 'black');
+            el.innerHTML += '<div style="color:' + color + '">[' + new Date().toLocaleTimeString() + '] ' + msg + '</div>';
             el.scrollTop = el.scrollHeight;
         }
 
+        // 动态加载 SDK
+        function loadSdk() {
+            var script = document.createElement('script');
+            script.src = "https://scp-tcdn.sf-express.com/prd/sdk/lodop/2.7/SCPPrint.js";
+            script.onload = function() {
+                sdkLoaded = true;
+                $('#sdkStatus').text('SDK 加载状态: 加载成功').addClass('success');
+                log('顺丰 SCPPrint.js 加载成功', 'success');
+            };
+            script.onerror = function() {
+                $('#sdkStatus').text('SDK 加载状态: 加载失败').addClass('error');
+                log('顺丰 SCPPrint.js 加载失败，请检查网络', 'error');
+            };
+            document.head.appendChild(script);
+        }
+
+        function checkLodop() {
+            if (!sdkLoaded) {
+                alert('SDK 尚未加载完成');
+                return;
+            }
+            try {
+                // 尝试实例化一个临时的检查对象 (参数随便填，主要是为了触发内部的 CLodop 检测)
+                // 注意：SCPPrint 实例化时会尝试连接本地服务
+                log('正在检测本地打印插件...');
+                var temp = new SCPPrint({
+                     partnerID: 'CHECK',
+                     env: 'sbox',
+                     notips: true
+                });
+                log('插件连接检测指令已发送（请留意浏览器控制台或弹窗）');
+            } catch (e) {
+                log('检测异常: ' + e.message, 'error');
+                alert('请确认已安装顺丰打印插件！');
+            }
+        }
+
         function initSf(partnerID, env) {
-            if (scpPrint) return;
+            if (scpPrint) return true;
             
-            log('正在初始化顺丰 SDK... PartnerID: ' + partnerID + ', Env: ' + env);
+            log('正在初始化打印实例... PartnerID: ' + partnerID, 'info');
             try {
                 scpPrint = new SCPPrint({
                     partnerID: partnerID,
-                    env: env, // 'sbox' or 'pro'
-                    notips: false // 开启提示，方便调试
+                    env: env, 
+                    notips: false 
                 });
-                log('SDK 初始化完成');
+                log('打印实例初始化成功', 'success');
+                return true;
             } catch (e) {
-                log('SDK 初始化失败: ' + e.message);
-                alert('请确保已安装顺丰打印组件(C-Lodop)!');
+                log('SDK 初始化异常: ' + e.message, 'error');
+                if (e.message.indexOf('not defined') > -1) {
+                     log('可能是 SCPPrint.js 加载失败', 'error');
+                } else {
+                     log('请检查是否安装了打印插件', 'error');
+                }
+                return false;
             }
         }
 
         function doPrint() {
+            if (!sdkLoaded) {
+                alert('正在加载 SDK，请稍候...');
+                return;
+            }
+
             var orderId = $('#orderId').val();
             if (!orderId) {
                 alert('请输入订单ID');
                 return;
             }
 
-            $('#btnPrint').prop('disabled', true).text('准备中...');
-            log('正在获取打印配置...');
+            $('#btnPrint').prop('disabled', true).text('处理中...');
+            log('开始打印流程，订单ID: ' + orderId);
 
-            // 1. 请求后端获取 AccessToken 和打印数据
-            // 注意 URL 变更: sf_print
+            // 1. 请求后端获取配置
             $.get('/index.php?s=/store/sf_print/getPrintConfig', { order_id: orderId }, function(res) {
                 if (res.code !== 1) {
-                    log('获取配置失败: ' + res.msg);
+                    log('后端报错: ' + res.msg, 'error');
                     $('#btnPrint').prop('disabled', false).text('立即打印');
                     return;
                 }
 
-                // 2. 初始化 SDK (如果还没初始化)
-                initSf(res.partnerID, res.env);
+                log('获取后端配置成功，准备调用打印机...');
+
+                // 2. 初始化
+                if (!initSf(res.partnerID, res.env)) {
+                    $('#btnPrint').prop('disabled', false).text('立即打印');
+                    return;
+                }
 
                 // 3. 调用打印
                 var printData = res.data;
-                log('获取配置成功，开始调用插件打印...');
-                log('RequestID: ' + printData.requestID);
-                log('Template: ' + printData.templateCode);
+                log('发送打印任务... RequestID: ' + printData.requestID);
 
-                scpPrint.print(printData, function(result) {
-                    // 回调
-                    log('打印结果: Code=' + result.code + ', Msg=' + result.msg);
-                    if (result.code == 1) {
-                        log('>>> 任务推送成功，请查看打印机');
-                    } else {
-                        log('>>> 打印失败');
-                        if (result.downloadUrl) {
-                             log('提示: 请下载并安装打印插件: ' + result.downloadUrl);
-                             window.open(result.downloadUrl);
+                try {
+                    scpPrint.print(printData, function(result) {
+                        log('收到打印回调: Code=' + result.code + ', Msg=' + result.msg, result.code == 1 ? 'success' : 'error');
+                        
+                        if (result.code == 1) {
+                            alert('打印任务已下发！');
+                        } else {
+                            if (result.downloadUrl) {
+                                 log('需安装插件，下载地址: ' + result.downloadUrl, 'error');
+                                 // 自动弹出下载
+                                 if(confirm('检测到未安装打印插件，是否立即下载？')) {
+                                     window.open(result.downloadUrl);
+                                 }
+                            }
                         }
-                    }
+                        $('#btnPrint').prop('disabled', false).text('立即打印');
+                    });
+                } catch (e) {
+                    log('调用 print 方法异常: ' + e.message, 'error');
                     $('#btnPrint').prop('disabled', false).text('立即打印');
-                }, {
-                    // 可选配置
-                    // preview: true // 如果想强制预览
-                });
+                }
 
-            }, 'json').fail(function() {
-                log('网络请求失败');
+            }, 'json').fail(function(xhr, status, error) {
+                log('网络请求失败: ' + error, 'error');
+                console.error(xhr.responseText);
                 $('#btnPrint').prop('disabled', false).text('立即打印');
             });
         }
+
+        // 页面加载完成后加载 SDK
+        loadSdk();
     </script>
 </body>
 </html>
