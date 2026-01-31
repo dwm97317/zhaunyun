@@ -509,9 +509,14 @@ class Sf
             ? rtrim($this->config['apiurl'], '/')
             : 'https://sfapi.sf-express.com/std/service';
 
-        // 动态构建模板编码: fm_76130_standard_{partnerID}
-        $partnerID = isset($this->config['key']) ? $this->config['key'] : '';
-        $templateCode = 'fm_76130_standard_' . $partnerID;
+        // 动态构建模板编码
+        // 优先使用配置中的 template_code，否则使用默认的 fm_76130_standard_{partnerID}
+        if (isset($this->config['template_code']) && !empty($this->config['template_code'])) {
+            $templateCode = $this->config['template_code'];
+        } else {
+            $partnerID = isset($this->config['key']) ? $this->config['key'] : '';
+            $templateCode = 'fm_76130_standard_' . $partnerID;
+        }
         
         // 获取同步/异步配置 (默认同步)
         // 1: 异步, 0/null: 同步 (根据通常习惯，或者反过来，需看具体配置定义。这里假设 config['sync_mode'] == 1 为异步)

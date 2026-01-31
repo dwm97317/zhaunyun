@@ -168,7 +168,9 @@ class SfE2eTest extends Controller
             'key' => $ditch['app_key'],
             'token' => $ditch['app_token'],
             'apiurl' => 'https://sfapi-sbox.sf-express.com/std/service', // 切换回沙箱环境
-            'customer_code' => isset($ditch['customer_code']) ? $ditch['customer_code'] : ''
+            'customer_code' => isset($ditch['customer_code']) ? $ditch['customer_code'] : '',
+            // 增加自定义模板配置，用于测试备注显示
+            'template_code' => 'fm_76130_fyp_standard_custom_10050050684_1'
         ];
 
         // 必填校验
