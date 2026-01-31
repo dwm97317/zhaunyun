@@ -488,15 +488,15 @@ class SfPrint extends Controller
             state.scp.getPrinters((res) => {
                 if (res.code === 1) {
                     const list = res.printers;
-                    const $sel = $('#printerSelect');
-                    const saved = $sel.val();
+                    const domSel = $('#printerSelect');
+                    const saved = domSel.val();
                     
-                    $sel.empty().append('<option value="">-- 使用默认打印机 --</option>');
+                    domSel.empty().append('<option value="">-- 使用默认打印机 --</option>');
                     list.forEach(p => {
-                        $sel.append(`<option value="\${p.name}">\${p.name}</option>`);
+                        domSel.append(`<option value="\${p.name}">\${p.name}</option>`);
                     });
                     
-                    if(saved) $sel.val(saved);
+                    if(saved) domSel.val(saved);
                     if (!silent) log(`找到 \${list.length} 台打印机`, 'success');
                 } else {
                     if (!silent) log(`获取打印机失败: \${res.msg}`, 'warn');
@@ -510,8 +510,8 @@ class SfPrint extends Controller
             if (!orderId) return alert('请输入订单 ID');
             if (!state.sdkReady) return alert('SDK 未就绪');
             
-            const $btn = $('#printBtn');
-            $btn.prop('disabled', true).addClass('loading');
+            const domBtn = $('#printBtn');
+            domBtn.prop('disabled', true).addClass('loading');
             
             log('============== 开始打印流程 ==============', 'info');
             log(`正在获取订单 [ \${orderId} ] 数据...`, 'info');
@@ -550,12 +550,12 @@ class SfPrint extends Controller
                 log(`发送指令 (RID: \${data.requestID})`, 'info');
                 state.scp.print(data, (ret) => {
                     handlePrintCallback(ret);
-                    $btn.prop('disabled', false).removeClass('loading');
+                    domBtn.prop('disabled', false).removeClass('loading');
                 }, options);
 
             }, 'json').fail((err) => {
                 log('网络请求失败: ' + err.statusText, 'error');
-                $btn.prop('disabled', false).removeClass('loading');
+                domBtn.prop('disabled', false).removeClass('loading');
             });
         }
         
