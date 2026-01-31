@@ -389,9 +389,10 @@ class SfPrint extends Controller
 
     <!-- Logic -->
     <script>
-        // State
+        // Global State
         const state = {
             sdkReady: false,
+            clodopReady: false,
             printerList: [],
             scp: null,
             lastPartnerId: ''
@@ -405,43 +406,97 @@ class SfPrint extends Controller
             el.scrollTop = el.scrollHeight;
         }
 
+        // Status UI Updater
+        function updateStatus(id, status) {
+            const el = $('#' + id);
+            el.removeClass('active error');
+            if(status === 'ok') el.addClass('active').css('background', '#00b894'); // Green
+            else if(status === 'err') el.addClass('error').css('background', '#d63031'); // Red
+            else el.css('background', '#ccc'); // Reset
+        }
+
         // Init
         window.onload = function() {
-            if (location.protocol === 'https:') {
-                diagnoseLocalHttps();
-            }
-            loadSdk();
-            loadConfig();
+            // Step 1: Force Load C-LODOP
+            injectCLodop();
         };
 
-        function diagnoseLocalHttps() {
-            log('正在检测本地 HTTPS 打印服务 (localhost:8443)...', 'info');
-            const s = document.createElement('script');
-            s.src = "https://localhost:8443/CLodopfuncs.js?priority=1";
-            s.onload = function() {
-                log('检测成功：本地插件支持 HTTPS！理论上无需特殊设置即可打印。', 'success');
-                $('#statusConnect').addClass('active').css('background', '#00b894'); // 预判连接成功
+        // 1. Inject C-LODOP (The Core Service)
+        function injectCLodop() {
+            log('正在连接本地打印服务...', 'info');
+            
+            // Priority 1: HTTPS (8443)
+            const s1 = document.createElement('script');
+            s1.src = "https://localhost:8443/CLodopfuncs.js?priority=1";
+            
+            s1.onload = function() {
+                log('本地服务 (HTTPS) 连接成功！', 'success');
+                state.clodopReady = true;
+                updateStatus('statusConnect', 'ok');
+                loadSdk(); // Proceed
             };
-            s.onerror = function() {
-                log('检测失败：本地插件未响应 HTTPS 请求。', 'err');
-                showHttpsWarning();
+
+            s1.onerror = function() {
+                // Priority 2: HTTP (8000/18000) - Only works if Mixed Content allowed
+                log('HTTPS连接失败，尝试 HTTP 连接...', 'warn');
+                const s2 = document.createElement('script');
+                s2.src = "http://localhost:8000/CLodopfuncs.js?priority=2";
+                
+                s2.onload = function() {
+                    log('本地服务 (HTTP) 连接成功！', 'success');
+                    state.clodopReady = true;
+                    updateStatus('statusConnect', 'ok');
+                    loadSdk();
+                };
+                
+                s2.onerror = function() {
+                    log('❌ 致命错误：无法连接本地顺丰打印服务！', 'err');
+                    log('请检查：1. 是否运行了打印插件？ 2. 浏览器是否允许了[不安全内容]？', 'err');
+                    updateStatus('statusConnect', 'err');
+                    showHttpsWarning();
+                };
+                document.head.appendChild(s2);
             };
-            document.head.appendChild(s);
+            
+            document.head.appendChild(s1);
         }
 
         function showHttpsWarning() {
-            const msg = '❌ <b>严重警告：HTTPS 阻断</b><br>您的网站是 HTTPS，但本地打印插件无法通过 HTTPS 连接。<br>浏览器已拦截打印指令。<br><br><b>解决方案：</b><br>请点击地址栏左侧“🔒锁图标” -> 网站设置 -> 将 <b>“不安全内容 (Insecure Content)”</b> 设置为 <b>“允许 (Allow)”</b>。<br>设置后请刷新页面重试。';
+            const msg = '❌ <b>本地服务连接失败</b><br>请务必允许浏览器的 <b>“不安全内容 (Insecure Content)”</b> 权限。<br>否则 HTTPS 网页无法驱动本地打印机。<br>点击地址栏左侧锁图标设置。';
             const banner = document.createElement('div');
-            banner.style.cssText = 'background:#f8d7da; color:#721c24; padding:20px; border-bottom:1px solid #f5c6cb; text-align:center; font-size:15px; line-height:1.6;';
+            banner.style.cssText = 'background:#f8d7da; color:#721c24; padding:15px; border-bottom:1px solid #f5c6cb; text-align:center; font-size:14px;';
             banner.innerHTML = msg;
             document.body.insertBefore(banner, document.body.firstChild);
+        }
+
+        // 2. Load SF SDK
+        function loadSdk() {
+            log('正在加载顺丰业务 SDK...', 'info');
+            const script = document.createElement('script');
+            script.src = "https://scp-tcdn.sf-express.com/prd/sdk/lodop/2.7/SCPPrint.js";
+            
+            script.onload = () => {
+                state.sdkReady = true;
+                updateStatus('statusSdk', 'ok');
+                $('#sdkVersion').text('v2.7 (Loaded)');
+                log('SDK 加载成功', 'success');
+                
+                loadConfig();
+                // Try init
+                setTimeout(() => initScp('THGJH89TNITE', 'sbox', true), 500);
+            };
+            
+            script.onerror = () => {
+                updateStatus('statusSdk', 'err');
+                log('SDK 加载失败 (CDN Timeout)', 'error');
+            };
+            document.body.appendChild(script);
         }
 
         function loadConfig() {
             const cfg = JSON.parse(localStorage.getItem('sf_print_config') || '{}');
             if(cfg.printer) $('#printerSelect').val(cfg.printer);
             if(cfg.paper) $('#paperType').val(cfg.paper);
-            // 默认不勾选预览，防止拦截
             if(cfg.preview !== undefined) $('#isPreview').prop('checked', !!cfg.preview);
         }
 
@@ -456,32 +511,8 @@ class SfPrint extends Controller
             return cfg;
         }
 
-        // 1. Load SDK
-        function loadSdk() {
-            log('正在加载顺丰云打印 SDK...', 'info');
-            const script = document.createElement('script');
-            script.src = "https://scp-tcdn.sf-express.com/prd/sdk/lodop/2.7/SCPPrint.js";
-            
-            script.onload = () => {
-                state.sdkReady = true;
-                $('#statusSdk').addClass('active');
-                $('#sdkVersion').text('v2.7 (Loaded)');
-                log('SDK 加载成功', 'success');
-                // 尝试用临时 ID 初始化以获取打印机
-                initScp('THGJH89TNITE', 'sbox', true);
-            };
-            
-            script.onerror = () => {
-                $('#statusSdk').addClass('error');
-                log('SDK 加载失败，请检查网络 (scp-tcdn.sf-express.com)', 'error');
-            };
-            document.body.appendChild(script);
-        }
-
-        // 2. Init SCP Instance
         function initScp(partnerID, env, isSilent = false) {
             if (!state.sdkReady) return;
-            
             try {
                 if(!isSilent) log(`初始化 SDK 实例 (PID: \${partnerID})...`, 'info');
                 state.scp = new SCPPrint({
@@ -489,134 +520,124 @@ class SfPrint extends Controller
                     env: env,
                     notips: !$('#showTips').is(':checked')
                 });
-                
                 state.lastPartnerId = partnerID;
-                $('#statusConnect').addClass('active');
-                $('#pluginStatus').text('Connected');
-                
-                if(isSilent) {
-                    refreshPrinters(true);
-                } else {
-                    log('打印服务连接成功', 'success');
-                }
+                if(isSilent) refreshPrinters(true);
                 return true;
             } catch (e) {
-                $('#statusConnect').addClass('error');
                 if(!isSilent) log('Init Error: ' + e.message, 'error');
                 return false;
             }
         }
 
-        // 3. Get Printers
         function refreshPrinters(silent = false) {
             if (!state.scp) return;
             if (!silent) log('正在刷新打印机列表...', 'info');
             
-            state.scp.getPrinters((res) => {
-                if (res.code === 1) {
-                    const list = res.printers;
-                    const domSel = $('#printerSelect');
-                    const saved = domSel.val();
-                    
-                    domSel.empty().append('<option value="">-- 使用默认打印机 --</option>');
-                    list.forEach(p => {
-                        domSel.append(`<option value="\${p.name}">\${p.name}</option>`);
-                    });
-                    
-                    if(saved) domSel.val(saved);
-                    if (!silent) log(`找到 \${list.length} 台打印机`, 'success');
-                } else {
-                    if (!silent) log(`获取打印机失败: \${res.msg}`, 'warn');
+            try {
+                // Ensure CLodop is effectively loaded
+                if (typeof getCLodop === 'undefined') {
+                    if(!silent) log('C-Lodop 对象未就绪，仍在等待加载...', 'warn');
+                    return;
                 }
-            });
+
+                state.scp.getPrinters((res) => {
+                    if (res.code === 1) {
+                        const list = res.printers || [];
+                        const domSel = $('#printerSelect');
+                        const saved = domSel.val();
+                        domSel.empty().append('<option value="">-- 使用默认打印机 --</option>');
+                        
+                        list.forEach(p => {
+                            domSel.append(`<option value="\${p.name}">\${p.name}</option>`);
+                        });
+                        
+                        if(saved) domSel.val(saved);
+                        if(!silent) log(`找到 \${list.length} 台打印机`, 'success');
+                    } else {
+                        if (!silent) log(`获取打印机失败: \${res.msg}`, 'warn');
+                    }
+                });
+            } catch(e) {
+                if(!silent) log('GetPrinters Exception: ' + e.message, 'error');
+            }
         }
 
-        // 4. Main Print Flow
         function startPrint() {
             const orderId = $('#orderInput').val();
             if (!orderId) return alert('请输入订单 ID');
             if (!state.sdkReady) return alert('SDK 未就绪');
+            if (!state.clodopReady) return alert('本地打印服务未连接！无法打印');
             
             const domBtn = $('#printBtn');
             domBtn.prop('disabled', true).addClass('loading');
             
             log('============== 开始打印流程 ==============', 'info');
-            log(`正在获取订单 [ \${orderId} ] 数据...`, 'info');
+            log(`Getting Data for [ \${orderId} ]...`, 'info');
 
-            // Step A: Get Data
             $.get('/index.php?s=/store/sf_print/getPrintConfig', { order_id: orderId }, (res) => {
                 if (res.code !== 1) {
                     throw new Error(res.msg);
                 }
                 
-                $('#statusCloud').addClass('active');
+                updateStatus('statusCloud', 'ok');
                 log('云端数据获取成功', 'success');
                 
                 const { partnerID, env, data } = res;
+                // Debug
+                log('Data Preview: ' + JSON.stringify(data).substring(0, 60) + '...', 'cmd');
                 
-                // Step B: Re-init if partner changed
                 if (state.lastPartnerId !== partnerID) {
                     initScp(partnerID, env);
                 }
                 
-                // Step C: Set Printer
                 const cfg = saveConfig();
                 if (cfg.printer) {
                     log(`设置打印机: \${cfg.printer}`, 'info');
                     state.scp.setPrinter(cfg.printer);
-                } else {
-                     log(`使用系统默认打印机`, 'info');
                 }
                 
-                // Step D: Print
                 const options = {
                     lodopFn: cfg.preview ? 'PREVIEW' : 'PRINT',
                     pageType: cfg.paper || undefined
                 };
                 
-                log(`发送指令 (RID: \${data.requestID})`, 'info');
+                log(`下发指令 (RID: \${data.requestID})`, 'info');
                 
-                // --- 超时检测 ---
                 let callbackReceived = false;
                 const tmr = setTimeout(() => {
                     if(!callbackReceived) {
-                        log('Warning: 插件响应超时(15s)！可能原因：', 'warn');
-                        log('1. 预览窗口被浏览器拦截 (请留意地址栏)', 'warn');
-                        log('2. 打印服务无响应', 'warn');
+                        log('❌ 响应超时(15s)', 'err');
                         domBtn.prop('disabled', false).removeClass('loading');
                     }
-                }, 15000); // 15s Timeout
+                }, 15000);
 
                 try {
                     state.scp.print(data, (ret) => {
                         callbackReceived = true;
-                        clearTimeout(tmr); // 清除超时
+                        clearTimeout(tmr);
                         handlePrintCallback(ret);
                         domBtn.prop('disabled', false).removeClass('loading');
                     }, options);
                 } catch(e) {
                      clearTimeout(tmr);
-                     log('Execute Error: ' + e.message, 'error');
+                     log('SCPrint.print Error: ' + e.message, 'error');
                      domBtn.prop('disabled', false).removeClass('loading');
                 }
 
             }, 'json').fail((err) => {
-                log('网络请求失败: ' + err.statusText, 'error');
+                log('API 请求失败: ' + err.statusText, 'error');
                 domBtn.prop('disabled', false).removeClass('loading');
             });
         }
         
         function handlePrintCallback(res) {
+            log('回调结果: ' + JSON.stringify(res), res.code === 1 ? 'success' : 'warn');
             if (res.code === 1) {
-                log('指令执行成功', 'success');
-                // 可选：成功后清除输入框或提示
+                log('✅ 打印成功！', 'success');
             } else if (res.code === 2 || res.code === 3) {
-                 log('需安装/更新插件', 'error');
                  if( confirm(`需要安装打印插件: \${res.msg}\n点击确定下载`) ) {
                      window.open(res.downloadUrl);
                  }
-            } else {
-                log(`错误 (Code \${res.code}): \${res.msg}`, 'error');
             }
         }
     </script>
