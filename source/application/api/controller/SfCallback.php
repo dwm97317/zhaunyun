@@ -154,7 +154,7 @@ class SfCallback extends Controller
             }
         }
 
-        $fileName = $waybillNo . '_' . time() . '_async.pdf';
+        $fileName = $waybillNo . '_' . time() . '_yibu.pdf';
         $filePath = $webPath . DS . $fileName;
 
         $pdfContent = base64_decode($base64Content);
@@ -183,7 +183,7 @@ class SfCallback extends Controller
             }
         }
 
-        $fileName = $waybillNo . '_' . time() . '_async.pdf';
+        $fileName = $waybillNo . '_' . time() . '_yibu.pdf';
         $filePath = $webPath . DS . $fileName;
 
         // 下载 PDF
