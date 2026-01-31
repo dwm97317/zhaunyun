@@ -519,7 +519,7 @@ class Sf
 
         $data = json_decode($resp, true);
         if (!is_array($data) || !isset($data['apiResultCode']) || $data['apiResultCode'] !== 'A1000') {
-            $this->error = isset($data['apiErrorMsg']) ? $data['apiErrorMsg'] : 'Token获取失败';
+            $this->error = (isset($data['apiErrorMsg']) ? $data['apiErrorMsg'] : 'Token获取失败') . ' Resp:' . $resp;
             return false;
         }
 
@@ -532,7 +532,7 @@ class Sf
             return $accessToken;
         }
 
-        $this->error = '未获取到有效的 AccessToken';
+        $this->error = '未获取到有效的 AccessToken. Resp:' . $resp;
         return false;
     }
 

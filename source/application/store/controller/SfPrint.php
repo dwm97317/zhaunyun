@@ -42,6 +42,12 @@ class SfPrint extends Controller
         $orderSn = 'TEST_LOC_' . date('YmdHis');
         $sf = new Sf($config);
         
+        // 1.1 测试获取 AccessToken (调试用)
+        $token = $sf->getCloudPrintAccessToken();
+        if ($token === false) {
+             return json(['code' => 0, 'msg' => 'Test: 获取AccessToken失败: ' . $sf->getError()]);
+        }
+        
         // 2. 下单
         $orderParams = [
             'partnerOrderCode' => $orderSn,
@@ -103,6 +109,7 @@ class SfPrint extends Controller
                         'code' => 1, 
                         'msg' => '测试成功(Plugin接口数据模式)', 
                         'data' => [
+                            'order_id' => $orderId, // 返回订单ID方便测试
                             'order_sn' => $orderSn,
                             'waybill_no' => $waybillNo,
                             'plugin_data' => $result // 直接返回给前端查看，或者供插件使用
@@ -152,18 +159,25 @@ class SfPrint extends Controller
 
         // 1. 获取配置
         $ditch = DitchModel::where('ditch_id', 10076)->find();
+        
         if (!$ditch) {
-            return json(['code' => 0, 'msg' => '未找到顺丰配置']);
+            $config = [
+                'key' => 'THGJH89TNITE',           
+                'token' => '7D88D4D6DC58914624F087796D1244C3',         
+                'apiurl' => 'https://sfapi-sbox.sf-express.com/std/service',
+                'template_code' => 'fm_76130_standard_THGJH89TNITE', 
+                'sync_mode' => 0 
+            ];
+        } else {
+            $config = [
+                'key' => $ditch['app_key'],
+                'token' => $ditch['app_token'],
+                'apiurl' => 'https://sfapi-sbox.sf-express.com/std/service', // 强制沙箱
+                'customer_code' => isset($ditch['customer_code']) ? $ditch['customer_code'] : '',
+                'template_code' => 'fm_76130_standard_' . $ditch['app_key'],
+                'sync_mode' => 0
+            ];
         }
-
-        $config = [
-            'key' => $ditch['app_key'],
-            'token' => $ditch['app_token'],
-            'apiurl' => 'https://sfapi-sbox.sf-express.com/std/service', // 沙箱
-            'customer_code' => isset($ditch['customer_code']) ? $ditch['customer_code'] : '',
-            // 使用自定义模板
-            'template_code' => 'fm_76130_fyp_standard_custom_10050050684_1' 
-        ];
 
         // 2. 获取 Token
         $sf = new Sf($config);
