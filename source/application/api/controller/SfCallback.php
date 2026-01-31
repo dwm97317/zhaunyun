@@ -71,36 +71,60 @@ class SfCallback extends Controller
             
             file_put_contents($logFile, "解析 msgData 成功: " . json_encode($msgData, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
 
-            // 3. 提取文件列表
+            // 3. 提取文件列表 (兼容 Base64 推送模式)
             $files = [];
-            if (isset($msgData['obj']['files'])) {
+            
+            // 模式 A: 只有单个文件对象直接在 msgData 中
+            if (isset($msgData['content'])) {
+                $files[] = $msgData;
+            }
+            // 模式 B: 在 obj.files 中 (之前的 URL 模式，可能也用于 Base64)
+            elseif (isset($msgData['obj']['files'])) {
                 $files = $msgData['obj']['files'];
-            } elseif (isset($msgData['files'])) {
-                 // 兼容不同层级
+            }
+            // 模式 C: 在 files 数组中
+            elseif (isset($msgData['files'])) {
                 $files = $msgData['files'];
+            }
+            // 模式 D: msgData 本身就是文件数组
+            elseif (is_array($msgData) && isset($msgData[0]['content'])) {
+                $files = $msgData;
             }
 
             if (empty($files)) {
-                file_put_contents($logFile, "警告: 未找到 files 字段\n", FILE_APPEND);
+                file_put_contents($logFile, "警告: 未识别到有效的文件结构\n", FILE_APPEND);
                 return json(['apiResultCode' => 'A1000', 'apiResultData' => '{"success": true, "msg": "无文件需处理"}']);
             }
 
             // 4. 处理每个文件
             $downloadCount = 0;
             foreach ($files as $fileInfo) {
-                $url = $fileInfo['url'] ?? '';
                 $waybillNo = $fileInfo['waybillNo'] ?? 'unknown';
+                
+                // 优先尝试 Base64 内容保存
+                if (isset($fileInfo['content']) && !empty($fileInfo['content'])) {
+                    file_put_contents($logFile, "检测到 Base64 内容，开始保存: {$waybillNo}\n", FILE_APPEND);
+                    if ($this->saveBase64Pdf($waybillNo, $fileInfo['content'])) {
+                        $downloadCount++;
+                        file_put_contents($logFile, "Base64 保存成功: {$waybillNo}\n", FILE_APPEND);
+                    } else {
+                        file_put_contents($logFile, "Base64 保存失败: {$waybillNo}\n", FILE_APPEND);
+                    }
+                    continue;
+                }
+                
+                // 降级尝试 URL 下载
+                $url = $fileInfo['url'] ?? '';
                 $token = $fileInfo['token'] ?? '';
                 
-                if (empty($url)) continue;
-
-                file_put_contents($logFile, "开始下载运单: {$waybillNo}, URL: {$url}\n", FILE_APPEND);
-                
-                if ($this->savePdf($waybillNo, $url, $token)) {
-                    $downloadCount++;
-                    file_put_contents($logFile, "下载成功: {$waybillNo}\n", FILE_APPEND);
-                } else {
-                    file_put_contents($logFile, "下载失败: {$waybillNo}\n", FILE_APPEND);
+                if (!empty($url)) {
+                    file_put_contents($logFile, "开始下载运单(URL): {$waybillNo}, URL: {$url}\n", FILE_APPEND);
+                    if ($this->savePdf($waybillNo, $url, $token)) {
+                        $downloadCount++;
+                        file_put_contents($logFile, "URL 下载成功: {$waybillNo}\n", FILE_APPEND);
+                    } else {
+                        file_put_contents($logFile, "URL 下载失败: {$waybillNo}\n", FILE_APPEND);
+                    }
                 }
             }
 
@@ -118,6 +142,35 @@ class SfCallback extends Controller
             file_put_contents($logFile, "异常: " . $e->getMessage() . "\n--------------------\n", FILE_APPEND);
             return json(['apiResultCode' => 'E1000', 'apiErrorMsg' => 'System Error: ' . $e->getMessage()]);
         }
+    }
+
+    private function saveBase64Pdf($waybillNo, $base64Content)
+    {
+        $webPath = ROOT_PATH . 'web' . DS . 'uploads' . DS . 'sf_label';
+        if (!file_exists($webPath)) {
+            if (!mkdir($webPath, 0755, true)) {
+                Log::error("SF Callback: Create dir failed {$webPath}");
+                return false;
+            }
+        }
+
+        $fileName = $waybillNo . '_' . time() . '_async.pdf';
+        $filePath = $webPath . DS . $fileName;
+
+        $pdfContent = base64_decode($base64Content);
+        if (!$pdfContent) {
+            Log::error("SF Callback: Base64 decode failed for {$waybillNo}");
+            return false;
+        }
+
+        $res = file_put_contents($filePath, $pdfContent);
+        if ($res) {
+            Log::info("SF Callback: Saved Base64 PDF for {$waybillNo} to {$filePath}");
+            return true;
+        }
+        
+        Log::error("SF Callback: Write file failed for {$waybillNo}");
+        return false;
     }
 
     private function savePdf($waybillNo, $url, $token)
