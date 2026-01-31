@@ -491,48 +491,42 @@ class Sf
             return $token;
         }
 
-        $baseUrl = isset($this->config['apiurl']) && $this->config['apiurl'] !== ''
-            ? rtrim($this->config['apiurl'], '/')
-            : 'https://sfapi.sf-express.com/std/service';
+        // OAuth2 认证接口地址 (与普通丰桥接口不同，不走统一网关)
+        // 沙箱环境: https://sfapi-sbox.sf-express.com/oauth2/accessToken
+        // 生产环境: https://sfapi.sf-express.com/oauth2/accessToken
+        
+        $isSandbox = isset($this->config['apiurl']) && strpos($this->config['apiurl'], 'sbox') !== false;
+        $authUrl = $isSandbox 
+            ? 'https://sfapi-sbox.sf-express.com/oauth2/accessToken'
+            : 'https://sfapi.sf-express.com/oauth2/accessToken';
 
-        // 构造请求数据
-        // 顺丰云打印 Token 接口服务码: COM_RECE_CLOUD_PRINT_ACCESS_TOKEN
-        $msgData = [
+        $postData = [
             'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
-            'secret' => isset($this->config['token']) ? $this->config['token'] : '' // 注意：这里通常用 checkword/secret
+            'secret'    => isset($this->config['token']) ? $this->config['token'] : '',
+            'grantType' => 'password'
         ];
 
-        $requestData = [
-            'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
-            'requestID' => $this->generateRequestId(),
-            'serviceCode' => 'ACCT_ACCESS_TOKEN_GET', // 修正：通用鉴权 Token 接口
-            'timestamp' => time(),
-            'msgData' => json_encode($msgData, JSON_UNESCAPED_UNICODE),
-        ];
-
-        $requestData['msgDigest'] = $this->generateSignature($requestData);
-
-        $resp = $this->httpPost($baseUrl, http_build_query($requestData));
+        // 注意：OAuth2 接口直接 POST 表单数据，不需要 msgData/requestID 加密封装
+        $resp = $this->httpPost($authUrl, http_build_query($postData));
+        
         if ($resp === false) {
+            $this->error = 'Token请求网络失败';
             return false;
         }
 
         $data = json_decode($resp, true);
-        if (!is_array($data) || !isset($data['apiResultCode']) || $data['apiResultCode'] !== 'A1000') {
-            $this->error = (isset($data['apiErrorMsg']) ? $data['apiErrorMsg'] : 'Token获取失败') . ' Resp:' . $resp;
-            return false;
+        
+        // OAuth2 接口成功通过 apiResultCode 判断
+        if (isset($data['apiResultCode']) && $data['apiResultCode'] === 'A1000' && isset($data['accessToken'])) {
+             $accessToken = $data['accessToken'];
+             // 缓存 3600 秒
+             \think\Cache::set($cacheKey, $accessToken, 3600);
+             return $accessToken;
         }
-
-        $apiResultData = isset($data['apiResultData']) ? json_decode($data['apiResultData'], true) : [];
-        $accessToken = isset($apiResultData['accessToken']) ? $apiResultData['accessToken'] : '';
-
-        if ($accessToken) {
-            // 缓存 3600 秒 (1小时)，顺丰 Token 一般有效期 2小时
-            \think\Cache::set($cacheKey, $accessToken, 3600);
-            return $accessToken;
-        }
-
-        $this->error = '未获取到有效的 AccessToken. Resp:' . $resp;
+        
+        // 错误处理
+        $errorMsg = isset($data['apiErrorMsg']) ? $data['apiErrorMsg'] : '未知错误';
+        $this->error = '获取AccessToken失败: ' . $errorMsg . ' Resp:' . $resp;
         return false;
     }
 
