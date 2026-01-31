@@ -1,4 +1,13 @@
 // 表单提交组件
+// 屏蔽全局 ajax 错误，防止 404 影响页面逻辑
+$(document).ajaxError(function(event, jqxhr, settings, thrownError) {
+    // 忽略特定路径的错误
+    if (settings.url.indexOf('/db/cn2tw_1.json') > -1 || settings.url.indexOf('/db/tw2cn_1.json') > -1) {
+        // console.warn('忽略简繁体转换词库加载失败');
+        return;
+    }
+});
+
 var formSubmit = {
     config:{
       'formElm':'',
