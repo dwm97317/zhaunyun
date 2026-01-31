@@ -574,14 +574,15 @@ class Sf
             $templateCode = 'fm_76130_standard_' . $partnerID;
         }
         
+        // 获取同步/异步配置 (默认同步)
+        $isAsync = isset($this->config['sync_mode']) && $this->config['sync_mode'] == 1;
+        $syncParam = !$isAsync;
+
         $msgData = [
             'templateCode' => $templateCode, 
             'version' => '2.0',
             'fileType' => 'pdf', 
-            // 2.8.3 接口特有参数
-            // sync: true (同步), false (异步)
-            // 'sync' => true, 
-            // 'customTemplateCode' => ''
+            'sync' => $syncParam,
             'documents' => [
                 [
                     'masterWaybillNo' => $waybillNo,
@@ -617,7 +618,11 @@ class Sf
         // COM_RECE_CLOUD_PRINT_PARSEDDATA 返回结构与 WAYBILLS 类似，也是 obj -> files
         $files = isset($apiResultData['obj']['files']) ? $apiResultData['obj']['files'] : [];
         if (empty($files)) {
-             $this->error = '未返回打印文件数据';
+             // 如果是异步请求，且没有返回文件，可能是正常的
+             if ($isAsync) {
+                 return 'ASYNC_REQUEST_SENT';
+             }
+             $this->error = '未返回打印文件数据: ' . json_encode($apiResultData, JSON_UNESCAPED_UNICODE);
              return false;
         }
         
@@ -634,7 +639,7 @@ class Sf
                  // 为了复用现有逻辑，我们这里直接保存并返回
                  return $this->saveBase64Directly($waybillNo, $fileData['content']);
             }
-            $this->error = '未获取到有效的 PDF 链接或内容';
+            $this->error = '未获取到有效的 PDF 链接或内容. Resp: ' . json_encode($fileData, JSON_UNESCAPED_UNICODE);
             return false;
         }
 

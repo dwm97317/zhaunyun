@@ -78,6 +78,11 @@ class SfPrint extends Controller
         // 4. 调用打印
         try {
             $resultUrl = $sf->printlabelParsedData($orderId);
+            
+            if ($resultUrl === 'ASYNC_REQUEST_SENT') {
+                return json(['code' => 1, 'msg' => '异步请求已发送，请等待回调', 'data' => ['order_sn' => $orderSn, 'waybill_no' => $waybillNo]]);
+            }
+
             if ($resultUrl) {
                 return json([
                     'code' => 1, 
