@@ -479,6 +479,186 @@ class Sf
     }
 
     /**
+     * 获取面单图片（云打印插件接口）
+     * 对接 COM_RECE_CLOUD_PRINT_PARSEDDATA
+     * @param int $order_id 订单ID
+     * @return string|false 图片/PDF URL
+     */
+    public function printlabelParsedData($order_id)
+    {
+        // 1. 获取订单信息
+        $order = Inpack::detail($order_id);
+        if (!$order) {
+            $this->error = '订单不存在';
+            return false;
+        }
+
+        $waybillNo = isset($order['t_order_sn']) ? $order['t_order_sn'] : '';
+        if (empty($waybillNo)) {
+            $waybillNo = isset($order['order_sn']) ? $order['order_sn'] : '';
+        }
+
+        if (empty($waybillNo)) {
+            $this->error = '运单号不存在';
+            return false;
+        }
+
+        // 2. 调用顺丰云打印插件接口
+        $baseUrl = isset($this->config['apiurl']) && $this->config['apiurl'] !== ''
+            ? rtrim($this->config['apiurl'], '/')
+            : 'https://sfapi.sf-express.com/std/service';
+
+        // 动态构建模板编码
+        if (isset($this->config['template_code']) && !empty($this->config['template_code'])) {
+            $templateCode = $this->config['template_code'];
+        } else {
+            $partnerID = isset($this->config['key']) ? $this->config['key'] : '';
+            $templateCode = 'fm_76130_standard_' . $partnerID;
+        }
+        
+        $msgData = [
+            'templateCode' => $templateCode, 
+            'version' => '2.0',
+            'fileType' => 'pdf', 
+            // 2.8.3 接口特有参数
+            // sync: true (同步), false (异步)
+            // 'sync' => true, 
+            // 'customTemplateCode' => ''
+            'documents' => [
+                [
+                    'masterWaybillNo' => $waybillNo,
+                    'remark' => isset($order['remark']) ? $order['remark'] : '自定义区域备注测试' 
+                ]
+            ]
+        ];
+
+        $requestData = [
+            'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
+            'requestID' => $this->generateRequestId(),
+            'serviceCode' => 'COM_RECE_CLOUD_PRINT_PARSEDDATA', // 切换为插件接口
+            'timestamp' => time(),
+            'msgData' => json_encode($msgData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ];
+
+        $requestData['msgDigest'] = $this->generateSignature($requestData);
+
+        $resp = $this->httpPost($baseUrl, http_build_query($requestData));
+        if ($resp === false) {
+            return false;
+        }
+
+        $data = json_decode($resp, true);
+        if (!is_array($data) || !isset($data['apiResultCode']) || $data['apiResultCode'] !== 'A1000') {
+            $this->error = isset($data['apiErrorMsg']) ? $data['apiErrorMsg'] : '云打印接口调用失败';
+            return false;
+        }
+
+        $apiResultData = isset($data['apiResultData']) ? json_decode($data['apiResultData'], true) : [];
+        
+        // 3. 解析返回的文件数据
+        // COM_RECE_CLOUD_PRINT_PARSEDDATA 返回结构与 WAYBILLS 类似，也是 obj -> files
+        $files = isset($apiResultData['obj']['files']) ? $apiResultData['obj']['files'] : [];
+        if (empty($files)) {
+             $this->error = '未返回打印文件数据';
+             return false;
+        }
+        
+        $fileData = $files[0];
+        // 这个接口也可能直接返回 url，但也可能返回 content (Base64)
+        // 这里的处理逻辑复用之前的下载逻辑
+        $picData = isset($fileData['url']) ? $fileData['url'] : '';
+        $fileToken = isset($fileData['token']) ? $fileData['token'] : '';
+
+        if (empty($picData)) {
+            // 尝试检查是否直接返回了 content
+            if (isset($fileData['content']) && !empty($fileData['content'])) {
+                 // 如果直接返回 Base64，构造一个伪协议 URL 或者直接处理
+                 // 为了复用现有逻辑，我们这里直接保存并返回
+                 return $this->saveBase64Directly($waybillNo, $fileData['content']);
+            }
+            $this->error = '未获取到有效的 PDF 链接或内容';
+            return false;
+        }
+
+        return $this->downloadAndSave($waybillNo, $picData, $fileToken);
+    }
+
+    private function saveBase64Directly($waybillNo, $content)
+    {
+        $webPath = ROOT_PATH . 'web' . DS . 'uploads' . DS . 'sf_label';
+        if (!file_exists($webPath)) {
+            mkdir($webPath, 0755, true);
+        }
+        $fileName = $waybillNo . '_' . time() . '_parsed.pdf';
+        $filePath = $webPath . DS . $fileName;
+        
+        if (file_put_contents($filePath, base64_decode($content))) {
+            return $this->getUploadUrl($fileName);
+        }
+        $this->error = 'Base64文件保存失败';
+        return false;
+    }
+
+    private function downloadAndSave($waybillNo, $picData, $fileToken)
+    {
+        $webPath = ROOT_PATH . 'web' . DS . 'uploads' . DS . 'sf_label';
+        if (!file_exists($webPath)) {
+            mkdir($webPath, 0755, true);
+        }
+
+        $fileName = $waybillNo . '_' . time() . '_sync.pdf'; 
+        $filePath = $webPath . DS . $fileName;
+
+        // 尝试保存
+        if (filter_var($picData, FILTER_VALIDATE_URL)) {
+             // 使用 curl 下载 PDF
+             $ch = curl_init($picData);
+             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+             curl_setopt($ch, CURLOPT_TIMEOUT, 60); 
+             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30); 
+             curl_setopt($ch, CURLOPT_TCP_NODELAY, true); 
+             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); 
+             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
+             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); 
+             
+             if (!empty($fileToken)) {
+                 curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                     'X-Auth-Token: ' . $fileToken
+                 ]);
+             }
+             
+             $content = curl_exec($ch);
+             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+             
+             if ($httpCode == 200 && $content) {
+                 $res = file_put_contents($filePath, $content);
+                 curl_close($ch);
+                 if ($res) {
+                     return $this->getUploadUrl($fileName);
+                 } else {
+                    $this->error = '文件保存失败，请检查目录权限';
+                    return false;
+                 }
+             } else {
+                 $curlError = curl_error($ch);
+                 $this->error = "云打印文件下载失败 HTTP: {$httpCode}, CURL: {$curlError}";
+                 curl_close($ch);
+                 \think\Log::error($this->error);
+                 return false; 
+             }
+        } else {
+             // Base64 解码保存
+             $result = file_put_contents($filePath, base64_decode($picData));
+             if ($result === false) {
+                $this->error = '面单保存失败';
+                return false;
+             }
+             return $this->getUploadUrl($fileName);
+        }
+    }
+
+    /**
      * 获取面单图片（云打印）
      * 对接 COM_RECE_CLOUD_PRINT_WAYBILLS
      * @param int $order_id 订单ID
@@ -600,74 +780,6 @@ class Sf
             return false;
         }
 
-        $webPath = ROOT_PATH . 'web' . DS . 'uploads' . DS . 'sf_label';
-        // 如果目录不存在则创建
-        if (!file_exists($webPath)) {
-            mkdir($webPath, 0755, true);
-        }
-
-        $fileName = $waybillNo . '_' . time() . '_sync.pdf'; // 默认 PDF
-        $filePath = $webPath . DS . $fileName;
-
-        // 尝试保存
-        if (filter_var($picData, FILTER_VALIDATE_URL)) {
-             // 使用 curl 下载 PDF
-             $ch = curl_init($picData);
-             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-             // 优化下载速度：
-             // 1. 减少超时时间 (默认30s可能过长，如果服务器响应慢)
-             // 2. 启用 TCP_FASTOPEN (如果系统支持)
-             // 3. 禁用不必要的检查
-             curl_setopt($ch, CURLOPT_TIMEOUT, 60); // 恢复并增加超时时间，确保下载完成
-             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30); // 连接超时 30s
-             curl_setopt($ch, CURLOPT_TCP_NODELAY, true); // 禁用 Nagle 算法
-             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); // 不校验 Host
-             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 不校验 Peer
-             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // 跟随重定向
-             
-             // 如果有 Token，添加到 Header
-             if (!empty($fileToken)) {
-                 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                     'X-Auth-Token: ' . $fileToken
-                 ]);
-             }
-             
-             $content = curl_exec($ch);
-             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-             
-             if ($httpCode == 200 && $content) {
-                 $res = file_put_contents($filePath, $content);
-                 curl_close($ch); // 关闭要在使用完后
-                 if ($res) {
-                     return $this->getUploadUrl($fileName);
-                 } else {
-                    $this->error = '文件保存失败，请检查目录权限';
-                    return false;
-                 }
-             } else {
-                 // 下载失败，记录日志
-                 $curlError = curl_error($ch);
-                 $this->error = "云打印文件下载失败 HTTP: {$httpCode}, CURL: {$curlError}";
-                 curl_close($ch); // 关闭
-                 \think\Log::error($this->error);
-                 return false; // 强制失败，不降级
-             }
-        } else {
-             // Base64 解码保存
-             $result = file_put_contents($filePath, base64_decode($picData));
-             if ($result === false) {
-                $this->error = '面单保存失败';
-                return false;
-             }
-        }
-
-        // 返回 URL
-        // 假设 public URL 映射
-        $request = \think\Request::instance();
-        $domain = $request->domain();
-        $url = $domain . '/uploads/sf_label/' . $fileName;
-
-        return $url;
+        return $this->downloadAndSave($waybillNo, $picData, $fileToken);
     }
 }

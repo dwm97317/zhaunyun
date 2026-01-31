@@ -100,7 +100,13 @@ class SfE2eTest extends Controller
 
         // 3. 执行云打印 (同步)
         $this->log("调用 Sf::printlabel (Sync), OrderID: {$orderId}, WaybillNo: {$waybillNo}");
-        $url = $sf->printlabel($orderId);
+        // 这里默认使用的是 COM_RECE_CLOUD_PRINT_WAYBILLS 接口
+        // $url = $sf->printlabel($orderId);
+        
+        // 切换使用 2.8.3 云打印面单打印插件接口 (COM_RECE_CLOUD_PRINT_PARSEDDATA)
+        // 这个接口支持返回 Base64 或 URL，并且可以指定更多打印参数
+        $this->log("切换测试: 使用 COM_RECE_CLOUD_PRINT_PARSEDDATA 接口");
+        $url = $sf->printlabelParsedData($orderId);
 
         // 4. 验证结果
         if ($url) {
