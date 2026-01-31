@@ -574,9 +574,8 @@ class Sf
             $templateCode = 'fm_76130_standard_' . $partnerID;
         }
         
-        // 获取同步/异步配置 (默认同步)
-        $isAsync = isset($this->config['sync_mode']) && $this->config['sync_mode'] == 1;
-        $syncParam = !$isAsync;
+        // 强制同步
+        $syncParam = true;
 
         $msgData = [
             'templateCode' => $templateCode, 
@@ -594,7 +593,7 @@ class Sf
         $requestData = [
             'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
             'requestID' => $this->generateRequestId(),
-            'serviceCode' => 'COM_RECE_CLOUD_PRINT_PARSEDDATA', // 切换为插件接口
+            'serviceCode' => 'COM_RECE_CLOUD_PRINT_WAYBILLS', // 只能用 WAYBILLS 接口获取 PDF
             'timestamp' => time(),
             'msgData' => json_encode($msgData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         ];
@@ -615,30 +614,38 @@ class Sf
         $apiResultData = isset($data['apiResultData']) ? json_decode($data['apiResultData'], true) : [];
         
         // 3. 解析返回的文件数据
-        // COM_RECE_CLOUD_PRINT_PARSEDDATA 返回结构与 WAYBILLS 类似，也是 obj -> files
+        // COM_RECE_CLOUD_PRINT_WAYBILLS 返回结构 obj -> files
         $files = isset($apiResultData['obj']['files']) ? $apiResultData['obj']['files'] : [];
+
         if (empty($files)) {
-             // 如果是异步请求，且没有返回文件，可能是正常的
-             if ($isAsync) {
-                 return 'ASYNC_REQUEST_SENT';
-             }
              $this->error = '未返回打印文件数据: ' . json_encode($apiResultData, JSON_UNESCAPED_UNICODE);
              return false;
         }
         
         $fileData = $files[0];
-        // 这个接口也可能直接返回 url，但也可能返回 content (Base64)
-        // 这里的处理逻辑复用之前的下载逻辑
+        
+        // 如果返回的是 images 数组 (PDF 图片模式)
+        // 注意：有些时候 SF 会返回 images 列表而不是单一 url
+        if (isset($fileData['images']) && is_array($fileData['images']) && !empty($fileData['images'])) {
+             // 这种情况下通常不返回 PDF URL，可能是图片URL列表
+             // 简单处理：取第一张图
+             $picData = $fileData['images'][0];
+             // 图片通常也是 url
+             return $this->downloadAndSave($waybillNo, $picData, '');
+        }
+
         $picData = isset($fileData['url']) ? $fileData['url'] : '';
         $fileToken = isset($fileData['token']) ? $fileData['token'] : '';
 
         if (empty($picData)) {
             // 尝试检查是否直接返回了 content
             if (isset($fileData['content']) && !empty($fileData['content'])) {
-                 // 如果直接返回 Base64，构造一个伪协议 URL 或者直接处理
-                 // 为了复用现有逻辑，我们这里直接保存并返回
                  return $this->saveBase64Directly($waybillNo, $fileData['content']);
             }
+            
+            // 检查是否是被误判为 JSON 结构的 items 数据 (用户遇到的情况)
+            // 用户返回的数据里包含 "contents" 字段，这说明请求的是 PARSEDDATA 接口，返回的是打印元素数据，而不是 PDF
+            // 我们必须使用 COM_RECE_CLOUD_PRINT_WAYBILLS 接口才能拿到 PDF
             $this->error = '未获取到有效的 PDF 链接或内容. Resp: ' . json_encode($fileData, JSON_UNESCAPED_UNICODE);
             return false;
         }
