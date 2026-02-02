@@ -439,7 +439,18 @@
                                                     }
                                                 }
                                                 echo implode(',', $waybills);
-                                            ?>" style="margin-left:5px;">[复制全部]</a></br>
+                                            ?>" style="margin-left:5px;">[复制全部]</a>
+                                            <?php if ($item['status'] > 5): ?>
+                                            <a href="javascript:;" onclick="printAllWaybills(<?= $item['id'] ?>)" 
+                                               style="color:#1E9FFF;margin-left:5px;">
+                                                <i class="am-icon-print"></i> 打印全部(<?= count($item['packageitems']) ?>)
+                                            </a>
+                                            <a href="javascript:;" onclick="printSingleWaybill(<?= $item['id'] ?>, '<?= $item['t_order_sn'] ?>')" 
+                                               style="color:#1E9FFF;margin-left:5px;">
+                                                <i class="am-icon-print"></i> 打印母单
+                                            </a>
+                                            <?php endif; ?>
+                                            </br>
                                             <?php foreach ($item['packageitems'] as $index => $box): ?>
                                                 <?php if ($index > 0 && !empty($box['t_order_sn'])): ?>
                                                     <span style="margin-left:20px;color:#999;">└ 子单:</span>
@@ -454,14 +465,28 @@
                                                         <?php elseif (in_array($traceCode, ['50', '3036'])): ?>
                                                             <span class="am-badge am-badge-secondary am-radius" style="font-size:10px;padding:2px 4px;">已揽收</span>
                                                         <?php endif; ?>
-                                                    <a href="javascript:;" onclick="getlog(this)" value="<?= $item['id'] ?>" >[物流]</a></br>
+                                                    <a href="javascript:;" onclick="getlog(this)" value="<?= $item['id'] ?>" >[物流]</a>
+                                                    <?php if ($item['status'] > 5): ?>
+                                                    <a href="javascript:;" onclick="printSingleWaybill(<?= $item['id'] ?>, '<?= $box['t_order_sn'] ?>')" 
+                                                       style="color:#1E9FFF;margin-left:5px;">
+                                                        <i class="am-icon-print"></i> 打印
+                                                    </a>
+                                                    <?php endif; ?>
+                                                    </br>
                                                 <?php endif; ?>
                                             <?php endforeach; ?>
                                         <?php else: ?>
                                             <!-- 单箱：正常显示 -->
                                             国际单号:
                                             <span style="cursor:pointer" text="<?= $item['t_order_sn'] ?>" onclick="copyUrl2(this)"><?= $item['t_order_sn'] ?></span>
-                                            <a href="javascript:;" onclick="getlog(this)" value="<?= $item['id'] ?>" >[物流]</a></br>
+                                            <a href="javascript:;" onclick="getlog(this)" value="<?= $item['id'] ?>" >[物流]</a>
+                                            <?php if ($item['status'] > 5): ?>
+                                            <a href="javascript:;" onclick="printSingleWaybill(<?= $item['id'] ?>, '<?= $item['t_order_sn'] ?>')" 
+                                               style="color:#00b894;margin-left:5px;">
+                                                <i class="am-icon-print"></i> 打印
+                                            </a>
+                                            <?php endif; ?>
+                                            </br>
                                         <?php endif; ?>
                                         <?php endif ;?>
                                         <?php if (!empty($item['t2_order_sn'])): ?>
@@ -996,6 +1021,8 @@
     </div>
 </script>
 <script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
+<!-- 顺丰云打印插件 -->
+<script src="https://scp-tcdn.sf-express.com/prd/sdk/lodop/2.7/SCPPrint.js"></script>
 <script>
      function doSelectUser(){
            var $userList = $('.user-list');
@@ -2453,6 +2480,311 @@
             localStorage.setItem('trOrderSearchCollapsed', isCollapsed);
         });
     });
+    
+    /**
+     * 打印单个运单
+     * @param {number} orderId 订单ID
+     * @param {string} waybillNo 运单号
+     */
+    function printSingleWaybill(orderId, waybillNo) {
+        // 显示加载提示
+        var loadingIndex = layer.msg('正在获取打印数据...', {
+            icon: 16,
+            shade: 0.3,
+            time: 0
+        });
+        
+        // 调用打印接口
+        $.ajax({
+            url: '<?= url("store/trOrder/getPrintTask") ?>',
+            method: 'GET',
+            data: {
+                id: orderId,
+                waybill_no: waybillNo,
+                label: 60  // 标签类型
+            },
+            success: function(res) {
+                layer.close(loadingIndex);
+                
+                if (res.code === 1) {
+                    // 根据打印模式处理
+                    if (res.data.mode === 'pdf_url') {
+                        // PDF模式: 打开新窗口
+                        window.open(res.data.url, '_blank');
+                    } else if (res.data.mode === 'sf_plugin') {
+                        // 顺丰插件模式
+                        printWithSfPlugin(res.data);
+                    } else if (res.data.mode === 'cainiao') {
+                        // 菜鸟组件模式
+                        printWithCainiao(res.data);
+                    }
+                    
+                    // 更新打印状态
+                    updatePrintStatus(orderId, waybillNo);
+                } else {
+                    layer.msg('获取打印数据失败: ' + res.msg, {icon: 2});
+                }
+            },
+            error: function(xhr, status, error) {
+                layer.close(loadingIndex);
+                console.error('打印请求失败:', status, error);
+                layer.msg('网络错误,请重试', {icon: 2});
+            }
+        });
+    }
+    
+    /**
+     * 打印所有运单(子母件)
+     * @param {number} orderId 订单ID
+     */
+    function printAllWaybills(orderId) {
+        layer.confirm('确定要打印所有运单吗?', {
+            btn: ['确定', '取消']
+        }, function(index) {
+            layer.close(index);
+            
+            // 显示加载提示
+            var loadingIndex = layer.msg('正在获取打印数据...', {
+                icon: 16,
+                shade: 0.3,
+                time: 0
+            });
+            
+            // 调用批量打印接口
+            $.ajax({
+                url: '<?= url("store/trOrder/printMultiplePackages") ?>',
+                method: 'POST',
+                data: {
+                    order_id: orderId
+                },
+                success: function(res) {
+                    layer.close(loadingIndex);
+                    
+                    if (res.code === 1) {
+                        // 根据打印模式处理
+                        if (res.data.mode === 'sf_plugin') {
+                            // 顺丰插件模式 - 打印全部
+                            printWithSfPlugin(res.data, true);  // 传递 true 表示打印全部
+                        } else if (res.data.pdf_url) {
+                            // PDF模式
+                            window.open(res.data.pdf_url, '_blank');
+                            layer.msg('打印成功! 共' + res.data.success + '张', {icon: 1});
+                        } else {
+                            layer.msg('打印成功!', {icon: 1});
+                        }
+                    } else {
+                        layer.msg('打印失败: ' + res.msg, {icon: 2});
+                    }
+                },
+                error: function(xhr, status, error) {
+                    layer.close(loadingIndex);
+                    console.error('批量打印请求失败:', status, error);
+                    layer.msg('网络错误,请重试', {icon: 2});
+                }
+            });
+        });
+    }
+    
+    /**
+     * 更新打印状态
+     */
+    function updatePrintStatus(orderId, waybillNo) {
+        $.ajax({
+            url: '<?= url("store/trOrder/updatePackagePrintStatus") ?>',
+            method: 'POST',
+            data: {
+                order_id: orderId,
+                waybill_no: waybillNo
+            },
+            success: function(res) {
+                if (res.code === 1) {
+                    // 刷新页面显示最新状态
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1000);
+                }
+            }
+        });
+    }
+    
+    /**
+     * 顺丰插件打印
+     * 根据顺丰云打印 SDK 文档实现
+     * @param {object} responseData 打印数据
+     * @param {boolean} isPrintAll 是否打印全部（批量打印）
+     */
+    function printWithSfPlugin(responseData, isPrintAll) {
+        isPrintAll = isPrintAll || false;
+        
+        // 检查 SCPPrint 是否已加载
+        if (typeof SCPPrint === 'undefined') {
+            layer.msg('请先安装顺丰打印插件', {icon: 0});
+            return;
+        }
+        
+        try {
+            // 从响应数据中提取 partnerID 和打印数据
+            var partnerID = responseData.partnerID || '';
+            var printData = responseData.data || responseData;
+            var printOptions = responseData.printOptions || {};
+            
+            if (!partnerID) {
+                layer.msg('缺少客户编码(partnerID)', {icon: 2});
+                console.error('响应数据:', responseData);
+                return;
+            }
+            
+            // 创建 SCPPrint 实例（注意：只需要创建一次实例）
+            // 如果已经存在实例，则复用
+            if (!window.sfPrintInstance) {
+                // 判断环境：检查 accessToken 或 templateCode 来判断
+                // 沙箱环境的 token 通常较短，或者检查后端返回的其他标识
+                var env = 'sbox'; // 默认沙箱环境（因为你的配置是沙箱）
+                
+                // 如果有明确的环境标识，可以从后端传递
+                if (responseData.env) {
+                    env = responseData.env;
+                }
+                
+                window.sfPrintInstance = new SCPPrint({
+                    partnerID: partnerID,
+                    env: env,
+                    notips: false // 显示 SDK 提示
+                });
+                
+                console.log('SCPPrint 实例已创建:', {
+                    partnerID: partnerID,
+                    env: env
+                });
+            }
+            
+            console.log('顺丰打印参数:', {
+                partnerID: partnerID,
+                printData: printData,
+                printOptions: printOptions,
+                isPrintAll: isPrintAll
+            });
+            
+            // 判断是否需要打印机选择
+            var enableSelectPrinter = printOptions.enable_select_printer || false;
+            var enablePreview = printOptions.enable_preview || false;
+            var defaultPrinter = printOptions.default_printer || '';
+            
+            // 打印执行函数
+            var executePrint = function(selectedPrinter) {
+                // 如果指定了打印机，先设置
+                if (selectedPrinter) {
+                    window.sfPrintInstance.setPrinter(selectedPrinter);
+                    console.log('已设置打印机:', selectedPrinter);
+                }
+                
+                // 构建 options 参数
+                var sdkOptions = {
+                    lodopFn: enablePreview ? 'PREVIEW' : 'PRINT' // 根据配置决定预览或直接打印
+                };
+                
+                // 如果是打印全部，设置 allPreview: true（根据文档要求）
+                if (isPrintAll) {
+                    sdkOptions.allPreview = true;
+                    console.log('打印全部模式: allPreview = true');
+                }
+                
+                // 调用 print 方法
+                window.sfPrintInstance.print(printData, function(result) {
+                    console.log('顺丰打印回调:', result);
+                    
+                    if (result.code === 1) {
+                        layer.msg('打印成功', {icon: 1});
+                    } else if (result.code === 2 || result.code === 3) {
+                        // 需要下载打印插件
+                        layer.confirm('需要安装顺丰打印插件，是否立即下载？', {
+                            btn: ['下载', '取消']
+                        }, function() {
+                            window.open(result.downloadUrl);
+                        });
+                    } else {
+                        layer.msg('打印失败: ' + (result.msg || '未知错误'), {icon: 2});
+                    }
+                }, sdkOptions);
+            };
+            
+            // 如果启用打印机选择
+            if (enableSelectPrinter) {
+                // 获取打印机列表
+                window.sfPrintInstance.getPrinters(function(result) {
+                    console.log('打印机列表回调:', result);
+                    
+                    if (result.code === 1 && result.printers && result.printers.length > 0) {
+                        // 构建打印机选择对话框
+                        var printerOptions = '';
+                        var defaultIndex = -1;
+                        
+                        result.printers.forEach(function(printer, index) {
+                            var isDefault = false;
+                            
+                            // 如果配置了默认打印机名称，匹配它
+                            if (defaultPrinter && printer.name.indexOf(defaultPrinter) !== -1) {
+                                isDefault = true;
+                                defaultIndex = index;
+                            }
+                            
+                            printerOptions += '<option value="' + printer.name + '"' + 
+                                (isDefault ? ' selected' : '') + '>' + 
+                                printer.name + '</option>';
+                        });
+                        
+                        // 显示打印机选择对话框
+                        layer.open({
+                            type: 1,
+                            title: '选择打印机',
+                            area: ['500px', '300px'],
+                            content: '<div style="padding: 20px;">' +
+                                '<div style="margin-bottom: 15px;">请选择要使用的打印机：</div>' +
+                                '<select id="printer-select" class="am-form-field" style="width: 100%;">' +
+                                printerOptions +
+                                '</select>' +
+                                '</div>',
+                            btn: ['确定打印', '取消'],
+                            yes: function(index) {
+                                var selectedPrinter = $('#printer-select').val();
+                                layer.close(index);
+                                executePrint(selectedPrinter);
+                            }
+                        });
+                    } else if (result.code === 2 || result.code === 3) {
+                        // 需要下载打印插件
+                        layer.confirm('需要安装顺丰打印插件，是否立即下载？', {
+                            btn: ['下载', '取消']
+                        }, function() {
+                            window.open(result.downloadUrl);
+                        });
+                    } else {
+                        // 获取打印机列表失败，使用默认打印机
+                        executePrint(null);
+                    }
+                });
+            } else {
+                // 不需要选择打印机，直接打印
+                executePrint(null);
+            }
+            
+        } catch (error) {
+            console.error('顺丰打印错误:', error);
+            layer.msg('打印失败: ' + error.message, {icon: 2});
+        }
+    }
+    
+    /**
+     * 菜鸟组件打印
+     */
+    function printWithCainiao(data) {
+        // 调用菜鸟打印组件
+        if (typeof CainiaoWaybillPrint !== 'undefined') {
+            CainiaoWaybillPrint.print(data);
+        } else {
+            layer.msg('请先安装菜鸟打印组件', {icon: 0});
+        }
+    }
 </script>
 
 <style>
@@ -2547,6 +2879,30 @@
     }
     .search-content.collapsed {
         display: none;
+    }
+    
+    /* 打印按钮样式 */
+    a.print-btn-single,
+    a.print-btn-all {
+        color: #00b894;
+        font-size: 12px;
+        margin-left: 5px;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    
+    a.print-btn-single:hover,
+    a.print-btn-all:hover {
+        color: #00a383;
+        text-decoration: none;
+    }
+    
+    a.print-btn-all {
+        color: #1E9FFF;
+    }
+    
+    a.print-btn-all:hover {
+        color: #0984e3;
     }
 </style>
 

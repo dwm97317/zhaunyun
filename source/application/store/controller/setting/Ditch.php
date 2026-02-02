@@ -143,7 +143,7 @@ class Ditch extends Controller
         }
         
         // Decode HTML entities for JSON fields (Fixing ThinkPHP global filter issue)
-        foreach (['push_config_json', 'sender_json', 'product_json'] as $jsonField) {
+        foreach (['push_config_json', 'sender_json', 'product_json', 'sf_print_options'] as $jsonField) {
             if (isset($data[$jsonField]) && is_string($data[$jsonField])) {
                 // First decode
                 $decoded = htmlspecialchars_decode($data[$jsonField], ENT_QUOTES);

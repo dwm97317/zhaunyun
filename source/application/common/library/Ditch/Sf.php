@@ -513,9 +513,12 @@ class Sf
      * 获取面单图片（云打印插件接口）
      * 对接 COM_RECE_CLOUD_PRINT_PARSEDDATA
      * @param int $order_id 订单ID
-     * @return string|false 图片/PDF URL
+     * @param array $options 选项
+     *   - print_mode: 'all'(全部) | 'mother'(仅母单) | 'child'(仅子单) 默认: 'mother'
+     *   - child_ids: 子单ID数组(print_mode='child'时必填)
+     * @return array|string|false 返回 ParsedData 数组或 URL 字符串
      */
-    public function printlabelParsedData($order_id)
+    public function printlabelParsedData($order_id, $options = [])
     {
         // 1. 获取订单信息
         $order = Inpack::detail($order_id);
@@ -524,17 +527,129 @@ class Sf
             return false;
         }
 
-        $waybillNo = isset($order['t_order_sn']) ? $order['t_order_sn'] : '';
+        $waybillNo = isset($options['waybill_no']) ? $options['waybill_no'] : '';
+        
+        // 2. 解析打印模式
+        $printMode = isset($options['print_mode']) ? $options['print_mode'] : 'mother';
+        
+        // 获取所有子单（用于计算 sum 和获取母单号）
+        $allPackages = $this->getChildPackages($order, []);
+        $totalPackages = count($allPackages);
+        $sum = $totalPackages > 0 ? ($totalPackages + 1) : 0;
+        
+        // 获取母单号
+        $motherWaybillNo = isset($order['t_order_sn']) ? $order['t_order_sn'] : '';
+        
+        // 如果母单号为空，从第一个子单获取（第一个子单号就是母单号）
+        if (empty($motherWaybillNo) && !empty($allPackages)) {
+            $firstPackage = $allPackages[0];
+            $motherWaybillNo = isset($firstPackage['t_order_sn']) ? $firstPackage['t_order_sn'] : '';
+            
+            // 更新订单的母单号（用于后续逻辑）
+            if (!empty($motherWaybillNo)) {
+                $order['t_order_sn'] = $motherWaybillNo;
+            }
+        }
+        
+        // 如果没有传递 waybill_no，使用母单号
         if (empty($waybillNo)) {
-            $waybillNo = isset($order['order_sn']) ? $order['order_sn'] : '';
+            $waybillNo = $motherWaybillNo;
         }
 
         if (empty($waybillNo)) {
             $this->error = '运单号不存在';
             return false;
         }
+        
+        // 判断当前打印的是母单还是子单
+        $isPrintingChild = ($waybillNo !== $motherWaybillNo);
+        
+        $documents = [];
+        
+        // 3. 构建 documents 数组
+        if ($isPrintingChild) {
+            // 打印子单：找到对应的包裹
+            $childSeq = 1; // 默认从1开始（如果找不到对应包裹）
+            foreach ($allPackages as $index => $pkg) {
+                $childWaybillNo = isset($pkg['t_order_sn']) ? $pkg['t_order_sn'] : '';
+                
+                // 兼容旧的 package 表结构（有 express_num 字段）
+                if (empty($childWaybillNo) && !empty($pkg['express_num'])) {
+                    if (strpos($pkg['express_num'], 'SF') === 0) {
+                        $childWaybillNo = $pkg['express_num'];
+                    }
+                }
+                
+                if ($childWaybillNo === $waybillNo) {
+                    // 找到了对应的子单，seq = index + 2（因为母单是1）
+                    $childSeq = $index + 2;
+                    $documents[] = $this->buildDocument($pkg, $waybillNo, $motherWaybillNo, $childSeq, $sum);
+                    break;
+                }
+            }
+            
+            if (empty($documents)) {
+                // 记录调试信息
+                \think\Log::error('未找到对应的子单包裹: ' . json_encode([
+                    'waybill_no' => $waybillNo,
+                    'mother_waybill_no' => $motherWaybillNo,
+                    'total_packages' => count($allPackages),
+                    'package_waybills' => array_map(function($pkg) {
+                        return isset($pkg['t_order_sn']) ? $pkg['t_order_sn'] : 'N/A';
+                    }, $allPackages)
+                ], JSON_UNESCAPED_UNICODE));
+                
+                $this->error = '未找到对应的子单包裹';
+                return false;
+            }
+        } elseif ($printMode === 'all') {
+            // 打印全部：母单 + 所有子单
+            // 母单：seq = 1
+            $documents[] = $this->buildDocument($order, $motherWaybillNo, null, 1, $sum);
+            
+            // 子单：seq 从 2 开始递增
+            foreach ($allPackages as $index => $pkg) {
+                $childWaybillNo = isset($pkg['t_order_sn']) ? $pkg['t_order_sn'] : '';
+                
+                if (empty($childWaybillNo) && !empty($pkg['express_num'])) {
+                    if (strpos($pkg['express_num'], 'SF') === 0) {
+                        $childWaybillNo = $pkg['express_num'];
+                    }
+                }
+                
+                if (empty($childWaybillNo)) {
+                    \think\Log::warning("包裹 {$pkg['id']} 没有有效的顺丰子运单号,跳过打印");
+                    continue;
+                }
+                
+                $seq = $index + 2;
+                $documents[] = $this->buildDocument($pkg, $childWaybillNo, $motherWaybillNo, $seq, $sum);
+            }
+        } else {
+            // 打印母单（默认）
+            if ($sum > 0) {
+                // 有子单的情况：seq = 1, sum = 总数
+                $documents[] = $this->buildDocument($order, $motherWaybillNo, null, 1, $sum);
+            } else {
+                // 单票运单：不传 seq 和 sum
+                $documents[] = $this->buildDocument($order, $motherWaybillNo, null, 0, 0);
+            }
+        }
+        
+        if (empty($documents)) {
+            $this->error = '没有可打印的运单';
+            return false;
+        }
+        
+        // 5. 验证 documents 参数
+        try {
+            $this->validateDocuments($documents);
+        } catch (\Exception $e) {
+            $this->error = '参数验证失败: ' . $e->getMessage();
+            return false;
+        }
 
-        // 2. 调用顺丰云打印插件接口
+        // 6. 调用顺丰云打印插件接口
         $baseUrl = isset($this->config['apiurl']) && $this->config['apiurl'] !== ''
             ? rtrim($this->config['apiurl'], '/')
             : 'https://sfapi.sf-express.com/std/service';
@@ -553,12 +668,7 @@ class Sf
             'version' => '2.0',
             'fileType' => 'json', // 插件接口通常返回 json 格式的点阵/绘制指令
             'sync' => true,
-            'documents' => [
-                [
-                    'masterWaybillNo' => $waybillNo,
-                    'remark' => isset($order['remark']) ? $order['remark'] : '自定义区域备注测试' 
-                ]
-            ]
+            'documents' => $documents  // 支持多个运单
         ];
 
         $requestData = [
@@ -578,13 +688,17 @@ class Sf
 
         $data = json_decode($resp, true);
         if (!is_array($data) || !isset($data['apiResultCode']) || $data['apiResultCode'] !== 'A1000') {
-            $this->error = isset($data['apiErrorMsg']) ? $data['apiErrorMsg'] : '云打印接口调用失败';
-            return false;
+            // 使用增强的错误处理
+            return $this->handleApiError($data, [
+                'requestID' => $requestData['requestID'],
+                'serviceCode' => 'COM_RECE_CLOUD_PRINT_PARSEDDATA',
+                'documents_count' => count($documents)
+            ]);
         }
 
         $apiResultData = isset($data['apiResultData']) ? json_decode($data['apiResultData'], true) : [];
         
-        // 3. 解析返回的数据
+        // 7. 解析返回的数据
         $files = isset($apiResultData['obj']['files']) ? $apiResultData['obj']['files'] : [];
 
         if (empty($files)) {
@@ -592,32 +706,67 @@ class Sf
              return false;
         }
         
-        $fileData = $files[0];
+        // 8. 构建符合 SDK 要求的完整数据结构
+        // SDK print() 方法需要: requestID, accessToken, templateCode, documents, version
         
-        // 场景A: 返回 contents (JSON 渲染数据) -> 这是 PARSEDDATA 接口的正常返回
-        if (isset($fileData['contents'])) {
-            // 直接返回原始数据，供前端插件使用
-            // 也可以选择在这里处理，但通常是给前端
-            return $fileData; 
+        // 获取 accessToken (通过 OAuth2 认证，带缓存)
+        $isSandbox = (strpos($baseUrl, 'sbox') !== false);
+        $partnerId = isset($this->config['key']) ? $this->config['key'] : '';
+        $secret = isset($this->config['token']) ? $this->config['token'] : '';
+        
+        if (empty($partnerId) || empty($secret)) {
+            $this->error = '缺少 OAuth 认证参数';
+            return false;
         }
+        
+        // 调用 OAuth 类获取 accessToken（有缓存，第二次调用很快）
+        $accessToken = \app\common\library\Sf\OAuth::getAccessToken($partnerId, $secret, $isSandbox);
+        
+        if ($accessToken === false) {
+            $this->error = '获取 accessToken 失败';
+            return false;
+        }
+        
+        $sdkData = [
+            'requestID' => $requestData['requestID'],
+            'accessToken' => $accessToken,
+            'templateCode' => $msgData['templateCode'],
+            'documents' => $documents,
+            'version' => $msgData['version'],
+            'files' => $files
+        ];
+        
+        // 4. 根据打印模式返回数据
+        if (count($files) === 1) {
+            // 单个运单: 返回 SDK 所需的完整数据结构
+            $fileData = $files[0];
+            
+            // 场景A: 返回 contents (JSON 渲染数据) - 用于云打印插件
+            if (isset($fileData['contents'])) {
+                // 返回符合 SDK 要求的数据结构
+                return $sdkData;
+            }
 
-        // 场景B: 返回 url / images / content (PDF/图片)
-        // 某些配置下 PARSEDDATA 也可能返回文件
-        $picData = isset($fileData['url']) ? $fileData['url'] : '';
-        if (isset($fileData['images']) && is_array($fileData['images'])) {
-            $picData = $fileData['images'][0];
-        }
-        
-        if (!empty($picData)) {
-             return $this->downloadAndSave($waybillNo, $picData, isset($fileData['token']) ? $fileData['token'] : '');
-        }
+            // 场景B: 返回 url / images / content (PDF/图片)
+            $picData = isset($fileData['url']) ? $fileData['url'] : '';
+            if (isset($fileData['images']) && is_array($fileData['images'])) {
+                $picData = $fileData['images'][0];
+            }
+            
+            if (!empty($picData)) {
+                 return $this->downloadAndSave($waybillNo, $picData, isset($fileData['token']) ? $fileData['token'] : '');
+            }
 
-        if (isset($fileData['content']) && !empty($fileData['content'])) {
-             return $this->saveBase64Directly($waybillNo, $fileData['content']);
+            if (isset($fileData['content']) && !empty($fileData['content'])) {
+                 return $this->saveBase64Directly($waybillNo, $fileData['content']);
+            }
+            
+            $this->error = '未识别的返回数据格式';
+            return false;
+        } else {
+            // 多个运单: 返回完整的 SDK 数据结构
+            return $sdkData;
         }
-        
-        $this->error = '未识别的返回数据格式. Resp: ' . json_encode($fileData, JSON_UNESCAPED_UNICODE);
-        return false;
     }
 
     private function saveBase64Directly($waybillNo, $content)
@@ -696,6 +845,369 @@ class Sf
     }
 
     /**
+     * 下载PDF到本地并返回本地路径
+     * @param string $waybillNo 运单号
+     * @param string $picData PDF URL或Base64
+     * @param string $fileToken 访问令牌
+     * @return string|false 本地文件路径
+     */
+    private function downloadAndSaveLocal($waybillNo, $picData, $fileToken)
+    {
+        $webPath = ROOT_PATH . 'web' . DS . 'uploads' . DS . 'sf_label';
+        if (!file_exists($webPath)) {
+            mkdir($webPath, 0755, true);
+        }
+
+        $fileName = $waybillNo . '_' . time() . '_' . mt_rand(1000, 9999) . '.pdf'; 
+        $filePath = $webPath . DS . $fileName;
+
+        if (filter_var($picData, FILTER_VALIDATE_URL)) {
+             $ch = curl_init($picData);
+             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+             curl_setopt($ch, CURLOPT_TIMEOUT, 60); 
+             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); 
+             
+             if (!empty($fileToken)) {
+                 curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                     'X-Auth-Token: ' . $fileToken
+                 ]);
+             }
+             
+             $content = curl_exec($ch);
+             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+             curl_close($ch);
+             
+             if ($httpCode == 200 && $content) {
+                 if (file_put_contents($filePath, $content)) {
+                     return $filePath;
+                 }
+             }
+             return false;
+        } else {
+             // Base64 解码保存
+             if (file_put_contents($filePath, base64_decode($picData))) {
+                 return $filePath;
+             }
+             return false;
+        }
+    }
+
+    /**
+     * 合并多个PDF文件为一个
+     * @param array $pdfPaths PDF文件路径数组
+     * @param string $waybillNo 母件运单号
+     * @return string|false 合并后的PDF路径
+     */
+    private function mergePDFs($pdfPaths, $waybillNo)
+    {
+        try {
+            // 检查FPDI库是否存在
+            if (!class_exists('FPDI')) {
+                require_once ROOT_PATH . 'vendor/setasign/fpdi/fpdi.php';
+            }
+            
+            $pdf = new \FPDI();
+            
+            // 遍历所有PDF文件
+            foreach ($pdfPaths as $path) {
+                if (!file_exists($path)) {
+                    continue;
+                }
+                
+                // 获取页数
+                $pageCount = $pdf->setSourceFile($path);
+                
+                // 导入所有页面
+                for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                    $templateId = $pdf->importPage($pageNo);
+                    $size = $pdf->getTemplateSize($templateId);
+                    
+                    // 添加页面
+                    $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                    $pdf->useTemplate($templateId);
+                }
+            }
+            
+            // 保存合并后的PDF
+            $webPath = ROOT_PATH . 'web' . DS . 'uploads' . DS . 'sf_label';
+            $mergedFileName = $waybillNo . '_merged_' . time() . '.pdf';
+            $mergedPath = $webPath . DS . $mergedFileName;
+            
+            $pdf->Output('F', $mergedPath);
+            
+            return $mergedPath;
+            
+        } catch (\Exception $e) {
+            \think\Log::error('PDF合并失败: ' . $e->getMessage());
+            $this->error = 'PDF合并失败: ' . $e->getMessage();
+            return false;
+        }
+    }
+
+    /**
+     * 验证 documents 参数
+     * @param array $documents 文档数组
+     * @return bool
+     * @throws \Exception
+     */
+    private function validateDocuments($documents)
+    {
+        if (!is_array($documents) || empty($documents)) {
+            throw new \Exception('documents 不能为空');
+        }
+        
+        foreach ($documents as $index => $doc) {
+            if (!isset($doc['masterWaybillNo']) || empty($doc['masterWaybillNo'])) {
+                throw new \Exception("documents[{$index}] 缺少 masterWaybillNo");
+            }
+            
+            // 验证运单号格式(顺丰运单号通常以 SF 开头,12位数字)
+            $waybillNo = $doc['masterWaybillNo'];
+            if (!preg_match('/^SF\d{12}$/', $waybillNo)) {
+                \think\Log::warning("运单号格式可能不正确: {$waybillNo}");
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * 验证 API 返回的 ParsedData
+     * @param array $fileData 文件数据
+     * @return bool
+     * @throws \Exception
+     */
+    private function validateParsedData($fileData)
+    {
+        $errors = [];
+        
+        // 必需字段检查
+        if (!isset($fileData['contents'])) {
+            $errors[] = '缺少 contents 字段';
+        }
+        
+        if (!isset($fileData['waybillNo'])) {
+            $errors[] = '缺少 waybillNo 字段';
+        }
+        
+        // contents 格式检查
+        if (isset($fileData['contents'])) {
+            $contents = is_string($fileData['contents']) 
+                ? json_decode($fileData['contents'], true) 
+                : $fileData['contents'];
+            
+            if (!is_array($contents) && !is_string($fileData['contents'])) {
+                $errors[] = 'contents 格式错误(应为 JSON 对象或字符串)';
+            }
+        }
+        
+        if (!empty($errors)) {
+            throw new \Exception('ParsedData 验证失败: ' . implode(', ', $errors));
+        }
+        
+        return true;
+    }
+    
+    /**
+     * 增强的错误处理
+     * @param array $data API 响应数据
+     * @param array $context 上下文信息
+     * @return bool
+     */
+    private function handleApiError($data, $context = [])
+    {
+        $errorCode = isset($data['apiResultCode']) ? $data['apiResultCode'] : 'UNKNOWN';
+        $errorMsg = isset($data['apiErrorMsg']) ? $data['apiErrorMsg'] : '未知错误';
+        
+        // 错误码映射
+        $errorMap = [
+            'A1001' => '签名验证失败',
+            'A1002' => '参数错误',
+            'A1003' => '运单号不存在',
+            'A1004' => '模板不存在',
+            'A1005' => 'AccessToken 无效',
+            'A1006' => '服务异常',
+            'A1007' => '请求超时'
+        ];
+        
+        $friendlyMsg = isset($errorMap[$errorCode]) ? $errorMap[$errorCode] : $errorMsg;
+        
+        // 记录详细日志
+        \think\Log::error('顺丰 API 错误: ' . json_encode([
+            'error_code' => $errorCode,
+            'error_msg' => $errorMsg,
+            'friendly_msg' => $friendlyMsg,
+            'context' => $context,
+            'request_id' => isset($context['requestID']) ? $context['requestID'] : '',
+            'timestamp' => date('Y-m-d H:i:s')
+        ], JSON_UNESCAPED_UNICODE));
+        
+        $this->error = "[{$errorCode}] {$friendlyMsg}";
+        
+        return false;
+    }
+
+    /**
+     * 获取子包裹列表
+     * @param array $order 订单信息
+     * @param array $childIds 指定的子单ID数组(为空则获取全部)
+     * @return array 包裹列表
+     */
+    private function getChildPackages($order, $childIds = [])
+    {
+        // 优先尝试从 yoshop_package 表获取（旧的包裹系统）
+        $packageIds = [];
+        
+        if (!empty($order['pack_ids'])) {
+            $packageIds = explode(',', $order['pack_ids']);
+            $packageIds = array_filter($packageIds);
+        }
+        
+        if (!empty($packageIds)) {
+            $query = \think\Db::table('yoshop_package')
+                ->whereIn('id', $packageIds);
+            
+            // 如果指定了子单ID,只查询指定的
+            if (!empty($childIds)) {
+                $query->whereIn('id', $childIds);
+            }
+            
+            return $query->select();
+        }
+        
+        // 如果 pack_ids 为空，尝试从 yoshop_inpack_item 表获取（新的子母单系统）
+        $orderId = isset($order['id']) ? $order['id'] : 0;
+        if (empty($orderId)) {
+            return [];
+        }
+        
+        $query = \think\Db::table('yoshop_inpack_item')
+            ->where('inpack_id', $orderId);
+        
+        // 如果指定了子单ID,只查询指定的
+        if (!empty($childIds)) {
+            $query->whereIn('id', $childIds);
+        }
+        
+        $items = $query->select();
+        
+        // 转换为统一的数据结构（兼容旧的 package 结构）
+        // yoshop_inpack_item 的 t_order_sn 字段对应子单号
+        return $items;
+    }
+    
+    /**
+     * 构建 document 对象（支持自定义字段映射）
+     * @param array $data 订单或包裹数据
+     * @param string $waybillNo 运单号
+     * @param string $parentWaybillNo 母单号(子单时传入)
+     * @return array document 对象
+     */
+    private function buildDocument($data, $waybillNo, $parentWaybillNo = null, $seq = 0, $sum = 0)
+    {
+        $document = [
+            'masterWaybillNo' => $waybillNo
+        ];
+        
+        // 添加子单号(子单时)
+        if ($parentWaybillNo) {
+            $document['branchWaybillNo'] = $waybillNo;
+            $document['masterWaybillNo'] = $parentWaybillNo;
+        }
+        
+        // 添加 seq 和 sum（子母单必填）
+        if ($seq > 0 && $sum > 0) {
+            $document['seq'] = (string)$seq;
+            $document['sum'] = (string)$sum;
+        }
+        
+        // 应用自定义字段映射
+        // 注意: 配置可能在 sf_waybill_config 或 custom_fields 字段中
+        $customFields = [];
+        
+        // 优先从 sf_waybill_config 中获取
+        if (isset($this->config['sf_waybill_config'])) {
+            $waybillConfig = $this->config['sf_waybill_config'];
+            
+            // 如果是字符串，解析为数组
+            if (is_string($waybillConfig)) {
+                $decoded = json_decode($waybillConfig, true);
+                if (is_array($decoded) && isset($decoded['custom_fields'])) {
+                    $customFields = $decoded['custom_fields'];
+                }
+            } elseif (is_array($waybillConfig) && isset($waybillConfig['custom_fields'])) {
+                $customFields = $waybillConfig['custom_fields'];
+            }
+        }
+        
+        // 兼容旧的 custom_fields 字段
+        if (empty($customFields) && isset($this->config['custom_fields'])) {
+            $customFields = $this->config['custom_fields'];
+            
+            // 如果是字符串，解析为数组
+            if (is_string($customFields)) {
+                $decoded = json_decode($customFields, true);
+                if (is_array($decoded)) {
+                    $customFields = $decoded;
+                } else {
+                    $customFields = [];
+                }
+            }
+        }
+        
+        // 应用字段映射
+        if (!empty($customFields) && is_array($customFields)) {
+            foreach ($customFields as $apiField => $dataField) {
+                // 确保键和值都是字符串
+                if (!is_string($apiField) || !is_string($dataField)) {
+                    continue;
+                }
+                
+                if (isset($data[$dataField]) && !empty($data[$dataField])) {
+                    $document[$apiField] = $data[$dataField];
+                }
+            }
+        }
+        
+        // 默认备注(如果没有通过映射配置)
+        if (!isset($document['remark'])) {
+            $document['remark'] = $this->buildRemark($data);
+        }
+        
+        return $document;
+    }
+
+    /**
+     * 构建备注信息
+     * @param array $data 订单或包裹数据
+     * @param string $prefix 前缀(如"母单"、"子单1")
+     * @return string 备注文本
+     */
+    private function buildRemark($data, $prefix = '')
+    {
+        $parts = [];
+        
+        if (!empty($prefix)) {
+            $parts[] = $prefix;
+        }
+        
+        if (!empty($data['buyer_remark'])) {
+            $parts[] = '买家: ' . $data['buyer_remark'];
+        }
+        
+        if (!empty($data['seller_remark'])) {
+            $parts[] = '卖家: ' . $data['seller_remark'];
+        }
+        
+        if (!empty($data['remark'])) {
+            $parts[] = $data['remark'];
+        }
+        
+        return !empty($parts) ? implode(' | ', $parts) : '';
+    }
+
+    /**
      * 获取面单图片（云打印）
      * 对接 COM_RECE_CLOUD_PRINT_WAYBILLS
      * @param int $order_id 订单ID
@@ -747,22 +1259,61 @@ class Sf
             'version' => '2.0',
             'fileType' => 'pdf', // 请求返回 PDF 格式
             'sync' => $syncParam, // 根据配置设置
-            'documents' => [
-                [
-                    'masterWaybillNo' => $waybillNo,
-                    // 云打印 2.0 接口说明：
-                    // 自定义区域备注通过 remark 字段传递
-                    'remark' => isset($order['remark']) ? $order['remark'] : (
-                        // 如果 order 表没有 remark，尝试从 Inpack 扩展字段或者临时拼接获取
-                        // 这里我们假设 createOrder 时并没有把 remark 存入 order 表的 remark 字段
-                        // 而是需要实时传入，或者从订单详情中获取。
-                        // 由于 printlabel 只接收 order_id，我们可能需要 Inpack 模型有 remark 字段
-                        // 暂时使用一个默认值测试，或者修改 createOrder 逻辑让它保存 remark
-                        '自定义区域备注测试' 
-                    )
-                ]
-            ]
+            'documents' => []
         ];
+        
+        // ⭐ 子母件PDF合并支持
+        // 注意: 沙箱环境可能不支持mergePdfBoolean参数,需要在生产环境测试
+        // 如果API不支持,会在后续使用本地FPDI库合并
+        if (count($packageIds) > 1) {
+            $msgData['mergePdfBoolean'] = true;
+            $msgData['mergeType'] = 'all';
+        }
+        
+        // ⭐ 修复：支持子母件打印
+        // 检查是否有子件(从pack_ids字段)
+        $packageIds = [];
+        if (!empty($order['pack_ids'])) {
+            $packageIds = explode(',', $order['pack_ids']);
+            $packageIds = array_filter($packageIds);
+        }
+        
+        // 添加母件
+        $msgData['documents'][] = [
+            'masterWaybillNo' => $waybillNo,
+            'remark' => isset($order['remark']) ? $order['remark'] : '母件'
+        ];
+        
+        // 如果有多个包裹,添加子件
+        if (count($packageIds) > 1) {
+            // 查询包裹信息获取子运单号
+            $packages = \think\Db::table('yoshop_package')
+                ->whereIn('id', $packageIds)
+                ->select();
+            
+            foreach ($packages as $index => $pkg) {
+                // 优先使用包裹表中存储的运单号
+                $childWaybillNo = '';
+                
+                // 检查 express_num 字段是否包含顺丰运单号(SF开头)
+                if (!empty($pkg['express_num']) && strpos($pkg['express_num'], 'SF') === 0) {
+                    $childWaybillNo = $pkg['express_num'];
+                }
+                
+                // 如果没有有效的子运单号,跳过该包裹
+                // 注意: 不能随意构造子运单号,必须使用顺丰API返回的真实运单号
+                if (empty($childWaybillNo)) {
+                    \think\Log::warning("包裹 {$pkg['id']} 没有有效的顺丰子运单号,跳过打印");
+                    continue;
+                }
+                
+                $msgData['documents'][] = [
+                    'masterWaybillNo' => $childWaybillNo,
+                    'parentWaybillNo' => $waybillNo,
+                    'remark' => '子件' . ($index + 1)
+                ];
+            }
+        }
         
         // 更新: 移除之前错误的 content 嵌套结构
         // $content = [ ... ];
@@ -807,16 +1358,44 @@ class Sf
              return false;
         }
         
-        $fileData = $files[0];
-        $picData = isset($fileData['url']) ? $fileData['url'] : '';
-        // 获取 Token
-        $fileToken = isset($fileData['token']) ? $fileData['token'] : '';
-
-        if (empty($picData)) {
+        // ⭐ 修复：处理文件(支持子母件PDF合并)
+        $downloadedPaths = [];
+        foreach ($files as $index => $fileData) {
+            $picData = isset($fileData['url']) ? $fileData['url'] : '';
+            $fileToken = isset($fileData['token']) ? $fileData['token'] : '';
+            $fileWaybillNo = isset($fileData['waybillNo']) ? $fileData['waybillNo'] : $waybillNo;
+            
+            if (empty($picData)) {
+                continue;
+            }
+            
+            $localPath = $this->downloadAndSaveLocal($fileWaybillNo, $picData, $fileToken);
+            if ($localPath) {
+                $downloadedPaths[] = $localPath;
+            }
+        }
+        
+        if (empty($downloadedPaths)) {
             $this->error = '未获取到有效的 PDF 链接';
             return false;
         }
-
-        return $this->downloadAndSave($waybillNo, $picData, $fileToken);
+        
+        // 如果有多个PDF文件(说明API的mergePdfBoolean没生效),使用本地合并
+        if (count($downloadedPaths) > 1) {
+            $mergedPath = $this->mergePDFs($downloadedPaths, $waybillNo);
+            if ($mergedPath) {
+                // 删除原始的单个PDF文件
+                foreach ($downloadedPaths as $path) {
+                    if (file_exists($path)) {
+                        @unlink($path);
+                    }
+                }
+                // 返回合并后的PDF URL
+                return $this->getUploadUrl(basename($mergedPath));
+            }
+        }
+        
+        // 返回第一个文件的URL
+        return $this->getUploadUrl(basename($downloadedPaths[0]));
     }
 }

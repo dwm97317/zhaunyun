@@ -212,6 +212,41 @@
                                     <small>不同产品类型时效和价格不同，请根据业务需求选择。常用产品：特快、标快、电商标快</small>
                                 </div>
                             </div>
+                            <!-- 顺丰云打印选项配置 -->
+                            <div class="am-form-group" id="sf_print_options_group" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 云打印选项 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <?php 
+                                        $sfPrintOptions = [];
+                                        if (!empty($model['sf_print_options'])) {
+                                            $sfPrintOptions = json_decode($model['sf_print_options'], true);
+                                            if (!is_array($sfPrintOptions)) {
+                                                $sfPrintOptions = [];
+                                            }
+                                        }
+                                    ?>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="sf_print_preview" id="sf_print_preview" value="1" 
+                                            <?= isset($sfPrintOptions['enable_preview']) && $sfPrintOptions['enable_preview'] ? 'checked' : '' ?>>
+                                        启用打印预览
+                                    </label>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" name="sf_print_select_printer" id="sf_print_select_printer" value="1"
+                                            <?= isset($sfPrintOptions['enable_select_printer']) && $sfPrintOptions['enable_select_printer'] ? 'checked' : '' ?>>
+                                        启用打印机选择
+                                    </label>
+                                    <div style="margin-top: 10px;">
+                                        <input type="text" class="tpl-form-input" name="sf_default_printer" id="sf_default_printer"
+                                               placeholder="默认打印机名称（可选）"
+                                               value="<?= isset($sfPrintOptions['default_printer']) ? htmlspecialchars($sfPrintOptions['default_printer']) : '' ?>"
+                                               style="max-width: 400px;">
+                                        <small style="display: block; margin-top: 5px;">
+                                            如果启用打印机选择，可以设置默认打印机名称。留空则使用系统默认打印机。
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="am-form-group" id="jd_product_code_group" style="display:none;">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 京东主产品 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -433,6 +468,7 @@
         var $g4 = $('#shop_key_group');
         var $g5 = $('#sf_express_type_group');
         var $g6 = $('#jd_product_code_group');
+        var $g7 = $('#sf_print_options_group');
         var $i = $('#customer_code');
         
         // Reset requirements and labels
@@ -448,6 +484,7 @@
         $g4.hide();
         $g5.hide();
         $g6.hide();
+        $g7.hide();
         $('#zto_manager_config_group').hide();
 
         if (v == '2') { // 中通
@@ -460,6 +497,7 @@
         } else if (v == '4') { // 顺丰快递
             $g.show(); // 显示客户编号（月结卡号）
             $g5.show(); // 显示快递产品类型选择器
+            $g7.show(); // 显示云打印选项配置
         } else if (v == '5') { // 京东快递
             $g.show(); // 显示客户编号 (CustomerCode)
             $g6.show(); // 显示京东产品选择器
@@ -606,6 +644,22 @@
         }
     }
 
+    function updateSfPrintOptions() {
+        var options = {
+            enable_preview: $('#sf_print_preview').is(':checked'),
+            enable_select_printer: $('#sf_print_select_printer').is(':checked'),
+            default_printer: $('#sf_default_printer').val()
+        };
+        
+        // 创建隐藏字段保存 JSON 数据
+        var $hiddenInput = $('input[name="express[sf_print_options]"]');
+        if ($hiddenInput.length === 0) {
+            $hiddenInput = $('<input type="hidden" name="express[sf_print_options]">');
+            $('#my-form').append($hiddenInput);
+        }
+        $hiddenInput.val(JSON.stringify(options));
+    }
+
     $(function () {
         $('input[name="express[ditch_type]"]').on('change', toggleCustomerCode);
         toggleCustomerCode();
@@ -654,6 +708,7 @@
             validation: function () {
                 updatePushConfigJson();
                 updateSenderJson();
+                updateSfPrintOptions();
                 return true;
             }
         });
@@ -662,6 +717,7 @@
         $('.j-submit').on('click', function() {
             updatePushConfigJson();
             updateSenderJson();
+            updateSfPrintOptions();
         });
 
     });
