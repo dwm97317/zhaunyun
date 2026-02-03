@@ -6903,7 +6903,8 @@ public function expressBillbatch() {
      }
      
     /**
-     * 获取打印任务数据
+     * 获取打印任务数据（统一接口）
+     * 支持打印母单、子单、全部包裹
      * 用于订单列表打印增强功能
      */
     public function getPrintTask()
@@ -6912,6 +6913,7 @@ public function expressBillbatch() {
             $id = $this->request->param('id');
             $waybillNo = $this->request->param('waybill_no', '');
             $label = $this->request->param('label', 60);
+            $printAll = $this->request->param('print_all', 0);  // 新增：是否打印全部包裹
             
             if (empty($id)) {
                 return $this->renderError('订单ID不能为空');
@@ -6925,41 +6927,43 @@ public function expressBillbatch() {
                 return $this->renderError('订单不存在');
             }
             
-            // 检查运单号
-            // 优先使用传递的 waybill_no 参数（用于打印子单）
-            // 如果没有传递，则使用订单的 t_order_sn（母单号）
-            // 如果 t_order_sn 为空，尝试从子单列表获取第一个子单号作为母单号
-            if (empty($waybillNo)) {
-                // 没有传递 waybill_no，使用订单的 t_order_sn
-                if (empty($data['t_order_sn'])) {
-                    // t_order_sn 也为空，尝试从子单列表获取
-                    if (!empty($data['packageitems']) && is_array($data['packageitems']) && count($data['packageitems']) > 0) {
-                        // 第一个子单的运单号就是母单号
-                        $firstItem = $data['packageitems'][0];
-                        if (!empty($firstItem['t_order_sn'])) {
-                            $data['t_order_sn'] = $firstItem['t_order_sn'];
-                            $waybillNo = $firstItem['t_order_sn'];
-                            \think\Log::info('getPrintTask - 从子单列表获取母单号: ' . $waybillNo);
+            // 检查运单号（仅在非打印全部模式下需要）
+            if (!$printAll) {
+                // 优先使用传递的 waybill_no 参数（用于打印子单）
+                // 如果没有传递，则使用订单的 t_order_sn（母单号）
+                // 如果 t_order_sn 为空，尝试从子单列表获取第一个子单号作为母单号
+                if (empty($waybillNo)) {
+                    // 没有传递 waybill_no，使用订单的 t_order_sn
+                    if (empty($data['t_order_sn'])) {
+                        // t_order_sn 也为空，尝试从子单列表获取
+                        if (!empty($data['packageitems']) && is_array($data['packageitems']) && count($data['packageitems']) > 0) {
+                            // 第一个子单的运单号就是母单号
+                            $firstItem = $data['packageitems'][0];
+                            if (!empty($firstItem['t_order_sn'])) {
+                                $data['t_order_sn'] = $firstItem['t_order_sn'];
+                                $waybillNo = $firstItem['t_order_sn'];
+                                \think\Log::info('getPrintTask - 从子单列表获取母单号: ' . $waybillNo);
+                            } else {
+                                return $this->renderError('国际物流单号为空');
+                            }
                         } else {
                             return $this->renderError('国际物流单号为空');
                         }
                     } else {
-                        return $this->renderError('国际物流单号为空');
+                        // 使用订单的 t_order_sn
+                        $waybillNo = $data['t_order_sn'];
                     }
                 } else {
-                    // 使用订单的 t_order_sn
-                    $waybillNo = $data['t_order_sn'];
-                }
-            } else {
-                // 传递了 waybill_no，使用它（可能是母单号或子单号）
-                // 如果订单的 t_order_sn 为空，需要设置它（用于后续判断）
-                if (empty($data['t_order_sn'])) {
-                    if (!empty($data['packageitems']) && is_array($data['packageitems']) && count($data['packageitems']) > 0) {
-                        // 第一个子单的运单号就是母单号
-                        $firstItem = $data['packageitems'][0];
-                        if (!empty($firstItem['t_order_sn'])) {
-                            $data['t_order_sn'] = $firstItem['t_order_sn'];
-                            \think\Log::info('getPrintTask - 设置母单号: ' . $data['t_order_sn']);
+                    // 传递了 waybill_no，使用它（可能是母单号或子单号）
+                    // 如果订单的 t_order_sn 为空，需要设置它（用于后续判断）
+                    if (empty($data['t_order_sn'])) {
+                        if (!empty($data['packageitems']) && is_array($data['packageitems']) && count($data['packageitems']) > 0) {
+                            // 第一个子单的运单号就是母单号
+                            $firstItem = $data['packageitems'][0];
+                            if (!empty($firstItem['t_order_sn'])) {
+                                $data['t_order_sn'] = $firstItem['t_order_sn'];
+                                \think\Log::info('getPrintTask - 设置母单号: ' . $data['t_order_sn']);
+                            }
                         }
                     }
                 }
@@ -7006,12 +7010,15 @@ public function expressBillbatch() {
                 'status' => $ditchConfig ? $ditchConfig['status'] : null
             ], JSON_UNESCAPED_UNICODE));
             
-            // 判断是否为顺丰渠道
+            // 判断渠道类型
             // ditch_type: 1=普通渠道, 2=中通快递, 3=中通管家, 4=顺丰速运
             $isSf = false;
+            $isZto = false;
+            
             if ($ditchConfig) {
                 $ditchType = isset($ditchConfig['ditch_type']) ? (int)$ditchConfig['ditch_type'] : 1;
                 $isSf = ($ditchType === 4) || stripos($ditchConfig['ditch_name'], '顺丰') !== false;
+                $isZto = ($ditchType === 2 || $ditchType === 3) || stripos($ditchConfig['ditch_name'], '中通') !== false;
             } elseif (stripos($tName, '顺丰') !== false) {
                 // 即使没找到配置,如果名称包含"顺丰",也尝试使用顺丰云打印
                 $isSf = true;
@@ -7020,21 +7027,105 @@ public function expressBillbatch() {
                 $ditchConfig = $ditchModel->where('ditch_type', 4)
                     ->order('ditch_id DESC')
                     ->find();
+            } elseif (stripos($tName, '中通') !== false) {
+                // 如果名称包含"中通",尝试使用中通云打印
+                $isZto = true;
+                
+                // 尝试获取默认的中通配置 (ditch_type=2 或 3)
+                $ditchConfig = $ditchModel->whereIn('ditch_type', [2, 3])
+                    ->order('ditch_id DESC')
+                    ->find();
             }
             
-            // 记录顺丰判断结果
-            \think\Log::info('getPrintTask - 顺丰判断结果: ' . json_encode([
+            // 记录渠道判断结果
+            \think\Log::info('getPrintTask - 渠道判断结果: ' . json_encode([
                 'is_sf' => $isSf,
+                'is_zto' => $isZto,
                 'has_config' => !empty($ditchConfig)
             ], JSON_UNESCAPED_UNICODE));
             
-            if ($isSf && $ditchConfig) {
+            if ($isZto && $ditchConfig) {
+                // 使用中通云打印
+                \think\Log::info('getPrintTask - 使用中通云打印: ' . json_encode([
+                    'order_id' => $id,
+                    'ditch_id' => $ditchConfig['ditch_id'],
+                    'ditch_name' => $ditchConfig['ditch_name'],
+                    'ditch_type' => isset($ditchConfig['ditch_type']) ? $ditchConfig['ditch_type'] : 'N/A',
+                    'print_all' => $printAll
+                ], JSON_UNESCAPED_UNICODE));
+                
+                // 转换数据库字段名到 Zto 类期望的配置键名
+                $ditchArray = is_object($ditchConfig) ? $ditchConfig->toArray() : (array)$ditchConfig;
+                $ztoConfig = [
+                    'key' => isset($ditchArray['app_key']) ? $ditchArray['app_key'] : '',
+                    'token' => isset($ditchArray['app_token']) ? $ditchArray['app_token'] : '',
+                    'apiurl' => isset($ditchArray['api_url']) ? $ditchArray['api_url'] : '',
+                    'customer_code' => isset($ditchArray['customer_code']) ? $ditchArray['customer_code'] : '',
+                    'ditch_type' => isset($ditchArray['ditch_type']) ? (int)$ditchArray['ditch_type'] : 2,
+                    'push_config_json' => isset($ditchArray['push_config_json']) ? $ditchArray['push_config_json'] : '',
+                ];
+                
+                $zto = new \app\common\library\Ditch\Zto($ztoConfig);
+                
+                // 根据参数判断打印模式
+                if ($printAll) {
+                    $printMode = 'all';
+                    \think\Log::info('getPrintTask - 中通打印全部模式');
+                } else {
+                    $printMode = 'mother'; // 默认打印母单
+                    
+                    // 如果传递了 waybill_no，判断是否为子单
+                    if (!empty($waybillNo) && !empty($data['t_order_sn'])) {
+                        if ($waybillNo !== $data['t_order_sn']) {
+                            $printMode = 'child';
+                            \think\Log::info('getPrintTask - 中通检测到子单打印: ' . json_encode([
+                                'waybill_no' => $waybillNo,
+                                'mother_waybill' => $data['t_order_sn']
+                            ], JSON_UNESCAPED_UNICODE));
+                        }
+                    }
+                }
+                
+                // 调用中通云打印接口
+                $result = $zto->cloudPrint($id, [
+                    'print_mode' => $printMode,
+                    'waybill_no' => $waybillNo
+                ]);
+                
+                // 记录调用结果
+                \think\Log::info('getPrintTask - 中通云打印调用结果: ' . json_encode([
+                    'success' => $result !== false && isset($result['success']) && $result['success'],
+                    'message' => isset($result['message']) ? $result['message'] : 'N/A',
+                    'has_data' => isset($result['data']),
+                    'error' => $result === false ? $zto->getError() : null
+                ], JSON_UNESCAPED_UNICODE));
+                
+                if ($result === false) {
+                    return $this->renderError('获取中通云打印数据失败: ' . $zto->getError());
+                }
+                
+                if (!$result['success']) {
+                    return $this->renderError('中通云打印失败: ' . $result['message']);
+                }
+                
+                // 返回中通云打印结果
+                // 中通云打印返回的是打印成功/失败列表，前端需要根据这个结果显示
+                return $this->renderSuccess('获取成功', null, [
+                    'mode' => 'zto_cloud_print',
+                    'data' => $result['data'],
+                    'order_id' => $id,
+                    'waybill_no' => $waybillNo ?: $data['t_order_sn'],
+                    'print_all' => $printAll ? true : false
+                ]);
+                
+            } elseif ($isSf && $ditchConfig) {
                 // 使用顺丰云打印
                 \think\Log::info('getPrintTask - 使用顺丰云打印: ' . json_encode([
                     'order_id' => $id,
                     'ditch_id' => $ditchConfig['ditch_id'],
                     'ditch_name' => $ditchConfig['ditch_name'],
-                    'app_key' => isset($ditchConfig['app_key']) ? substr($ditchConfig['app_key'], 0, 5) . '***' : 'N/A'
+                    'app_key' => isset($ditchConfig['app_key']) ? substr($ditchConfig['app_key'], 0, 5) . '***' : 'N/A',
+                    'print_all' => $printAll
                 ], JSON_UNESCAPED_UNICODE));
                 
                 // 转换数据库字段名到 Sf 类期望的配置键名
@@ -7045,14 +7136,38 @@ public function expressBillbatch() {
                     'apiurl' => isset($ditchArray['api_url']) ? $ditchArray['api_url'] : '',
                     'customer_code' => isset($ditchArray['customer_code']) ? $ditchArray['customer_code'] : '',
                     'sf_express_type' => isset($ditchArray['sf_express_type']) ? (int)$ditchArray['sf_express_type'] : 1,
+                    'push_config_json' => isset($ditchArray['push_config_json']) ? $ditchArray['push_config_json'] : '',
                 ];
                 
                 $sf = new \app\common\library\Ditch\Sf($sfConfig);
                 
+                // 根据参数判断打印模式
+                if ($printAll) {
+                    // 打印全部模式：母单 + 所有子单
+                    $printMode = 'all';
+                    \think\Log::info('getPrintTask - 打印全部模式');
+                } else {
+                    // 判断打印模式：根据 waybill_no 判断是母单还是子单
+                    $printMode = 'mother'; // 默认打印母单
+                    
+                    // 如果传递了 waybill_no，判断是否为子单
+                    if (!empty($waybillNo) && !empty($data['t_order_sn'])) {
+                        // 如果 waybill_no 与母单号不同，说明是打印子单
+                        if ($waybillNo !== $data['t_order_sn']) {
+                            $printMode = 'child';
+                            \think\Log::info('getPrintTask - 检测到子单打印: ' . json_encode([
+                                'waybill_no' => $waybillNo,
+                                'mother_waybill' => $data['t_order_sn']
+                            ], JSON_UNESCAPED_UNICODE));
+                        }
+                    }
+                }
+                
                 // 调用顺丰云打印接口获取面单
+                // 注意：printlabelParsedData 方法内部会自动获取订单数据并处理 buyer_remark、seller_remark、sub_order_count
                 $result = $sf->printlabelParsedData($id, [
-                    'print_mode' => 'mother',  // 默认打印母单
-                    'waybill_no' => $waybillNo  // 传递运单号，用于判断是母单还是子单
+                    'print_mode' => $printMode,  // 根据参数判断打印模式
+                    'waybill_no' => $waybillNo  // 传递运单号，用于判断是母单还是子单（仅在非打印全部模式下使用）
                 ]);
                 
                 // 记录调用结果
@@ -7110,7 +7225,8 @@ public function expressBillbatch() {
                         'env' => $isSandbox ? 'sbox' : 'pro', // 传递环境标识
                         'printOptions' => $printOptions, // 传递打印选项配置
                         'order_id' => $id,
-                        'waybill_no' => $waybillNo ?: $data['t_order_sn']
+                        'waybill_no' => $waybillNo ?: $data['t_order_sn'],
+                        'print_all' => $printAll ? true : false  // 标识是否为打印全部模式
                     ]);
                 } else {
                     // 记录未识别的格式以便调试
@@ -7125,8 +7241,9 @@ public function expressBillbatch() {
             } else {
                 // 记录使用原有方法的原因
                 \think\Log::info('getPrintTask - 使用原有expressLabel方法: ' . json_encode([
-                    'reason' => !$isSf ? '非顺丰渠道' : '无渠道配置',
+                    'reason' => (!$isSf && !$isZto) ? '非顺丰/中通渠道' : '无渠道配置',
                     'is_sf' => $isSf,
+                    'is_zto' => $isZto,
                     'has_config' => !empty($ditchConfig)
                 ], JSON_UNESCAPED_UNICODE));
                 
@@ -7199,118 +7316,6 @@ public function expressBillbatch() {
             
         } catch (\Exception $e) {
             return $this->renderError('获取 AccessToken 失败: ' . $e->getMessage());
-        }
-    }
-     
-    /**
-     * 批量打印包裹
-     * 用于订单列表打印增强功能
-     */
-    public function printMultiplePackages()
-    {
-        try {
-            $orderId = $this->request->param('order_id');
-            
-            if (empty($orderId)) {
-                return $this->renderError('订单ID不能为空');
-            }
-            
-            // 获取订单数据
-            $inpack = new Inpack();
-            $data = $inpack->getExpressData($orderId);
-            
-            if (!$data) {
-                return $this->renderError('订单不存在');
-            }
-            
-            // 判断渠道类型
-            $tNumber = isset($data['t_number']) ? $data['t_number'] : '';
-            $tName = isset($data['t_name']) ? $data['t_name'] : '';
-            
-            // 查找对应的渠道配置
-            $ditchModel = new \app\common\model\Ditch();
-            $ditchConfig = null;
-            
-            // 优先通过 t_number 查找
-            if (!empty($tNumber)) {
-                $ditchConfig = $ditchModel->where('ditch_id', $tNumber)->find();
-                if (!$ditchConfig) {
-                    $ditchConfig = $ditchModel->where('ditch_no', $tNumber)->find();
-                }
-            }
-            
-            // 如果没找到,尝试通过名称模糊匹配
-            if (!$ditchConfig && !empty($tName)) {
-                $ditchConfig = $ditchModel->where('ditch_name', 'like', '%' . $tName . '%')->find();
-            }
-            
-            // 判断是否为顺丰渠道
-            $isSf = false;
-            if ($ditchConfig) {
-                $ditchType = isset($ditchConfig['ditch_type']) ? (int)$ditchConfig['ditch_type'] : 1;
-                $isSf = ($ditchType === 4) || stripos($ditchConfig['ditch_name'], '顺丰') !== false;
-            } elseif (stripos($tName, '顺丰') !== false) {
-                $isSf = true;
-                $ditchConfig = $ditchModel->where('ditch_type', 4)
-                    ->order('ditch_id DESC')
-                    ->find();
-            }
-            
-            if ($isSf && $ditchConfig) {
-                // 使用顺丰云打印 - 打印全部（母单+所有子单）
-                $ditchArray = is_object($ditchConfig) ? $ditchConfig->toArray() : (array)$ditchConfig;
-                $sfConfig = [
-                    'key' => isset($ditchArray['app_key']) ? $ditchArray['app_key'] : '',
-                    'token' => isset($ditchArray['app_token']) ? $ditchArray['app_token'] : '',
-                    'apiurl' => isset($ditchArray['api_url']) ? $ditchArray['api_url'] : '',
-                    'customer_code' => isset($ditchArray['customer_code']) ? $ditchArray['customer_code'] : '',
-                    'sf_express_type' => isset($ditchArray['sf_express_type']) ? (int)$ditchArray['sf_express_type'] : 1,
-                ];
-                
-                $sf = new \app\common\library\Ditch\Sf($sfConfig);
-                
-                // 调用顺丰云打印接口 - 打印全部模式
-                $result = $sf->printlabelParsedData($orderId, [
-                    'print_mode' => 'all'  // 打印全部：母单 + 所有子单
-                ]);
-                
-                if ($result === false) {
-                    return $this->renderError('获取顺丰云打印数据失败: ' . $sf->getError());
-                }
-                
-                // 判断返回类型
-                if (is_array($result) && (isset($result['requestID']) || isset($result['files']))) {
-                    // 返回顺丰插件 SDK 数据结构
-                    $isSandbox = isset($ditchArray['api_url']) && strpos($ditchArray['api_url'], 'sbox') !== false;
-                    
-                    // 读取打印选项配置
-                    $printOptions = [];
-                    if (!empty($ditchArray['sf_print_options'])) {
-                        $printOptions = json_decode($ditchArray['sf_print_options'], true);
-                        if (!is_array($printOptions)) {
-                            $printOptions = [];
-                        }
-                    }
-                    
-                    return $this->renderSuccess('获取成功', null, [
-                        'mode' => 'sf_plugin',
-                        'data' => $result,
-                        'partnerID' => isset($ditchConfig['app_key']) ? $ditchConfig['app_key'] : '',
-                        'env' => $isSandbox ? 'sbox' : 'pro',
-                        'printOptions' => $printOptions,
-                        'order_id' => $orderId,
-                        'print_all' => true  // 标识这是打印全部
-                    ]);
-                } else {
-                    return $this->renderError('未识别的顺丰云打印返回格式');
-                }
-            } else {
-                // 其他渠道暂不支持批量打印
-                return $this->renderError('该渠道暂不支持批量打印');
-            }
-            
-        } catch (\Exception $e) {
-            return $this->renderError('系统错误: ' . $e->getMessage());
         }
     }
     

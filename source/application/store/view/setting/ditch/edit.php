@@ -236,13 +236,62 @@
                                         启用打印机选择
                                     </label>
                                     <div style="margin-top: 10px;">
-                                        <input type="text" class="tpl-form-input" name="sf_default_printer" id="sf_default_printer"
-                                               placeholder="默认打印机名称（可选）"
-                                               value="<?= isset($sfPrintOptions['default_printer']) ? htmlspecialchars($sfPrintOptions['default_printer']) : '' ?>"
-                                               style="max-width: 400px;">
+                                        <select class="tpl-form-input" name="sf_default_printer" id="sf_default_printer" 
+                                                style="max-width: 400px;"
+                                                data-saved-value="<?= isset($sfPrintOptions['default_printer']) ? htmlspecialchars($sfPrintOptions['default_printer']) : '' ?>">
+                                            <option value="">使用系统默认打印机</option>
+                                            <!-- 打印机列表将通过 JavaScript 动态加载 -->
+                                            <?php if (isset($sfPrintOptions['default_printer']) && !empty($sfPrintOptions['default_printer'])): ?>
+                                            <option value="<?= htmlspecialchars($sfPrintOptions['default_printer']) ?>" selected>
+                                                <?= htmlspecialchars($sfPrintOptions['default_printer']) ?> (已保存)
+                                            </option>
+                                            <?php endif; ?>
+                                        </select>
+                                        <button type="button" class="am-btn am-btn-secondary am-btn-xs" id="refresh_printers" style="margin-left: 10px;">
+                                            <i class="am-icon-refresh"></i> 刷新打印机列表
+                                        </button>
                                         <small style="display: block; margin-top: 5px;">
-                                            如果启用打印机选择，可以设置默认打印机名称。留空则使用系统默认打印机。
+                                            选择默认打印机。如果未选择，将使用系统默认打印机。点击"刷新"按钮重新加载打印机列表。
                                         </small>
+                                        <small id="printer_loading" style="display: none; color: #0e90d2;">
+                                            <i class="am-icon-spinner am-icon-spin"></i> 正在加载打印机列表...
+                                        </small>
+                                        <small id="printer_error" style="display: none; color: #dd514c;">
+                                            <i class="am-icon-warning"></i> 加载打印机列表失败，请确保已安装顺丰云打印插件
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 顺丰快递推送增强配置 -->
+                            <div class="am-form-group" id="sf_push_config_group" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 推送增强配置 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <?php 
+                                        $sfPushConfig = [];
+                                        if (!empty($model['push_config_json'])) {
+                                            $sfPushConfig = json_decode($model['push_config_json'], true);
+                                            if (!is_array($sfPushConfig)) {
+                                                $sfPushConfig = [];
+                                            }
+                                        }
+                                    ?>
+                                    <div style="border: 1px solid #eee; padding: 15px; border-radius: 4px;">
+                                        <div style="margin-bottom: 10px;">
+                                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">备注信息 (remark)</label>
+                                            <label class="am-checkbox-inline">
+                                                <input type="checkbox" id="enableSfRemark" <?= (isset($sfPushConfig['enableSfRemark']) && $sfPushConfig['enableSfRemark']) ? 'checked' : '' ?>> 启用自定义配置
+                                            </label>
+                                            <div class="config-editor" id="sf-remark-config-editor" style="display:none; border: 1px solid #eee; padding: 10px; margin-top: 10px;">
+                                                <div class="field-list" style="margin-bottom: 10px;">
+                                                    <small>点击添加字段:</small><br>
+                                                    <!-- JS populated -->
+                                                </div>
+                                                <div class="block-container" id="sf-remark-blocks" style="min-height: 50px; background: #f9f9f9; padding: 5px;">
+                                                    <!-- Blocks go here -->
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -351,6 +400,181 @@
                                 </div>
                             </div>
                             <input type="hidden" name="express[push_config_json]" id="push_config_json_input" value='<?= htmlspecialchars($model['push_config_json'], ENT_QUOTES) ?>'>
+                            
+                            <!-- 中通快递打印机配置 -->
+                            <div id="zto_printer_config_group" style="display:none;">
+                                <div class="widget-head am-cf">
+                                    <div class="widget-title am-fl">中通快递打印机配置</div>
+                                </div>
+                                <?php 
+                                    $ztoPrinterConfig = [];
+                                    if (!empty($model['push_config_json'])) {
+                                        $pushConfigData = json_decode($model['push_config_json'], true);
+                                        if (isset($pushConfigData['ztoPrinterConfig'])) {
+                                            $ztoPrinterConfig = $pushConfigData['ztoPrinterConfig'];
+                                        }
+                                    }
+                                ?>
+                                
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 打印机名称 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input" id="zto_printer_id" 
+                                               value="<?= isset($ztoPrinterConfig['printerId']) ? htmlspecialchars($ztoPrinterConfig['printerId']) : '' ?>"
+                                               placeholder="打印机名称（PC端客户端打印时必填）">
+                                        <small>PC端客户端打印时必填，例如：打印机名称</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 设备ID </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input" id="zto_device_id" 
+                                               value="<?= isset($ztoPrinterConfig['deviceId']) ? htmlspecialchars($ztoPrinterConfig['deviceId']) : '' ?>"
+                                               placeholder="设备ID（与二维码ID二选一）">
+                                        <small>设备ID或二维码ID二者必传其一，例如：8CEEC48B18D0:52</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 二维码ID </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input" id="zto_qrcode_id" 
+                                               value="<?= isset($ztoPrinterConfig['qrcodeId']) ? htmlspecialchars($ztoPrinterConfig['qrcodeId']) : '' ?>"
+                                               placeholder="二维码ID（与设备ID二选一）">
+                                        <small>设备ID或二维码ID二者必传其一，例如：epe338c5e</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 打印渠道 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input" id="zto_print_channel" 
+                                               value="<?= isset($ztoPrinterConfig['printChannel']) ? htmlspecialchars($ztoPrinterConfig['printChannel']) : 'ZOP' ?>"
+                                               placeholder="打印渠道" readonly>
+                                        <small>打印渠道固定填写：ZOP</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 打印参数类型 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <?php $paramType = isset($ztoPrinterConfig['paramType']) ? $ztoPrinterConfig['paramType'] : 'DEFAULT_PRINT'; ?>
+                                        <select class="tpl-form-input" id="zto_param_type" onchange="handleParamTypeChange()">
+                                            <option value="DEFAULT_PRINT" <?= $paramType == 'DEFAULT_PRINT' ? 'selected' : '' ?>>DEFAULT_PRINT - 采用默认电子面单账号</option>
+                                            <option value="ELEC_MARK" <?= $paramType == 'ELEC_MARK' ? 'selected' : '' ?>>ELEC_MARK - 指定电子面单和指定大头笔信息</option>
+                                            <option value="ELEC_NOMARK" <?= $paramType == 'ELEC_NOMARK' ? 'selected' : '' ?>>ELEC_NOMARK - 指定电子面单和不指定大头笔信息</option>
+                                            <option value="NOELEC_MARK" <?= $paramType == 'NOELEC_MARK' ? 'selected' : '' ?>>NOELEC_MARK - 不指定电子面单和指定大头笔信息</option>
+                                            <option value="NOELEC_NOMARK" <?= $paramType == 'NOELEC_NOMARK' ? 'selected' : '' ?>>NOELEC_NOMARK - 不指定电子面单和不指定大头笔信息</option>
+                                        </select>
+                                        <small>
+                                            <strong>参数类型说明：</strong><br>
+                                            • DEFAULT_PRINT：使用默认电子面单账号（推荐）<br>
+                                            • ELEC_MARK：需要指定电子面单账号和大头笔信息<br>
+                                            • ELEC_NOMARK：需要指定电子面单账号，不需要大头笔<br>
+                                            • NOELEC_MARK：需要电子面单账号密码获取运单号，需要大头笔<br>
+                                            • NOELEC_NOMARK：需要电子面单账号密码获取运单号，不需要大头笔
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <div class="am-form-group" id="zto_print_mark_group" style="display:none;">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 大头笔信息 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input" id="zto_print_mark" 
+                                               value="<?= isset($ztoPrinterConfig['printMark']) ? htmlspecialchars($ztoPrinterConfig['printMark']) : '' ?>"
+                                               placeholder="大头笔信息，如：沪">
+                                        <small>大头笔信息，用于快速分拣识别</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="am-form-group" id="zto_print_bagaddr_group" style="display:none;">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 集包地 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input" id="zto_print_bagaddr" 
+                                               value="<?= isset($ztoPrinterConfig['printBagaddr']) ? htmlspecialchars($ztoPrinterConfig['printBagaddr']) : '' ?>"
+                                               placeholder="集包地信息">
+                                        <small>集包地信息（可选）</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="am-form-group" id="zto_elec_account_group" style="display:none;">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 电子面单账号 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input" id="zto_elec_account" 
+                                               value="<?= isset($ztoPrinterConfig['elecAccount']) ? htmlspecialchars($ztoPrinterConfig['elecAccount']) : '' ?>"
+                                               placeholder="电子面单账号">
+                                        <small>NOELEC_MARK 和 NOELEC_NOMARK 模式下必填</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="am-form-group" id="zto_elec_pwd_group" style="display:none;">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 电子面单密码 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <input type="text" class="tpl-form-input" id="zto_elec_pwd" 
+                                               value="<?= isset($ztoPrinterConfig['elecPwd']) ? htmlspecialchars($ztoPrinterConfig['elecPwd']) : '' ?>"
+                                               placeholder="电子面单密码">
+                                        <small>NOELEC_MARK 和 NOELEC_NOMARK 模式下必填</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 增值服务 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <label class="am-radio-inline">
+                                            <input type="radio" name="zto_appreciation_enabled" id="zto_appreciation_enabled_yes" value="1" 
+                                                <?= (isset($ztoPrinterConfig['appreciationEnabled']) && $ztoPrinterConfig['appreciationEnabled']) ? 'checked' : '' ?>>
+                                            启用
+                                        </label>
+                                        <label class="am-radio-inline">
+                                            <input type="radio" name="zto_appreciation_enabled" id="zto_appreciation_enabled_no" value="0"
+                                                <?= (!isset($ztoPrinterConfig['appreciationEnabled']) || !$ztoPrinterConfig['appreciationEnabled']) ? 'checked' : '' ?>>
+                                            不启用
+                                        </label>
+                                        <div id="appreciation_services_config" style="border: 1px solid #eee; padding: 15px; border-radius: 4px; margin-top: 10px; display: <?= (isset($ztoPrinterConfig['appreciationEnabled']) && $ztoPrinterConfig['appreciationEnabled']) ? 'block' : 'none' ?>;">
+                                            <?php 
+                                                $appreciationServices = isset($ztoPrinterConfig['appreciationDTOS']) ? $ztoPrinterConfig['appreciationDTOS'] : [];
+                                            ?>
+                                            <div id="appreciation_services_container">
+                                                <!-- 增值服务列表将通过 JavaScript 渲染 -->
+                                            </div>
+                                            <button type="button" class="am-btn am-btn-xs am-btn-primary am-round" onclick="addAppreciationService()">
+                                                <i class="am-icon-plus"></i> 添加增值服务
+                                            </button>
+                                            <div style="margin-top: 10px;">
+                                                <small>
+                                                    <strong>增值服务类型说明：</strong><br>
+                                                    1=到付 | 2=代收货款 | 6=中通标快 | 16=隐私服务 | 18=保价 | 29=中通好快<br>
+                                                    <strong>增值服务金额：</strong>代收金额、保价金额、到付金额（整数，单位：元）
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 回单号 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <label class="am-radio-inline">
+                                            <input type="radio" name="zto_back_bill_enabled" id="zto_back_bill_enabled_yes" value="1"
+                                                <?= (isset($ztoPrinterConfig['backBillEnabled']) && $ztoPrinterConfig['backBillEnabled']) ? 'checked' : '' ?>>
+                                            启用
+                                        </label>
+                                        <label class="am-radio-inline">
+                                            <input type="radio" name="zto_back_bill_enabled" id="zto_back_bill_enabled_no" value="0"
+                                                <?= (!isset($ztoPrinterConfig['backBillEnabled']) || !$ztoPrinterConfig['backBillEnabled']) ? 'checked' : '' ?>>
+                                            不启用
+                                        </label>
+                                        <div id="back_bill_code_config" style="margin-top: 10px; display: <?= (isset($ztoPrinterConfig['backBillEnabled']) && $ztoPrinterConfig['backBillEnabled']) ? 'block' : 'none' ?>;">
+                                            <input type="text" class="tpl-form-input" id="zto_back_bill_code" 
+                                                   value="<?= isset($ztoPrinterConfig['backBillCode']) ? htmlspecialchars($ztoPrinterConfig['backBillCode']) : '' ?>"
+                                                   placeholder="回单号">
+                                            <small>签单返还时填写回单号</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                              <div class="am-form-group">
                                 <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 是否启用 </label>
                                 <div class="am-u-sm-9 am-u-end">
@@ -431,9 +655,36 @@
         </div>
     </div>
 </div>
+<!-- 顺丰云打印 SDK -->
+<script src="https://scp-tcdn.sf-express.com/prd/sdk/lodop/2.7/SCPPrint.js"></script>
+
 <script>
     // Dictionary
     var fieldDictionary = [
+        {key: 'text', label: '自定义文本', type: 'text'},
+        {key: 'order_sn', label: '订单号', type: 'field'},
+        {key: 'create_time', label: '创建时间', type: 'field'},
+        {key: 'pay_time', label: '支付时间', type: 'field'},
+        {key: 'apply_time', label: '申请打包时间', type: 'field'},
+        {key: 'pay_status', label: '支付状态', type: 'field'},
+        {key: 'weight', label: '总重量', type: 'field'},
+        {key: 'volume_weight', label: '体积重', type: 'field'},
+        {key: 'chargeable_weight', label: '计费重量', type: 'field'},
+        {key: 'warehouse_name', label: '寄送仓库', type: 'field'},
+        {key: 'sub_order_count', label: '子订单数量', type: 'field'},
+        {key: 'service_items', label: '打包服务项目', type: 'field'},
+        {key: 'goods_name', label: '商品名称', type: 'field'},
+        {key: 'buyer_remark', label: '用户留言', type: 'field'},
+        {key: 'seller_remark', label: '后台备注', type: 'field'},
+        {key: 'receiver.name', label: '收件人姓名', type: 'field'},
+        {key: 'receiver.mobile', label: '收件人手机', type: 'field'},
+        {key: 'receiver.address', label: '收件地址', type: 'field'},
+        {key: 'items', label: '包裹列表(循环)', type: 'loop'}
+    ];
+    
+    // 顺丰字段字典（完整版，与中通管家保持一致）
+    // 注意：buyer_remark 和 seller_remark 需要从订单数据中获取
+    var sfFieldDictionary = [
         {key: 'text', label: '自定义文本', type: 'text'},
         {key: 'order_sn', label: '订单号', type: 'field'},
         {key: 'create_time', label: '创建时间', type: 'field'},
@@ -469,6 +720,7 @@
         var $g5 = $('#sf_express_type_group');
         var $g6 = $('#jd_product_code_group');
         var $g7 = $('#sf_print_options_group');
+        var $g8 = $('#sf_push_config_group');
         var $i = $('#customer_code');
         
         // Reset requirements and labels
@@ -485,12 +737,15 @@
         $g5.hide();
         $g6.hide();
         $g7.hide();
+        $g8.hide();
         $('#zto_manager_config_group').hide();
+        $('#zto_printer_config_group').hide();
 
         if (v == '2') { // 中通
             $g.show();
             $g2.show();
             $g3.show();
+            $('#zto_printer_config_group').show(); // 显示中通打印机配置
         } else if (v == '3') { // 中通管家
             $g4.show();
             $('#zto_manager_config_group').show();
@@ -498,6 +753,7 @@
             $g.show(); // 显示客户编号（月结卡号）
             $g5.show(); // 显示快递产品类型选择器
             $g7.show(); // 显示云打印选项配置
+            $g8.show(); // 显示推送增强配置
         } else if (v == '5') { // 京东快递
             $g.show(); // 显示客户编号 (CustomerCode)
             $g6.show(); // 显示京东产品选择器
@@ -514,10 +770,14 @@
     var titleRules = <?= isset($pushConfig['goodsTitleRules']) ? json_encode($pushConfig['goodsTitleRules']) : '[]' ?>;
     var buyerSchema = <?= isset($pushConfig['buyerSchema']) ? json_encode($pushConfig['buyerSchema']) : '[]' ?>;
     var sellerSchema = <?= isset($pushConfig['sellerSchema']) ? json_encode($pushConfig['sellerSchema']) : '[]' ?>;
+    
+    // 顺丰推送增强配置
+    var sfRemarkSchema = <?= isset($sfPushConfig['sfRemarkSchema']) ? json_encode($sfPushConfig['sfRemarkSchema']) : '[]' ?>;
 
-    function renderFieldButtonsFor(containerId) {
+    function renderFieldButtonsFor(containerId, dictionary) {
+        var dict = dictionary || fieldDictionary;
         var html = '';
-        fieldDictionary.forEach(function(field) {
+        dict.forEach(function(field) {
             html += `<button type="button" class="am-btn am-btn-xs am-btn-default am-round" style="margin-right:5px; margin-bottom:5px;" onclick="addBlock('${containerId}', '${field.type}', '${field.key}', '${field.label}')">${field.label}</button>`;
         });
         $('#' + containerId).prev('.field-list').html(html + '<br><small>点击上方按钮添加到对应配置区域</small>');
@@ -614,17 +874,182 @@
     }
 
     function updatePushConfigJson() {
-        var config = {
-            enableSkuPropertiesName: $('#enableSkuPropertiesName').is(':checked'),
-            enablePayDate: $('#enablePayDate').is(':checked'),
-            enableBuyerMessage: $('#enableBuyerMessage').is(':checked'),
-            enableSellerMessage: $('#enableSellerMessage').is(':checked'),
-            enableGoodsTitle: $('#enableGoodsTitle').is(':checked'),
-            goodsTitleRules: titleRules,
-            buyerSchema: getSchemaFromBlocks('buyer-blocks'),
-            sellerSchema: getSchemaFromBlocks('seller-blocks')
-        };
+        var ditchType = $('input[name="express[ditch_type]"]:checked').val();
+        var config = {};
+        
+        if (ditchType == '2') {
+            // 中通快递打印机配置
+            config = {
+                ztoPrinterConfig: {
+                    printerId: $('#zto_printer_id').val(),
+                    deviceId: $('#zto_device_id').val(),
+                    qrcodeId: $('#zto_qrcode_id').val(),
+                    printChannel: $('#zto_print_channel').val() || 'ZOP',
+                    paramType: $('#zto_param_type').val() || 'DEFAULT_PRINT',
+                    printMark: $('#zto_print_mark').val(),
+                    printBagaddr: $('#zto_print_bagaddr').val(),
+                    elecAccount: $('#zto_elec_account').val(),
+                    elecPwd: $('#zto_elec_pwd').val(),
+                    appreciationEnabled: $('input[name="zto_appreciation_enabled"]:checked').val() == '1',
+                    appreciationDTOS: $('input[name="zto_appreciation_enabled"]:checked').val() == '1' ? getAppreciationServices() : [],
+                    backBillEnabled: $('input[name="zto_back_bill_enabled"]:checked').val() == '1',
+                    backBillCode: $('input[name="zto_back_bill_enabled"]:checked').val() == '1' ? $('#zto_back_bill_code').val() : ''
+                }
+            };
+        } else if (ditchType == '3') {
+            // 中通管家配置
+            config = {
+                enableSkuPropertiesName: $('#enableSkuPropertiesName').is(':checked'),
+                enablePayDate: $('#enablePayDate').is(':checked'),
+                enableBuyerMessage: $('#enableBuyerMessage').is(':checked'),
+                enableSellerMessage: $('#enableSellerMessage').is(':checked'),
+                enableGoodsTitle: $('#enableGoodsTitle').is(':checked'),
+                goodsTitleRules: titleRules,
+                buyerSchema: getSchemaFromBlocks('buyer-blocks'),
+                sellerSchema: getSchemaFromBlocks('seller-blocks')
+            };
+        } else if (ditchType == '4') {
+            // 顺丰快递配置
+            config = {
+                enableSfRemark: $('#enableSfRemark').is(':checked'),
+                sfRemarkSchema: getSchemaFromBlocks('sf-remark-blocks')
+            };
+        }
+        
         $('#push_config_json_input').val(JSON.stringify(config));
+    }
+    
+    /**
+     * 获取增值服务列表
+     */
+    function getAppreciationServices() {
+        var services = [];
+        $('#appreciation_services_container .appreciation-service-item').each(function() {
+            var type = $(this).find('.service-type').val();
+            var amount = $(this).find('.service-amount').val();
+            if (type) {
+                services.push({
+                    type: parseInt(type),
+                    amount: amount ? parseFloat(amount) : 0
+                });
+            }
+        });
+        return services;
+    }
+    
+    /**
+     * 添加增值服务
+     */
+    function addAppreciationService(type, amount) {
+        type = type || '';
+        amount = amount || '';
+        
+        var html = `
+            <div class="appreciation-service-item" style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;">
+                <div class="am-g">
+                    <div class="am-u-sm-5">
+                        <label>服务类型：</label>
+                        <select class="am-form-field service-type" onchange="updatePushConfigJson()">
+                            <option value="">请选择</option>
+                            <option value="1" ${type == '1' ? 'selected' : ''}>到付</option>
+                            <option value="2" ${type == '2' ? 'selected' : ''}>代收货款</option>
+                            <option value="6" ${type == '6' ? 'selected' : ''}>中通标快</option>
+                            <option value="16" ${type == '16' ? 'selected' : ''}>隐私服务</option>
+                            <option value="18" ${type == '18' ? 'selected' : ''}>保价</option>
+                            <option value="29" ${type == '29' ? 'selected' : ''}>中通好快</option>
+                        </select>
+                    </div>
+                    <div class="am-u-sm-5">
+                        <label>金额（元）：</label>
+                        <input type="number" step="1" min="0" class="am-form-field service-amount" value="${amount}" placeholder="整数金额" onchange="updatePushConfigJson()">
+                        <small style="display:block; color:#999;">代收金额/保价金额/到付金额</small>
+                    </div>
+                    <div class="am-u-sm-2">
+                        <button type="button" class="am-btn am-btn-danger am-btn-xs" onclick="removeAppreciationService(this)" style="margin-top: 20px;">
+                            <i class="am-icon-trash"></i> 删除
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('#appreciation_services_container').append(html);
+        updatePushConfigJson();
+    }
+    
+    /**
+     * 删除增值服务
+     */
+    function removeAppreciationService(btn) {
+        $(btn).closest('.appreciation-service-item').remove();
+        updatePushConfigJson();
+    }
+    
+    /**
+     * 处理 paramType 变化，控制相关字段显示/隐藏
+     */
+    function handleParamTypeChange() {
+        var paramType = $('#zto_param_type').val();
+        
+        // 隐藏所有条件字段
+        $('#zto_print_mark_group').hide();
+        $('#zto_print_bagaddr_group').hide();
+        $('#zto_elec_account_group').hide();
+        $('#zto_elec_pwd_group').hide();
+        
+        // 根据 paramType 显示对应字段
+        switch(paramType) {
+            case 'ELEC_MARK':
+                // 指定电子面单和指定大头笔信息
+                $('#zto_print_mark_group').show();
+                $('#zto_print_bagaddr_group').show();
+                break;
+            case 'ELEC_NOMARK':
+                // 指定电子面单和不指定大头笔信息
+                // 不需要额外字段
+                break;
+            case 'NOELEC_MARK':
+                // 不指定电子面单和指定大头笔信息（需传电子面单账号密码）
+                $('#zto_print_mark_group').show();
+                $('#zto_print_bagaddr_group').show();
+                $('#zto_elec_account_group').show();
+                $('#zto_elec_pwd_group').show();
+                break;
+            case 'NOELEC_NOMARK':
+                // 不指定电子面单和不指定大头笔信息（需传电子面单账号密码）
+                $('#zto_elec_account_group').show();
+                $('#zto_elec_pwd_group').show();
+                break;
+            case 'DEFAULT_PRINT':
+            default:
+                // 采用默认电子面单账号，不需要额外字段
+                break;
+        }
+        
+        // 更新配置JSON
+        updatePushConfigJson();
+    }
+    
+    /**
+     * 渲染已保存的增值服务
+     */
+    function renderAppreciationServices() {
+        var ditchType = $('input[name="express[ditch_type]"]:checked').val();
+        if (ditchType != '2') return;
+        
+        try {
+            var pushConfigJson = $('#push_config_json_input').val();
+            if (pushConfigJson) {
+                var config = JSON.parse(pushConfigJson);
+                if (config.ztoPrinterConfig && config.ztoPrinterConfig.appreciationDTOS) {
+                    config.ztoPrinterConfig.appreciationDTOS.forEach(function(service) {
+                        addAppreciationService(service.type, service.amount);
+                    });
+                }
+            }
+        } catch (e) {
+            console.error('解析增值服务配置失败:', e);
+        }
     }
 
     function updateSenderJson() {
@@ -660,15 +1085,113 @@
         $hiddenInput.val(JSON.stringify(options));
     }
 
+    /**
+     * 加载顺丰云打印机列表
+     * 使用顺丰 SDK 的 getPrinters() 方法
+     */
+    function loadSfPrinters() {
+        // 检查是否为顺丰渠道
+        var ditchType = $('input[name="express[ditch_type]"]:checked').val();
+        if (ditchType != '4') {
+            return; // 不是顺丰渠道，不加载
+        }
+
+        // 检查是否已加载 SDK
+        if (typeof SCPPrint === 'undefined') {
+            $('#printer_error').show().text('顺丰云打印 SDK 未加载，请确保已正确引入 SDK 文件');
+            return;
+        }
+
+        // 显示加载状态
+        $('#printer_loading').show();
+        $('#printer_error').hide();
+
+        try {
+            // 获取 partnerID（客户号）
+            var partnerID = $('input[name="express[app_key]"]').val();
+            if (!partnerID) {
+                $('#printer_loading').hide();
+                $('#printer_error').show().text('请先填写客户号（partnerID）');
+                return;
+            }
+
+            // 创建 SDK 实例（使用沙箱环境进行测试）
+            var printSdk = new SCPPrint({
+                partnerID: partnerID,
+                env: 'sbox', // 沙箱环境，生产环境改为 'pro'
+                notips: true // 不显示 SDK 的弹窗提示
+            });
+
+            // 调用 getPrinters 方法
+            printSdk.getPrinters(function(result) {
+                $('#printer_loading').hide();
+                
+                if (result.code === 1 && result.printers && result.printers.length > 0) {
+                    // 成功获取打印机列表
+                    var $select = $('#sf_default_printer');
+                    var savedValue = $select.data('saved-value') || $select.val(); // 获取已保存的值
+                    
+                    // 清空现有选项（保留第一个默认选项）
+                    $select.find('option:not(:first)').remove();
+                    
+                    // 添加打印机选项
+                    result.printers.forEach(function(printer) {
+                        var option = $('<option></option>')
+                            .val(printer.name)
+                            .text(printer.name + ' (序号: ' + printer.index + ')');
+                        $select.append(option);
+                    });
+                    
+                    // 恢复之前选中的值（如果存在）
+                    if (savedValue) {
+                        $select.val(savedValue);
+                        // 如果恢复失败（打印机不在列表中），显示提示
+                        if ($select.val() !== savedValue) {
+                            console.warn('⚠️ 已保存的打印机 "' + savedValue + '" 不在当前打印机列表中');
+                            // 添加一个临时选项显示已保存但不可用的打印机
+                            var tempOption = $('<option></option>')
+                                .val(savedValue)
+                                .text(savedValue + ' (已保存，但当前不可用)')
+                                .prop('selected', true);
+                            $select.append(tempOption);
+                        }
+                    }
+                    
+                    console.log('✅ 成功加载 ' + result.printers.length + ' 个打印机');
+                } else {
+                    // 加载失败
+                    var errorMsg = '加载打印机列表失败';
+                    if (result.code === 2 || result.code === 3) {
+                        errorMsg = '请先安装顺丰云打印插件';
+                        if (result.downloadUrl) {
+                            errorMsg += '，<a href="' + result.downloadUrl + '" target="_blank">点击下载</a>';
+                        }
+                    } else if (result.msg) {
+                        errorMsg += ': ' + result.msg;
+                    }
+                    $('#printer_error').show().html(errorMsg);
+                }
+            });
+        } catch (error) {
+            $('#printer_loading').hide();
+            $('#printer_error').show().text('加载打印机列表时发生错误: ' + error.message);
+            console.error('❌ 加载打印机列表错误:', error);
+        }
+    }
+
     $(function () {
         $('input[name="express[ditch_type]"]').on('change', toggleCustomerCode);
         toggleCustomerCode();
         renderRules();
 
-        renderFieldButtonsFor('buyer-blocks');
-        renderFieldButtonsFor('seller-blocks');
+        renderFieldButtonsFor('buyer-blocks', fieldDictionary);
+        renderFieldButtonsFor('seller-blocks', fieldDictionary);
         renderBlocks('buyer-blocks', buyerSchema);
         renderBlocks('seller-blocks', sellerSchema);
+        
+        // 顺丰推送增强配置初始化
+        renderFieldButtonsFor('sf-remark-blocks', sfFieldDictionary);
+        renderBlocks('sf-remark-blocks', sfRemarkSchema);
 
         // Listen for switch changes
         $('#enableSkuPropertiesName, #enablePayDate, #enableGoodsTitle').change(function() {
@@ -687,17 +1210,71 @@
              updatePushConfigJson();
         });
         
+        // 顺丰 remark 配置开关
+        $('#enableSfRemark').change(function() {
+             $('#sf-remark-config-editor').toggle($(this).is(':checked'));
+             updatePushConfigJson();
+        });
+        
         // Initial visibility
         $('#buyer-config-editor').toggle($('#enableBuyerMessage').is(':checked'));
         $('#seller-config-editor').toggle($('#enableSellerMessage').is(':checked'));
+        $('#sf-remark-config-editor').toggle($('#enableSfRemark').is(':checked'));
 
         // Listen for changes in sender fields
         $('.sender-field').on('input change', updateSenderJson);
+        
+        // Listen for changes in SF push config
+        $('#sf_push_remark').on('input change', updatePushConfigJson);
         
         // Bind input changes to update json
         $(document).on('input', '.block-value, .block-prefix, .block-suffix', function() {
             updatePushConfigJson();
         });
+
+        // 中通打印机配置初始化
+        renderAppreciationServices();
+        
+        // 初始化 paramType 字段显示状态
+        handleParamTypeChange();
+        
+        // 监听中通打印机配置字段的变化
+        $('#zto_printer_id, #zto_device_id, #zto_qrcode_id, #zto_print_channel, #zto_param_type, #zto_print_mark, #zto_print_bagaddr, #zto_elec_account, #zto_elec_pwd, #zto_back_bill_code').on('input change', function() {
+            updatePushConfigJson();
+        });
+        
+        // 监听增值服务开关
+        $('input[name="zto_appreciation_enabled"]').on('change', function() {
+            var enabled = $(this).val() == '1';
+            $('#appreciation_services_config').toggle(enabled);
+            updatePushConfigJson();
+        });
+        
+        // 监听回单号开关
+        $('input[name="zto_back_bill_enabled"]').on('change', function() {
+            var enabled = $(this).val() == '1';
+            $('#back_bill_code_config').toggle(enabled);
+            updatePushConfigJson();
+        });
+        
+        // 顺丰打印机列表加载
+        // 当选择顺丰渠道时，自动加载打印机列表
+        $('input[name="express[ditch_type]"]').on('change', function() {
+            if ($(this).val() === '4') {
+                // 延迟加载，确保 partnerID 已填写
+                setTimeout(loadSfPrinters, 500);
+            }
+        });
+        
+        // 刷新打印机列表按钮
+        $('#refresh_printers').on('click', function() {
+            loadSfPrinters();
+        });
+        
+        // 页面加载时，如果是顺丰渠道，自动加载打印机列表
+        if ($('input[name="express[ditch_type]"]:checked').val() === '4') {
+            setTimeout(loadSfPrinters, 1000); // 延迟1秒，确保页面完全加载
+        }
 
         /**
          * 表单验证提交
