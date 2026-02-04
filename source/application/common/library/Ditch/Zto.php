@@ -827,13 +827,55 @@ class Zto
         }
         
         // 构建物品信息
+        // 🔧 动态商品标题映射（优先使用配置的标题策略）
+        $goodsName = '商品'; // 默认值
+        
+        // 从配置获取商品标题策略
+        $pushConfig = isset($this->config['push_config_json']) ? json_decode($this->config['push_config_json'], true) : [];
+        
+        // 如果启用了商品标题策略，使用动态标题映射
+        if (isset($pushConfig['enableGoodsTitle']) && $pushConfig['enableGoodsTitle'] && isset($pushConfig['goodsTitleRules']) && is_array($pushConfig['goodsTitleRules'])) {
+            // 按优先级排序（优先级数字越小越优先）
+            $rules = $pushConfig['goodsTitleRules'];
+            usort($rules, function($a, $b) {
+                $priorityA = isset($a['priority']) ? (int)$a['priority'] : 999;
+                $priorityB = isset($b['priority']) ? (int)$b['priority'] : 999;
+                return $priorityA - $priorityB;
+            });
+            
+            // 遍历规则，找到第一个启用的规则
+            foreach ($rules as $rule) {
+                if (isset($rule['status']) && $rule['status'] == 1 && isset($rule['title']) && !empty($rule['title'])) {
+                    $goodsName = $rule['title'];
+                    break;
+                }
+            }
+            
+            \think\Log::info('ZTO Cloud Print - Goods Title Strategy: ' . json_encode([
+                'enabled' => true,
+                'rules_count' => count($rules),
+                'selected_title' => $goodsName
+            ], JSON_UNESCAPED_UNICODE));
+        } else {
+            // 如果未启用商品标题策略，使用默认逻辑（从订单商品中获取）
+            if (isset($order['orderInvoiceParam']) && is_array($order['orderInvoiceParam']) && !empty($order['orderInvoiceParam'])) {
+                $firstItem = $order['orderInvoiceParam'][0];
+                $goodsName = isset($firstItem['invoice_title']) ? $firstItem['invoice_title'] : (isset($firstItem['sku']) ? $firstItem['sku'] : '商品');
+            } elseif (isset($order['items']) && is_array($order['items']) && !empty($order['items'])) {
+                $firstItem = $order['items'][0];
+                $goodsName = isset($firstItem['invoice_title']) ? $firstItem['invoice_title'] : (isset($firstItem['sku']) ? $firstItem['sku'] : '商品');
+            }
+            
+            \think\Log::info('ZTO Cloud Print - Goods Title Strategy: ' . json_encode([
+                'enabled' => false,
+                'selected_title' => $goodsName
+            ], JSON_UNESCAPED_UNICODE));
+        }
+        
         $goods = [
-            'goodsName' => '商品',
+            'goodsName' => $goodsName,
             'weight' => isset($order['weight']) && (float)$order['weight'] > 0 ? (int)round((float)$order['weight'] * 1000) : 1000, // 转换为克
         ];
-        
-        // 添加备注 - 使用与中通管家相同的逻辑
-        $pushConfig = isset($this->config['push_config_json']) ? json_decode($this->config['push_config_json'], true) : [];
         
         // 准备构建数据 - 映射 inpack 订单字段到 MessageBuilder 可用的字段
         $buildData = $order;
