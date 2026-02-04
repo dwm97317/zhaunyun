@@ -940,34 +940,55 @@ class Zto
             $buildData['goods_name'] = '商品';
         }
         
-        // 构建备注 - 优先使用 sellerMessage (卖家留言)
+        // 构建备注 - 支持 buyerMessage 和 sellerMessage
         $remark = '';
+        $remarkParts = [];
         
-        // 1. 如果配置启用了 sellerMessage schema，使用 MessageBuilder 构建
+        // 1. buyerMessage (用户留言) - 优先级最高
+        // 注意：中通快递使用 ztoBuyerSchema，中通管家使用 buyerSchema
+        $buyerSchema = isset($pushConfig['ztoBuyerSchema']) ? $pushConfig['ztoBuyerSchema'] : (isset($pushConfig['buyerSchema']) ? $pushConfig['buyerSchema'] : null);
+        if (isset($pushConfig['enableBuyerMessage']) && $pushConfig['enableBuyerMessage'] && !empty($buyerSchema)) {
+            $buyerMessage = MessageBuilder::build($buildData, $buyerSchema);
+            if (!empty($buyerMessage)) {
+                $remarkParts[] = $buyerMessage;
+            }
+        } elseif (!empty($order['buyerMessage'])) {
+            $remarkParts[] = $order['buyerMessage'];
+        } elseif (!empty($order['usermark'])) {
+            // 使用订单的用户备注
+            $remarkParts[] = $order['usermark'];
+        }
+        
+        // 2. sellerMessage (卖家留言)
         // 注意：中通快递使用 ztoSellerSchema，中通管家使用 sellerSchema
         $sellerSchema = isset($pushConfig['ztoSellerSchema']) ? $pushConfig['ztoSellerSchema'] : (isset($pushConfig['sellerSchema']) ? $pushConfig['sellerSchema'] : null);
         if (isset($pushConfig['enableSellerMessage']) && $pushConfig['enableSellerMessage'] && !empty($sellerSchema)) {
-            $remark = MessageBuilder::build($buildData, $sellerSchema);
+            $sellerMessage = MessageBuilder::build($buildData, $sellerSchema);
+            if (!empty($sellerMessage)) {
+                $remarkParts[] = $sellerMessage;
+            }
+        } elseif (!empty($order['sellerMessage'])) {
+            $remarkParts[] = $order['sellerMessage'];
+        } elseif (!empty($order['remark'])) {
+            // 使用订单的卖家备注
+            $remarkParts[] = $order['remark'];
         }
-        // 2. 如果传递了 sellerMessage 参数，使用参数值
-        elseif (!empty($order['sellerMessage'])) {
-            $remark = $order['sellerMessage'];
-        }
-        // 3. 如果有 remark 字段，使用 remark
-        elseif (!empty($order['remark'])) {
-            $remark = $order['remark'];
+        
+        // 3. 合并所有备注部分
+        if (!empty($remarkParts)) {
+            $remark = implode(' | ', $remarkParts); // 使用 | 分隔不同部分
         }
         // 4. 如果都没有，但有收件人信息，构建默认备注（包含收件人姓名和电话）
         else {
-            $remarkParts = [];
+            $defaultParts = [];
             if (!empty($receiver['name'])) {
-                $remarkParts[] = '收件人：' . $receiver['name'];
+                $defaultParts[] = '收件人：' . $receiver['name'];
             }
             if (!empty($receiver['mobile'])) {
-                $remarkParts[] = '电话：' . $receiver['mobile'];
+                $defaultParts[] = '电话：' . $receiver['mobile'];
             }
-            if (!empty($remarkParts)) {
-                $remark = implode(' ', $remarkParts);
+            if (!empty($defaultParts)) {
+                $remark = implode(' ', $defaultParts);
             }
         }
         
