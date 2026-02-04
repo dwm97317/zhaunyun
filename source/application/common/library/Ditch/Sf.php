@@ -418,33 +418,53 @@ class Sf
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => $body,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 30, // 恢复超时时间
+            CURLOPT_TIMEOUT        => 180, // 增加到180秒（3分钟）- 适应批量打印
+            CURLOPT_CONNECTTIMEOUT => 120,  // 连接超时30秒
             CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_HTTPHEADER     => $headers,
+            // 增强网络连接稳定性的选项
+            CURLOPT_TCP_NODELAY    => true,  // 禁用 Nagle 算法，减少延迟
+            CURLOPT_TCP_KEEPALIVE  => 1,     // 启用 TCP Keep-Alive
+            CURLOPT_TCP_KEEPIDLE   => 120,   // Keep-Alive 空闲时间
+            CURLOPT_TCP_KEEPINTVL  => 60,    // Keep-Alive 探测间隔
+            CURLOPT_FOLLOWLOCATION => true,  // 跟随重定向
+            CURLOPT_MAXREDIRS      => 5,     // 最多5次重定向
+            CURLOPT_ENCODING       => '',    // 支持所有编码
+            CURLOPT_FRESH_CONNECT  => false, // 复用连接
+            CURLOPT_FORBID_REUSE   => false, // 允许连接复用
         ]);
 
-
-
-        $maxRetries = 1; // 减少重试次数
+        $maxRetries = 3; // 增加重试次数到3次
         $attempt = 0;
         $result = false;
         $err = '';
+        $httpCode = 0;
 
         do {
             $attempt++;
+            $startTime = microtime(true);
             $result = curl_exec($ch);
+            $endTime = microtime(true);
+            $duration = round(($endTime - $startTime) * 1000, 2); // 毫秒
+            
             $err = curl_error($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             
             // 记录日志
             $logData = [
                 'time' => date('Y-m-d H:i:s'),
                 'url' => $url,
                 'attempt' => $attempt,
-                'request_body' => $body,
-                'response' => $result,
+                'duration_ms' => $duration,
+                'http_code' => $httpCode,
                 'error' => $err,
-                'http_code' => curl_getinfo($ch, CURLINFO_HTTP_CODE)
+                'response_length' => $result ? strlen($result) : 0,
+                // 只在失败时记录完整请求体（避免日志过大）
+                'request_body' => ($err || $httpCode != 200) ? substr($body, 0, 500) : '[success]',
+                'response_preview' => ($err || $httpCode != 200) ? substr($result, 0, 500) : '[success]',
             ];
+            
             // 简单写入日志文件
             $logDir = dirname(ROOT_PATH) . DS . 'runtime' . DS . 'log' . DS . 'sf_express';
             if (!is_dir($logDir)) {
@@ -452,21 +472,29 @@ class Sf
             }
             file_put_contents($logDir . DS . date('Ym') . '.log', json_encode($logData, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
 
-            if (!$err && $result !== false) {
+            // 成功条件：无错误且有返回结果
+            if (!$err && $result !== false && $httpCode == 200) {
                 break;
             }
             
-            // 重试间隔
-            if ($attempt <= $maxRetries) {
-                usleep(500000); // 500ms
+            // 如果还有重试机会，等待后重试
+            if ($attempt < $maxRetries) {
+                // 指数退避：第1次重试等1秒，第2次等2秒
+                $waitTime = $attempt * 1000000; // 微秒
+                usleep($waitTime);
+                
+                // 记录重试信息
+                \think\Log::warning("顺丰API请求失败，正在重试 ({$attempt}/{$maxRetries}): {$err}");
             }
 
-        } while ($attempt <= $maxRetries);
+        } while ($attempt < $maxRetries);
 
         curl_close($ch);
         
-        if ($err) {
-            $this->error = $err;
+        // 最终失败
+        if ($err || $result === false || $httpCode != 200) {
+            $this->error = $err ?: "HTTP错误: {$httpCode}";
+            \think\Log::error("顺丰API请求最终失败: {$this->error}, 尝试次数: {$attempt}");
             return false;
         }
         
@@ -526,19 +554,62 @@ class Sf
             $this->error = '订单不存在';
             return false;
         }
+        
+        // 转换为数组（兼容模型对象）
+        if (is_object($order)) {
+            $orderArray = $order->toArray();
+        } else {
+            $orderArray = $order;
+        }
+        
+        // 2. 获取订单表中的 buyer_remark 字段
+        // 注意：yoshop_inpack 表中只有 remark 字段，buyer_remark 在 yoshop_order 表中
+        if (!empty($orderArray['order_sn'])) {
+            $orderModel = \think\Db::name('order')->where('order_no', $orderArray['order_sn'])->find();
+            if ($orderModel && isset($orderModel['buyer_remark'])) {
+                $orderArray['buyer_remark'] = $orderModel['buyer_remark'];
+            }
+        }
+        
+        // seller_remark 字段在数据库中不存在，使用 inpack.remark 作为卖家备注
+        // 如果 remark 中包含了买家留言和卖家备注的合并内容，这里保持原样
+        if (!isset($orderArray['seller_remark']) && isset($orderArray['remark'])) {
+            // 尝试从 remark 中提取卖家备注（如果格式是 "买家留言: xxx; 卖家备注: yyy"）
+            if (preg_match('/卖家备注[：:]\s*(.+?)(?:;|$)/u', $orderArray['remark'], $matches)) {
+                $orderArray['seller_remark'] = trim($matches[1]);
+            } else {
+                // 如果没有特定格式，将整个 remark 作为 seller_remark
+                $orderArray['seller_remark'] = $orderArray['remark'];
+            }
+        }
+        
+        // 3. 计算子订单数量（sub_order_count）
+        // 查询 yoshop_package 表中的子单数量
+        $subOrderCount = \think\Db::name('package')->where('inpack_id', $order_id)->count();
+        $orderArray['sub_order_count'] = $subOrderCount;
 
         $waybillNo = isset($options['waybill_no']) ? $options['waybill_no'] : '';
+        
+        // 调试日志：检查参数
+        \think\Log::info('🔧 printlabelParsedData 参数: ' . json_encode([
+            'options_type' => gettype($options),
+            'options_value' => $options,
+            'waybill_no' => $waybillNo,
+            'has_waybill_no' => isset($options['waybill_no']),
+        ], JSON_UNESCAPED_UNICODE));
         
         // 2. 解析打印模式
         $printMode = isset($options['print_mode']) ? $options['print_mode'] : 'mother';
         
         // 获取所有子单（用于计算 sum 和获取母单号）
-        $allPackages = $this->getChildPackages($order, []);
-        $totalPackages = count($allPackages);
-        $sum = $totalPackages > 0 ? ($totalPackages + 1) : 0;
+        $allPackages = $this->getChildPackages($orderArray, []);
+        
+        // 调试日志
+        \think\Log::info('getChildPackages 返回数量: ' . count($allPackages));
+        \think\Log::info('allPackages 数据: ' . json_encode($allPackages, JSON_UNESCAPED_UNICODE));
         
         // 获取母单号
-        $motherWaybillNo = isset($order['t_order_sn']) ? $order['t_order_sn'] : '';
+        $motherWaybillNo = isset($orderArray['t_order_sn']) ? $orderArray['t_order_sn'] : '';
         
         // 如果母单号为空，从第一个子单获取（第一个子单号就是母单号）
         if (empty($motherWaybillNo) && !empty($allPackages)) {
@@ -547,9 +618,33 @@ class Sf
             
             // 更新订单的母单号（用于后续逻辑）
             if (!empty($motherWaybillNo)) {
-                $order['t_order_sn'] = $motherWaybillNo;
+                $orderArray['t_order_sn'] = $motherWaybillNo;
             }
         }
+        
+        // 计算实际的不同运单号数量（用于 sum）
+        // 注意：母单本身就是第一个子单，所以 sum = 所有子单数量
+        $uniqueWaybills = [];
+        
+        // 收集所有子单的运单号（包括和母单号相同的）
+        foreach ($allPackages as $pkg) {
+            $childWaybillNo = isset($pkg['t_order_sn']) ? $pkg['t_order_sn'] : '';
+            
+            // 兼容旧的 package 表结构（有 express_num 字段）
+            if (empty($childWaybillNo) && !empty($pkg['express_num'])) {
+                if (strpos($pkg['express_num'], 'SF') === 0) {
+                    $childWaybillNo = $pkg['express_num'];
+                }
+            }
+            
+            if (!empty($childWaybillNo)) {
+                $uniqueWaybills[$childWaybillNo] = true;
+            }
+        }
+        
+        // sum = 所有子单的数量（包括母单本身）
+        // 根据 API 文档：sum 是子母件运单总数
+        $sum = count($uniqueWaybills);
         
         // 如果没有传递 waybill_no，使用母单号
         if (empty($waybillNo)) {
@@ -564,12 +659,32 @@ class Sf
         // 判断当前打印的是母单还是子单
         $isPrintingChild = ($waybillNo !== $motherWaybillNo);
         
+        // 调试日志：检查判断结果
+        \think\Log::info('🎯 打印模式判断: ' . json_encode([
+            'waybill_no' => $waybillNo,
+            'mother_waybill_no' => $motherWaybillNo,
+            'is_printing_child' => $isPrintingChild,
+            'print_mode' => $printMode,
+        ], JSON_UNESCAPED_UNICODE));
+        
         $documents = [];
         
         // 3. 构建 documents 数组
         if ($isPrintingChild) {
             // 打印子单：找到对应的包裹
-            $childSeq = 1; // 默认从1开始（如果找不到对应包裹）
+            \think\Log::info('🔍 打印子单模式: ' . json_encode([
+                'waybill_no' => $waybillNo,
+                'mother_waybill_no' => $motherWaybillNo,
+                'orderArray_keys' => array_keys($orderArray),
+                'has_order_sn' => isset($orderArray['order_sn']),
+                'has_buyer_remark' => isset($orderArray['buyer_remark']),
+                'has_seller_remark' => isset($orderArray['seller_remark']),
+            ], JSON_UNESCAPED_UNICODE));
+            
+            // 计算正确的 seq：需要跳过与母单号相同的包裹
+            $childSeq = 1; // 母单占据 seq=1
+            $foundSeq = 0;
+            
             foreach ($allPackages as $index => $pkg) {
                 $childWaybillNo = isset($pkg['t_order_sn']) ? $pkg['t_order_sn'] : '';
                 
@@ -580,10 +695,51 @@ class Sf
                     }
                 }
                 
+                // 跳过空运单号
+                if (empty($childWaybillNo)) {
+                    continue;
+                }
+                
+                // 跳过与母单号相同的包裹（母单已经占据 seq=1）
+                if ($childWaybillNo === $motherWaybillNo) {
+                    continue;
+                }
+                
+                // 其他子单：seq 递增
+                $childSeq++;
+                
                 if ($childWaybillNo === $waybillNo) {
-                    // 找到了对应的子单，seq = index + 2（因为母单是1）
-                    $childSeq = $index + 2;
-                    $documents[] = $this->buildDocument($pkg, $waybillNo, $motherWaybillNo, $childSeq, $sum);
+                    // 找到了对应的子单
+                    $foundSeq = $childSeq;
+                    
+                    // 子单继承母单的 remark 相关字段
+                    $pkgArray = is_object($pkg) ? (method_exists($pkg, 'toArray') ? $pkg->toArray() : (array)$pkg) : $pkg;
+                    
+                    \think\Log::info('📦 找到子单包裹: ' . json_encode([
+                        'child_waybill_no' => $childWaybillNo,
+                        'seq' => $foundSeq,
+                        'sum' => $sum,
+                        'pkg_keys' => array_keys($pkgArray),
+                    ], JSON_UNESCAPED_UNICODE));
+                    
+                    // 合并数据：子单数据 + 母单的 remark 字段（使用处理后的 $orderArray）
+                    $childData = array_merge($pkgArray, [
+                        'order_sn' => isset($orderArray['order_sn']) ? $orderArray['order_sn'] : '',
+                        'buyer_remark' => isset($orderArray['buyer_remark']) ? $orderArray['buyer_remark'] : '',
+                        'seller_remark' => isset($orderArray['seller_remark']) ? $orderArray['seller_remark'] : '',
+                        'remark' => isset($orderArray['remark']) ? $orderArray['remark'] : '',
+                        'weight' => isset($orderArray['weight']) ? $orderArray['weight'] : 0,
+                        'sub_order_count' => isset($orderArray['sub_order_count']) ? $orderArray['sub_order_count'] : 0,
+                    ]);
+                    
+                    \think\Log::info('✅ 子单数据合并完成: ' . json_encode([
+                        'childData_keys' => array_keys($childData),
+                        'order_sn' => isset($childData['order_sn']) ? $childData['order_sn'] : 'N/A',
+                        'buyer_remark' => isset($childData['buyer_remark']) ? $childData['buyer_remark'] : 'N/A',
+                        'seller_remark' => isset($childData['seller_remark']) ? $childData['seller_remark'] : 'N/A',
+                    ], JSON_UNESCAPED_UNICODE));
+                    
+                    $documents[] = $this->buildDocument($childData, $waybillNo, $motherWaybillNo, $foundSeq, $sum);
                     break;
                 }
             }
@@ -604,13 +760,28 @@ class Sf
             }
         } elseif ($printMode === 'all') {
             // 打印全部：母单 + 所有子单
-            // 母单：seq = 1
-            $documents[] = $this->buildDocument($order, $motherWaybillNo, null, 1, $sum);
+            // 根据 API 文档：
+            // - 母单：seq = 1（母单本身就是子单1）
+            // - 其他子单：seq 从 2 开始递增
+            // - sum = 所有子单的总数（实际要打印的 documents 数量）
             
-            // 子单：seq 从 2 开始递增
+            // 先收集所有要打印的运单号（去重）
+            $waybillsToPrint = [];
+            
+            // 1. 添加母单
+            if (!empty($motherWaybillNo)) {
+                $waybillsToPrint[] = [
+                    'waybill_no' => $motherWaybillNo,
+                    'is_mother' => true,
+                    'data' => $orderArray
+                ];
+            }
+            
+            // 2. 添加其他子单（跳过与母单号相同的）
             foreach ($allPackages as $index => $pkg) {
                 $childWaybillNo = isset($pkg['t_order_sn']) ? $pkg['t_order_sn'] : '';
                 
+                // 兼容旧的 package 表结构
                 if (empty($childWaybillNo) && !empty($pkg['express_num'])) {
                     if (strpos($pkg['express_num'], 'SF') === 0) {
                         $childWaybillNo = $pkg['express_num'];
@@ -622,17 +793,67 @@ class Sf
                     continue;
                 }
                 
-                $seq = $index + 2;
-                $documents[] = $this->buildDocument($pkg, $childWaybillNo, $motherWaybillNo, $seq, $sum);
+                // 跳过和母单号相同的子单（因为母单已经添加了）
+                if ($childWaybillNo === $motherWaybillNo) {
+                    \think\Log::info("跳过与母单号相同的子单: {$childWaybillNo}（母单已添加）");
+                    continue;
+                }
+                
+                // 子单继承母单的 remark 相关字段
+                $pkgArray = is_object($pkg) ? (method_exists($pkg, 'toArray') ? $pkg->toArray() : (array)$pkg) : $pkg;
+                
+                // 合并数据：子单数据 + 母单的 remark 字段
+                $childData = array_merge($pkgArray, [
+                    'order_sn' => isset($orderArray['order_sn']) ? $orderArray['order_sn'] : '',
+                    'buyer_remark' => isset($orderArray['buyer_remark']) ? $orderArray['buyer_remark'] : '',
+                    'seller_remark' => isset($orderArray['seller_remark']) ? $orderArray['seller_remark'] : '',
+                    'remark' => isset($orderArray['remark']) ? $orderArray['remark'] : '',
+                    'weight' => isset($orderArray['weight']) ? $orderArray['weight'] : 0,
+                    'sub_order_count' => isset($orderArray['sub_order_count']) ? $orderArray['sub_order_count'] : 0,
+                ]);
+                
+                $waybillsToPrint[] = [
+                    'waybill_no' => $childWaybillNo,
+                    'is_mother' => false,
+                    'data' => $childData
+                ];
             }
+            
+            // 重新计算 sum = 实际要打印的运单数量
+            $actualSum = count($waybillsToPrint);
+            
+            // 构建 documents
+            $seq = 1;
+            foreach ($waybillsToPrint as $item) {
+                if ($item['is_mother']) {
+                    // 母单
+                    $documents[] = $this->buildDocument($item['data'], $item['waybill_no'], null, $seq, $actualSum);
+                } else {
+                    // 子单
+                    $documents[] = $this->buildDocument($item['data'], $item['waybill_no'], $motherWaybillNo, $seq, $actualSum);
+                }
+                $seq++;
+            }
+            
+            \think\Log::info('顺丰打印全部: ' . json_encode([
+                'mother_waybill' => $motherWaybillNo,
+                'total_documents' => count($documents),
+                'actual_sum' => $actualSum,
+                'original_sum' => $sum,
+                'unique_waybills' => count($uniqueWaybills),
+                'all_packages_count' => count($allPackages),
+                'documents_waybills' => array_map(function($doc) {
+                    return isset($doc['masterWaybillNo']) ? $doc['masterWaybillNo'] : 'N/A';
+                }, $documents)
+            ], JSON_UNESCAPED_UNICODE));
         } else {
             // 打印母单（默认）
             if ($sum > 0) {
-                // 有子单的情况：seq = 1, sum = 总数
-                $documents[] = $this->buildDocument($order, $motherWaybillNo, null, 1, $sum);
+                // 有子单的情况：seq = 1, sum = 总数 - 使用处理后的 $orderArray
+                $documents[] = $this->buildDocument($orderArray, $motherWaybillNo, null, 1, $sum);
             } else {
-                // 单票运单：不传 seq 和 sum
-                $documents[] = $this->buildDocument($order, $motherWaybillNo, null, 0, 0);
+                // 单票运单：不传 seq 和 sum - 使用处理后的 $orderArray
+                $documents[] = $this->buildDocument($orderArray, $motherWaybillNo, null, 0, 0);
             }
         }
         
@@ -670,6 +891,9 @@ class Sf
             'sync' => true,
             'documents' => $documents  // 支持多个运单
         ];
+        
+        // 调试日志：记录发送给 API 的 documents
+        \think\Log::info('发送给顺丰 API 的 documents: ' . json_encode($documents, JSON_UNESCAPED_UNICODE));
 
         $requestData = [
             'partnerID' => isset($this->config['key']) ? $this->config['key'] : '',
@@ -680,13 +904,54 @@ class Sf
         ];
 
         $requestData['msgDigest'] = $this->generateSignature($requestData);
+        
+        // 调试日志：记录完整的请求数据和签名信息
+        \think\Log::info('顺丰云打印 API 请求详情: ' . json_encode([
+            'requestID' => $requestData['requestID'],
+            'serviceCode' => $requestData['serviceCode'],
+            'timestamp' => $requestData['timestamp'],
+            'msgData_length' => strlen($requestData['msgData']),
+            'msgDigest' => substr($requestData['msgDigest'], 0, 20) . '...',
+            'documents_count' => count($documents),
+            'baseUrl' => $baseUrl
+        ], JSON_UNESCAPED_UNICODE));
 
         $resp = $this->httpPost($baseUrl, http_build_query($requestData));
         if ($resp === false) {
+            \think\Log::error('顺丰云打印 API 网络请求失败');
             return false;
         }
 
         $data = json_decode($resp, true);
+        
+        // 如果遇到 A1011 认证失败，尝试重新生成签名并重试一次
+        if (is_array($data) && isset($data['apiResultCode']) && $data['apiResultCode'] === 'A1011') {
+            \think\Log::warning('顺丰云打印 API 认证失败 (A1011)，尝试重新生成签名并重试');
+            
+            // 等待 1 秒，避免时间戳相同
+            sleep(1);
+            
+            // 重新生成 timestamp 和签名
+            $requestData['timestamp'] = time();
+            $requestData['requestID'] = $this->generateRequestId();
+            $requestData['msgDigest'] = $this->generateSignature($requestData);
+            
+            \think\Log::info('重试请求详情: ' . json_encode([
+                'requestID' => $requestData['requestID'],
+                'timestamp' => $requestData['timestamp'],
+                'msgDigest' => substr($requestData['msgDigest'], 0, 20) . '...'
+            ], JSON_UNESCAPED_UNICODE));
+            
+            // 重新发送请求
+            $resp = $this->httpPost($baseUrl, http_build_query($requestData));
+            if ($resp === false) {
+                \think\Log::error('顺丰云打印 API 重试请求失败');
+                return false;
+            }
+            
+            $data = json_decode($resp, true);
+        }
+        
         if (!is_array($data) || !isset($data['apiResultCode']) || $data['apiResultCode'] !== 'A1000') {
             // 使用增强的错误处理
             return $this->handleApiError($data, [
@@ -737,6 +1002,20 @@ class Sf
         ];
         
         // 4. 根据打印模式返回数据
+        // 如果是打印全部模式，直接返回 SDK 数据结构（包含所有运单）
+        if ($printMode === 'all') {
+            // 打印全部：返回完整的 SDK 数据结构，包含所有运单
+            \think\Log::info('顺丰打印全部模式: ' . json_encode([
+                'documents_count' => count($documents),
+                'files_count' => count($files),
+                'waybill_nos' => array_map(function($doc) {
+                    return isset($doc['masterWaybillNo']) ? $doc['masterWaybillNo'] : 'N/A';
+                }, $documents)
+            ], JSON_UNESCAPED_UNICODE));
+            
+            return $sdkData;
+        }
+        
         if (count($files) === 1) {
             // 单个运单: 返回 SDK 所需的完整数据结构
             $fileData = $files[0];
@@ -1050,13 +1329,40 @@ class Sf
 
     /**
      * 获取子包裹列表
-     * @param array $order 订单信息
+     * @param array|object $order 订单信息（支持数组或模型对象）
      * @param array $childIds 指定的子单ID数组(为空则获取全部)
      * @return array 包裹列表
      */
     private function getChildPackages($order, $childIds = [])
     {
-        // 优先尝试从 yoshop_package 表获取（旧的包裹系统）
+        // 转换为数组（兼容模型对象）
+        if (is_object($order)) {
+            $order = $order->toArray();
+        }
+        
+        $orderId = isset($order['id']) ? $order['id'] : 0;
+        if (empty($orderId)) {
+            return [];
+        }
+        
+        // 优先从 yoshop_inpack_item 表获取（新的子母单系统）
+        $query = \think\Db::table('yoshop_inpack_item')
+            ->where('inpack_id', $orderId);
+        
+        // 如果指定了子单ID,只查询指定的
+        if (!empty($childIds)) {
+            $query->whereIn('id', $childIds);
+        }
+        
+        $items = $query->select();
+        
+        // 如果找到了子单，直接返回
+        if (!empty($items)) {
+            \think\Log::info('从 yoshop_inpack_item 表获取到 ' . count($items) . ' 个子单');
+            return $items;
+        }
+        
+        // 如果没有找到，尝试从 yoshop_package 表获取（旧的包裹系统）
         $packageIds = [];
         
         if (!empty($order['pack_ids'])) {
@@ -1073,28 +1379,13 @@ class Sf
                 $query->whereIn('id', $childIds);
             }
             
-            return $query->select();
+            $packages = $query->select();
+            \think\Log::info('从 yoshop_package 表获取到 ' . count($packages) . ' 个包裹');
+            return $packages;
         }
         
-        // 如果 pack_ids 为空，尝试从 yoshop_inpack_item 表获取（新的子母单系统）
-        $orderId = isset($order['id']) ? $order['id'] : 0;
-        if (empty($orderId)) {
-            return [];
-        }
-        
-        $query = \think\Db::table('yoshop_inpack_item')
-            ->where('inpack_id', $orderId);
-        
-        // 如果指定了子单ID,只查询指定的
-        if (!empty($childIds)) {
-            $query->whereIn('id', $childIds);
-        }
-        
-        $items = $query->select();
-        
-        // 转换为统一的数据结构（兼容旧的 package 结构）
-        // yoshop_inpack_item 的 t_order_sn 字段对应子单号
-        return $items;
+        \think\Log::warning('未找到任何子单数据，订单ID: ' . $orderId);
+        return [];
     }
     
     /**
@@ -1106,6 +1397,11 @@ class Sf
      */
     private function buildDocument($data, $waybillNo, $parentWaybillNo = null, $seq = 0, $sum = 0)
     {
+        // 确保 $data 是数组（兼容对象）
+        if (is_object($data)) {
+            $data = method_exists($data, 'toArray') ? $data->toArray() : (array)$data;
+        }
+        
         $document = [
             'masterWaybillNo' => $waybillNo
         ];
@@ -1170,12 +1466,106 @@ class Sf
             }
         }
         
-        // 默认备注(如果没有通过映射配置)
+        // 处理 remark 字段：优先使用推送增强配置
         if (!isset($document['remark'])) {
-            $document['remark'] = $this->buildRemark($data);
+            // 从 push_config_json 中获取 remark 配置
+            $pushConfig = [];
+            if (isset($this->config['push_config_json']) && !empty($this->config['push_config_json'])) {
+                $pushConfigStr = $this->config['push_config_json'];
+                if (is_string($pushConfigStr)) {
+                    $pushConfig = json_decode($pushConfigStr, true);
+                    if (!is_array($pushConfig)) {
+                        $pushConfig = [];
+                    }
+                } elseif (is_array($pushConfigStr)) {
+                    $pushConfig = $pushConfigStr;
+                }
+            }
+            
+            // 调试日志
+            \think\Log::info('buildDocument remark 配置: ' . json_encode([
+                'has_push_config_json' => isset($this->config['push_config_json']),
+                'push_config_json_value' => isset($this->config['push_config_json']) ? $this->config['push_config_json'] : 'N/A',
+                'parsed_config' => $pushConfig,
+                'enableSfRemark' => isset($pushConfig['enableSfRemark']) ? $pushConfig['enableSfRemark'] : false,
+                'has_schema' => isset($pushConfig['sfRemarkSchema'])
+            ], JSON_UNESCAPED_UNICODE));
+            
+            // 如果启用了积木式配置，使用 schema 构建 remark
+            if (isset($pushConfig['enableSfRemark']) && $pushConfig['enableSfRemark'] && isset($pushConfig['sfRemarkSchema']) && is_array($pushConfig['sfRemarkSchema'])) {
+                $document['remark'] = $this->buildRemarkFromSchema($data, $pushConfig['sfRemarkSchema']);
+            } else {
+                // 使用默认的 remark 构建逻辑
+                $document['remark'] = $this->buildRemark($data);
+            }
         }
         
         return $document;
+    }
+    
+    /**
+     * 从 schema 构建 remark 字符串
+     * @param array $data 订单或包裹数据
+     * @param array $schema 积木式配置 schema
+     * @return string 备注文本
+     */
+    private function buildRemarkFromSchema($data, $schema)
+    {
+        // 确保 $data 是数组（兼容对象）
+        if (is_object($data)) {
+            $data = method_exists($data, 'toArray') ? $data->toArray() : (array)$data;
+        }
+        
+        $parts = [];
+        
+        // 调试日志 - 记录完整的数据和配置
+        \think\Log::info('buildRemarkFromSchema 调用: ' . json_encode([
+            'data_keys' => is_array($data) ? array_keys($data) : 'not_array',
+            'has_order_sn' => isset($data['order_sn']),
+            'has_buyer_remark' => isset($data['buyer_remark']),
+            'has_seller_remark' => isset($data['seller_remark']),
+            'order_sn_value' => isset($data['order_sn']) ? $data['order_sn'] : 'N/A',
+            'buyer_remark_value' => isset($data['buyer_remark']) ? $data['buyer_remark'] : 'N/A',
+            'seller_remark_value' => isset($data['seller_remark']) ? $data['seller_remark'] : 'N/A',
+            'schema_count' => count($schema),
+            'schema' => $schema
+        ], JSON_UNESCAPED_UNICODE));
+        
+        foreach ($schema as $block) {
+            if (!is_array($block) || !isset($block['type'])) {
+                continue;
+            }
+            
+            if ($block['type'] === 'text') {
+                // 固定文本
+                $value = isset($block['value']) ? $block['value'] : '';
+                if (!empty($value)) {
+                    $parts[] = $value;
+                }
+            } elseif ($block['type'] === 'field') {
+                // 字段值
+                $key = isset($block['key']) ? $block['key'] : '';
+                $prefix = isset($block['prefix']) ? $block['prefix'] : '';
+                $suffix = isset($block['suffix']) ? $block['suffix'] : '';
+                
+                // 获取字段值
+                $value = isset($data[$key]) ? $data[$key] : '';
+                
+                // 调试日志
+                \think\Log::info("字段 {$key}: " . ($value !== '' && $value !== null ? "'{$value}'" : '(空)'));
+                
+                // 改进的空值判断：只有当值为 null 或空字符串时才跳过
+                // 允许数字 0、字符串 "0" 等值通过
+                if ($value !== '' && $value !== null) {
+                    $parts[] = $prefix . $value . $suffix;
+                }
+            }
+        }
+        
+        $result = implode('', $parts);
+        \think\Log::info('buildRemarkFromSchema 结果: ' . ($result ? "'{$result}'" : '(空字符串)'));
+        
+        return $result;
     }
 
     /**
@@ -1186,6 +1576,11 @@ class Sf
      */
     private function buildRemark($data, $prefix = '')
     {
+        // 确保 $data 是数组（兼容对象）
+        if (is_object($data)) {
+            $data = method_exists($data, 'toArray') ? $data->toArray() : (array)$data;
+        }
+        
         $parts = [];
         
         if (!empty($prefix)) {

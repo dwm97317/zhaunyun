@@ -149,6 +149,7 @@ class SfPrint extends Controller
 
     /**
      * 获取 JS 打印所需的配置参数 (Ajax)
+     * 支持子母件批量打印
      */
     public function getPrintConfig()
     {
@@ -156,6 +157,10 @@ class SfPrint extends Controller
         if (empty($orderId)) {
             return json(['code' => 0, 'msg' => '订单ID不能为空']);
         }
+        
+        // 获取打印模式参数
+        $printMode = input('print_mode', 'mother'); // all | mother | child
+        $childIds = input('child_ids/a', []); // 子单ID数组
 
         // 获取订单信息
         $order = Inpack::detail($orderId);
@@ -203,13 +208,19 @@ class SfPrint extends Controller
             return json(['code' => 0, 'msg' => '获取 AccessToken 失败: ' . $sf->getError()]);
         }
 
-        // 3. 获取 ParsedData（使用企业级缓存）
+        // 3. 获取 ParsedData（使用企业级缓存，支持子母件）
+        $cacheKey = $waybillNo . '_' . $printMode . '_' . md5(json_encode($childIds));
+        
         $parsedData = \app\common\service\SfCache::getParsedData(
-            $waybillNo,
-            function() use ($sf, $orderId) {
-                return $sf->printlabelParsedData($orderId);
+            $cacheKey,
+            function() use ($sf, $orderId, $printMode, $childIds) {
+                return $sf->printlabelParsedData($orderId, [
+                    'print_mode' => $printMode,
+                    'child_ids' => $childIds
+                ]);
             }
         );
+        
         if (!$parsedData) {
              return json(['code' => 0, 'msg' => '获取云打印数据失败: ' . $sf->getError()]);
         }
@@ -220,18 +231,41 @@ class SfPrint extends Controller
         }
 
         // 4. 组装打印数据 (符合 SCPPrint.print 格式)
-        // 修复：确保 documents[0] 包含 masterWaybillNo
-        $document = array_merge([
-            'masterWaybillNo' => $waybillNo
-        ], $parsedData);
+        $documents = [];
+        
+        // 处理多运单返回
+        if (isset($parsedData['files']) && is_array($parsedData['files'])) {
+            // 多个运单
+            foreach ($parsedData['files'] as $fileData) {
+                $docWaybillNo = $fileData['waybillNo'] ?? '';
+                if (empty($docWaybillNo)) {
+                    continue;
+                }
+                
+                $document = array_merge([
+                    'masterWaybillNo' => $docWaybillNo
+                ], $fileData);
+                
+                $documents[] = $document;
+            }
+        } else {
+            // 单个运单(向后兼容)
+            $document = array_merge([
+                'masterWaybillNo' => $waybillNo
+            ], $parsedData);
+            
+            $documents[] = $document;
+        }
+        
+        if (empty($documents)) {
+            return json(['code' => 0, 'msg' => '没有可打印的运单数据']);
+        }
         
         $printData = [
             'requestID' => uniqid('PRT'),
             'accessToken' => $accessToken,
             'templateCode' => $config['template_code'],
-            'documents' => [
-                $document
-            ]
+            'documents' => $documents
         ];
 
         return json([
@@ -239,7 +273,9 @@ class SfPrint extends Controller
             'msg' => 'ok', 
             'data' => $printData,
             'partnerID' => $config['key'],
-            'env' => 'sbox' // 前端初始化 SDK 用
+            'env' => 'sbox', // 前端初始化 SDK 用
+            'print_mode' => $printMode,
+            'document_count' => count($documents)
         ]);
     }
 

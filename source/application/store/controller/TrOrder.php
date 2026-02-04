@@ -7063,6 +7063,13 @@ public function expressBillbatch() {
                     'customer_code' => isset($ditchArray['customer_code']) ? $ditchArray['customer_code'] : '',
                     'ditch_type' => isset($ditchArray['ditch_type']) ? (int)$ditchArray['ditch_type'] : 2,
                     'push_config_json' => isset($ditchArray['push_config_json']) ? $ditchArray['push_config_json'] : '',
+                    // 发件人信息字段
+                    'sender_name' => isset($ditchArray['sender_name']) ? $ditchArray['sender_name'] : '',
+                    'sender_phone' => isset($ditchArray['sender_phone']) ? $ditchArray['sender_phone'] : '',
+                    'sender_province' => isset($ditchArray['sender_province']) ? $ditchArray['sender_province'] : '',
+                    'sender_city' => isset($ditchArray['sender_city']) ? $ditchArray['sender_city'] : '',
+                    'sender_district' => isset($ditchArray['sender_district']) ? $ditchArray['sender_district'] : '',
+                    'sender_address' => isset($ditchArray['sender_address']) ? $ditchArray['sender_address'] : '',
                 ];
                 
                 $zto = new \app\common\library\Ditch\Zto($ztoConfig);
@@ -7089,7 +7096,8 @@ public function expressBillbatch() {
                 // 调用中通云打印接口
                 $result = $zto->cloudPrint($id, [
                     'print_mode' => $printMode,
-                    'waybill_no' => $waybillNo
+                    'waybill_no' => $waybillNo,
+                    'sellerMessage' => isset($data['seller_message']) ? $data['seller_message'] : (isset($data['remark']) ? $data['remark'] : '')
                 ]);
                 
                 // 记录调用结果

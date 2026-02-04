@@ -2498,6 +2498,7 @@
         $.ajax({
             url: '<?= url("store/trOrder/getPrintTask") ?>',
             method: 'GET',
+            timeout: 180000, // 增加超时时间到3分钟（180秒）
             data: {
                 id: orderId,
                 waybill_no: waybillNo,
@@ -2528,7 +2529,13 @@
             error: function(xhr, status, error) {
                 layer.close(loadingIndex);
                 console.error('打印请求失败:', status, error);
-                layer.msg('网络错误,请重试', {icon: 2});
+                
+                // 根据错误类型给出更友好的提示
+                if (status === 'timeout') {
+                    layer.msg('请求超时，请检查网络连接后重试', {icon: 2, time: 3000});
+                } else {
+                    layer.msg('网络错误，请重试', {icon: 2});
+                }
             }
         });
     }
@@ -2544,18 +2551,20 @@
             layer.close(index);
             
             // 显示加载提示
-            var loadingIndex = layer.msg('正在获取打印数据...', {
+            var loadingIndex = layer.msg('正在获取打印数据，请稍候...', {
                 icon: 16,
                 shade: 0.3,
                 time: 0
             });
             
-            // 调用批量打印接口
+            // 调用统一打印接口 - 打印全部模式
             $.ajax({
-                url: '<?= url("store/trOrder/printMultiplePackages") ?>',
+                url: '<?= url("store/trOrder/getPrintTask") ?>',
                 method: 'POST',
+                timeout: 300000, // 增加超时时间到5分钟（300秒）
                 data: {
-                    order_id: orderId
+                    id: orderId,
+                    print_all: 1  // 打印全部模式
                 },
                 success: function(res) {
                     layer.close(loadingIndex);
@@ -2579,7 +2588,13 @@
                 error: function(xhr, status, error) {
                     layer.close(loadingIndex);
                     console.error('批量打印请求失败:', status, error);
-                    layer.msg('网络错误,请重试', {icon: 2});
+                    
+                    // 根据错误类型给出更友好的提示
+                    if (status === 'timeout') {
+                        layer.msg('请求超时，请检查网络连接后重试', {icon: 2, time: 3000});
+                    } else {
+                        layer.msg('网络错误，请重试', {icon: 2});
+                    }
                 }
             });
         });

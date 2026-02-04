@@ -55,17 +55,18 @@ class MessageBuilder
         switch ($type) {
             case 'text':
                 $content = isset($block['value']) ? $block['value'] : '';
+                // 🔧 NEW: 支持模板变量替换 {{field.name}}
+                $content = self::replaceTemplateVariables($content, $data);
                 break;
 
             case 'field':
                 $key = isset($block['key']) ? $block['key'] : '';
                 $value = self::getValue($data, $key);
                 
-                // Condition check: if value is empty and block has "required" or similar, maybe skip?
-                // Current requirement: "Condition filtering (only when field value meets condition)".
-                // Simple implementation: if value is empty, skip the whole block (including prefix/suffix)
+                // 🔧 FIX: 如果字段值为空，返回空字符串（不添加 prefix/suffix），但不中断后续积木的处理
+                // 这样可以让 MessageBuilder::build() 继续处理后续的积木
                 if ((is_string($value) && trim($value) === '') || $value === null) {
-                    return '';
+                    return ''; // 返回空字符串，但不影响后续积木
                 }
                 
                 // Format value (e.g., date) - Simple implementation
@@ -94,6 +95,23 @@ class MessageBuilder
         }
 
         return $content;
+    }
+
+    /**
+     * Replace template variables in text (e.g., {{receiver.name}})
+     *
+     * @param string $text
+     * @param array $data
+     * @return string
+     */
+    private static function replaceTemplateVariables($text, $data)
+    {
+        // 匹配 {{field.name}} 格式的模板变量
+        return preg_replace_callback('/\{\{([a-zA-Z0-9_.]+)\}\}/', function($matches) use ($data) {
+            $key = $matches[1];
+            $value = self::getValue($data, $key);
+            return $value !== null ? $value : $matches[0]; // 如果找不到值，保留原始模板
+        }, $text);
     }
 
     /**
