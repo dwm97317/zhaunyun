@@ -956,8 +956,28 @@ class Zto
         switch ($paramType) {
             case 'ELEC_MARK':
                 // 指定电子面单和指定大头笔信息
-                $printParam['printMark'] = isset($printerConfig['printMark']) ? $printerConfig['printMark'] : '';
-                $printParam['printBagaddr'] = isset($printerConfig['printBagaddr']) ? $printerConfig['printBagaddr'] : '';
+                // 🔧 如果配置中没有大头笔信息，尝试自动获取
+                if (empty($printerConfig['printMark']) || empty($printerConfig['printBagaddr'])) {
+                    $bagAddrMark = $this->getBagAddrMark($sender, $receiver);
+                    if ($bagAddrMark && isset($bagAddrMark['mark']) && isset($bagAddrMark['bagAddr'])) {
+                        $printParam['printMark'] = $bagAddrMark['mark'];
+                        $printParam['printBagaddr'] = $bagAddrMark['bagAddr'];
+                        
+                        \think\Log::info('ZTO Cloud Print - Auto Get BagAddrMark: ' . json_encode([
+                            'waybill_no' => $waybillNo,
+                            'printMark' => $bagAddrMark['mark'],
+                            'printBagaddr' => $bagAddrMark['bagAddr']
+                        ], JSON_UNESCAPED_UNICODE));
+                    } else {
+                        // 如果自动获取失败，使用配置中的值（可能为空）
+                        $printParam['printMark'] = isset($printerConfig['printMark']) ? $printerConfig['printMark'] : '';
+                        $printParam['printBagaddr'] = isset($printerConfig['printBagaddr']) ? $printerConfig['printBagaddr'] : '';
+                    }
+                } else {
+                    // 使用配置中的值
+                    $printParam['printMark'] = $printerConfig['printMark'];
+                    $printParam['printBagaddr'] = $printerConfig['printBagaddr'];
+                }
                 break;
                 
             case 'ELEC_NOMARK':
@@ -1010,5 +1030,78 @@ class Zto
         }
         
         return $printInfo;
+    }
+    
+    /**
+     * 获取大头笔信息
+     * @param array $sender 发件人信息
+     * @param array $receiver 收件人信息
+     * @return array|false 返回大头笔信息或 false
+     * 
+     * 调用接口: zto.innovate.bagAddrMark
+     * 返回格式: ['mark' => '600-', 'bagAddr' => '成都']
+     */
+    private function getBagAddrMark($sender, $receiver)
+    {
+        $url = \app\common\library\zto\ZtoConfig::getApiUrl($this->config, 'bagAddrMark');
+        
+        // 构建请求参数
+        $requestData = [
+            'send_province' => isset($sender['prov']) ? $sender['prov'] : '',
+            'send_city' => isset($sender['city']) ? $sender['city'] : '',
+            'send_district' => isset($sender['county']) ? $sender['county'] : '',
+            'send_address' => isset($sender['address']) ? $sender['address'] : '',
+            'receive_province' => isset($receiver['prov']) ? $receiver['prov'] : '',
+            'receive_city' => isset($receiver['city']) ? $receiver['city'] : '',
+            'receive_district' => isset($receiver['county']) ? $receiver['county'] : '',
+            'receive_address' => isset($receiver['address']) ? $receiver['address'] : '',
+            'unionCode' => time() . rand(1000, 9999), // 唯一标识
+        ];
+        
+        $body = json_encode($requestData, JSON_UNESCAPED_UNICODE);
+        
+        $appKey = \app\common\library\zto\ZtoConfig::get($this->config, 'key', '');
+        $appSecret = \app\common\library\zto\ZtoConfig::get($this->config, 'token', '');
+        $digest = \app\common\library\zto\ZtoAuth::generateDigest($body, $appSecret);
+        $headers = \app\common\library\zto\ZtoAuth::buildHeaders($appKey, $digest);
+        
+        // 记录请求日志
+        \think\Log::info('ZTO BagAddrMark - API Request: ' . json_encode([
+            'url' => $url,
+            'request_data' => $requestData
+        ], JSON_UNESCAPED_UNICODE));
+        
+        $resp = $this->client->post($url, $body, $headers);
+        if ($resp === false) {
+            \think\Log::error('ZTO BagAddrMark - Request Failed: ' . $this->client->getError());
+            return false;
+        }
+        
+        $data = $this->client->parseResponse($resp);
+        if ($data === false) {
+            \think\Log::error('ZTO BagAddrMark - Parse Failed: ' . $this->client->getError());
+            return false;
+        }
+        
+        // 记录响应日志
+        \think\Log::info('ZTO BagAddrMark - API Response: ' . json_encode($data, JSON_UNESCAPED_UNICODE));
+        
+        // 检查响应状态
+        if (!$this->client->isSuccess($data)) {
+            $message = $this->client->getMessage($data);
+            \think\Log::error('ZTO BagAddrMark - API Error: ' . $message);
+            return false;
+        }
+        
+        // 提取大头笔信息
+        $result = isset($data['result']) && is_array($data['result']) ? $data['result'] : [];
+        if (isset($result['mark']) && isset($result['bagAddr'])) {
+            return [
+                'mark' => $result['mark'],
+                'bagAddr' => $result['bagAddr']
+            ];
+        }
+        
+        return false;
     }
 }

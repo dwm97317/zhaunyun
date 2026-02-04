@@ -45,6 +45,7 @@ class ZtoConfig
         'createOrder' => '/zto.open.createOrder',            // 创建订单（标准中通）
         'managerOrder' => '/zto.ehk.receiveOpenOrder',       // 创建订单（中通管家）
         'cloudPrint' => '/zto.print.batchCloudPrint',        // 批量云打印
+        'bagAddrMark' => '/zto.innovate.bagAddrMark',        // 大头笔查询
     ];
 
     /**
