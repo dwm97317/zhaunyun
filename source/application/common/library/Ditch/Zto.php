@@ -906,6 +906,14 @@ class Zto
         $buildData['seller_remark'] = isset($order['remark']) ? $order['remark'] : '';
         $buildData['buyer_remark'] = isset($order['usermark']) ? $order['usermark'] : '';
         
+        // 🔧 新增字段：用户ID、用户昵称、唛头
+        $buildData['user_id'] = isset($order['member_id']) ? $order['member_id'] : '';
+        $buildData['user_nickname'] = '';
+        if (isset($order['user']) && is_array($order['user']) && isset($order['user']['nickName'])) {
+            $buildData['user_nickname'] = $order['user']['nickName'];
+        }
+        $buildData['shipping_mark'] = isset($order['usermark']) ? $order['usermark'] : ''; // 唛头字段
+        
         // 🔧 额外字段映射（处理视图中定义但数据库中不存在或需要特殊处理的字段）
         // apply_time: 申请打包时间 - 使用 created_time 作为替代
         $buildData['apply_time'] = isset($order['created_time']) ? $order['created_time'] : '';
