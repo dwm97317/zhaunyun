@@ -630,6 +630,47 @@
                                     </div>
                                 </div>
                                 
+                                <!-- 商品标题策略 (goodsTitle) -->
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 商品标题策略 (goodsTitle) </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <?php 
+                                            $enableGoodsTitle = false;
+                                            $goodsTitleRules = [];
+                                            if (!empty($model['push_config_json'])) {
+                                                $pushConfigData = json_decode($model['push_config_json'], true);
+                                                if (isset($pushConfigData['enableGoodsTitle'])) {
+                                                    $enableGoodsTitle = $pushConfigData['enableGoodsTitle'];
+                                                }
+                                                if (isset($pushConfigData['goodsTitleRules'])) {
+                                                    $goodsTitleRules = $pushConfigData['goodsTitleRules'];
+                                                }
+                                            }
+                                        ?>
+                                        <label class="am-checkbox-inline">
+                                            <input type="checkbox" id="zto_enableGoodsTitle" <?= $enableGoodsTitle ? 'checked' : '' ?>> 启用动态标题映射
+                                        </label>
+                                        <div id="zto_goods_title_rules_container" style="margin-top: 15px; display: <?= $enableGoodsTitle ? 'block' : 'none' ?>;">
+                                            <table class="am-table am-table-compact am-table-bordered am-table-centered">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 40%;">商品标题文本</th>
+                                                        <th style="width: 20%;">优先级</th>
+                                                        <th style="width: 20%;">状态</th>
+                                                        <th>操作</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="zto_rules_body">
+                                                    <!-- Javascript rendered -->
+                                                </tbody>
+                                            </table>
+                                            <button type="button" class="am-btn am-btn-xs am-btn-primary am-round" onclick="addZtoTitleRule()">
+                                                <i class="am-icon-plus"></i> 添加新标题规则
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <!-- 旧的 MessageBuilder 配置（保留用于向后兼容，但隐藏） -->
                                 <div class="am-form-group" style="display:none;">
                                     <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 启用卖家留言模板 </label>
@@ -891,6 +932,7 @@
     // 中通云打印 MessageBuilder 配置
     var ztoBuyerSchema = [];
     var ztoSellerSchema = [];
+    var ztoTitleRules = [];
     <?php 
         if (!empty($model['push_config_json'])) {
             $ztoPushConfig = json_decode($model['push_config_json'], true);
@@ -905,6 +947,10 @@
             // 兼容旧的字符串格式
             elseif (isset($ztoPushConfig['sellerSchema']) && is_string($ztoPushConfig['sellerSchema'])) {
                 echo "ztoSellerSchema = [{type: 'text', value: " . json_encode($ztoPushConfig['sellerSchema']) . "}];";
+            }
+            // 商品标题规则
+            if (isset($ztoPushConfig['goodsTitleRules']) && is_array($ztoPushConfig['goodsTitleRules'])) {
+                echo "ztoTitleRules = " . json_encode($ztoPushConfig['goodsTitleRules']) . ";";
             }
         }
     ?>
@@ -1025,6 +1071,43 @@
         renderRules();
     }
 
+    // 中通快递商品标题策略函数
+    // ztoTitleRules 已在上面从配置中加载，不要重复声明
+    
+    function renderZtoRules() {
+        var html = '';
+        ztoTitleRules.forEach(function(rule, index) {
+            html += `<tr>
+                <td><input type="text" class="am-form-field am-input-sm" value="${rule.title}" onchange="updateZtoRule(${index}, 'title', this.value)"></td>
+                <td><input type="number" class="am-form-field am-input-sm" value="${rule.priority}" onchange="updateZtoRule(${index}, 'priority', this.value)"></td>
+                <td>
+                    <select class="am-input-sm" onchange="updateZtoRule(${index}, 'status', this.value)">
+                        <option value="1" ${rule.status == 1 ? 'selected' : ''}>启用</option>
+                        <option value="0" ${rule.status == 0 ? 'selected' : ''}>禁用</option>
+                    </select>
+                </td>
+                <td><button type="button" class="am-btn am-btn-xs am-btn-danger" onclick="removeZtoRule(${index})">删除</button></td>
+            </tr>`;
+        });
+        $('#zto_rules_body').html(html);
+        updatePushConfigJson();
+    }
+
+    function addZtoTitleRule() {
+        ztoTitleRules.push({title: '默认商品', priority: 10, status: 1});
+        renderZtoRules();
+    }
+
+    function updateZtoRule(index, field, value) {
+        ztoTitleRules[index][field] = value;
+        updatePushConfigJson();
+    }
+
+    function removeZtoRule(index) {
+        ztoTitleRules.splice(index, 1);
+        renderZtoRules();
+    }
+
     function updatePushConfigJson() {
         var ditchType = $('input[name="express[ditch_type]"]:checked').val();
         var config = {};
@@ -1062,7 +1145,10 @@
                 enableBuyerMessage: $('#zto_enableBuyerMessage').is(':checked'),
                 ztoBuyerSchema: buyerSchema,
                 enableSellerMessage: $('#zto_enableSellerMessage').is(':checked'),
-                ztoSellerSchema: sellerSchema
+                ztoSellerSchema: sellerSchema,
+                // 商品标题策略
+                enableGoodsTitle: $('#zto_enableGoodsTitle').is(':checked'),
+                goodsTitleRules: ztoTitleRules
             };
         } else if (ditchType == '3') {
             // 中通管家配置
@@ -1354,6 +1440,7 @@
         $('input[name="express[ditch_type]"]').on('change', toggleCustomerCode);
         toggleCustomerCode();
         renderRules();
+        renderZtoRules(); // 初始化中通快递商品标题策略表格
 
         renderFieldButtonsFor('buyer-blocks', fieldDictionary);
         renderFieldButtonsFor('seller-blocks', fieldDictionary);
@@ -1407,10 +1494,17 @@
              updatePushConfigJson();
         });
         
+        // 中通快递商品标题策略开关
+        $('#zto_enableGoodsTitle').change(function() {
+            $('#zto_goods_title_rules_container').toggle($(this).is(':checked'));
+            updatePushConfigJson();
+        });
+        
         // Initial visibility
         $('#buyer-config-editor').toggle($('#enableBuyerMessage').is(':checked'));
         $('#seller-config-editor').toggle($('#enableSellerMessage').is(':checked'));
         $('#sf-remark-config-editor').toggle($('#enableSfRemark').is(':checked'));
+        $('#zto_goods_title_rules_container').toggle($('#zto_enableGoodsTitle').is(':checked'));
 
         // Listen for changes in sender fields
         $('.sender-field').on('input change', updateSenderJson);
