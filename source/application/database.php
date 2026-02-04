@@ -25,7 +25,10 @@ return [
     // 连接dsn
     'dsn' => '',
     // 数据库连接参数
-    'params' => [],
+    'params' => [
+        // 解决MySQL 8.0认证问题
+        \PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+    ],
     // 数据库编码默认采用utf8
     'charset' => $config['charset'],
     // 数据库表前缀

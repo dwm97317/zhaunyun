@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "数据库字段使用验证",
+  "description": "当编辑 PHP 文件时，自动检查代码中使用的数据库字段是否与实际表结构一致，特别是 Db::table()、where()、select() 等数据库操作",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.php"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "检查刚编辑的 PHP 文件中的数据库操作：\n\n1. 扫描文件中的数据库操作代码：\n   - Db::table('table_name')\n   - Model::where('field', ...)\n   - ->select(['field1', 'field2'])\n   - $data['field_name']\n\n2. 提取涉及的表名和字段名\n\n3. 🔧 使用 MCP MySQL 工具验证字段：\n   工具名称: mcp_mysql_xinsuju_sql_query\n   \n   对每个表执行:\n   mcp_mysql_xinsuju_sql_query({\n     sql: \"SHOW COLUMNS FROM table_name\"\n   })\n   \n   然后检查：\n   - 字段是否存在于返回的 Field 列表中\n   - 字段类型 (Type 列) 是否匹配使用方式\n\n4. 如果发现问题，报告：\n   - ❌ 字段不存在: table.field\n   - ⚠️ 字段类型可能不匹配: field (实际: VARCHAR, 使用: INT)\n   - ✅ 所有字段验证通过\n\n5. 重点检查常见错误表：\n   - yoshop_inpack (集运单表)\n   - yoshop_inpack_item (子单表)\n   - yoshop_package (旧包裹表)\n   - yoshop_order (订单表)\n   - yoshop_ditch (渠道商表)\n\n注意：\n- 必须使用 mcp_mysql_xinsuju_sql_query 工具验证\n- 只检查明确的字段引用，不检查动态字段\n- 如果文件没有数据库操作，简单回复\"无数据库操作\"\n- 专注于实际的字段验证，不要重复代码内容"
+  }
+}

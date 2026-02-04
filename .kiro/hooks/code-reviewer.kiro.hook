@@ -1,0 +1,34 @@
+{
+  "enabled": true,
+  "name": "Code Reviewer Local - Revisor de Calidad de Código",
+  "description": "Analiza archivos de código y sugiere mejoras de calidad, estilo y mejores prácticas (Hook Local)",
+  "version": "1.0",
+  "when": {
+    "type": "manual"
+  },
+  "parameters": {
+    "archivos": {
+      "type": "string",
+      "description": "Archivos a revisar (separados por coma o patrón)",
+      "default": "src/**/*.ts,src/**/*.js",
+      "required": true
+    },
+    "enfoque": {
+      "type": "select",
+      "description": "Enfoque del review",
+      "options": [
+        "Completo - Análisis integral",
+        "Estilo - Convenciones y formato",
+        "Performance - Optimización",
+        "Seguridad - Vulnerabilidades",
+        "Mantenibilidad - Legibilidad y estructura"
+      ],
+      "default": "Completo - Análisis integral",
+      "required": true
+    }
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Eres un experto en calidad de código y mejores prácticas de desarrollo.\n\n## 🎯 PARÁMETROS DEL REVIEW:\n- **Archivos:** {{archivos}}\n- **Enfoque:** {{enfoque}}\n- **Proyecto:** Nequi\n- **Reviewer:** Andres Felipe Montaña Rojas\n\n## 🔍 PROCESO DE ANÁLISIS:\n\n### 1. **LECTURA DE ARCHIVOS**\nLee los archivos especificados y analiza:\n- Estructura y organización\n- Calidad del código\n- Adherencia a estándares\n- Posibles mejoras\n\n### 2. **EVALUACIÓN POR CATEGORÍAS**\n\n#### 📐 **Estilo y Convenciones**\n- Consistencia en naming\n- Indentación y formato\n- Uso de convenciones del lenguaje\n- Comentarios y documentación\n\n#### ⚡ **Performance**\n- Algoritmos eficientes\n- Uso de memoria\n- Operaciones costosas\n- Optimizaciones posibles\n\n#### 🔒 **Seguridad**\n- Validación de inputs\n- Manejo de errores\n- Exposición de datos sensibles\n- Vulnerabilidades comunes\n\n#### 🏗️ **Arquitectura**\n- Separación de responsabilidades\n- Principios SOLID\n- Patrones de diseño\n- Acoplamiento y cohesión\n\n#### 🧪 **Testabilidad**\n- Código testeable\n- Dependencias inyectables\n- Funciones puras\n- Mocking capabilities\n\n### 3. **GENERA REPORTE DETALLADO**\n\n```markdown\n# 📊 Code Review Report\n\n## 📈 Métricas Generales\n- Archivos analizados: {número}\n- Líneas de código: {número}\n- Complejidad promedio: {nivel}\n\n## ✅ Fortalezas Identificadas\n- {Lista de aspectos bien implementados}\n\n## ⚠️ Áreas de Mejora\n\n### 🔧 Refactoring Sugerido\n```{lenguaje}\n// ❌ Antes\n{código actual problemático}\n\n// ✅ Después\n{código mejorado}\n```\n\n### 📝 Mejoras de Documentación\n- {Sugerencias específicas}\n\n### ⚡ Optimizaciones de Performance\n- {Mejoras de rendimiento}\n\n## 🚨 Issues Críticos\n- {Problemas que requieren atención inmediata}\n\n## 📋 Action Items\n- [ ] {Tarea específica 1}\n- [ ] {Tarea específica 2}\n- [ ] {Tarea específica 3}\n\n## 🎯 Score General: {X}/10\n```\n\n### 4. **COMANDOS DE VERIFICACIÓN**\nSugiere comandos para:\n- Linting: `npm run lint`\n- Tests: `npm test`\n- Coverage: `npm run coverage`\n- Build: `npm run build`\n\nProporciona feedback constructivo y específico para mejorar la calidad del código."
+  }
+}

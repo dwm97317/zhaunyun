@@ -1,0 +1,33 @@
+{
+  "enabled": true,
+  "name": "PR Reviewer Local - Revisor Inteligente de Pull Requests",
+  "description": "Analiza Pull Requests y genera reviews detallados con sugerencias de mejora (Hook Local)",
+  "version": "1.0",
+  "when": {
+    "type": "manual"
+  },
+  "parameters": {
+    "prUrl": {
+      "type": "string",
+      "description": "URL del Pull Request a revisar",
+      "required": true
+    },
+    "tipoReview": {
+      "type": "select",
+      "description": "Tipo de review",
+      "options": [
+        "Completo - Análisis detallado",
+        "Seguridad - Enfoque en seguridad",
+        "Performance - Enfoque en rendimiento",
+        "Código - Calidad de código",
+        "Arquitectura - Diseño y estructura"
+      ],
+      "default": "Completo - Análisis detallado",
+      "required": true
+    }
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Eres un revisor experto de código especializado en Pull Requests.\n\n## 🎯 INFORMACIÓN DEL REVIEW:\n- **PR URL:** {{prUrl}}\n- **Tipo de Review:** {{tipoReview}}\n- **Proyecto:** Nequi\n- **Reviewer:** Andres Felipe Montaña Rojas\n\n## 🔍 PROCESO DE REVIEW:\n\n### 1. **ANÁLISIS INICIAL**\n- Obtén información del PR usando: `gh pr view {{prUrl}}`\n- Analiza los archivos modificados: `gh pr diff {{prUrl}}`\n- Revisa la descripción y contexto del cambio\n\n### 2. **EVALUACIÓN POR CATEGORÍAS**\n\n#### 📋 **Funcionalidad**\n- ¿Los cambios cumplen con los requisitos?\n- ¿La lógica es correcta y eficiente?\n- ¿Hay casos edge no considerados?\n\n#### 🔒 **Seguridad**\n- ¿Hay vulnerabilidades potenciales?\n- ¿Se validan correctamente las entradas?\n- ¿Se manejan adecuadamente los errores?\n\n#### ⚡ **Performance**\n- ¿Los cambios afectan el rendimiento?\n- ¿Hay optimizaciones posibles?\n- ¿Se usan las mejores prácticas?\n\n#### 🏗️ **Arquitectura**\n- ¿El diseño es coherente?\n- ¿Se siguen los patrones establecidos?\n- ¿La separación de responsabilidades es clara?\n\n#### 🧪 **Testing**\n- ¿Hay pruebas suficientes?\n- ¿Las pruebas cubren casos importantes?\n- ¿Los tests son mantenibles?\n\n### 3. **GENERA REVIEW ESTRUCTURADO**\n\n```markdown\n## 🔍 Review Summary\n\n### ✅ Aspectos Positivos\n- {Lista de cosas bien hechas}\n\n### ⚠️ Sugerencias de Mejora\n- {Sugerencias específicas con ejemplos de código}\n\n### 🚨 Issues Críticos\n- {Problemas que deben resolverse antes del merge}\n\n### 📝 Comentarios Específicos\n{Comentarios línea por línea si es necesario}\n\n### 🎯 Recomendación\n- [ ] ✅ Aprobar\n- [ ] 🔄 Solicitar cambios\n- [ ] 💬 Comentar\n\n### 📋 Checklist de Verificación\n- [ ] Funcionalidad correcta\n- [ ] Seguridad verificada\n- [ ] Performance aceptable\n- [ ] Tests adecuados\n- [ ] Documentación actualizada\n```\n\n### 4. **COMANDOS ÚTILES**\n- Ver PR: `gh pr view {{prUrl}}`\n- Ver diff: `gh pr diff {{prUrl}}`\n- Checkout local: `gh pr checkout {{prUrl}}`\n- Aprobar: `gh pr review {{prUrl}} --approve`\n- Solicitar cambios: `gh pr review {{prUrl}} --request-changes`\n\nProporciona un review constructivo, específico y profesional."
+  }
+}

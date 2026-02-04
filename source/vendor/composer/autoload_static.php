@@ -63,6 +63,7 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
         'L' => 
         array (
             'Lvht\\' => 5,
+            'Lop\\LopOpensdkPhp\\' => 18,
         ),
         'G' => 
         array (
@@ -156,6 +157,10 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
         'Lvht\\' => 
         array (
             0 => __DIR__ . '/..' . '/lvht/geohash/src',
+        ),
+        'Lop\\LopOpensdkPhp\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/application/common/library/Jdl/lop-opensdk-php/src',
         ),
         'GuzzleHttp\\Psr7\\' => 
         array (
