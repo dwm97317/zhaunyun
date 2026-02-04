@@ -956,27 +956,73 @@ class Zto
         switch ($paramType) {
             case 'ELEC_MARK':
                 // 指定电子面单和指定大头笔信息
-                // 🔧 如果配置中没有大头笔信息，尝试自动获取
-                if (empty($printerConfig['printMark']) || empty($printerConfig['printBagaddr'])) {
-                    $bagAddrMark = $this->getBagAddrMark($sender, $receiver);
-                    if ($bagAddrMark && isset($bagAddrMark['mark']) && isset($bagAddrMark['bagAddr'])) {
-                        $printParam['printMark'] = $bagAddrMark['mark'];
-                        $printParam['printBagaddr'] = $bagAddrMark['bagAddr'];
-                        
-                        \think\Log::info('ZTO Cloud Print - Auto Get BagAddrMark: ' . json_encode([
-                            'waybill_no' => $waybillNo,
-                            'printMark' => $bagAddrMark['mark'],
-                            'printBagaddr' => $bagAddrMark['bagAddr']
-                        ], JSON_UNESCAPED_UNICODE));
-                    } else {
-                        // 如果自动获取失败，使用配置中的值（可能为空）
-                        $printParam['printMark'] = isset($printerConfig['printMark']) ? $printerConfig['printMark'] : '';
-                        $printParam['printBagaddr'] = isset($printerConfig['printBagaddr']) ? $printerConfig['printBagaddr'] : '';
-                    }
-                } else {
-                    // 使用配置中的值
+                // 🔧 优先级：配置 > 缓存 > API获取
+                if (!empty($printerConfig['printMark']) && !empty($printerConfig['printBagaddr'])) {
+                    // 1. 使用配置中的值（最高优先级）
                     $printParam['printMark'] = $printerConfig['printMark'];
                     $printParam['printBagaddr'] = $printerConfig['printBagaddr'];
+                    
+                    \think\Log::info('ZTO Cloud Print - Use Config BagAddrMark: ' . json_encode([
+                        'waybill_no' => $waybillNo,
+                        'printMark' => $printParam['printMark'],
+                        'printBagaddr' => $printParam['printBagaddr']
+                    ], JSON_UNESCAPED_UNICODE));
+                } else {
+                    // 2. 尝试从缓存获取（如果地址ID没有变化）
+                    $currentAddressId = isset($order['address_id']) ? (int)$order['address_id'] : 0;
+                    $cachedAddressId = isset($order['zto_cache_address_id']) ? (int)$order['zto_cache_address_id'] : 0;
+                    $cachedMark = isset($order['zto_print_mark']) ? $order['zto_print_mark'] : '';
+                    $cachedBagaddr = isset($order['zto_print_bagaddr']) ? $order['zto_print_bagaddr'] : '';
+                    
+                    if ($currentAddressId > 0 && $currentAddressId === $cachedAddressId && !empty($cachedMark) && !empty($cachedBagaddr)) {
+                        // 地址ID没有变化，使用缓存的大头笔信息
+                        $printParam['printMark'] = $cachedMark;
+                        $printParam['printBagaddr'] = $cachedBagaddr;
+                        
+                        \think\Log::info('ZTO Cloud Print - Use Cached BagAddrMark: ' . json_encode([
+                            'waybill_no' => $waybillNo,
+                            'address_id' => $currentAddressId,
+                            'printMark' => $printParam['printMark'],
+                            'printBagaddr' => $printParam['printBagaddr']
+                        ], JSON_UNESCAPED_UNICODE));
+                    } else {
+                        // 3. 调用API获取新的大头笔信息
+                        $bagAddrMark = $this->getBagAddrMark($sender, $receiver);
+                        if ($bagAddrMark && isset($bagAddrMark['mark']) && isset($bagAddrMark['bagAddr'])) {
+                            $printParam['printMark'] = $bagAddrMark['mark'];
+                            $printParam['printBagaddr'] = $bagAddrMark['bagAddr'];
+                            
+                            // 保存到数据库缓存
+                            if (isset($order['id']) && $currentAddressId > 0) {
+                                \think\Db::name('inpack')->where('id', $order['id'])->update([
+                                    'zto_print_mark' => $printParam['printMark'],
+                                    'zto_print_bagaddr' => $printParam['printBagaddr'],
+                                    'zto_cache_address_id' => $currentAddressId
+                                ]);
+                                
+                                \think\Log::info('ZTO Cloud Print - Saved BagAddrMark to Cache: ' . json_encode([
+                                    'order_id' => $order['id'],
+                                    'address_id' => $currentAddressId,
+                                    'printMark' => $printParam['printMark'],
+                                    'printBagaddr' => $printParam['printBagaddr']
+                                ], JSON_UNESCAPED_UNICODE));
+                            }
+                            
+                            \think\Log::info('ZTO Cloud Print - Auto Get BagAddrMark from API: ' . json_encode([
+                                'waybill_no' => $waybillNo,
+                                'printMark' => $printParam['printMark'],
+                                'printBagaddr' => $printParam['printBagaddr']
+                            ], JSON_UNESCAPED_UNICODE));
+                        } else {
+                            // 如果API获取失败，使用空值
+                            $printParam['printMark'] = '';
+                            $printParam['printBagaddr'] = '';
+                            
+                            \think\Log::warning('ZTO Cloud Print - Failed to Get BagAddrMark: ' . json_encode([
+                                'waybill_no' => $waybillNo
+                            ], JSON_UNESCAPED_UNICODE));
+                        }
+                    }
                 }
                 break;
                 
