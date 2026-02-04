@@ -1007,8 +1007,14 @@ class Zto
         }
         
         // 构建打印项
+        // 🔧 原单重打支持：如果是重打，在 partnerCode 后面添加时间戳，避免"不能重复打印"错误
+        $partnerCode = isset($order['order_sn']) ? $order['order_sn'] : '';
+        if (isset($order['_is_repetition']) && $order['_is_repetition'] && !empty($partnerCode)) {
+            $partnerCode .= '_R' . time(); // 添加 _R 前缀和时间戳，例如：2026012166685911_R1738660947
+        }
+        
         $printInfo = [
-            'partnerCode' => isset($order['order_sn']) ? $order['order_sn'] : '',
+            'partnerCode' => $partnerCode,
             'printParam' => $printParam,
             'sender' => $sender,
             'receiver' => $receiver,
