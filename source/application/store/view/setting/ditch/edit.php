@@ -573,6 +573,103 @@
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- 用户留言 (buyerMessage) 配置 -->
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 用户留言 (buyerMessage) </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <?php 
+                                            $enableBuyerMessage = false;
+                                            if (!empty($model['push_config_json'])) {
+                                                $pushConfigData = json_decode($model['push_config_json'], true);
+                                                if (isset($pushConfigData['enableBuyerMessage'])) {
+                                                    $enableBuyerMessage = $pushConfigData['enableBuyerMessage'];
+                                                }
+                                            }
+                                        ?>
+                                        <label class="am-checkbox-inline">
+                                            <input type="checkbox" id="zto_enableBuyerMessage" <?= $enableBuyerMessage ? 'checked' : '' ?>> 启用自定义配置
+                                        </label>
+                                        <div class="config-editor" id="zto-buyer-config-editor" style="display:<?= $enableBuyerMessage ? 'block' : 'none' ?>; border: 1px solid #eee; padding: 10px; margin-top: 10px;">
+                                            <div class="field-list" style="margin-bottom: 10px;">
+                                                <small>点击添加字段:</small><br>
+                                                <!-- JS populated -->
+                                            </div>
+                                            <div class="block-container" id="zto-buyer-blocks" style="min-height: 50px; background: #f9f9f9; padding: 5px;">
+                                                <!-- Blocks go here -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 后台备注 (sellerMessage) 配置 -->
+                                <div class="am-form-group">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 后台备注 (sellerMessage) </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <?php 
+                                            $enableSellerMessage = false;
+                                            if (!empty($model['push_config_json'])) {
+                                                $pushConfigData = json_decode($model['push_config_json'], true);
+                                                if (isset($pushConfigData['enableSellerMessage'])) {
+                                                    $enableSellerMessage = $pushConfigData['enableSellerMessage'];
+                                                }
+                                            }
+                                        ?>
+                                        <label class="am-checkbox-inline">
+                                            <input type="checkbox" id="zto_enableSellerMessage" <?= $enableSellerMessage ? 'checked' : '' ?>> 启用自定义配置
+                                        </label>
+                                        <div class="config-editor" id="zto-seller-config-editor" style="display:<?= $enableSellerMessage ? 'block' : 'none' ?>; border: 1px solid #eee; padding: 10px; margin-top: 10px;">
+                                            <div class="field-list" style="margin-bottom: 10px;">
+                                                <small>点击添加字段:</small><br>
+                                                <!-- JS populated -->
+                                            </div>
+                                            <div class="block-container" id="zto-seller-blocks" style="min-height: 50px; background: #f9f9f9; padding: 5px;">
+                                                <!-- Blocks go here -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 旧的 MessageBuilder 配置（保留用于向后兼容，但隐藏） -->
+                                <div class="am-form-group" style="display:none;">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 启用卖家留言模板 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <label class="am-radio-inline">
+                                            <input type="radio" name="enable_seller_message" id="enable_seller_message_yes" value="1"
+                                                <?= $enableSellerMessage ? 'checked' : '' ?>>
+                                            启用
+                                        </label>
+                                        <label class="am-radio-inline">
+                                            <input type="radio" name="enable_seller_message" id="enable_seller_message_no" value="0"
+                                                <?= !$enableSellerMessage ? 'checked' : '' ?>>
+                                            不启用
+                                        </label>
+                                        <small>启用后，面单备注将使用下方模板构建，支持变量替换</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="am-form-group" id="seller_schema_config" style="display: none;">
+                                    <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 卖家留言模板 </label>
+                                    <div class="am-u-sm-9 am-u-end">
+                                        <div class="config-editor" id="zto-seller-config-editor-old" style="border: 1px solid #eee; padding: 10px;">
+                                            <div class="field-list" style="margin-bottom: 10px;">
+                                                <small>点击添加字段:</small><br>
+                                                <!-- JS populated -->
+                                            </div>
+                                            <div class="block-container" id="zto-seller-blocks-old" style="min-height: 50px; background: #f9f9f9; padding: 5px;">
+                                                <!-- Blocks go here -->
+                                            </div>
+                                        </div>
+                                        <small style="display: block; margin-top: 10px;">
+                                            <strong>可用字段说明：</strong><br>
+                                            • 自定义文本：添加固定文本内容<br>
+                                            • 订单号、创建时间、支付时间等：订单基本信息<br>
+                                            • 收件人姓名、手机、地址：收件人信息<br>
+                                            • 用户留言、后台备注：留言信息<br>
+                                            • 商品名称、包裹列表：商品信息
+                                        </small>
+                                    </div>
+                                </div>
                             </div>
                             
                              <div class="am-form-group">
@@ -746,6 +843,23 @@
             $g2.show();
             $g3.show();
             $('#zto_printer_config_group').show(); // 显示中通打印机配置
+            
+            // 重新初始化中通云打印的字段按钮（确保在显示后初始化）
+            setTimeout(function() {
+                console.log('🔄 中通快递渠道切换 - 重新初始化字段按钮');
+                renderFieldButtonsFor('zto-buyer-blocks', fieldDictionary);
+                renderFieldButtonsFor('zto-seller-blocks', fieldDictionary);
+                
+                // 如果复选框已勾选，确保配置区域显示
+                if ($('#zto_enableBuyerMessage').is(':checked')) {
+                    $('#zto-buyer-config-editor').show();
+                    renderBlocks('zto-buyer-blocks', ztoBuyerSchema);
+                }
+                if ($('#zto_enableSellerMessage').is(':checked')) {
+                    $('#zto-seller-config-editor').show();
+                    renderBlocks('zto-seller-blocks', ztoSellerSchema);
+                }
+            }, 100);
         } else if (v == '3') { // 中通管家
             $g4.show();
             $('#zto_manager_config_group').show();
@@ -773,14 +887,52 @@
     
     // 顺丰推送增强配置
     var sfRemarkSchema = <?= isset($sfPushConfig['sfRemarkSchema']) ? json_encode($sfPushConfig['sfRemarkSchema']) : '[]' ?>;
+    
+    // 中通云打印 MessageBuilder 配置
+    var ztoBuyerSchema = [];
+    var ztoSellerSchema = [];
+    <?php 
+        if (!empty($model['push_config_json'])) {
+            $ztoPushConfig = json_decode($model['push_config_json'], true);
+            // buyerMessage schema
+            if (isset($ztoPushConfig['ztoBuyerSchema']) && is_array($ztoPushConfig['ztoBuyerSchema'])) {
+                echo "ztoBuyerSchema = " . json_encode($ztoPushConfig['ztoBuyerSchema']) . ";";
+            }
+            // sellerMessage schema
+            if (isset($ztoPushConfig['ztoSellerSchema']) && is_array($ztoPushConfig['ztoSellerSchema'])) {
+                echo "ztoSellerSchema = " . json_encode($ztoPushConfig['ztoSellerSchema']) . ";";
+            }
+            // 兼容旧的字符串格式
+            elseif (isset($ztoPushConfig['sellerSchema']) && is_string($ztoPushConfig['sellerSchema'])) {
+                echo "ztoSellerSchema = [{type: 'text', value: " . json_encode($ztoPushConfig['sellerSchema']) . "}];";
+            }
+        }
+    ?>
+
 
     function renderFieldButtonsFor(containerId, dictionary) {
         var dict = dictionary || fieldDictionary;
-        var html = '';
+        var html = '<small>点击添加字段:</small><br>';
         dict.forEach(function(field) {
             html += `<button type="button" class="am-btn am-btn-xs am-btn-default am-round" style="margin-right:5px; margin-bottom:5px;" onclick="addBlock('${containerId}', '${field.type}', '${field.key}', '${field.label}')">${field.label}</button>`;
         });
-        $('#' + containerId).prev('.field-list').html(html + '<br><small>点击上方按钮添加到对应配置区域</small>');
+        html += '<br><small>点击上方按钮添加到对应配置区域</small>';
+        
+        // 查找对应容器的 field-list 元素
+        var $container = $('#' + containerId);
+        var $fieldList = $container.prev('.field-list');
+        
+        // 如果找不到，尝试在父元素中查找
+        if ($fieldList.length === 0) {
+            $fieldList = $container.parent().find('.field-list');
+        }
+        
+        if ($fieldList.length > 0) {
+            $fieldList.html(html);
+            console.log('✅ 成功渲染字段按钮到:', containerId, '按钮数量:', dict.length);
+        } else {
+            console.error('❌ 找不到 field-list 元素，容器ID:', containerId);
+        }
     }
 
     function renderBlocks(containerId, schema) {
@@ -877,8 +1029,19 @@
         var ditchType = $('input[name="express[ditch_type]"]:checked').val();
         var config = {};
         
+        console.log('📝 更新配置 JSON，渠道类型:', ditchType);
+        
         if (ditchType == '2') {
             // 中通快递打印机配置
+            var buyerSchema = getSchemaFromBlocks('zto-buyer-blocks');
+            var sellerSchema = getSchemaFromBlocks('zto-seller-blocks');
+            
+            console.log('中通快递配置:');
+            console.log('- buyerMessage 启用:', $('#zto_enableBuyerMessage').is(':checked'));
+            console.log('- buyerSchema:', buyerSchema);
+            console.log('- sellerMessage 启用:', $('#zto_enableSellerMessage').is(':checked'));
+            console.log('- sellerSchema:', sellerSchema);
+            
             config = {
                 ztoPrinterConfig: {
                     printerId: $('#zto_printer_id').val(),
@@ -894,7 +1057,12 @@
                     appreciationDTOS: $('input[name="zto_appreciation_enabled"]:checked').val() == '1' ? getAppreciationServices() : [],
                     backBillEnabled: $('input[name="zto_back_bill_enabled"]:checked').val() == '1',
                     backBillCode: $('input[name="zto_back_bill_enabled"]:checked').val() == '1' ? $('#zto_back_bill_code').val() : ''
-                }
+                },
+                // MessageBuilder 配置（积木格式）
+                enableBuyerMessage: $('#zto_enableBuyerMessage').is(':checked'),
+                ztoBuyerSchema: buyerSchema,
+                enableSellerMessage: $('#zto_enableSellerMessage').is(':checked'),
+                ztoSellerSchema: sellerSchema
             };
         } else if (ditchType == '3') {
             // 中通管家配置
@@ -916,7 +1084,10 @@
             };
         }
         
-        $('#push_config_json_input').val(JSON.stringify(config));
+        var configJson = JSON.stringify(config);
+        $('#push_config_json_input').val(configJson);
+        console.log('✅ 配置已更新到隐藏字段');
+        console.log('配置 JSON:', configJson);
     }
     
     /**
@@ -1192,6 +1363,26 @@
         // 顺丰推送增强配置初始化
         renderFieldButtonsFor('sf-remark-blocks', sfFieldDictionary);
         renderBlocks('sf-remark-blocks', sfRemarkSchema);
+        
+        // 中通云打印 MessageBuilder 初始化
+        console.log('📝 初始化中通云打印 MessageBuilder');
+        console.log('buyerSchema:', ztoBuyerSchema);
+        console.log('sellerSchema:', ztoSellerSchema);
+        
+        renderFieldButtonsFor('zto-buyer-blocks', fieldDictionary);
+        renderBlocks('zto-buyer-blocks', ztoBuyerSchema);
+        renderFieldButtonsFor('zto-seller-blocks', fieldDictionary);
+        renderBlocks('zto-seller-blocks', ztoSellerSchema);
+        
+        // 初始化显示状态
+        var buyerEnabled = $('#zto_enableBuyerMessage').is(':checked');
+        var sellerEnabled = $('#zto_enableSellerMessage').is(':checked');
+        $('#zto-buyer-config-editor').toggle(buyerEnabled);
+        $('#zto-seller-config-editor').toggle(sellerEnabled);
+        
+        console.log('✅ 中通云打印 MessageBuilder 初始化完成');
+        console.log('buyerMessage 启用:', buyerEnabled);
+        console.log('sellerMessage 启用:', sellerEnabled);
 
         // Listen for switch changes
         $('#enableSkuPropertiesName, #enablePayDate, #enableGoodsTitle').change(function() {
@@ -1257,6 +1448,49 @@
             updatePushConfigJson();
         });
         
+        // 监听 MessageBuilder 开关
+        $('#zto_enableBuyerMessage').on('change', function() {
+            var enabled = $(this).is(':checked');
+            $('#zto-buyer-config-editor').toggle(enabled);
+            // 当显示时，重新渲染字段按钮
+            if (enabled) {
+                setTimeout(function() {
+                    console.log('🔄 重新渲染 buyerMessage 字段按钮');
+                    renderFieldButtonsFor('zto-buyer-blocks', fieldDictionary);
+                    // 如果有已保存的 schema，也重新渲染积木
+                    if (ztoBuyerSchema && ztoBuyerSchema.length > 0) {
+                        renderBlocks('zto-buyer-blocks', ztoBuyerSchema);
+                    }
+                }, 50);
+            }
+            updatePushConfigJson();
+        });
+        
+        $('#zto_enableSellerMessage').on('change', function() {
+            var enabled = $(this).is(':checked');
+            $('#zto-seller-config-editor').toggle(enabled);
+            // 当显示时，重新渲染字段按钮
+            if (enabled) {
+                setTimeout(function() {
+                    console.log('🔄 重新渲染 sellerMessage 字段按钮');
+                    renderFieldButtonsFor('zto-seller-blocks', fieldDictionary);
+                    // 如果有已保存的 schema，也重新渲染积木
+                    if (ztoSellerSchema && ztoSellerSchema.length > 0) {
+                        renderBlocks('zto-seller-blocks', ztoSellerSchema);
+                    }
+                }, 50);
+            }
+            updatePushConfigJson();
+        });
+        
+        // 监听中通云打印积木输入变化
+        $(document).on('input', '#zto-buyer-blocks .block-value, #zto-buyer-blocks .block-prefix, #zto-buyer-blocks .block-suffix', function() {
+            updatePushConfigJson();
+        });
+        $(document).on('input', '#zto-seller-blocks .block-value, #zto-seller-blocks .block-prefix, #zto-seller-blocks .block-suffix', function() {
+            updatePushConfigJson();
+        });
+        
         // 顺丰打印机列表加载
         // 当选择顺丰渠道时，自动加载打印机列表
         $('input[name="express[ditch_type]"]').on('change', function() {
@@ -1283,18 +1517,53 @@
         $('#my-form').superForm({
             // 自定义验证函数
             validation: function () {
+                console.log('🚀 表单提交验证开始');
                 updatePushConfigJson();
                 updateSenderJson();
                 updateSfPrintOptions();
+                
+                // 验证配置是否正确保存
+                var pushConfigValue = $('#push_config_json_input').val();
+                console.log('📝 push_config_json 字段值长度:', pushConfigValue.length);
+                console.log('📝 push_config_json 内容预览:', pushConfigValue.substring(0, 200) + '...');
+                
+                if (pushConfigValue.length > 0) {
+                    try {
+                        var config = JSON.parse(pushConfigValue);
+                        console.log('✅ JSON 解析成功');
+                        console.log('配置对象:', config);
+                        
+                        // 检查中通快递配置
+                        if (config.ztoBuyerSchema || config.ztoSellerSchema) {
+                            console.log('✅ 检测到中通云打印配置');
+                            console.log('- buyerMessage 启用:', config.enableBuyerMessage);
+                            console.log('- buyerSchema 长度:', config.ztoBuyerSchema ? config.ztoBuyerSchema.length : 0);
+                            console.log('- sellerMessage 启用:', config.enableSellerMessage);
+                            console.log('- sellerSchema 长度:', config.ztoSellerSchema ? config.ztoSellerSchema.length : 0);
+                        }
+                    } catch (e) {
+                        console.error('❌ JSON 解析失败:', e.message);
+                    }
+                } else {
+                    console.warn('⚠️ push_config_json 字段为空');
+                }
+                
                 return true;
             }
         });
 
         // 提交前强制同步一次配置 (Backup)
         $('.j-submit').on('click', function() {
+            console.log('🖱️ 提交按钮被点击');
             updatePushConfigJson();
             updateSenderJson();
             updateSfPrintOptions();
+            
+            // 再次验证
+            setTimeout(function() {
+                var pushConfigValue = $('#push_config_json_input').val();
+                console.log('🔍 最终检查 - push_config_json 长度:', pushConfigValue.length);
+            }, 100);
         });
 
     });

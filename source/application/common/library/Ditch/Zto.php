@@ -525,8 +525,9 @@ class Zto
      */
     public function cloudPrint($order_id, $options = [])
     {
-        // 1. 获取订单信息
-        $order = \app\store\model\Inpack::detail($order_id);
+        // 1. 获取订单信息（使用 getExpressData 加载完整的关联数据）
+        $inpackModel = new \app\store\model\Inpack();
+        $order = $inpackModel->getExpressData($order_id);
         if (!$order) {
             $this->error = '订单不存在';
             return false;
@@ -534,6 +535,33 @@ class Zto
         
         // 转换为数组
         $orderArray = is_object($order) ? $order->toArray() : $order;
+        
+        // 🔧 检查打印状态，判断是否需要原单重打
+        $printStatus = isset($orderArray['print_status_jhd']) ? (int)$orderArray['print_status_jhd'] : 0;
+        $isRepetition = ($printStatus === 1); // 如果已打印成功过，则为原单重打
+        
+        // 记录原单重打判断日志
+        \think\Log::info('ZTO Cloud Print - Repetition Check: ' . json_encode([
+            'order_id' => $order_id,
+            'print_status_jhd' => $printStatus,
+            'is_repetition' => $isRepetition
+        ], JSON_UNESCAPED_UNICODE));
+        
+        // 将原单重打标识传递给 buildPrintInfo
+        $orderArray['_is_repetition'] = $isRepetition;
+        
+        // 添加 sellerMessage 参数（如果提供）
+        if (isset($options['sellerMessage']) && !empty($options['sellerMessage'])) {
+            $orderArray['sellerMessage'] = $options['sellerMessage'];
+        }
+        
+        // 调试日志：检查 address 数据
+        \think\Log::info('ZTO Cloud Print - Order Data: ' . json_encode([
+            'order_id' => $order_id,
+            'has_address' => isset($orderArray['address']),
+            'address_id' => isset($orderArray['address_id']) ? $orderArray['address_id'] : 'N/A',
+            'address_data' => isset($orderArray['address']) ? $orderArray['address'] : 'NULL'
+        ], JSON_UNESCAPED_UNICODE));
         
         // 2. 获取运单号
         $waybillNo = isset($options['waybill_no']) ? $options['waybill_no'] : '';
@@ -580,6 +608,9 @@ class Zto
             $printInfos[] = $this->buildPrintInfo($orderArray, $waybillNo);
         }
         
+        // 记录打印数据用于调试
+        \think\Log::info('ZTO Cloud Print - Print Infos: ' . json_encode($printInfos, JSON_UNESCAPED_UNICODE));
+        
         // 6. 构建请求参数
         $requestData = [
             'printChannel' => $printerConfig['printChannel'],
@@ -625,6 +656,24 @@ class Zto
         
         $result = isset($data['result']) && is_array($data['result']) ? $data['result'] : [];
         
+        // 🔧 打印成功后更新打印状态
+        if ($success) {
+            try {
+                \think\Db::name('inpack')->where('id', $order_id)->update([
+                    'print_status_jhd' => 1,
+                    'updated_time' => date('Y-m-d H:i:s')
+                ]);
+                
+                \think\Log::info('ZTO Cloud Print - Status Updated: ' . json_encode([
+                    'order_id' => $order_id,
+                    'print_status_jhd' => 1
+                ], JSON_UNESCAPED_UNICODE));
+            } catch (\Exception $e) {
+                // 更新状态失败不影响打印结果返回
+                \think\Log::error('ZTO Cloud Print - Status Update Failed: ' . $e->getMessage());
+            }
+        }
+        
         return [
             'success' => $success,
             'message' => $message ?: ($success ? '打印成功' : '打印失败'),
@@ -640,25 +689,82 @@ class Zto
      */
     private function buildPrintInfo($order, $waybillNo)
     {
-        // 构建发件人信息
+        // 调试日志：检查配置中的发件人信息
+        \think\Log::info('ZTO Cloud Print - Sender Config: ' . json_encode([
+            'has_sender_name' => isset($this->config['sender_name']),
+            'sender_name' => isset($this->config['sender_name']) ? $this->config['sender_name'] : 'N/A',
+            'has_sender_phone' => isset($this->config['sender_phone']),
+            'sender_phone' => isset($this->config['sender_phone']) ? $this->config['sender_phone'] : 'N/A',
+            'config_keys' => array_keys($this->config)
+        ], JSON_UNESCAPED_UNICODE));
+        
+        // 构建发件人信息 - 从渠道配置中读取
         $sender = [
-            'name' => isset($order['sender_name']) ? $order['sender_name'] : \app\common\library\zto\ZtoConfig::getDefault('sender_name'),
-            'mobile' => isset($order['sender_mobile']) ? $order['sender_mobile'] : \app\common\library\zto\ZtoConfig::getDefault('sender_mobile'),
-            'prov' => isset($order['sender_province']) ? $order['sender_province'] : \app\common\library\zto\ZtoConfig::getDefault('sender_province'),
-            'city' => isset($order['sender_city']) ? $order['sender_city'] : \app\common\library\zto\ZtoConfig::getDefault('sender_city'),
-            'county' => isset($order['sender_district']) ? $order['sender_district'] : \app\common\library\zto\ZtoConfig::getDefault('sender_district'),
-            'address' => isset($order['sender_address']) ? $order['sender_address'] : \app\common\library\zto\ZtoConfig::getDefault('sender_address'),
+            'name' => \app\common\library\zto\ZtoConfig::get($this->config, 'sender_name', \app\common\library\zto\ZtoConfig::getDefault('sender_name')),
+            'mobile' => \app\common\library\zto\ZtoConfig::get($this->config, 'sender_phone', \app\common\library\zto\ZtoConfig::getDefault('sender_mobile')),
+            'prov' => \app\common\library\zto\ZtoConfig::get($this->config, 'sender_province', \app\common\library\zto\ZtoConfig::getDefault('sender_province')),
+            'city' => \app\common\library\zto\ZtoConfig::get($this->config, 'sender_city', \app\common\library\zto\ZtoConfig::getDefault('sender_city')),
+            'county' => \app\common\library\zto\ZtoConfig::get($this->config, 'sender_district', \app\common\library\zto\ZtoConfig::getDefault('sender_district')),
+            'address' => \app\common\library\zto\ZtoConfig::get($this->config, 'sender_address', \app\common\library\zto\ZtoConfig::getDefault('sender_address')),
         ];
         
-        // 构建收件人信息
+        // 构建收件人信息 - 从订单的 address 关联中读取
         $receiver = [
-            'name' => isset($order['consignee_name']) ? $order['consignee_name'] : \app\common\library\zto\ZtoConfig::getDefault('receiver_name'),
-            'mobile' => isset($order['consignee_mobile']) ? $order['consignee_mobile'] : (isset($order['consignee_telephone']) ? $order['consignee_telephone'] : \app\common\library\zto\ZtoConfig::getDefault('receiver_mobile')),
-            'prov' => isset($order['consignee_state']) ? $order['consignee_state'] : \app\common\library\zto\ZtoConfig::getDefault('receiver_province'),
-            'city' => isset($order['consignee_city']) ? $order['consignee_city'] : \app\common\library\zto\ZtoConfig::getDefault('receiver_city'),
-            'county' => isset($order['consignee_suburb']) ? $order['consignee_suburb'] : \app\common\library\zto\ZtoConfig::getDefault('receiver_district'),
-            'address' => isset($order['consignee_address']) ? $order['consignee_address'] : \app\common\library\zto\ZtoConfig::getDefault('receiver_address'),
+            'name' => '',
+            'mobile' => '',
+            'prov' => '',
+            'city' => '',
+            'county' => '',
+            'address' => '',
         ];
+        
+        // 优先从 address 关联获取（getExpressData 返回的数据结构）
+        if (isset($order['address']) && is_array($order['address'])) {
+            $addr = $order['address'];
+            $receiver['name'] = isset($addr['name']) ? $addr['name'] : '';
+            $receiver['mobile'] = isset($addr['phone']) ? $addr['phone'] : '';
+            $receiver['prov'] = isset($addr['province']) ? $addr['province'] : '';
+            $receiver['city'] = isset($addr['city']) ? $addr['city'] : '';
+            $receiver['address'] = isset($addr['detail']) ? $addr['detail'] : '';
+            
+            // 处理 region (区县) 字段
+            $region = isset($addr['region']) ? trim($addr['region']) : '';
+            $detail = $receiver['address'];
+            
+            // 如果 region 不为空，直接使用
+            if (!empty($region)) {
+                $receiver['county'] = $region;
+            }
+            // 如果 region 为空，尝试从 detail 中提取区县信息
+            elseif (!empty($detail)) {
+                // 尝试从 detail 中提取区县信息（匹配"XX区"或"XX县"）
+                // 使用 Unicode 字符类匹配中文字符
+                if (preg_match('/([\x{4e00}-\x{9fa5}]+[区县])/u', $detail, $matches)) {
+                    $receiver['county'] = $matches[1];
+                } else {
+                    // 如果无法提取，使用 city 作为 county（兜底方案）
+                    $receiver['county'] = $receiver['city'];
+                }
+            }
+            // 如果 region 和 detail 都为空，使用 city 作为 county（兜底方案）
+            else {
+                $receiver['county'] = $receiver['city'];
+            }
+        }
+        // 兼容旧的字段名（如果 address 不存在）
+        elseif (isset($order['consignee_name'])) {
+            $receiver['name'] = $order['consignee_name'];
+            $receiver['mobile'] = isset($order['consignee_mobile']) ? $order['consignee_mobile'] : (isset($order['consignee_telephone']) ? $order['consignee_telephone'] : '');
+            $receiver['prov'] = isset($order['consignee_state']) ? $order['consignee_state'] : '';
+            $receiver['city'] = isset($order['consignee_city']) ? $order['consignee_city'] : '';
+            $receiver['county'] = isset($order['consignee_suburb']) ? $order['consignee_suburb'] : '';
+            $receiver['address'] = isset($order['consignee_address']) ? $order['consignee_address'] : '';
+            
+            // 如果 county 为空，使用 city 作为 county（兜底方案）
+            if (empty($receiver['county']) && !empty($receiver['city'])) {
+                $receiver['county'] = $receiver['city'];
+            }
+        }
         
         // 构建物品信息
         $goods = [
@@ -666,14 +772,105 @@ class Zto
             'weight' => isset($order['weight']) && (float)$order['weight'] > 0 ? (int)round((float)$order['weight'] * 1000) : 1000, // 转换为克
         ];
         
-        // 添加备注
-        if (!empty($order['remark'])) {
-            $goods['remark'] = $order['remark'];
+        // 添加备注 - 使用与中通管家相同的逻辑
+        $pushConfig = isset($this->config['push_config_json']) ? json_decode($this->config['push_config_json'], true) : [];
+        
+        // 准备构建数据 - 映射 inpack 订单字段到 MessageBuilder 可用的字段
+        $buildData = $order;
+        
+        // 添加商品信息
+        if (isset($order['orderInvoiceParam'])) {
+            $buildData['items'] = $order['orderInvoiceParam'];
+        }
+        
+        // 添加收件人信息
+        $buildData['receiver'] = [
+            'name' => $receiver['name'],
+            'mobile' => $receiver['mobile'],
+            'phone' => $receiver['mobile'],
+            'address' => $receiver['address'],
+            'city' => $receiver['city']
+        ];
+        
+        // 🔧 字段映射：将数据库字段映射到视图中定义的字段名
+        // 这样用户在配置时可以使用友好的字段名
+        $buildData['order_sn'] = isset($order['order_sn']) ? $order['order_sn'] : '';
+        $buildData['create_time'] = isset($order['created_time']) ? $order['created_time'] : '';
+        $buildData['pay_time'] = isset($order['pay_time']) ? $order['pay_time'] : '';
+        $buildData['pay_status'] = isset($order['is_pay']) ? ($order['is_pay'] == 1 ? '已支付' : '未支付') : '';
+        $buildData['weight'] = isset($order['weight']) ? $order['weight'] : 0;
+        $buildData['volume_weight'] = isset($order['cale_weight']) ? $order['cale_weight'] : 0;
+        $buildData['chargeable_weight'] = isset($order['cale_weight']) ? $order['cale_weight'] : 0; // 计费重量使用体积重
+        $buildData['seller_remark'] = isset($order['remark']) ? $order['remark'] : '';
+        $buildData['buyer_remark'] = isset($order['usermark']) ? $order['usermark'] : '';
+        
+        // 🔧 额外字段映射（处理视图中定义但数据库中不存在或需要特殊处理的字段）
+        // apply_time: 申请打包时间 - 使用 created_time 作为替代
+        $buildData['apply_time'] = isset($order['created_time']) ? $order['created_time'] : '';
+        
+        // service_items: 打包服务项目 - 从 pack_services_id 获取
+        $buildData['service_items'] = isset($order['pack_services_id']) ? $order['pack_services_id'] : '';
+        
+        // warehouse_name: 寄送仓库 - 从关联数据获取（如果有）
+        if (isset($order['storage']) && is_array($order['storage']) && isset($order['storage']['storage_name'])) {
+            $buildData['warehouse_name'] = $order['storage']['storage_name'];
+        } else {
+            // 如果没有关联数据，使用 storage_id 作为替代
+            $buildData['warehouse_name'] = isset($order['storage_id']) ? '仓库' . $order['storage_id'] : '';
+        }
+        
+        // sub_order_count: 子订单数量 - 统计 package 表中的记录数
+        if (isset($order['id'])) {
+            $subOrderCount = \think\Db::name('package')->where('inpack_id', $order['id'])->count();
+            $buildData['sub_order_count'] = $subOrderCount;
+        } else {
+            $buildData['sub_order_count'] = 0;
+        }
+        
+        // goods_name: 商品名称 - 从 orderInvoiceParam 或 items 中获取第一个商品名称
+        if (isset($order['orderInvoiceParam']) && is_array($order['orderInvoiceParam']) && !empty($order['orderInvoiceParam'])) {
+            $firstItem = $order['orderInvoiceParam'][0];
+            $buildData['goods_name'] = isset($firstItem['invoice_title']) ? $firstItem['invoice_title'] : (isset($firstItem['sku']) ? $firstItem['sku'] : '商品');
+        } elseif (isset($order['items']) && is_array($order['items']) && !empty($order['items'])) {
+            $firstItem = $order['items'][0];
+            $buildData['goods_name'] = isset($firstItem['invoice_title']) ? $firstItem['invoice_title'] : (isset($firstItem['sku']) ? $firstItem['sku'] : '商品');
+        } else {
+            $buildData['goods_name'] = '商品';
+        }
+        
+        // 构建备注 - 优先使用 sellerMessage (卖家留言)
+        $remark = '';
+        
+        // 1. 如果配置启用了 sellerMessage schema，使用 MessageBuilder 构建
+        // 注意：中通快递使用 ztoSellerSchema，中通管家使用 sellerSchema
+        $sellerSchema = isset($pushConfig['ztoSellerSchema']) ? $pushConfig['ztoSellerSchema'] : (isset($pushConfig['sellerSchema']) ? $pushConfig['sellerSchema'] : null);
+        if (isset($pushConfig['enableSellerMessage']) && $pushConfig['enableSellerMessage'] && !empty($sellerSchema)) {
+            $remark = MessageBuilder::build($buildData, $sellerSchema);
+        }
+        // 2. 如果传递了 sellerMessage 参数，使用参数值
+        elseif (!empty($order['sellerMessage'])) {
+            $remark = $order['sellerMessage'];
+        }
+        // 3. 如果有 remark 字段，使用 remark
+        elseif (!empty($order['remark'])) {
+            $remark = $order['remark'];
+        }
+        // 4. 如果都没有，但有收件人信息，构建默认备注（包含收件人姓名和电话）
+        else {
+            $remarkParts = [];
+            if (!empty($receiver['name'])) {
+                $remarkParts[] = '收件人：' . $receiver['name'];
+            }
+            if (!empty($receiver['mobile'])) {
+                $remarkParts[] = '电话：' . $receiver['mobile'];
+            }
+            if (!empty($remarkParts)) {
+                $remark = implode(' ', $remarkParts);
+            }
         }
         
         // 构建打印参数
-        // 从配置获取 paramType 和相关参数
-        $pushConfig = isset($this->config['push_config_json']) ? json_decode($this->config['push_config_json'], true) : [];
+        // 从配置获取 paramType 和相关参数 (pushConfig 已在上面定义)
         $printerConfig = isset($pushConfig['ztoPrinterConfig']) ? $pushConfig['ztoPrinterConfig'] : [];
         
         // 获取 paramType，默认为 DEFAULT_PRINT
@@ -684,6 +881,16 @@ class Zto
             'paramType' => $paramType,
             'mailNo' => $waybillNo,
         ];
+        
+        // 🔧 原单重打支持：自动判断是否需要原单重打
+        // 如果订单已经打印成功过（print_status_jhd = 1），则自动添加 repetition = true
+        if (isset($order['_is_repetition']) && $order['_is_repetition']) {
+            $printParam['repetition'] = true;
+            \think\Log::info('ZTO Cloud Print - Auto Repetition Enabled: ' . json_encode([
+                'waybill_no' => $waybillNo,
+                'order_sn' => isset($order['order_sn']) ? $order['order_sn'] : 'N/A'
+            ], JSON_UNESCAPED_UNICODE));
+        }
         
         // 根据不同的 paramType 添加必需字段
         switch ($paramType) {
@@ -729,6 +936,11 @@ class Zto
             'payType' => 'CASH', // 现付（默认）
             'sheetMode' => 'PRINT_SHEET', // 标准一联单
         ];
+        
+        // ✅ 根据中通云打印 API 文档，remark 是 printInfo 的顶层字段，不是 goods 的子字段
+        if (!empty($remark)) {
+            $printInfo['remark'] = $remark;
+        }
         
         // 添加增值服务（如果配置启用）
         if (isset($pushConfig['ztoPrinterConfig']['appreciationEnabled']) && $pushConfig['ztoPrinterConfig']['appreciationEnabled']) {
