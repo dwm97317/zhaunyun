@@ -1111,9 +1111,9 @@ class Zto
             'sheetMode' => 'PRINT_SHEET', // 标准一联单
         ];
         
-        // ✅ 根据中通云打印 API 文档，remark 是 printInfo 的顶层字段，不是 goods 的子字段
+        // ✅ 根据中通云打印 API 文档，remark 是 goods 对象的字段
         if (!empty($remark)) {
-            $printInfo['remark'] = $remark;
+            $printInfo['goods']['remark'] = $remark;
         }
         
         // 添加增值服务（如果配置启用）
