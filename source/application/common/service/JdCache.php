@@ -45,18 +45,14 @@ class JdCache
         $key = "jd_token_" . md5($appKey);
         $startTime = microtime(true);
         
-        self::writeDebugLog("获取 AccessToken: key={$key}");
-        
         // L1: 内存缓存
         if (isset(self::$memoryCache[$key])) {
             self::$stats['l1_hits']++;
             $elapsed = round((microtime(true) - $startTime) * 1000, 2);
-            self::writeDebugLog("✅ L1 缓存命中 ({$elapsed}ms)");
+            \app\common\service\PrintLogger::cacheHit('京东Token', $key, ['elapsed_ms' => $elapsed]);
             self::logPerf('token', 'L1_HIT', microtime(true) - $startTime);
             return self::$memoryCache[$key];
         }
-        
-        self::writeDebugLog("L1 缓存未命中，查询 L2...");
         
         // L2: 文件缓存
         $cached = Cache::get($key);
@@ -64,29 +60,25 @@ class JdCache
             self::$memoryCache[$key] = $cached; // 回填 L1
             self::$stats['l2_hits']++;
             $elapsed = round((microtime(true) - $startTime) * 1000, 2);
-            self::writeDebugLog("✅ L2 缓存命中，回填 L1 ({$elapsed}ms)");
+            \app\common\service\PrintLogger::cacheHit('京东Token', $key, ['source' => 'L2', 'elapsed_ms' => $elapsed]);
             self::logPerf('token', 'L2_HIT', microtime(true) - $startTime);
             return $cached;
         }
         
-        self::writeDebugLog("L2 缓存未命中，尝试获取互斥锁...");
+        \app\common\service\PrintLogger::cacheMiss('京东Token', $key);
         
         // 缓存未命中 - 使用互斥锁防止击穿
         $lockKey = "{$key}_lock";
         $lockAcquired = self::acquireLock($lockKey, 10);
         
         if (!$lockAcquired) {
-            self::writeDebugLog("⚠️ 未获取到锁，等待其他进程...");
             // 未获取到锁，等待并重试
             usleep(100000); // 100ms
             $cached = Cache::get($key);
             if ($cached !== false && $cached !== null) {
-                self::writeDebugLog("✅ 从其他进程获取到缓存");
                 return $cached;
             }
         }
-        
-        self::writeDebugLog("🔓 获取到互斥锁，调用数据源...");
         
         try {
             // 调用数据源
@@ -100,13 +92,15 @@ class JdCache
                 self::$memoryCache[$key] = $value;
                 self::$stats['sets']++;
                 $elapsed = round((microtime(true) - $startTime) * 1000, 2);
-                self::writeDebugLog("✅ 数据源获取成功，缓存 TTL={$ttl}s ({$elapsed}ms)");
+                \app\common\service\PrintLogger::success('京东Token', '获取并缓存成功', [
+                    'ttl' => $ttl . 's',
+                    'elapsed_ms' => $elapsed
+                ]);
                 self::logPerf('token', 'MISS_SET', microtime(true) - $startTime);
             } else {
                 // 获取失败，缓存空值防穿透
                 Cache::set($key, '__EMPTY__', self::EMPTY_TTL);
-                $elapsed = round((microtime(true) - $startTime) * 1000, 2);
-                self::writeDebugLog("⚠️ 数据源返回空值，缓存空值防穿透 ({$elapsed}ms)");
+                \app\common\service\PrintLogger::warning('京东Token', '获取失败，缓存空值', ['ttl' => self::EMPTY_TTL . 's']);
                 self::logPerf('token', 'MISS_EMPTY', microtime(true) - $startTime);
             }
             
@@ -115,7 +109,6 @@ class JdCache
         } finally {
             if ($lockAcquired) {
                 self::releaseLock($lockKey);
-                self::writeDebugLog("🔒 释放互斥锁");
             }
         }
     }
@@ -134,8 +127,6 @@ class JdCache
         $key = "jd_print_" . md5($waybillNo);
         $startTime = microtime(true);
         
-        self::writeDebugLog("获取打印数据: waybill={$waybillNo}, key={$key}");
-        
         // L1: 内存缓存
         if (isset(self::$memoryCache[$key])) {
             self::$stats['l1_hits']++;
@@ -147,41 +138,51 @@ class JdCache
                 if (is_array($cached) && isset($cached['__address_hash__'])) {
                     $currentAddressHash = self::hashAddress($addressData);
                     if ($cached['__address_hash__'] !== $currentAddressHash) {
-                        self::writeDebugLog("⚠️ L1 缓存地址已变更，忽略缓存");
+                        \app\common\service\PrintLogger::warning('京东打印', '地址已变更，清除缓存', [
+                            'waybill_no' => $waybillNo,
+                            'source' => 'L1'
+                        ]);
                         self::logPerf('print_data', 'L1_ADDRESS_CHANGED', microtime(true) - $startTime);
                         // 地址变更，清除缓存并重新获取
                         unset(self::$memoryCache[$key]);
                         Cache::rm($key);
                         // 继续执行数据源获取
                     } else {
-                        self::writeDebugLog("✅ L1 缓存命中，地址未变更 ({$elapsed}ms)");
+                        \app\common\service\PrintLogger::cacheHit('京东打印', $key, [
+                            'waybill_no' => $waybillNo,
+                            'elapsed_ms' => $elapsed
+                        ]);
                         self::logPerf('print_data', 'L1_HIT', microtime(true) - $startTime);
                         $cacheHit = true;
                         return $cached;
                     }
                 } else {
-                    self::writeDebugLog("✅ L1 缓存命中 ({$elapsed}ms)");
+                    \app\common\service\PrintLogger::cacheHit('京东打印', $key, [
+                        'waybill_no' => $waybillNo,
+                        'elapsed_ms' => $elapsed
+                    ]);
                     self::logPerf('print_data', 'L1_HIT', microtime(true) - $startTime);
                     $cacheHit = true;
                     return self::$memoryCache[$key];
                 }
             } else {
-                self::writeDebugLog("✅ L1 缓存命中 ({$elapsed}ms)");
+                \app\common\service\PrintLogger::cacheHit('京东打印', $key, [
+                    'waybill_no' => $waybillNo,
+                    'elapsed_ms' => $elapsed
+                ]);
                 self::logPerf('print_data', 'L1_HIT', microtime(true) - $startTime);
                 $cacheHit = true;
                 return self::$memoryCache[$key];
             }
         }
         
-        self::writeDebugLog("L1 缓存未命中，查询 L2...");
-        
         // L2: 文件缓存
         $cached = Cache::get($key);
+        
         if ($cached !== false && $cached !== null) {
             // 检查是否是空值标记
             if ($cached === '__EMPTY__') {
-                $elapsed = round((microtime(true) - $startTime) * 1000, 2);
-                self::writeDebugLog("⚠️ L2 缓存为空值标记 ({$elapsed}ms)");
+                \app\common\service\PrintLogger::warning('京东打印', '缓存为空值标记', ['waybill_no' => $waybillNo]);
                 self::logPerf('print_data', 'L2_EMPTY', microtime(true) - $startTime);
                 return false;
             }
@@ -190,7 +191,10 @@ class JdCache
             if ($addressData !== null && is_array($cached) && isset($cached['__address_hash__'])) {
                 $currentAddressHash = self::hashAddress($addressData);
                 if ($cached['__address_hash__'] !== $currentAddressHash) {
-                    self::writeDebugLog("⚠️ L2 缓存地址已变更，忽略缓存");
+                    \app\common\service\PrintLogger::warning('京东打印', '地址已变更，清除缓存', [
+                        'waybill_no' => $waybillNo,
+                        'source' => 'L2'
+                    ]);
                     self::logPerf('print_data', 'L2_ADDRESS_CHANGED', microtime(true) - $startTime);
                     // 地址变更，清除缓存并重新获取
                     Cache::rm($key);
@@ -199,7 +203,11 @@ class JdCache
                     self::$memoryCache[$key] = $cached;
                     self::$stats['l2_hits']++;
                     $elapsed = round((microtime(true) - $startTime) * 1000, 2);
-                    self::writeDebugLog("✅ L2 缓存命中，地址未变更，回填 L1 ({$elapsed}ms)");
+                    \app\common\service\PrintLogger::cacheHit('京东打印', $key, [
+                        'waybill_no' => $waybillNo,
+                        'source' => 'L2',
+                        'elapsed_ms' => $elapsed
+                    ]);
                     self::logPerf('print_data', 'L2_HIT', microtime(true) - $startTime);
                     $cacheHit = true;
                     return $cached;
@@ -208,30 +216,30 @@ class JdCache
                 self::$memoryCache[$key] = $cached;
                 self::$stats['l2_hits']++;
                 $elapsed = round((microtime(true) - $startTime) * 1000, 2);
-                self::writeDebugLog("✅ L2 缓存命中，回填 L1 ({$elapsed}ms)");
+                \app\common\service\PrintLogger::cacheHit('京东打印', $key, [
+                    'waybill_no' => $waybillNo,
+                    'source' => 'L2',
+                    'elapsed_ms' => $elapsed
+                ]);
                 self::logPerf('print_data', 'L2_HIT', microtime(true) - $startTime);
                 $cacheHit = true;
                 return $cached;
             }
         }
         
-        self::writeDebugLog("L2 缓存未命中，尝试获取互斥锁...");
+        \app\common\service\PrintLogger::cacheMiss('京东打印', $key, ['waybill_no' => $waybillNo]);
         
         // 缓存未命中 - 使用互斥锁
         $lockKey = "{$key}_lock";
         $lockAcquired = self::acquireLock($lockKey, 10);
         
         if (!$lockAcquired) {
-            self::writeDebugLog("⚠️ 未获取到锁，等待其他进程...");
             usleep(100000);
             $cached = Cache::get($key);
             if ($cached !== false && $cached !== null) {
-                self::writeDebugLog("✅ 从其他进程获取到缓存");
                 return $cached === '__EMPTY__' ? false : $cached;
             }
         }
-        
-        self::writeDebugLog("🔓 获取到互斥锁，调用数据源...");
         
         try {
             self::$stats['misses']++;
@@ -241,21 +249,27 @@ class JdCache
                 // 添加地址哈希到缓存数据中
                 if ($addressData !== null && is_array($value)) {
                     $value['__address_hash__'] = self::hashAddress($addressData);
-                    self::writeDebugLog("添加地址哈希到缓存: " . $value['__address_hash__']);
                 }
                 
                 $ttl = self::PRINT_DATA_TTL + rand(-3600, 3600); // ±1小时随机
                 Cache::set($key, $value, $ttl);
+                
                 self::$memoryCache[$key] = $value;
                 self::$stats['sets']++;
                 $elapsed = round((microtime(true) - $startTime) * 1000, 2);
-                self::writeDebugLog("✅ 数据源获取成功，缓存 TTL={$ttl}s ({$elapsed}ms)");
+                \app\common\service\PrintLogger::success('京东打印', '获取并缓存成功', [
+                    'waybill_no' => $waybillNo,
+                    'ttl' => $ttl . 's',
+                    'elapsed_ms' => $elapsed
+                ]);
                 self::logPerf('print_data', 'MISS_SET', microtime(true) - $startTime);
                 $cacheHit = false;
             } else {
                 Cache::set($key, '__EMPTY__', self::EMPTY_TTL);
-                $elapsed = round((microtime(true) - $startTime) * 1000, 2);
-                self::writeDebugLog("⚠️ 数据源返回空值，缓存空值防穿透 ({$elapsed}ms)");
+                \app\common\service\PrintLogger::warning('京东打印', '获取失败，缓存空值', [
+                    'waybill_no' => $waybillNo,
+                    'ttl' => self::EMPTY_TTL . 's'
+                ]);
                 self::logPerf('print_data', 'MISS_EMPTY', microtime(true) - $startTime);
                 $cacheHit = false;
             }
@@ -265,7 +279,6 @@ class JdCache
         } finally {
             if ($lockAcquired) {
                 self::releaseLock($lockKey);
-                self::writeDebugLog("🔒 释放互斥锁");
             }
         }
     }
@@ -424,7 +437,10 @@ class JdCache
         Cache::rm($key);
         unset(self::$memoryCache[$key]);
         
-        Log::info("JD Cache cleared: {$key}");
+        \app\common\service\PrintLogger::info('京东缓存', '缓存已清除', [
+            'type' => $type,
+            'identifier' => $identifier
+        ]);
     }
     
     /**
@@ -438,7 +454,10 @@ class JdCache
             $count++;
         }
         
-        Log::info("JD Cache batch cleared: {$count} items");
+        \app\common\service\PrintLogger::success('京东缓存', '批量清除完成', [
+            'type' => $type,
+            'count' => $count
+        ]);
         
         return $count;
     }
@@ -464,13 +483,20 @@ class JdCache
                 }
             } catch (\Exception $e) {
                 $failed++;
-                Log::error("JD Cache warmup failed for {$waybillNo}: " . $e->getMessage());
+                \app\common\service\PrintLogger::error('京东缓存', '预热失败', [
+                    'waybill_no' => $waybillNo,
+                    'error' => $e->getMessage()
+                ]);
             }
         }
         
         $elapsed = round((microtime(true) - $startTime) * 1000, 2);
         
-        Log::info("JD Cache warmup completed: {$success} success, {$failed} failed, {$elapsed}ms");
+        \app\common\service\PrintLogger::success('京东缓存', '预热完成', [
+            'success' => $success,
+            'failed' => $failed,
+            'elapsed_ms' => $elapsed
+        ]);
         
         return [
             'success' => $success,
@@ -548,7 +574,7 @@ class JdCache
     }
     
     /**
-     * 写入调试日志
+     * 写入调试日志（保留用于详细调试，但主要日志使用 PrintLogger）
      */
     private static function writeDebugLog($message)
     {
