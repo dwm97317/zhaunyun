@@ -42,8 +42,10 @@ class Region extends BaseModel
      */
     public static function getNameById($id)
     {
-        return $id > 0 ? self::getCacheAll()[$id]['name'] : '其他';
+        $all = self::getCacheAll();
+        return ($id > 0 && isset($all[$id])) ? $all[$id]['name'] : '其他';
     }
+
 
     /**
      * 根据名称获取地区id

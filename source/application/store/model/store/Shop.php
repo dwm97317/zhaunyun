@@ -114,12 +114,15 @@ class Shop extends ShopModel
      */
     public function add($data)
     {
+        $data = $this->createData($data);
         if (!$this->validateForm($data)) {
-            $data['logo_image_id'] = 1;
-
-            return $this->allowField(true)->save($this->createData($data));
+            $data['logo_image_id'] = 0;
         }
-        return $this->allowField(true)->save($this->createData($data));
+        // 如果设置为默认仓库，取消其他仓库的默认状态
+        if (isset($data['is_default']) && $data['is_default'] == 1) {
+            $this->where('wxapp_id', '=', self::$wxapp_id)->update(['is_default' => 0]);
+        }
+        return $this->allowField(true)->save($data);
     }
 
     /**
@@ -129,10 +132,15 @@ class Shop extends ShopModel
      */
     public function edit($data)
     {
+        $data = $this->createData($data);
         if (!$this->validateForm($data)) {
-            return false;
+            $data['logo_image_id'] = 0;
         }
-        return $this->allowField(true)->save($this->createData($data)) !== false;
+        // 如果设置为默认仓库，取消其他仓库的默认状态
+        if (isset($data['is_default']) && $data['is_default'] == 1) {
+            $this->where('wxapp_id', '=', self::$wxapp_id)->update(['is_default' => 0]);
+        }
+        return $this->allowField(true)->save($data) !== false;
     }
 
     /**
@@ -152,7 +160,19 @@ class Shop extends ShopModel
     private function createData($data)
     {
         $data['wxapp_id'] = self::$wxapp_id;
-        // 格式化坐标信息
+        
+        // 处理数字字段的空字符串，防止数据类型不匹配
+        $numericFields = [
+            'user_id', 'country_id', 'province_id', 'city_id', 'region_id', 
+            'sort', 'is_join', 'status', 'is_see', 'is_default', 'logo_image_id'
+        ];
+        foreach ($numericFields as $field) {
+            if (isset($data[$field]) && $data[$field] === '') {
+                $data[$field] = 0;
+            }
+        }
+
+        // 格式化标识坐标信息
         // $coordinate = explode(',', $data['coordinate']);
         // $data['latitude'] = $coordinate[0];
         // $data['longitude'] = $coordinate[1];

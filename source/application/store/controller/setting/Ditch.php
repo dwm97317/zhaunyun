@@ -98,7 +98,7 @@ class Ditch extends Controller
         }
 
         // Decode HTML entities for JSON fields (Fixing ThinkPHP global filter issue)
-        foreach (['push_config_json', 'sender_json', 'product_json'] as $jsonField) {
+        foreach (['push_config_json', 'sender_json', 'product_json', 'jd_multibox_config', 'jd_print_config'] as $jsonField) {
             if (isset($data[$jsonField]) && is_string($data[$jsonField])) {
                 // First decode
                 $decoded = htmlspecialchars_decode($data[$jsonField], ENT_QUOTES);
@@ -109,6 +109,9 @@ class Ditch extends Controller
                 $data[$jsonField] = $decoded;
             }
         }
+
+        // Remove jd_multibox_enabled and jd_print_name fields (already handled by hidden fields)
+        unset($data['jd_multibox_enabled'], $data['jd_print_order_type'], $data['jd_custom_temp_url'], $data['jd_print_name']);
 
         $this->stripAccountFieldsIfMissing($model, $data);
         if ($model->add($data)) {
@@ -143,7 +146,7 @@ class Ditch extends Controller
         }
         
         // Decode HTML entities for JSON fields (Fixing ThinkPHP global filter issue)
-        foreach (['push_config_json', 'sender_json', 'product_json', 'sf_print_options'] as $jsonField) {
+        foreach (['push_config_json', 'sender_json', 'product_json', 'sf_print_options', 'jd_multibox_config', 'jd_print_config'] as $jsonField) {
             if (isset($data[$jsonField]) && is_string($data[$jsonField])) {
                 // First decode
                 $decoded = htmlspecialchars_decode($data[$jsonField], ENT_QUOTES);
@@ -154,6 +157,9 @@ class Ditch extends Controller
                 $data[$jsonField] = $decoded;
             }
         }
+
+        // Remove jd_multibox_enabled and jd_print_name fields (already handled by hidden fields)
+        unset($data['jd_multibox_enabled'], $data['jd_print_order_type'], $data['jd_custom_temp_url'], $data['jd_print_name']);
 
         $this->stripAccountFieldsIfMissing($model, $data);
         if ($model->edit($data)) {

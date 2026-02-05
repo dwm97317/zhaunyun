@@ -99,19 +99,19 @@
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 客户号（Key） </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> AppKey </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="express[app_key]"
                                            value="<?= $model['app_key'] ?>" required>
-                                    <small>顺丰快递填写 <strong>partnerID</strong>，中通填写 AppKey</small>
+                                    <small>顺丰快递填写 <strong>partnerID</strong>，中通填写 AppKey，京东填写 AppKey</small>
                                 </div>
                             </div>
                             <div class="am-form-group">
-                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> 密钥（Token） </label>
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label form-require"> AppSecret </label>
                                 <div class="am-u-sm-9 am-u-end">
                                     <input type="text" class="tpl-form-input" name="express[app_token]"
                                            value="<?= $model['app_token'] ?>" required>
-                                    <small>顺丰快递填写 <strong>appSecret</strong>（用于生成msgDigest签名），中通填写 AppSecret</small>
+                                    <small>顺丰快递填写 <strong>appSecret</strong>（用于生成msgDigest签名），中通填写 AppSecret，京东填写 AppSecret</small>
                                 </div>
                             </div>
                             <div class="am-form-group" id="shop_key_group" style="display:none;">
@@ -313,6 +313,215 @@
                                         <option value="ed-m-0005" <?= $jdProduct == 'ed-m-0005' ? 'selected' : '' ?>>同城急送 (ed-m-0005)</option>
                                     </select>
                                     <small>请选择京东物流主产品类型。标快/特快适用于大部分B2C/C2C场景。</small>
+                                </div>
+                            </div>
+
+                            <!-- 京东多包裹打单配置 -->
+                            <div class="am-form-group" id="jd_multibox_config_group" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 多包裹打单 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <?php 
+                                        $jdMultiboxConfig = [];
+                                        if (!empty($model['jd_multibox_config'])) {
+                                            $jdMultiboxConfig = json_decode($model['jd_multibox_config'], true);
+                                            if (!is_array($jdMultiboxConfig)) {
+                                                $jdMultiboxConfig = [];
+                                            }
+                                        }
+                                    ?>
+                                    <label class="am-checkbox-inline">
+                                        <input type="checkbox" id="jd_multibox_enabled" name="jd_multibox_enabled" value="1"
+                                            <?= (isset($jdMultiboxConfig['enabled']) && $jdMultiboxConfig['enabled']) ? 'checked' : '' ?>>
+                                        该集运订单包含多个包裹，需要分别使用独立的单号进行打单
+                                    </label>
+                                    <small style="display: block; margin-top: 5px;">
+                                        <strong>勾选：</strong>为集运订单中的每个包裹生成独立的京东物流单号，分别打单<br>
+                                        <strong>不勾选（默认）：</strong>使用子母件方式下单，一个主单号对应多个子单号
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- 京东云打印配置 -->
+                            <div class="am-form-group" id="jd_print_config_group" style="display:none;">
+                                <label class="am-u-sm-3 am-u-lg-2 am-form-label"> 云打印配置 </label>
+                                <div class="am-u-sm-9 am-u-end">
+                                    <!-- 启动打印组件按钮 -->
+                                    <div style="margin-bottom: 15px; padding: 10px; background: #f0f9ff; border: 1px solid #0e90d2; border-radius: 4px;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="am-icon-print" style="font-size: 24px; color: #0e90d2;"></i>
+                                            <div style="flex: 1;">
+                                                <strong style="display: block; margin-bottom: 5px;">京东云打印组件</strong>
+                                                <small style="color: #666;">使用京东云打印功能前，请先启动打印组件</small>
+                                            </div>
+                                            <a href="jdprint://" class="am-btn am-btn-primary" style="white-space: nowrap;">
+                                                <i class="am-icon-rocket"></i> 启动打印组件
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <?php 
+                                        $jdPrintConfig = [];
+                                        if (!empty($model['jd_print_config'])) {
+                                            $jdPrintConfig = json_decode($model['jd_print_config'], true);
+                                            if (!is_array($jdPrintConfig)) {
+                                                $jdPrintConfig = [];
+                                            }
+                                        }
+                                    ?>
+                                    <div style="border: 1px solid #eee; padding: 15px; border-radius: 4px;">
+                                        <!-- 任务类型配置 -->
+                                        <div style="margin-bottom: 15px;">
+                                            <label style="font-weight: bold; display: block; margin-bottom: 8px;">任务类型 (orderType)</label>
+                                            <div style="margin-left: 10px;">
+                                                <label class="am-radio-inline">
+                                                    <input type="radio" name="jd_print_order_type" value="PRE_View" 
+                                                        <?= (isset($jdPrintConfig['orderType']) && $jdPrintConfig['orderType'] == 'PRE_View') ? 'checked' : 'checked' ?>>
+                                                    PRE_View - 打印预览（默认预览第一张面单）
+                                                </label>
+                                            </div>
+                                            <div style="margin-left: 10px; margin-top: 5px;">
+                                                <label class="am-radio-inline">
+                                                    <input type="radio" name="jd_print_order_type" value="PRE_View:multi" 
+                                                        <?= (isset($jdPrintConfig['orderType']) && $jdPrintConfig['orderType'] == 'PRE_View:multi') ? 'checked' : '' ?>>
+                                                    PRE_View:multi - 预览所有面单
+                                                </label>
+                                            </div>
+                                            <div style="margin-left: 10px; margin-top: 5px;">
+                                                <label class="am-radio-inline">
+                                                    <input type="radio" name="jd_print_order_type" value="GET_Printers" 
+                                                        <?= (isset($jdPrintConfig['orderType']) && $jdPrintConfig['orderType'] == 'GET_Printers') ? 'checked' : '' ?>>
+                                                    GET_Printers - 获取打印机列表
+                                                </label>
+                                            </div>
+                                            <div style="margin-left: 10px; margin-top: 5px;">
+                                                <label class="am-radio-inline">
+                                                    <input type="radio" name="jd_print_order_type" value="PRINT" 
+                                                        <?= (isset($jdPrintConfig['orderType']) && $jdPrintConfig['orderType'] == 'PRINT') ? 'checked' : '' ?>>
+                                                    PRINT - 打印
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- 启用标准模板开关 -->
+                                        <div style="margin-bottom: 15px;">
+                                            <label class="am-checkbox-inline">
+                                                <input type="checkbox" id="jd_use_standard_template" 
+                                                    <?= (isset($jdPrintConfig['tempUrl']) && !empty($jdPrintConfig['tempUrl'])) ? 'checked' : '' ?>>
+                                                <strong>启用标准模板 (tempUrl)</strong>
+                                            </label>
+                                            <small style="display: block; margin-top: 5px; color: #666;">
+                                                勾选后可以指定标准模板URL，不勾选则使用京东默认模板
+                                            </small>
+                                        </div>
+
+                                        <!-- 标准模板URL -->
+                                        <div id="jd_standard_template_group" style="margin-bottom: 15px; <?= (isset($jdPrintConfig['tempUrl']) && !empty($jdPrintConfig['tempUrl'])) ? '' : 'display: none;' ?>">
+                                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">标准模板URL (tempUrl)</label>
+                                            <input type="text" class="tpl-form-input" id="jd_temp_url" 
+                                                value="<?= isset($jdPrintConfig['tempUrl']) ? htmlspecialchars($jdPrintConfig['tempUrl']) : 'https://template-content.jd.com/template-oss?tempCode=jdkd76x130isv' ?>" 
+                                                placeholder="输入标准模板URL">
+                                            <small style="display: block; margin-top: 5px;">
+                                                默认: https://template-content.jd.com/template-oss?tempCode=jdkd76x130isv
+                                            </small>
+                                        </div>
+
+                                        <!-- 启用自定义区模板开关 -->
+                                        <div style="margin-bottom: 15px;">
+                                            <label class="am-checkbox-inline">
+                                                <input type="checkbox" id="jd_use_custom_template" 
+                                                    <?= (isset($jdPrintConfig['customTempUrl']) && !empty($jdPrintConfig['customTempUrl'])) ? 'checked' : '' ?>>
+                                                <strong>启用自定义区模板 (customTempUrl)</strong>
+                                            </label>
+                                            <small style="display: block; margin-top: 5px; color: #666;">
+                                                勾选后可以添加自定义区模板，用于显示额外信息
+                                            </small>
+                                        </div>
+
+                                        <!-- 自定义区模板URL -->
+                                        <div id="jd_custom_template_group" style="margin-bottom: 15px; <?= (isset($jdPrintConfig['customTempUrl']) && !empty($jdPrintConfig['customTempUrl'])) ? '' : 'display: none;' ?>">
+                                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">自定义区模板URL (customTempUrl)</label>
+                                            <input type="text" class="tpl-form-input" id="jd_custom_temp_url" 
+                                                value="<?= isset($jdPrintConfig['customTempUrl']) ? htmlspecialchars($jdPrintConfig['customTempUrl']) : '' ?>" 
+                                                placeholder="输入自定义区模板URL">
+                                            <small style="display: block; margin-top: 5px;">
+                                                用于自定义打印模板的URL地址，可选配置
+                                            </small>
+                                        </div>
+
+                                        <!-- 打印机选择开关 -->
+                                        <div style="margin-bottom: 15px;">
+                                            <label class="am-checkbox-inline">
+                                                <input type="checkbox" id="jd_use_specific_printer" 
+                                                    <?= (isset($jdPrintConfig['printName']) && !empty($jdPrintConfig['printName'])) ? 'checked' : '' ?>>
+                                                <strong>指定打印机</strong>
+                                            </label>
+                                            <small style="display: block; margin-top: 5px; color: #666;">
+                                                勾选后可以选择特定打印机，不勾选则使用系统默认打印机
+                                            </small>
+                                        </div>
+
+                                        <!-- 打印机选择 -->
+                                        <div id="jd_printer_selection_group" style="margin-bottom: 10px; <?= (isset($jdPrintConfig['printName']) && !empty($jdPrintConfig['printName'])) ? '' : 'display: none;' ?>">
+                                            <label style="font-weight: bold; display: block; margin-bottom: 8px;">打印机选择 (printName)</label>
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <select class="tpl-form-input" id="jd_print_name" style="max-width: 400px; flex: 1;"
+                                                        data-saved-value="<?= isset($jdPrintConfig['printName']) ? htmlspecialchars($jdPrintConfig['printName']) : '' ?>">
+                                                    <option value="">-- 选择打印机 --</option>
+                                                    <!-- 打印机列表将通过 JavaScript 动态加载 -->
+                                                    <?php if (isset($jdPrintConfig['printName']) && !empty($jdPrintConfig['printName'])): ?>
+                                                    <option value="<?= htmlspecialchars($jdPrintConfig['printName']) ?>" selected>
+                                                        <?= htmlspecialchars($jdPrintConfig['printName']) ?> (已保存)
+                                                    </option>
+                                                    <?php endif; ?>
+                                                </select>
+                                                <button type="button" class="am-btn am-btn-secondary am-btn-xs" id="jd_refresh_printers" style="white-space: nowrap;">
+                                                    <i class="am-icon-refresh"></i> 刷新打印机列表
+                                                </button>
+                                                <div id="jd_current_printer" style="min-width: 200px; padding: 5px 10px; background: #f5f5f5; border-radius: 3px; font-size: 12px;">
+                                                    <strong>当前打印机:</strong> <span id="jd_current_printer_name" style="color: #0e90d2;">
+                                                        <?= isset($jdPrintConfig['printName']) && !empty($jdPrintConfig['printName']) ? htmlspecialchars($jdPrintConfig['printName']) : '未选择' ?>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <small style="display: block; margin-top: 5px;">
+                                                选择京东云打印的打印机。点击"刷新"按钮重新加载打印机列表。
+                                            </small>
+                                            <small id="jd_printer_loading" style="display: none; color: #0e90d2;">
+                                                <i class="am-icon-spinner am-icon-spin"></i> 正在加载打印机列表...
+                                            </small>
+                                            <small id="jd_printer_error" style="display: none; color: #dd514c;">
+                                                <i class="am-icon-warning"></i> 加载打印机列表失败
+                                            </small>
+                                        </div>
+
+                                        <!-- 打印组件地址配置 -->
+                                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                                            <label style="font-weight: bold; display: block; margin-bottom: 10px;">打印组件地址</label>
+                                            <div style="margin-bottom: 10px;">
+                                                <input type="text" class="tpl-form-input" name="express[jd_print_component_url]"
+                                                    id="jd_print_component_url"
+                                                    value="<?= isset($model['jd_print_component_url']) ? htmlspecialchars($model['jd_print_component_url']) : '' ?>"
+                                                    placeholder="例如: ws://127.0.0.1:9113 或 ws://192.168.1.100:9113">
+                                                <small style="display: block; margin-top: 5px; color: #666;">
+                                                    配置京东云打印组件的 WebSocket 地址。如果为空，将使用默认地址 ws://127.0.0.1:9113
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        <!-- 清除云打印缓存 -->
+                                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                                            <label style="font-weight: bold; display: block; margin-bottom: 10px;">缓存管理</label>
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <button type="button" class="am-btn am-btn-warning am-btn-sm" id="jd_clear_cache_btn" onclick="clearJdCache()">
+                                                    <i class="am-icon-trash"></i> 清除云打印缓存
+                                                </button>
+                                                <small id="jd_cache_status" style="color: #666;">
+                                                    点击按钮清除京东云打印的缓存数据（AccessToken、打印数据、打印机列表）
+                                                </small>
+                                            </div>
+                                            <small id="jd_cache_message" style="display: none; margin-top: 5px; padding: 5px 10px; border-radius: 3px;"></small>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -884,6 +1093,8 @@
         $g8.hide();
         $('#zto_manager_config_group').hide();
         $('#zto_printer_config_group').hide();
+        $('#jd_multibox_config_group').hide();
+        $('#jd_print_config_group').hide();
 
         if (v == '2') { // 中通
             $g.show();
@@ -918,6 +1129,8 @@
         } else if (v == '5') { // 京东快递
             $g.show(); // 显示客户编号 (CustomerCode)
             $g6.show(); // 显示京东产品选择器
+            $('#jd_multibox_config_group').show(); // 显示京东多包裹打单配置
+            $('#jd_print_config_group').show(); // 显示京东云打印配置
             
             // Update Labels for JD
             $('input[name="express[app_key]"]').next('small').html('填写京东 <strong>AppKey</strong>');
@@ -1349,6 +1562,190 @@
     }
 
     /**
+     * 更新京东多包裹打单配置
+     */
+    function updateJdMultiboxConfig() {
+        var config = {
+            enabled: $('#jd_multibox_enabled').is(':checked')
+        };
+        
+        // 创建隐藏字段保存 JSON 数据
+        var $hiddenInput = $('input[name="express[jd_multibox_config]"]');
+        if ($hiddenInput.length === 0) {
+            $hiddenInput = $('<input type="hidden" name="express[jd_multibox_config]">');
+            $('#my-form').append($hiddenInput);
+        }
+        $hiddenInput.val(JSON.stringify(config));
+    }
+
+    /**
+     * 更新京东云打印配置
+     */
+    function updateJdPrintConfig() {
+        // 如果未勾选"指定打印机"，则 printName 为空（使用默认打印机）
+        var useSpecificPrinter = $('#jd_use_specific_printer').is(':checked');
+        var printName = useSpecificPrinter ? $('#jd_print_name').val() : '';
+        
+        // 如果未勾选"启用标准模板"，则 tempUrl 为空
+        var useStandardTemplate = $('#jd_use_standard_template').is(':checked');
+        var tempUrl = useStandardTemplate ? $('#jd_temp_url').val() : '';
+        
+        // 如果未勾选"启用自定义区模板"，则 customTempUrl 为空
+        var useCustomTemplate = $('#jd_use_custom_template').is(':checked');
+        var customTempUrl = useCustomTemplate ? $('#jd_custom_temp_url').val() : '';
+        
+        var config = {
+            orderType: $('input[name="jd_print_order_type"]:checked').val() || 'PRE_View',
+            tempUrl: tempUrl,
+            customTempUrl: customTempUrl,
+            printName: printName
+        };
+        
+        // 创建隐藏字段保存 JSON 数据
+        var $hiddenInput = $('input[name="express[jd_print_config]"]');
+        if ($hiddenInput.length === 0) {
+            $hiddenInput = $('<input type="hidden" name="express[jd_print_config]">');
+            $('#my-form').append($hiddenInput);
+        }
+        $hiddenInput.val(JSON.stringify(config));
+    }
+
+    /**
+     * 加载京东云打印机列表
+     * 通过 WebSocket 连接到京东云打印服务
+     */
+    function loadJdPrinters() {
+        // 检查是否为京东渠道
+        var ditchType = $('input[name="express[ditch_type]"]:checked').val();
+        if (ditchType != '5') {
+            return; // 不是京东渠道，不加载
+        }
+
+        // 显示加载状态
+        $('#jd_printer_loading').show();
+        $('#jd_printer_error').hide();
+
+        try {
+            // WebSocket 连接参数
+            var wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            var wsPort = window.location.protocol === 'https:' ? '9114' : '9113';
+            var wsUrl = wsProtocol + '://localhost:' + wsPort;
+            
+            console.log('🔗 正在连接到京东云打印服务: ' + wsUrl);
+            
+            // 创建 WebSocket 连接
+            var ws = new WebSocket(wsUrl);
+            var requestTimeout;
+            
+            ws.onopen = function() {
+                console.log('✅ WebSocket 连接成功');
+                
+                // 发送获取打印机列表请求
+                var request = {
+                    orderType: 'GET_Printers'
+                };
+                
+                console.log('📤 发送请求:', JSON.stringify(request));
+                ws.send(JSON.stringify(request));
+                
+                // 设置请求超时（5秒）
+                requestTimeout = setTimeout(function() {
+                    console.error('❌ 请求超时');
+                    $('#jd_printer_loading').hide();
+                    $('#jd_printer_error').show().text('获取打印机列表超时，请检查京东云打印服务是否正常运行');
+                    ws.close();
+                }, 5000);
+            };
+            
+            ws.onmessage = function(event) {
+                clearTimeout(requestTimeout);
+                console.log('📥 收到响应:', event.data);
+                
+                try {
+                    var response = JSON.parse(event.data);
+                    
+                    // 检查响应状态
+                    if (response.success === 'true' || response.success === true) {
+                        // 成功获取打印机列表
+                        if (response.detailinfo && response.detailinfo.printers && response.detailinfo.printers.length > 0) {
+                            var $select = $('#jd_print_name');
+                            var savedValue = $select.data('saved-value') || $select.val();
+                            
+                            // 清空现有选项（保留第一个默认选项）
+                            $select.find('option:not(:first)').remove();
+                            
+                            // 添加打印机选项
+                            response.detailinfo.printers.forEach(function(printerName) {
+                                var option = $('<option></option>')
+                                    .val(printerName)
+                                    .text(printerName);
+                                $select.append(option);
+                            });
+                            
+                            // 恢复之前选中的值（如果存在）
+                            if (savedValue) {
+                                $select.val(savedValue);
+                                // 如果恢复失败（打印机不在列表中），显示提示
+                                if ($select.val() !== savedValue) {
+                                    console.warn('⚠️ 已保存的打印机 "' + savedValue + '" 不在当前打印机列表中');
+                                    // 添加一个临时选项显示已保存但不可用的打印机
+                                    var tempOption = $('<option></option>')
+                                        .val(savedValue)
+                                        .text(savedValue + ' (已保存，但当前不可用)')
+                                        .prop('selected', true);
+                                    $select.append(tempOption);
+                                }
+                                // 更新隐藏字段，确保选中的打印机被保存到表单
+                                updateJdPrintConfig();
+                                console.log('✅ 已恢复打印机选择: ' + savedValue);
+                            }
+                            
+                            $('#jd_printer_loading').hide();
+                            console.log('✅ 成功加载 ' + response.detailinfo.printers.length + ' 个打印机');
+                        } else {
+                            $('#jd_printer_loading').hide();
+                            $('#jd_printer_error').show().text('未获取到打印机列表，请检查京东云打印服务配置');
+                            console.error('❌ 响应中没有打印机列表');
+                        }
+                    } else {
+                        // 请求失败
+                        $('#jd_printer_loading').hide();
+                        var errorMsg = '获取打印机列表失败';
+                        if (response.message) {
+                            errorMsg += ': ' + response.message;
+                        }
+                        $('#jd_printer_error').show().text(errorMsg);
+                        console.error('❌ 请求失败:', response);
+                    }
+                } catch (parseError) {
+                    $('#jd_printer_loading').hide();
+                    $('#jd_printer_error').show().text('解析响应数据失败: ' + parseError.message);
+                    console.error('❌ JSON 解析错误:', parseError);
+                }
+                
+                // 关闭 WebSocket 连接
+                ws.close();
+            };
+            
+            ws.onerror = function(error) {
+                clearTimeout(requestTimeout);
+                $('#jd_printer_loading').hide();
+                $('#jd_printer_error').show().text('WebSocket 连接错误，请确保京东云打印服务已启动');
+                console.error('❌ WebSocket 错误:', error);
+            };
+            
+            ws.onclose = function() {
+                console.log('🔌 WebSocket 连接已关闭');
+            };
+            
+        } catch (error) {
+            $('#jd_printer_loading').hide();
+            $('#jd_printer_error').show().text('加载打印机列表时发生错误: ' + error.message);
+            console.error('❌ 加载打印机列表错误:', error);
+        }
+    }
+
+    /**
      * 加载顺丰云打印机列表
      * 使用顺丰 SDK 的 getPrinters() 方法
      */
@@ -1364,6 +1761,58 @@
             $('#printer_error').show().text('顺丰云打印 SDK 未加载，请确保已正确引入 SDK 文件');
             return;
         }
+
+    /**
+     * 清除京东云打印缓存
+     */
+    function clearJdCache() {
+        var $btn = $('#jd_clear_cache_btn');
+        var $msg = $('#jd_cache_message');
+        
+        // 禁用按钮，显示加载状态
+        $btn.prop('disabled', true).html('<i class="am-icon-spinner am-icon-spin"></i> 清除中...');
+        $msg.hide();
+        
+        // 发送 AJAX 请求到后端清除缓存
+        $.ajax({
+            url: '<?= url("store.tr_order/clearJdCache") ?>',
+            type: 'POST',
+            dataType: 'json',
+            timeout: 5000,
+            success: function(response) {
+                $btn.prop('disabled', false).html('<i class="am-icon-trash"></i> 清除云打印缓存');
+                
+                if (response.code === 1) {
+                    // 成功
+                    $msg.removeClass('am-alert-danger').addClass('am-alert-success')
+                        .html('<i class="am-icon-check-circle"></i> ' + (response.message || '缓存已清除'))
+                        .show();
+                    console.log('✅ 京东云打印缓存已清除');
+                } else {
+                    // 失败
+                    $msg.removeClass('am-alert-success').addClass('am-alert-danger')
+                        .html('<i class="am-icon-warning"></i> ' + (response.message || '清除缓存失败'))
+                        .show();
+                    console.error('❌ 清除缓存失败:', response);
+                }
+            },
+            error: function(xhr, status, error) {
+                $btn.prop('disabled', false).html('<i class="am-icon-trash"></i> 清除云打印缓存');
+                
+                var errorMsg = '清除缓存失败';
+                if (status === 'timeout') {
+                    errorMsg = '请求超时，请检查网络连接';
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                
+                $msg.removeClass('am-alert-success').addClass('am-alert-danger')
+                    .html('<i class="am-icon-warning"></i> ' + errorMsg)
+                    .show();
+                console.error('❌ 清除缓存错误:', error);
+            }
+        });
+    }
 
         // 显示加载状态
         $('#printer_loading').show();
@@ -1605,9 +2054,67 @@
             loadSfPrinters();
         });
         
+        // 京东打印机列表刷新按钮
+        $('#jd_refresh_printers').on('click', function() {
+            loadJdPrinters();
+        });
+        
+        // 监听京东云打印配置字段的变化
+        $('input[name="jd_print_order_type"], #jd_temp_url, #jd_custom_temp_url, #jd_print_name').on('input change', function() {
+            updateJdPrintConfig();
+        });
+        
+        // 监听京东多包裹打单勾选框的变化
+        $('#jd_multibox_enabled').on('change', function() {
+            updateJdMultiboxConfig();
+        });
+        
+        // 监听京东"启用标准模板"开关的变化
+        $('#jd_use_standard_template').on('change', function() {
+            var isChecked = $(this).is(':checked');
+            if (isChecked) {
+                $('#jd_standard_template_group').slideDown(200);
+            } else {
+                $('#jd_standard_template_group').slideUp(200);
+            }
+            // 更新配置
+            updateJdPrintConfig();
+        });
+        
+        // 监听京东"启用自定义区模板"开关的变化
+        $('#jd_use_custom_template').on('change', function() {
+            var isChecked = $(this).is(':checked');
+            if (isChecked) {
+                $('#jd_custom_template_group').slideDown(200);
+            } else {
+                $('#jd_custom_template_group').slideUp(200);
+            }
+            // 更新配置
+            updateJdPrintConfig();
+        });
+        
+        // 监听京东"指定打印机"开关的变化
+        $('#jd_use_specific_printer').on('change', function() {
+            var isChecked = $(this).is(':checked');
+            if (isChecked) {
+                $('#jd_printer_selection_group').slideDown(200);
+            } else {
+                $('#jd_printer_selection_group').slideUp(200);
+                // 清空打印机选择
+                $('#jd_print_name').val('');
+            }
+            // 更新配置
+            updateJdPrintConfig();
+        });
+        
         // 页面加载时，如果是顺丰渠道，自动加载打印机列表
         if ($('input[name="express[ditch_type]"]:checked').val() === '4') {
             setTimeout(loadSfPrinters, 1000); // 延迟1秒，确保页面完全加载
+        }
+        
+        // 页面加载时，如果是京东渠道，自动加载打印机列表
+        if ($('input[name="express[ditch_type]"]:checked').val() === '5') {
+            setTimeout(loadJdPrinters, 1000); // 延迟1秒，确保页面完全加载
         }
 
         /**
@@ -1621,6 +2128,8 @@
                 updatePushConfigJson();
                 updateSenderJson();
                 updateSfPrintOptions();
+                updateJdMultiboxConfig();
+                updateJdPrintConfig();
                 
                 // 验证配置是否正确保存
                 var pushConfigValue = $('#push_config_json_input').val();
@@ -1658,6 +2167,8 @@
             updatePushConfigJson();
             updateSenderJson();
             updateSfPrintOptions();
+            updateJdMultiboxConfig();
+            updateJdPrintConfig();
             
             // 再次验证
             setTimeout(function() {

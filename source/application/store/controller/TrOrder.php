@@ -1168,9 +1168,37 @@ class TrOrder extends Controller
             }
             } elseif (isset($ditchdetail['ditch_type']) && (int)$ditchdetail['ditch_type'] == 5) {
                 // === 京东物流 (JD) ===
+                $this->writeJdOrderLog("========================================");
+                $this->writeJdOrderLog(">>> 京东快递下单流程开始");
+                $this->writeJdOrderLog("========================================");
+                $this->writeJdOrderLog("包裹信息: inpack_id={$detail['id']}, order_sn={$detail['order_sn']}");
+                
                 // 获取仓库信息作为发件人
                 $storage = ($shopname && is_object($shopname)) ? $shopname->toArray() : [];
                 $region = isset($storage['region']) && is_array($storage['region']) ? $storage['region'] : [];
+                
+                $this->writeJdOrderLog("仓库信息: " . json_encode([
+                    'linkman' => isset($storage['linkman']) ? $storage['linkman'] : '未设置',
+                    'phone' => isset($storage['phone']) ? $storage['phone'] : '未设置',
+                    'address' => isset($storage['address']) ? $storage['address'] : '未设置',
+                    'region' => $region
+                ], JSON_UNESCAPED_UNICODE));
+                
+                // 解析京东多包裹打单配置
+                $jdMultiboxConfig = [];
+                if (!empty($ditchdetail['jd_multibox_config'])) {
+                    $decoded = json_decode(html_entity_decode($ditchdetail['jd_multibox_config']), true);
+                    if (is_array($decoded)) {
+                        $jdMultiboxConfig = $decoded;
+                    }
+                }
+                $multiboxEnabled = isset($jdMultiboxConfig['enabled']) && $jdMultiboxConfig['enabled'];
+                
+                $this->writeJdOrderLog("多包裹配置: " . json_encode([
+                    'raw_config' => $ditchdetail['jd_multibox_config'],
+                    'parsed_config' => $jdMultiboxConfig,
+                    'multibox_enabled' => $multiboxEnabled
+                ], JSON_UNESCAPED_UNICODE));
                 
                 // 构造基础地址与联系人信息（使用仓库信息作为发件人）
                 $commonData = [
@@ -1206,18 +1234,34 @@ class TrOrder extends Controller
                     'customer_code' => $ditchdetail['customer_code'],
                     'api_url'       => isset($ditchdetail['api_url']) ? $ditchdetail['api_url'] : '',
                 ];
+                
+                $this->writeJdOrderLog("SDK 配置: " . json_encode([
+                    'app_key' => substr($ditchdetail['app_key'], 0, 8) . '***',
+                    'customer_code' => $ditchdetail['customer_code'],
+                    'api_url' => $jdConfig['api_url']
+                ], JSON_UNESCAPED_UNICODE));
+                
                 $Jd = new \app\common\library\Ditch\Jd($jdConfig);
 
                 // 京东产品编码 (从 product_json 字段读取，或者默认京东标快)
                 $productCode = isset($ditchdetail['product_json']) && !empty($ditchdetail['product_json']) 
                                ? $ditchdetail['product_json'] 
                                : 'ed-m-0001';
+                
+                $this->writeJdOrderLog("产品编码: {$productCode}");
 
                 $boxes = isset($detail['packageitems']) ? $detail['packageitems'] : [];
                 $isMultiBox = count($boxes) > 0;
+                
+                $this->writeJdOrderLog("包裹信息: " . json_encode([
+                    'box_count' => count($boxes),
+                    'is_multi_box' => $isMultiBox
+                ], JSON_UNESCAPED_UNICODE));
 
                 if (!$isMultiBox) {
                     // === 单包裹 ===
+                    $this->writeJdOrderLog("--- 单包裹下单模式 ---");
+                    
                     $data = array_merge($commonData, [
                         'order_sn'     => $detail['order_sn'],
                         'weight'       => $detail['cale_weight'],
@@ -1225,74 +1269,237 @@ class TrOrder extends Controller
                         'quantity'     => 1
                     ]);
                     
+                    $this->writeJdOrderLog("下单参数: " . json_encode([
+                        'order_sn' => $data['order_sn'],
+                        'weight' => $data['weight'],
+                        'product_code' => $data['product_code'],
+                        'quantity' => $data['quantity'],
+                        'consignee_name' => $data['consignee_name'],
+                        'consignee_mobile' => $data['consignee_mobile'],
+                        'consignee_address' => $data['consignee_address'],
+                        'sender_name' => $data['sender_name'],
+                        'sender_phone' => $data['sender_phone']
+                    ], JSON_UNESCAPED_UNICODE));
+                    
+                    $this->writeJdOrderLog("调用 SDK createOrder()...");
                     $res = $Jd->createOrder($data);
+                    
+                    $this->writeJdOrderLog("API 响应: " . json_encode($res, JSON_UNESCAPED_UNICODE));
                     
                     if ($res['code'] == 1) {
                         $tn = $res['data']['waybillCode'];
+                        $this->writeJdOrderLog("✅ 下单成功: waybill={$tn}");
+                        
                         $detail->save(['t_order_sn' => $tn]);
+                        $this->writeJdOrderLog("✅ 运单号已保存到订单");
+                        
                         $result = [
                             'ack' => 'true',
                             'tracking_number' => $tn,
                             'message' => '推送成功'
                         ];
                     } else {
-                         $result = [
+                        $this->writeJdOrderLog("❌ 下单失败: " . $res['msg']);
+                        $result = [
                             'ack' => 'false', 
                             'message' => 'JD Error: ' . $res['msg']
                         ];
                     }
                 } else {
-                    // === 多包裹 (循环下单) ===
-                    $motherWaybillNo = '';
-                    $resultsLog = [];
-                    $hasError = false;
-                    $subTrackingNumbers = [];
+                    // === 多包裹 ===
+                    if ($multiboxEnabled) {
+                        // 多包裹独立打单模式：为每个包裹生成独立的运单号
+                        $this->writeJdOrderLog("--- 多包裹独立打单模式 ---");
+                        $this->writeJdOrderLog("包裹数量: " . count($boxes));
+                        
+                        $motherWaybillNo = '';
+                        $resultsLog = [];
+                        $hasError = false;
+                        $subTrackingNumbers = [];
 
-                    foreach ($boxes as $index => $box) {
-                         $isMother = ($index === 0);
-                         $subOrderSn = $detail['order_sn'] . '_' . $box['id'];
-                         $boxWeight = isset($box['weight']) && $box['weight'] > 0 ? $box['weight'] : 1;
-                         
-                         $data = array_merge($commonData, [
-                            'order_sn'     => $subOrderSn,
-                            'weight'       => $boxWeight,
-                            'product_code' => $productCode,
-                            'quantity'     => 1
-                        ]);
-                        
-                        $res = $Jd->createOrder($data);
-                        
-                        if ($res['code'] == 1) {
-                            $tn = $res['data']['waybillCode'];
-                            // 更新箱子单号
-                            if (is_object($box)) {
-                                $box->save(['t_order_sn' => $tn]);
-                            }
-                            $subTrackingNumbers[] = ['id' => $box['id'], 'tn' => $tn];
-                            $resultsLog[] = "箱" . ($index+1) . "成功";
+                        foreach ($boxes as $index => $box) {
+                             $isMother = ($index === 0);
+                             // 使用子包裹ID生成唯一订单号
+                             $boxId = is_object($box) ? $box->id : $box['id'];
+                             $subOrderSn = $detail['order_sn'] . '_' . $boxId;
+                             $boxWeight = isset($box['weight']) && $box['weight'] > 0 ? $box['weight'] : 1;
+                             
+                             $this->writeJdOrderLog("--- 处理包裹 #" . ($index + 1) . " ---");
+                             $this->writeJdOrderLog("包裹信息: box_id={$boxId}, is_mother={$isMother}, weight={$boxWeight}");
+                             
+                             $data = array_merge($commonData, [
+                                'order_sn'     => $subOrderSn,
+                                'weight'       => $boxWeight,
+                                'product_code' => $productCode,
+                                'quantity'     => 1
+                            ]);
                             
-                            if ($isMother) {
-                                $motherWaybillNo = $tn;
-                                $detail->save(['t_order_sn' => $tn]);
-                            }
-                        } else {
-                            $hasError = true;
-                            $errMsg = $res['msg'];
-                            $resultsLog[] = "箱" . ($index+1) . "失败: " . $errMsg;
-                            if ($isMother) {
-                                $resultsLog[] = "母单失败，中止"; 
-                                break;
+                            $this->writeJdOrderLog("下单参数: " . json_encode([
+                                'sub_order_sn' => $subOrderSn,
+                                'weight' => $boxWeight,
+                                'product_code' => $productCode,
+                                'quantity' => 1
+                            ], JSON_UNESCAPED_UNICODE));
+                            
+                            $this->writeJdOrderLog("调用 SDK createOrder()...");
+                            $res = $Jd->createOrder($data);
+                            
+                            $this->writeJdOrderLog("API 响应: " . json_encode($res, JSON_UNESCAPED_UNICODE));
+                            
+                            if ($res['code'] == 1) {
+                                $tn = $res['data']['waybillCode'];
+                                $this->writeJdOrderLog("✅ 包裹 #{$index} 下单成功: waybill={$tn}");
+                                
+                                // 更新子包裹运单号（使用正确的字段名）
+                                if (is_object($box)) {
+                                    $box->save(['t_order_sn' => $tn]);
+                                    $this->writeJdOrderLog("✅ 子包裹运单号已保存: box_id={$boxId}");
+                                }
+                                
+                                $subTrackingNumbers[] = ['id' => $boxId, 'tn' => $tn];
+                                $resultsLog[] = "箱" . ($index+1) . "成功";
+                                
+                                if ($isMother) {
+                                    $motherWaybillNo = $tn;
+                                    $detail->save(['t_order_sn' => $tn]);
+                                    $this->writeJdOrderLog("✅ 母单运单号已保存: {$tn}");
+                                }
+                            } else {
+                                $hasError = true;
+                                $errMsg = $res['msg'];
+                                $this->writeJdOrderLog("❌ 包裹 #{$index} 下单失败: {$errMsg}");
+                                $resultsLog[] = "箱" . ($index+1) . "失败: " . $errMsg;
+                                
+                                if ($isMother) {
+                                    $this->writeJdOrderLog("❌ 母单失败，中止后续包裹下单");
+                                    $resultsLog[] = "母单失败，中止"; 
+                                    break;
+                                }
                             }
                         }
+                        
+                        $this->writeJdOrderLog("多包裹独立打单完成: " . json_encode([
+                            'has_error' => $hasError,
+                            'mother_waybill' => $motherWaybillNo,
+                            'sub_count' => count($subTrackingNumbers),
+                            'results' => $resultsLog
+                        ], JSON_UNESCAPED_UNICODE));
+                        
+                        $result = [
+                            'ack' => $hasError ? 'false' : 'true',
+                            'message' => implode('; ', $resultsLog),
+                            'tracking_number' => $motherWaybillNo,
+                            'sub_tracking_numbers' => $subTrackingNumbers
+                        ];
+                    } else {
+                        // 子母件模式：一次下单，生成母单和子单
+                        $this->writeJdOrderLog("--- 子母件模式 ---");
+                        $this->writeJdOrderLog("包裹数量: " . count($boxes));
+                        
+                        // 计算总重量
+                        $totalWeight = 0;
+                        foreach ($boxes as $box) {
+                            $boxWeight = isset($box['weight']) && $box['weight'] > 0 ? $box['weight'] : 1;
+                            $totalWeight += $boxWeight;
+                        }
+                        
+                        // 使用订单总重量（如果有的话）
+                        if (isset($detail['cale_weight']) && $detail['cale_weight'] > 0) {
+                            $totalWeight = $detail['cale_weight'];
+                        }
+                        
+                        $this->writeJdOrderLog("重量计算: 总重量={$totalWeight}kg");
+                        
+                        // 下单参数：标记为母单
+                        $data = array_merge($commonData, [
+                            'order_sn'           => $detail['order_sn'],
+                            'weight'             => $totalWeight,
+                            'product_code'       => $productCode,
+                            'quantity'           => count($boxes),
+                            'is_mother_child'    => 1,  // 标记为母单
+                        ]);
+                        
+                        $this->writeJdOrderLog("下单参数: " . json_encode([
+                            'order_sn' => $data['order_sn'],
+                            'weight' => $data['weight'],
+                            'product_code' => $data['product_code'],
+                            'quantity' => $data['quantity'],
+                            'is_mother_child' => $data['is_mother_child'],
+                            'consignee_name' => $data['consignee_name'],
+                            'consignee_mobile' => $data['consignee_mobile'],
+                            'sender_name' => $data['sender_name']
+                        ], JSON_UNESCAPED_UNICODE));
+                        
+                        $this->writeJdOrderLog("调用 SDK createOrder()...");
+                        $res = $Jd->createOrder($data);
+                        
+                        $this->writeJdOrderLog("API 响应: " . json_encode($res, JSON_UNESCAPED_UNICODE));
+                        
+                        if ($res['code'] == 1) {
+                            $motherWaybillNo = $res['data']['waybillCode'];
+                            $this->writeJdOrderLog("✅ 子母件下单成功: mother_waybill={$motherWaybillNo}");
+                            
+                            $detail->save(['t_order_sn' => $motherWaybillNo]);
+                            $this->writeJdOrderLog("✅ 母单运单号已保存");
+                            
+                            // 获取子单号列表（如果API返回）
+                            $subWaybills = [];
+                            if (isset($res['data']['subWaybillCodes']) && is_array($res['data']['subWaybillCodes'])) {
+                                $subWaybills = $res['data']['subWaybillCodes'];
+                                $this->writeJdOrderLog("API 返回子单号: " . json_encode($subWaybills, JSON_UNESCAPED_UNICODE));
+                            } else {
+                                $this->writeJdOrderLog("⚠️ API 未返回子单号列表");
+                            }
+                            
+                            // 更新各个包裹的运单号
+                            $subTrackingNumbers = [];
+                            foreach ($boxes as $index => $box) {
+                                $boxId = is_object($box) ? $box->id : $box['id'];
+                                
+                                if ($index === 0) {
+                                    // 第一个包裹使用母单号
+                                    $tn = $motherWaybillNo;
+                                    $this->writeJdOrderLog("包裹 #{$index} (box_id={$boxId}): 使用母单号 {$tn}");
+                                } else {
+                                    // 其他包裹使用子单号（如果有）
+                                    $tn = isset($subWaybills[$index - 1]) ? $subWaybills[$index - 1] : $motherWaybillNo;
+                                    $this->writeJdOrderLog("包裹 #{$index} (box_id={$boxId}): 使用子单号 {$tn}");
+                                }
+                                
+                                // 保存子包裹运单号（使用正确的字段名）
+                                if (is_object($box)) {
+                                    $box->save(['t_order_sn' => $tn]);
+                                    $this->writeJdOrderLog("✅ 子包裹运单号已保存: box_id={$boxId}");
+                                }
+                                $subTrackingNumbers[] = ['id' => $boxId, 'tn' => $tn];
+                            }
+                            
+                            $this->writeJdOrderLog("子母件下单完成: " . json_encode([
+                                'mother_waybill' => $motherWaybillNo,
+                                'sub_count' => count($subTrackingNumbers),
+                                'sub_tracking_numbers' => $subTrackingNumbers
+                            ], JSON_UNESCAPED_UNICODE));
+                            
+                            $result = [
+                                'ack' => 'true',
+                                'tracking_number' => $motherWaybillNo,
+                                'sub_tracking_numbers' => $subTrackingNumbers,
+                                'message' => '推送成功（子母件）'
+                            ];
+                        } else {
+                            $this->writeJdOrderLog("❌ 子母件下单失败: " . $res['msg']);
+                            $result = [
+                                'ack' => 'false',
+                                'message' => 'JD Error: ' . $res['msg']
+                            ];
+                        }
                     }
-                    
-                    $result = [
-                        'ack' => $hasError ? 'false' : 'true',
-                        'message' => implode('; ', $resultsLog),
-                        'tracking_number' => $motherWaybillNo,
-                        'sub_tracking_numbers' => $subTrackingNumbers
-                    ];
                 }
+                
+                $this->writeJdOrderLog("========================================");
+                $this->writeJdOrderLog("<<< 京东快递下单流程结束");
+                $this->writeJdOrderLog("最终结果: " . json_encode($result, JSON_UNESCAPED_UNICODE));
+                $this->writeJdOrderLog("========================================");
             }
         
         // 清除缓冲区，防止之前的输出（如BOM头、Notice警告）破坏JSON格式
@@ -7014,11 +7221,13 @@ public function expressBillbatch() {
             // ditch_type: 1=普通渠道, 2=中通快递, 3=中通管家, 4=顺丰速运
             $isSf = false;
             $isZto = false;
+            $isJd = false;
             
             if ($ditchConfig) {
                 $ditchType = isset($ditchConfig['ditch_type']) ? (int)$ditchConfig['ditch_type'] : 1;
                 $isSf = ($ditchType === 4) || stripos($ditchConfig['ditch_name'], '顺丰') !== false;
                 $isZto = ($ditchType === 2 || $ditchType === 3) || stripos($ditchConfig['ditch_name'], '中通') !== false;
+                $isJd = ($ditchType === 5) || stripos($ditchConfig['ditch_name'], '京东') !== false;
             } elseif (stripos($tName, '顺丰') !== false) {
                 // 即使没找到配置,如果名称包含"顺丰",也尝试使用顺丰云打印
                 $isSf = true;
@@ -7035,12 +7244,21 @@ public function expressBillbatch() {
                 $ditchConfig = $ditchModel->whereIn('ditch_type', [2, 3])
                     ->order('ditch_id DESC')
                     ->find();
+            } elseif (stripos($tName, '京东') !== false) {
+                // 如果名称包含"京东",尝试使用京东云打印
+                $isJd = true;
+                
+                // 尝试获取默认的京东配置 (ditch_type=5)
+                $ditchConfig = $ditchModel->where('ditch_type', 5)
+                    ->order('ditch_id DESC')
+                    ->find();
             }
             
             // 记录渠道判断结果
             \think\Log::info('getPrintTask - 渠道判断结果: ' . json_encode([
                 'is_sf' => $isSf,
                 'is_zto' => $isZto,
+                'is_jd' => $isJd,
                 'has_config' => !empty($ditchConfig)
             ], JSON_UNESCAPED_UNICODE));
             
@@ -7126,6 +7344,312 @@ public function expressBillbatch() {
                     'print_all' => $printAll ? true : false
                 ]);
                 
+            } elseif ($isJd && $ditchConfig) {
+                // 使用京东云打印
+                $this->writeJdDebugLog("========================================");
+                $this->writeJdDebugLog(">>> getPrintTask - 京东云打印流程开始");
+                $this->writeJdDebugLog("========================================");
+                $this->writeJdDebugLog("请求参数: order_id={$id}, waybill_no={$waybillNo}, print_all=" . ($printAll ? 'true' : 'false'));
+                
+                \think\Log::info('getPrintTask - 使用京东云打印: ' . json_encode([
+                    'order_id' => $id,
+                    'ditch_id' => $ditchConfig['ditch_id'],
+                    'ditch_name' => $ditchConfig['ditch_name'],
+                    'waybill_no' => $waybillNo ?: $data['t_order_sn'],
+                    'print_all' => $printAll
+                ], JSON_UNESCAPED_UNICODE));
+
+                // 转换数据库字段名到 Jd 类期望的配置键名
+                $ditchArray = is_object($ditchConfig) ? $ditchConfig->toArray() : (array)$ditchConfig;
+                $jdConfig = [
+                    'app_key'       => isset($ditchArray['app_key']) ? $ditchArray['app_key'] : '',
+                    'app_secret'    => isset($ditchArray['shop_key']) ? $ditchArray['shop_key'] : '',
+                    'access_token'  => isset($ditchArray['print_url']) ? $ditchArray['print_url'] : '',
+                    'customer_code' => isset($ditchArray['customer_code']) ? $ditchArray['customer_code'] : '',
+                    'api_url'       => isset($ditchArray['api_url']) ? $ditchArray['api_url'] : '',
+                ];
+                
+                $this->writeJdDebugLog("渠道配置信息:");
+                $this->writeJdDebugLog("- ditch_id: " . $ditchConfig['ditch_id']);
+                $this->writeJdDebugLog("- ditch_name: " . $ditchConfig['ditch_name']);
+                $this->writeJdDebugLog("- app_key: " . substr($jdConfig['app_key'], 0, 8) . '***');
+                $this->writeJdDebugLog("- customer_code: " . $jdConfig['customer_code']);
+                $this->writeJdDebugLog("- api_url: " . $jdConfig['api_url']);
+
+                $jd = new \app\common\library\Ditch\Jd($jdConfig);
+
+                // 解析京东打印配置（jd_print_config）
+                $jdPrintConfig = [];
+                if (!empty($ditchArray['jd_print_config'])) {
+                    $decoded = json_decode(html_entity_decode($ditchArray['jd_print_config']), true);
+                    if (is_array($decoded)) {
+                        $jdPrintConfig = $decoded;
+                    }
+                }
+                
+                // 解析京东多包裹打单配置（jd_multibox_config）
+                $jdMultiboxConfig = [];
+                if (!empty($ditchArray['jd_multibox_config'])) {
+                    $decoded = json_decode(html_entity_decode($ditchArray['jd_multibox_config']), true);
+                    if (is_array($decoded)) {
+                        $jdMultiboxConfig = $decoded;
+                    }
+                }
+                
+                // 获取打印配置
+                $orderType = isset($jdPrintConfig['orderType']) ? $jdPrintConfig['orderType'] : 'PRINT';
+                $tempUrl = isset($jdPrintConfig['tempUrl']) ? $jdPrintConfig['tempUrl'] : '';
+                $customTempUrl = isset($jdPrintConfig['customTempUrl']) ? $jdPrintConfig['customTempUrl'] : '';
+                $printName = isset($jdPrintConfig['printName']) ? $jdPrintConfig['printName'] : '';
+                
+                // 获取多包裹打单配置
+                $multiboxEnabled = isset($jdMultiboxConfig['enabled']) && $jdMultiboxConfig['enabled'];
+                
+                $this->writeJdDebugLog("打印配置解析:");
+                $this->writeJdDebugLog("- orderType: {$orderType}");
+                $this->writeJdDebugLog("- tempUrl: " . ($tempUrl ? $tempUrl : '(未设置)'));
+                $this->writeJdDebugLog("- customTempUrl: " . ($customTempUrl ? $customTempUrl : '(未设置)'));
+                $this->writeJdDebugLog("- printName: " . ($printName ? $printName : '(未设置)'));
+                $this->writeJdDebugLog("- multiboxEnabled: " . ($multiboxEnabled ? 'true' : 'false'));
+                
+                // 记录打印配置
+                \think\Log::info('getPrintTask - 京东打印配置: ' . json_encode([
+                    'orderType' => $orderType,
+                    'tempUrl' => $tempUrl,
+                    'customTempUrl' => $customTempUrl,
+                    'printName' => $printName,
+                    'has_print_name' => !empty($printName),
+                    'multibox_enabled' => $multiboxEnabled
+                ], JSON_UNESCAPED_UNICODE));
+
+                // 根据参数判断打印模式
+                $waybillsToProcess = [];
+                
+                if ($printAll) {
+                    // 打印全部模式：根据 multibox_enabled 配置决定打印策略
+                    if ($multiboxEnabled) {
+                        // 多包裹模式：打印所有独立的运单号
+                        $this->writeJdDebugLog("打印模式: 打印全部（多包裹独立打单）");
+                        \think\Log::info('getPrintTask - 京东打印全部模式（多包裹独立打单）');
+                        
+                        // 收集所有包裹的运单号（每个包裹都有独立的运单号）
+                        if (!empty($data['packageitems']) && is_array($data['packageitems'])) {
+                            $this->writeJdDebugLog("发现 " . count($data['packageitems']) . " 个子包裹");
+                            foreach ($data['packageitems'] as $pkg) {
+                                $childWaybillNo = isset($pkg['t_order_sn']) ? $pkg['t_order_sn'] : '';
+                                
+                                // 添加所有非空运单号
+                                if (!empty($childWaybillNo)) {
+                                    $waybillsToProcess[] = $childWaybillNo;
+                                    $this->writeJdDebugLog("  - 子包裹运单号: {$childWaybillNo}");
+                                }
+                            }
+                        }
+                        
+                        // 如果没有子单，使用订单的运单号
+                        if (empty($waybillsToProcess) && !empty($data['t_order_sn'])) {
+                            $waybillsToProcess[] = $data['t_order_sn'];
+                            $this->writeJdDebugLog("无子包裹，使用主运单号: " . $data['t_order_sn']);
+                        }
+                    } else {
+                        // 子母件模式：只打印母单和子单（母单号 + 不同的子单号）
+                        $this->writeJdDebugLog("打印模式: 打印全部（子母件方式）");
+                        \think\Log::info('getPrintTask - 京东打印全部模式（子母件方式）');
+                        
+                        // 添加母单号
+                        if (!empty($data['t_order_sn'])) {
+                            $waybillsToProcess[] = $data['t_order_sn'];
+                            $this->writeJdDebugLog("添加母单号: " . $data['t_order_sn']);
+                        }
+                        
+                        // 添加所有与母单号不同的子单号
+                        if (!empty($data['packageitems']) && is_array($data['packageitems'])) {
+                            $this->writeJdDebugLog("检查 " . count($data['packageitems']) . " 个子包裹");
+                            foreach ($data['packageitems'] as $pkg) {
+                                $childWaybillNo = isset($pkg['t_order_sn']) ? $pkg['t_order_sn'] : '';
+                                
+                                // 只添加与母单号不同的子单号
+                                if (!empty($childWaybillNo) && $childWaybillNo !== $data['t_order_sn']) {
+                                    $waybillsToProcess[] = $childWaybillNo;
+                                    $this->writeJdDebugLog("  - 添加子单号: {$childWaybillNo}");
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // 单个打印模式：只打印指定的运单号
+                    $singleWaybill = $waybillNo ?: $data['t_order_sn'];
+                    $waybillsToProcess[] = $singleWaybill;
+                    $this->writeJdDebugLog("打印模式: 单个打印，运单号: {$singleWaybill}");
+                }
+                
+                $this->writeJdDebugLog("待处理运单号列表 (" . count($waybillsToProcess) . " 个): " . implode(', ', $waybillsToProcess));
+                
+                // 记录要处理的运单号列表
+                \think\Log::info('getPrintTask - 京东运单号列表: ' . json_encode($waybillsToProcess, JSON_UNESCAPED_UNICODE));
+                
+                // 调用京东云打印接口获取打印数据
+                $contents = [];  // 京东云打印组件要求的 contents 数组
+                $errors = [];
+                
+                $this->writeJdDebugLog("开始调用京东云打印接口获取打印数据...");
+                
+                foreach ($waybillsToProcess as $index => $waybill) {
+                    $this->writeJdDebugLog("--- 处理运单 #" . ($index + 1) . ": {$waybill} ---");
+                    
+                    // 使用缓存获取打印数据（传递地址数据用于检测地址变更）
+                    $cacheKey = $waybill . '_' . $id;
+                    // 准备地址数据用于缓存检测（转换为数组）
+                    $addressData = null;
+                    if (isset($data['address']) && $data['address']) {
+                        $addressData = is_object($data['address']) ? $data['address']->toArray() : (array)$data['address'];
+                    }
+                    
+                    $cacheHit = false;
+                    $result = \app\common\service\JdCache::getPrintData($cacheKey, function() use ($jd, $id, $waybill) {
+                        return $jd->jdcloudprint($id, $waybill);
+                    }, $addressData, $cacheHit);
+                    
+                    // 移除内部的地址哈希字段
+                    if (is_array($result) && isset($result['__address_hash__'])) {
+                        unset($result['__address_hash__']);
+                    }
+                    
+                    // 记录缓存命中状态
+                    if ($cacheHit) {
+                        $this->writeJdDebugLog("✅ 缓存命中，使用缓存数据");
+                    } else {
+                        $this->writeJdDebugLog("⚠️ 缓存未命中，使用新获取的数据");
+                    }
+                    
+                    // 处理打印数据（无论是否缓存命中，处理逻辑相同）
+                    if ($result['code'] == 1) {
+                        // 处理 prePrintDatas 数组
+                        if (isset($result['data']['prePrintDatas']) && is_array($result['data']['prePrintDatas'])) {
+                            foreach ($result['data']['prePrintDatas'] as $prePrintData) {
+                                // 检查单个运单的返回状态
+                                if (isset($prePrintData['code']) && $prePrintData['code'] == 1) {
+                                    $contentItem = [];
+                                    
+                                    // 如果启用了标准模板，使用指定的 tempUrl，否则使用配置的 tempUrl
+                                    if (!empty($tempUrl)) {
+                                        $contentItem['tempUrl'] = $tempUrl;
+                                        $this->writeJdDebugLog("使用配置的标准模板: {$tempUrl}");
+                                    } else {
+                                        $contentItem['tempUrl'] = '';
+                                        $this->writeJdDebugLog("未配置标准模板，使用空值");
+                                    }
+                                    
+                                    // 打印数据（加密数据）- 从 perPrintData 字段获取
+                                    $contentItem['printData'] = isset($prePrintData['perPrintData']) ? $prePrintData['perPrintData'] : '';
+                                    $this->writeJdDebugLog("printData 长度: " . strlen($contentItem['printData']) . " 字符");
+                                    
+                                    // 如果启用了自定义模板URL，添加到 contentItem
+                                    if (!empty($customTempUrl)) {
+                                        $contentItem['customTempUrl'] = $customTempUrl;
+                                        $this->writeJdDebugLog("添加自定义模板: {$customTempUrl}");
+                                    }
+                                    
+                                    $this->writeJdDebugLog("准备添加 contentItem 到 contents 数组");
+                                    $contents[] = $contentItem;
+                                    $this->writeJdDebugLog("✅ contentItem 已添加，当前 contents 数量: " . count($contents));
+                                    \think\Log::info('getPrintTask - 京东运单号 ' . $waybill . ' 打印数据获取成功');
+                                } else {
+                                    // 单个运单失败
+                                    $errorMsg = isset($prePrintData['msg']) ? $prePrintData['msg'] : '未知错误';
+                                    $errors[] = [
+                                        'waybillNo' => $waybill,
+                                        'error' => $errorMsg
+                                    ];
+                                    $this->writeJdDebugLog("❌ 运单 {$waybill} 打印数据获取失败: " . $errorMsg);
+                                    \think\Log::error('getPrintTask - 京东运单号 ' . $waybill . ' 打印数据获取失败: ' . $errorMsg);
+                                }
+                            }
+                        } else {
+                            // 没有 prePrintDatas 数据
+                            $errors[] = [
+                                'waybillNo' => $waybill,
+                                'error' => '返回数据中缺少 prePrintDatas'
+                            ];
+                            $this->writeJdDebugLog("❌ 运单 {$waybill} 打印数据获取失败: 返回数据中缺少 prePrintDatas");
+                            \think\Log::error('getPrintTask - 京东运单号 ' . $waybill . ' 打印数据获取失败: 返回数据中缺少 prePrintDatas');
+                        }
+                    } else {
+                        $errors[] = [
+                            'waybillNo' => $waybill,
+                            'error' => $result['msg']
+                        ];
+                        $this->writeJdDebugLog("❌ 运单 {$waybill} 打印数据获取失败: " . $result['msg']);
+                        \think\Log::error('getPrintTask - 京东运单号 ' . $waybill . ' 打印数据获取失败: ' . $result['msg']);
+                    }
+                }
+                
+                $this->writeJdDebugLog("打印数据获取完成: 成功 " . count($contents) . " 个，失败 " . count($errors) . " 个");
+                
+                // 记录调用结果
+                \think\Log::info('getPrintTask - 京东云打印调用结果: ' . json_encode([
+                    'success_count' => count($contents),
+                    'error_count' => count($errors),
+                    'errors' => $errors
+                ], JSON_UNESCAPED_UNICODE));
+                
+                if (empty($contents)) {
+                    $errorMsg = '获取京东云打印数据失败';
+                    if (!empty($errors)) {
+                        $errorMsg .= ': ' . $errors[0]['error'];
+                    }
+                    $this->writeJdDebugLog("❌ 最终失败: {$errorMsg}");
+                    $this->writeJdDebugLog("========================================\n");
+                    return $this->renderError($errorMsg);
+                }
+                
+                // 构造完整的京东云打印请求数据
+                $jdPrintRequest = [
+                    'orderType' => $orderType,
+                    'version' => '2',
+                    'parameters' => [
+                        'printName' => $printName,
+                        'contents' => $contents  // 多个面单的数组
+                    ]
+                ];
+                
+                $this->writeJdDebugLog("构造最终 printRequest:");
+                $this->writeJdDebugLog("- orderType: {$orderType}");
+                $this->writeJdDebugLog("- version: 2");
+                $this->writeJdDebugLog("- printName: " . ($printName ? $printName : '(未设置)'));
+                $this->writeJdDebugLog("- contents 数量: " . count($contents));
+                
+                // 发送报文到本地京东云打印组件
+                $sendResult = $this->sendJdPrintMessage($jdPrintRequest, $printName, $ditchArray);
+                if ($sendResult['success']) {
+                    $this->writeJdDebugLog("✅ 报文已发送到本地打印组件");
+                } else {
+                    $this->writeJdDebugLog("⚠️ 报文发送失败: " . $sendResult['error']);
+                }
+                
+                $this->writeJdDebugLog("✅ getPrintTask - 京东云打印流程完成");
+                $this->writeJdDebugLog("========================================\n");
+                
+                // 返回京东云打印数据
+                // 前端将通过 WebSocket 连接到本地京东云打印组件，发送打印任务
+                return $this->renderSuccess('获取成功', null, [
+                    'mode' => 'jd_cloud_print',
+                    'printRequest' => $jdPrintRequest,  // 完整的打印请求数据
+                    'printConfig' => [
+                        'orderType' => $orderType,
+                        'tempUrl' => $tempUrl,
+                        'customTempUrl' => $customTempUrl,
+                        'printName' => $printName,
+                        'multiboxEnabled' => $multiboxEnabled
+                    ],
+                    'order_id' => $id,
+                    'waybill_no' => $waybillNo ?: $data['t_order_sn'],
+                    'print_all' => $printAll ? true : false,
+                    'waybill_count' => count($contents),  // 打印的运单数量
+                    'errors' => $errors,  // 包含错误信息（如果有）
+                    'send_result' => $sendResult  // 发送结果
+                ]);
+
             } elseif ($isSf && $ditchConfig) {
                 // 使用顺丰云打印
                 \think\Log::info('getPrintTask - 使用顺丰云打印: ' . json_encode([
@@ -7374,4 +7898,331 @@ public function expressBillbatch() {
         }
     }
 
+    /**
+     * 清除京东云打印缓存
+     * 清除 AccessToken、打印数据、打印机列表缓存
+     */
+    public function clearJdCache()
+    {
+        try {
+            // 导入缓存服务
+            $jdCacheClass = 'app\common\service\JdCache';
+            
+            if (!class_exists($jdCacheClass)) {
+                return $this->renderError('京东缓存服务不可用');
+            }
+            
+            // 清除缓存
+            $cleared = 0;
+            
+            // 1. 清除 AccessToken 缓存
+            try {
+                $jdCacheClass::clear('token', 'jd_app_key');
+                $cleared++;
+            } catch (\Exception $e) {
+                // 继续执行，不中断
+            }
+            
+            // 2. 清除打印数据缓存
+            try {
+                $jdCacheClass::clear('print', 'all_waybills');
+                $cleared++;
+            } catch (\Exception $e) {
+                // 继续执行
+            }
+            
+            // 3. 清除打印机列表缓存
+            try {
+                $jdCacheClass::clear('printer', 'jd_app_key');
+                $cleared++;
+            } catch (\Exception $e) {
+                // 继续执行
+            }
+            
+            // 记录清除缓存操作
+            $this->writeJdDebugLog("清除京东云打印缓存: 已清除 {$cleared} 项缓存");
+            
+            return $this->renderSuccess('京东云打印缓存已清除（' . $cleared . '项）');
+            
+        } catch (\Exception $e) {
+            $this->writeJdDebugLog("清除缓存异常: " . $e->getMessage());
+            return $this->renderError('清除缓存失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 写入京东调试日志到 logs/jd/ 目录
+     * @param string $message
+     */
+    private function writeJdDebugLog($message)
+    {
+        $logDir = dirname(dirname(dirname(dirname(__DIR__)))) . '/logs/jd';
+        
+        // 确保目录存在
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0755, true);
+        }
+        
+        $logFile = $logDir . '/' . date('Ymd') . '.log';
+        $timestamp = date('Y-m-d H:i:s');
+        $logMessage = "[{$timestamp}] [TrOrder::getPrintTask] {$message}\n";
+        
+        @file_put_contents($logFile, $logMessage, FILE_APPEND);
+    }
+
+    /**
+     * 写入京东订单下单调试日志到 logs/jd/ 目录
+     * @param string $message
+     */
+    private function writeJdOrderLog($message)
+    {
+        $logDir = dirname(dirname(dirname(dirname(__DIR__)))) . '/logs/jd';
+        
+        // 确保目录存在
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0755, true);
+        }
+        
+        $logFile = $logDir . '/' . date('Ymd') . '.log';
+        $timestamp = date('Y-m-d H:i:s.') . substr(microtime(), 2, 3);
+        $logMessage = "[{$timestamp}] [TrOrder::sendtoqudaoshang] {$message}\n";
+        
+        @file_put_contents($logFile, $logMessage, FILE_APPEND);
+    }
+
+    /**
+     * 发送打印报文到本地京东云打印组件
+     * 通过 WebSocket 连接到本地打印服务
+     * @param array $printRequest 打印请求数据
+     * @param string $printName 打印机名称
+     * @return array ['success' => bool, 'error' => string, 'response' => mixed]
+     */
+    private function sendJdPrintMessage($printRequest, $printName = '', $ditchConfig = [])
+    {
+        $this->writeJdDebugLog("开始发送报文到本地打印组件...");
+        
+        // WebSocket 地址解析优先级
+        $wsUrl = null;
+        
+        // 优先级 1: 使用专门配置的打印组件地址
+        if (!empty($ditchConfig['jd_print_component_url'])) {
+            $wsUrl = $ditchConfig['jd_print_component_url'];
+            $this->writeJdDebugLog("✅ 使用配置的打印组件地址: {$wsUrl}");
+        }
+        // 优先级 2: 检查 print_url 是否是有效的 WebSocket 地址
+        elseif (!empty($ditchConfig['print_url'])) {
+            $printUrl = $ditchConfig['print_url'];
+            // 检查是否是有效的 WebSocket 地址（以 ws:// 或 wss:// 开头）
+            if (strpos($printUrl, 'ws://') === 0 || strpos($printUrl, 'wss://') === 0) {
+                $wsUrl = $printUrl;
+                $this->writeJdDebugLog("✅ 使用 print_url 作为 WebSocket 地址: {$wsUrl}");
+            } else {
+                $this->writeJdDebugLog("⚠️ print_url 不是有效的 WebSocket 地址: {$printUrl}");
+            }
+        }
+        
+        // 优先级 3: 使用默认本地地址
+        if (empty($wsUrl)) {
+            $wsUrl = 'ws://127.0.0.1:9113';
+            $this->writeJdDebugLog("✅ 使用默认本地 WebSocket 地址: {$wsUrl}");
+        }
+        
+        // 构造发送给打印组件的报文
+        $message = [
+            'orderType' => isset($printRequest['orderType']) ? $printRequest['orderType'] : 'PRINT',
+            'version' => '2',
+            'parameters' => [
+                'printName' => !empty($printName) ? $printName : '',
+                'contents' => $printRequest['parameters']['contents']  // 直接使用 contents 数组
+            ]
+        ];
+        
+        $this->writeJdDebugLog("报文格式: " . $message['orderType']);
+        $this->writeJdDebugLog("打印机: " . ($message['parameters']['printName'] ?: '(默认)'));
+        $this->writeJdDebugLog("面单数量: " . count($message['parameters']['contents']));
+        
+        // 通过 WebSocket 发送到本地打印服务
+        $this->writeJdDebugLog("尝试连接到打印服务: {$wsUrl}");
+        
+        try {
+            // 使用 PHP 的 WebSocket 客户端库
+            // 如果没有安装 WebSocket 库，使用 socket 直接连接
+            $result = $this->sendViaWebSocket($wsUrl, $message);
+            
+            if ($result['success']) {
+                $this->writeJdDebugLog("✅ 报文发送成功");
+                return $result;
+            } else {
+                $this->writeJdDebugLog("⚠️ WebSocket 发送失败: " . $result['error']);
+                return $result;
+            }
+            
+        } catch (\Exception $e) {
+            $this->writeJdDebugLog("❌ 异常: " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'response' => null
+            ];
+        }
+    }
+
+    /**
+     * 通过 WebSocket 发送报文
+     * @param string $wsUrl WebSocket 地址
+     * @param array $message 报文数据
+     * @return array ['success' => bool, 'error' => string, 'response' => mixed]
+     */
+    private function sendViaWebSocket($wsUrl, $message)
+    {
+        $this->writeJdDebugLog("使用 WebSocket 发送报文...");
+        
+        // 解析 WebSocket URL
+        $parsed = parse_url($wsUrl);
+        $host = $parsed['host'] ?? '127.0.0.1';
+        $port = $parsed['port'] ?? 9113;
+        
+        $this->writeJdDebugLog("WebSocket 连接参数: host={$host}, port={$port}");
+        
+        try {
+            // 创建 socket 连接
+            $socket = @fsockopen($host, $port, $errno, $errstr, 3);
+            
+            if (!$socket) {
+                $this->writeJdDebugLog("❌ Socket 连接失败: [{$errno}] {$errstr}");
+                return [
+                    'success' => false,
+                    'error' => "Socket connection failed: [{$errno}] {$errstr}",
+                    'response' => null
+                ];
+            }
+            
+            $this->writeJdDebugLog("✅ Socket 连接成功");
+            
+            // 构造 WebSocket 握手请求
+            $key = base64_encode(random_bytes(16));
+            $handshake = "GET / HTTP/1.1\r\n";
+            $handshake .= "Host: {$host}:{$port}\r\n";
+            $handshake .= "Upgrade: websocket\r\n";
+            $handshake .= "Connection: Upgrade\r\n";
+            $handshake .= "Sec-WebSocket-Key: {$key}\r\n";
+            $handshake .= "Sec-WebSocket-Version: 13\r\n";
+            $handshake .= "\r\n";
+            
+            $this->writeJdDebugLog("发送 WebSocket 握手请求...");
+            fwrite($socket, $handshake);
+            
+            // 读取握手响应
+            $response = '';
+            while (!feof($socket)) {
+                $line = fgets($socket, 1024);
+                $response .= $line;
+                if ($line === "\r\n") {
+                    break;
+                }
+            }
+            
+            $this->writeJdDebugLog("握手响应: " . substr($response, 0, 100) . "...");
+            
+            // 验证握手响应
+            if (strpos($response, '101') === false) {
+                $this->writeJdDebugLog("❌ WebSocket 握手失败");
+                fclose($socket);
+                return [
+                    'success' => false,
+                    'error' => 'WebSocket handshake failed',
+                    'response' => $response
+                ];
+            }
+            
+            $this->writeJdDebugLog("✅ WebSocket 握手成功");
+            
+            // 发送报文
+            $payload = json_encode($message, JSON_UNESCAPED_UNICODE);
+            $this->writeJdDebugLog("发送报文: " . $payload);
+            
+            $frame = $this->createWebSocketFrame($payload);
+            fwrite($socket, $frame);
+            
+            $this->writeJdDebugLog("✅ 报文已发送");
+            
+            // 读取响应（可选）
+            $responseData = '';
+            stream_set_timeout($socket, 2);
+            while (!feof($socket)) {
+                $data = fread($socket, 1024);
+                if ($data === false || $data === '') {
+                    break;
+                }
+                $responseData .= $data;
+            }
+            
+            fclose($socket);
+            
+            if (!empty($responseData)) {
+                $this->writeJdDebugLog("收到响应: " . substr($responseData, 0, 100) . "...");
+            }
+            
+            return [
+                'success' => true,
+                'error' => '',
+                'response' => $responseData
+            ];
+            
+        } catch (\Exception $e) {
+            $this->writeJdDebugLog("❌ WebSocket 异常: " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'response' => null
+            ];
+        }
+    }
+
+    /**
+     * 创建 WebSocket 数据帧
+     * @param string $payload 报文内容
+     * @return string WebSocket 帧数据
+     */
+    private function createWebSocketFrame($payload)
+    {
+        $length = strlen($payload);
+        
+        // 构造帧头
+        $frame = chr(0x81); // FIN + opcode (text frame)
+        
+        if ($length < 126) {
+            $frame .= chr(0x80 | $length); // MASK + length
+        } elseif ($length < 65536) {
+            $frame .= chr(0xFE); // MASK + 126
+            $frame .= chr($length >> 8);
+            $frame .= chr($length & 0xFF);
+        } else {
+            $frame .= chr(0xFF); // MASK + 127
+            $frame .= chr(0);
+            $frame .= chr(0);
+            $frame .= chr(0);
+            $frame .= chr(0);
+            $frame .= chr($length >> 24);
+            $frame .= chr($length >> 16);
+            $frame .= chr($length >> 8);
+            $frame .= chr($length & 0xFF);
+        }
+        
+        // 生成掩码
+        $mask = '';
+        for ($i = 0; $i < 4; $i++) {
+            $mask .= chr(rand(0, 255));
+        }
+        $frame .= $mask;
+        
+        // 对报文进行掩码处理
+        $masked = '';
+        for ($i = 0; $i < $length; $i++) {
+            $masked .= chr(ord($payload[$i]) ^ ord($mask[$i % 4]));
+        }
+        $frame .= $masked;
+        
+        return $frame;
+    }
 }
