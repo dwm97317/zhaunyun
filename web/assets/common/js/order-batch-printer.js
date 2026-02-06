@@ -187,9 +187,35 @@ const OrderBatchPrinter = {
         printDataList.forEach(function(printData) {
             if (!printData) return;
             
-            // 根据不同的打印数据格式调用对应的打印方法
-            if (printData.requestID) {
-                // 顺丰云打印格式
+            // 根据打印模式调用对应的打印方法
+            if (printData.mode === 'sf_plugin') {
+                // 顺丰云打印插件模式
+                if (typeof window.sfCloudPrint === 'function') {
+                    window.sfCloudPrint(printData.data, printData.partnerID, printData.env, printData.printOptions);
+                } else if (typeof window.cloudPrint === 'function') {
+                    window.cloudPrint(printData.data);
+                } else {
+                    console.error('顺丰云打印插件未加载');
+                }
+            } else if (printData.mode === 'zto_cloud_print') {
+                // 中通云打印模式
+                if (typeof window.do_print === 'function') {
+                    window.do_print(printData.data);
+                } else {
+                    console.error('中通云打印插件未加载');
+                }
+            } else if (printData.mode === 'jd_cloud_print') {
+                // 京东云打印模式
+                if (typeof window.jdCloudPrint === 'function') {
+                    window.jdCloudPrint(printData.printRequest);
+                } else {
+                    console.error('京东云打印插件未加载');
+                }
+            } else if (printData.mode === 'pdf_url') {
+                // PDF URL 模式：打开新窗口
+                window.open(printData.url, '_blank');
+            } else if (printData.requestID) {
+                // 兼容旧格式：直接包含 requestID 的顺丰数据
                 if (typeof window.sfCloudPrint === 'function') {
                     window.sfCloudPrint(printData);
                 } else if (typeof window.cloudPrint === 'function') {
@@ -197,28 +223,8 @@ const OrderBatchPrinter = {
                 } else {
                     console.error('顺丰云打印插件未加载');
                 }
-            } else if (printData.cmd && printData.cmd === 'print') {
-                // 中通云打印格式
-                if (typeof window.do_print === 'function') {
-                    window.do_print(printData);
-                } else {
-                    console.error('中通云打印插件未加载');
-                }
-            } else if (printData.taskId) {
-                // 京东云打印格式
-                if (typeof window.jdCloudPrint === 'function') {
-                    window.jdCloudPrint(printData);
-                } else {
-                    console.error('京东云打印插件未加载');
-                }
             } else {
-                // 通用格式：尝试调用 LODOP
-                if (typeof window.LODOP !== 'undefined') {
-                    // 使用 LODOP 打印
-                    console.log('使用 LODOP 打印', printData);
-                } else {
-                    console.warn('未识别的打印数据格式', printData);
-                }
+                console.warn('未识别的打印数据格式', printData);
             }
         });
     },
