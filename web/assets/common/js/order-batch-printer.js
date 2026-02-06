@@ -132,19 +132,32 @@ const OrderBatchPrinter = {
                         // 同步模式：处理打印数据并唤起打印插件
                         const data = result.data;
                         
+                        console.log('[批量打印] 收到响应数据:', data);
+                        
                         // 收集所有成功的打印数据
                         const printDataList = [];
                         if (data.results && Array.isArray(data.results)) {
-                            data.results.forEach(function(item) {
+                            console.log('[批量打印] 处理 results 数组，长度:', data.results.length);
+                            data.results.forEach(function(item, index) {
+                                console.log('[批量打印] Result[' + index + ']:', {
+                                    success: item.success,
+                                    has_print_data: !!item.print_data,
+                                    print_data_keys: item.print_data ? Object.keys(item.print_data) : []
+                                });
                                 if (item.success && item.print_data) {
                                     printDataList.push(item.print_data);
                                 }
                             });
                         }
                         
+                        console.log('[批量打印] 收集到打印数据数量:', printDataList.length);
+                        
                         // 如果有打印数据，唤起打印插件
                         if (printDataList.length > 0) {
+                            console.log('[批量打印] 准备唤起打印插件');
                             self._invokePrintPlugin(printDataList);
+                        } else {
+                            console.warn('[批量打印] 没有收集到打印数据');
                         }
                         
                         // 显示打印结果
@@ -185,46 +198,110 @@ const OrderBatchPrinter = {
     _invokePrintPlugin: function(printDataList) {
         // 遍历所有打印数据，逐个唤起打印插件
         printDataList.forEach(function(printData) {
-            if (!printData) return;
+            if (!printData) {
+                console.warn('[批量打印] printData 为空，跳过');
+                return;
+            }
+            
+            console.log('[批量打印] 处理打印数据:', {
+                mode: printData.mode,
+                has_data: !!printData.data,
+                has_partnerID: !!printData.partnerID
+            });
             
             // 根据打印模式调用对应的打印方法
             if (printData.mode === 'sf_plugin') {
-                // 顺丰云打印插件模式
-                if (typeof window.sfCloudPrint === 'function') {
-                    window.sfCloudPrint(printData.data, printData.partnerID, printData.env, printData.printOptions);
-                } else if (typeof window.cloudPrint === 'function') {
-                    window.cloudPrint(printData.data);
-                } else {
-                    console.error('顺丰云打印插件未加载');
+                // 顺丰云打印插件模式 - 使用 SCPPrint SDK
+                console.log('[批量打印] 顺丰打印模式');
+                
+                if (typeof SCPPrint === 'undefined') {
+                    console.error('[批量打印] SCPPrint SDK 未加载');
+                    layer.msg('请先安装顺丰打印插件', {icon: 0});
+                    return;
                 }
+                
+                try {
+                    var partnerID = printData.partnerID || '';
+                    var sfPrintData = printData.data || {};
+                    var printOptions = printData.printOptions || {};
+                    var env = printData.env || 'sbox';
+                    
+                    if (!partnerID) {
+                        console.error('[批量打印] 缺少 partnerID');
+                        layer.msg('缺少客户编码(partnerID)', {icon: 2});
+                        return;
+                    }
+                    
+                    console.log('[批量打印] 顺丰打印参数:', {
+                        partnerID: partnerID,
+                        env: env,
+                        has_printData: !!sfPrintData,
+                        printOptions: printOptions
+                    });
+                    
+                    // 创建 SCPPrint 实例（如果不存在）
+                    if (!window.sfPrintInstance) {
+                        window.sfPrintInstance = new SCPPrint({
+                            partnerID: partnerID,
+                            env: env,
+                            notips: false
+                        });
+                        console.log('[批量打印] SCPPrint 实例已创建');
+                    }
+                    
+                    // 构建打印选项
+                    var enablePreview = printOptions.enable_preview || false;
+                    var sdkOptions = {
+                        lodopFn: enablePreview ? 'PREVIEW' : 'PRINT'
+                    };
+                    
+                    console.log('[批量打印] 调用 SCPPrint.print()');
+                    
+                    // 调用打印
+                    window.sfPrintInstance.print(sfPrintData, function(result) {
+                        console.log('[批量打印] 顺丰打印回调:', result);
+                        
+                        if (result.code === 1) {
+                            console.log('[批量打印] 打印成功');
+                        } else if (result.code === 2 || result.code === 3) {
+                            layer.confirm('需要安装顺丰打印插件，是否立即下载？', {
+                                btn: ['下载', '取消']
+                            }, function() {
+                                window.open(result.downloadUrl);
+                            });
+                        } else {
+                            console.error('[批量打印] 打印失败:', result.msg);
+                            layer.msg('打印失败: ' + (result.msg || '未知错误'), {icon: 2});
+                        }
+                    }, sdkOptions);
+                    
+                } catch (error) {
+                    console.error('[批量打印] 顺丰打印异常:', error);
+                    layer.msg('打印失败: ' + error.message, {icon: 2});
+                }
+                
             } else if (printData.mode === 'zto_cloud_print') {
                 // 中通云打印模式
+                console.log('[批量打印] 中通打印模式');
                 if (typeof window.do_print === 'function') {
                     window.do_print(printData.data);
                 } else {
-                    console.error('中通云打印插件未加载');
+                    console.error('[批量打印] 中通云打印插件未加载');
                 }
             } else if (printData.mode === 'jd_cloud_print') {
                 // 京东云打印模式
+                console.log('[批量打印] 京东打印模式');
                 if (typeof window.jdCloudPrint === 'function') {
                     window.jdCloudPrint(printData.printRequest);
                 } else {
-                    console.error('京东云打印插件未加载');
+                    console.error('[批量打印] 京东云打印插件未加载');
                 }
             } else if (printData.mode === 'pdf_url') {
                 // PDF URL 模式：打开新窗口
+                console.log('[批量打印] PDF URL 模式');
                 window.open(printData.url, '_blank');
-            } else if (printData.requestID) {
-                // 兼容旧格式：直接包含 requestID 的顺丰数据
-                if (typeof window.sfCloudPrint === 'function') {
-                    window.sfCloudPrint(printData);
-                } else if (typeof window.cloudPrint === 'function') {
-                    window.cloudPrint(printData);
-                } else {
-                    console.error('顺丰云打印插件未加载');
-                }
             } else {
-                console.warn('未识别的打印数据格式', printData);
+                console.warn('[批量打印] 未识别的打印数据格式:', printData);
             }
         });
     },
