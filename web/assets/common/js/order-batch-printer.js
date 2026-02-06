@@ -129,10 +129,26 @@ const OrderBatchPrinter = {
                             self._pollTaskStatus(result.data.task_id, options.onProgress);
                         }
                     } else {
-                        // 同步模式：显示打印结果
+                        // 同步模式：处理打印数据并唤起打印插件
                         const data = result.data;
-                        const msg = `打印完成！成功: ${data.success_count}, 失败: ${data.error_count}`;
                         
+                        // 收集所有成功的打印数据
+                        const printDataList = [];
+                        if (data.results && Array.isArray(data.results)) {
+                            data.results.forEach(function(item) {
+                                if (item.success && item.print_data) {
+                                    printDataList.push(item.print_data);
+                                }
+                            });
+                        }
+                        
+                        // 如果有打印数据，唤起打印插件
+                        if (printDataList.length > 0) {
+                            self._invokePrintPlugin(printDataList);
+                        }
+                        
+                        // 显示打印结果
+                        const msg = `打印完成！成功: ${data.success_count}, 失败: ${data.error_count}`;
                         layer.msg(msg, {
                             icon: data.error_count > 0 ? 2 : 1,
                             time: 2000
@@ -158,6 +174,53 @@ const OrderBatchPrinter = {
                     options.onError({ error: error });
                 }
             });
+    },
+    
+    /**
+     * 唤起打印插件
+     * 
+     * @private
+     * @param {Array} printDataList - 打印数据列表
+     */
+    _invokePrintPlugin: function(printDataList) {
+        // 遍历所有打印数据，逐个唤起打印插件
+        printDataList.forEach(function(printData) {
+            if (!printData) return;
+            
+            // 根据不同的打印数据格式调用对应的打印方法
+            if (printData.requestID) {
+                // 顺丰云打印格式
+                if (typeof window.sfCloudPrint === 'function') {
+                    window.sfCloudPrint(printData);
+                } else if (typeof window.cloudPrint === 'function') {
+                    window.cloudPrint(printData);
+                } else {
+                    console.error('顺丰云打印插件未加载');
+                }
+            } else if (printData.cmd && printData.cmd === 'print') {
+                // 中通云打印格式
+                if (typeof window.do_print === 'function') {
+                    window.do_print(printData);
+                } else {
+                    console.error('中通云打印插件未加载');
+                }
+            } else if (printData.taskId) {
+                // 京东云打印格式
+                if (typeof window.jdCloudPrint === 'function') {
+                    window.jdCloudPrint(printData);
+                } else {
+                    console.error('京东云打印插件未加载');
+                }
+            } else {
+                // 通用格式：尝试调用 LODOP
+                if (typeof window.LODOP !== 'undefined') {
+                    // 使用 LODOP 打印
+                    console.log('使用 LODOP 打印', printData);
+                } else {
+                    console.warn('未识别的打印数据格式', printData);
+                }
+            }
+        });
     },
     
     /**
