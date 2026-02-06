@@ -7220,7 +7220,7 @@ public function expressBillbatch() {
             $id = $this->request->param('id');
             $waybillNo = $this->request->param('waybill_no', '');
             $label = $this->request->param('label', 60);
-            $printAll = $this->request->param('print_all', 0);  // 新增：是否打印全部包裹
+            $printAll = (int)$this->request->param('print_all', 0);  // 新增：是否打印全部包裹（强制转换为整数）
             
             // 📝 记录请求开始
             \app\common\service\PrintLogger::printTask('getPrintTask', '开始处理打印任务', [
