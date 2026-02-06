@@ -529,7 +529,11 @@ class Batch extends Controller
             $t_name =  $express['express_name'];
         } else {
             $updateData['express'] = $carrier_value;
-            $ditchdetail = DitchModel::detail($carrier_value);
+            // 使用缓存获取渠道配置
+            $ditchdetail = \app\common\service\DitchCache::getConfig($carrier_value);
+            if (!$ditchdetail) {
+                return $this->renderError('渠道配置不存在');
+            }
             $t_name = $ditchdetail['ditch_name'];
         }
         

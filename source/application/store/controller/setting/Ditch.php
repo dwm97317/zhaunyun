@@ -115,6 +115,9 @@ class Ditch extends Controller
 
         $this->stripAccountFieldsIfMissing($model, $data);
         if ($model->add($data)) {
+            // 新增渠道后，可选择预热缓存
+            // \app\common\service\DitchCache::warmUp();
+            
             return $this->renderSuccess('添加成功', url('setting.ditch/index'));
         }
         return $this->renderError($model->getError() ?: '添加失败');
@@ -163,6 +166,9 @@ class Ditch extends Controller
 
         $this->stripAccountFieldsIfMissing($model, $data);
         if ($model->edit($data)) {
+            // 清除渠道配置缓存
+            \app\common\service\DitchCache::clearConfig($ditch_id);
+            
             return $this->renderSuccess('更新成功', url('setting.ditch/index'));
         }
         return $this->renderError($model->getError() ?: '更新失败');

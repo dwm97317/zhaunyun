@@ -11,7 +11,7 @@ const OrderBatchPusher = {
     /**
      * API 端点配置
      */
-    apiEndpoint: '/store/inpack/orderbatchpusher',
+    apiEndpoint: '/store/tr_order/orderbatchpusher',
     
     /**
      * 批量推送订单（同步模式）
@@ -59,7 +59,7 @@ const OrderBatchPusher = {
      */
     getTaskStatus: function(taskId) {
         return $.ajax({
-            url: '/store/inpack/asynctaskqueue',
+            url: '/store/tr_order/asynctaskqueue',
             type: 'GET',
             data: { 
                 action: 'getTaskStatus',

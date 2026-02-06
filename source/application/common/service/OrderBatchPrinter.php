@@ -244,18 +244,45 @@ class OrderBatchPrinter
         try {
             // 创建模拟请求对象
             $request = Request::instance();
-            $request->param([
+            
+            // TP5.1 中设置参数的正确方式
+            $params = [
                 'id' => $orderId,
                 'label' => isset($printOptions['label']) ? $printOptions['label'] : 60,
                 'print_all' => isset($printOptions['print_all']) ? $printOptions['print_all'] : 0,
                 'waybill_no' => isset($printOptions['waybill_no']) ? $printOptions['waybill_no'] : ''
+            ];
+            
+            // 使用 bind 设置参数，这是 TP5.1 中动态添加参数的推荐方式
+            foreach ($params as $key => $val) {
+                $request->bind($key, $val);
+            }
+            
+            // 兼容性补充：同时设置到 get 和 post 中
+            $request->get($params);
+            $request->post($params);
+
+            
+            // 记录调试日志，确认参数已设置
+            PrintLogger::info('批量打印', "准备执行打印请求 #{$orderId}", [
+                'id_from_param' => $request->param('id'),
+                'id_from_get' => $request->get('id'),
+                'is_ajax' => $request->isAjax()
             ]);
+
             
             // 创建 TrOrder 控制器实例
             $trOrder = new TrOrder($request);
             
             // 调用现有的打印方法
             $response = $trOrder->getPrintTask();
+            
+            // 记录响应结果
+            PrintLogger::info('批量打印', "打印请求完成 #{$orderId}", [
+                'response_type' => gettype($response),
+                'code' => (is_array($response) && isset($response['code'])) ? $response['code'] : 'N/A',
+                'msg' => (is_array($response) && isset($response['msg'])) ? $response['msg'] : 'N/A'
+            ]);
             
             // 解析响应
             if (is_object($response)) {

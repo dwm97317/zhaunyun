@@ -78,7 +78,8 @@ class Auth
         'tr_order/updateprintstatus',
         'apps.dealer.user/deletefan',
         'apps.dealer.user/addreferee',
-        'package.index/getpackageimages'
+        'package.index/getpackageimages',
+        'inpack/*'
     ];
 
     /** @var array $accessUrls 商家用户权限url */

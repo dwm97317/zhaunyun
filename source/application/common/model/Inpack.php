@@ -364,10 +364,10 @@ class Inpack extends BaseModel
      */
     public function getPayTypeAttr($value)
     {
-        $type = [0=>'寄付',1=>'到付',2=>'2月结'];
+        $type = [0 => '寄付', 1 => '到付', 2 => '2月结'];
         return [
-            'text'=> $type[$value],
-            'value'=>$value
+            'text' => isset($type[$value]) ? $type[$value] : '未知',
+            'value' => $value
         ];
     }
     
@@ -409,10 +409,10 @@ class Inpack extends BaseModel
     public function getIsPayTypeAttr($value)
     {
         //0 后台操作 1 微信 2 余额 3 汉特  4omipay  5现金支付
-        $type = [0=>'后台操作',1=>'微信支付',2=>'余额支付',3=>'汉特支付',4=>'OMIPAY',5=>'现金支付',6=>'线下支付'];
+        $type = [0 => '后台操作', 1 => '微信支付', 2 => '余额支付', 3 => '汉特支付', 4 => 'OMIPAY', 5 => '现金支付', 6 => '线下支付'];
         return [
-            'text'=> $type[$value],
-            'value'=>$value
+            'text' => isset($type[$value]) ? $type[$value] : '未知',
+            'value' => $value
         ];
     }
     
@@ -423,11 +423,11 @@ class Inpack extends BaseModel
      */
     public function getPrintStatusJhdAttr($value)
     {
-        //0=>'未拣货',1=>'已拣货'
-        $type = [0=>'未拣货',1=>'已拣货'];
+        //0=>'未拣货',1=>'已拣货',2=>'已批量打印'
+        $type = [0 => '未拣货', 1 => '已拣货', 2 => '已批量打印'];
         return [
-            'text'=> $type[$value],
-            'value'=>$value
+            'text' => isset($type[$value]) ? $type[$value] : '未知状态',
+            'value' => $value
         ];
     }
 

@@ -678,6 +678,7 @@ class Inpack extends InpackModel
                 }   
             }
             ////注册发货单到17track,当是选择可以查询的物流时，自有物流不可查询
+            ////注册发货单到17track,当是选择可以查询的物流时，自有物流不可查询
             if($data['transfer']==1 && $noticesetting['is_track_fahuo']['is_enable']==1){
                 $express = (new Express())->where('express_code',$data['tt_number'])->find();
                 // dump($express);die;
@@ -694,7 +695,11 @@ class Inpack extends InpackModel
             }
             
             if($data['transfer']==0){
-                $ditchdetail = DitchModel::detail($data['t_number']);
+                // 使用缓存获取渠道配置
+                $ditchdetail = \app\common\service\DitchCache::getConfig($data['t_number']);
+                if (!$ditchdetail) {
+                    return $this->renderError('渠道配置不存在');
+                }
                 $update['t_name'] = $ditchdetail['ditch_name'];
                 $update['t_number'] = $ditchdetail['ditch_id'];
                 $update['transfer'] = $data['transfer'];
@@ -764,7 +769,7 @@ class Inpack extends InpackModel
     public function modify($data){
         $DitchNumber = new DitchNumber();
         $Line = new Line();
-        $field = ['line_id','length','width','height','weight','verify','free','pack_free','cale_weight','volume','other_free','remark','t_number','t_name','t_order_sn'];
+        $field = ['line_id','length','width','height','weight','verify','free','pack_free','cale_weight','volume','other_free','remark','t_number','t_name','t_order_sn', 'transfer'];
         $update = [];
         
         foreach ($field as $v){
@@ -815,7 +820,11 @@ class Inpack extends InpackModel
             }
             
             if($data['transfer']==0){
-                $ditchdetail = DitchModel::detail($data['t_number']);
+                // 使用缓存获取渠道配置
+                $ditchdetail = \app\common\service\DitchCache::getConfig($data['t_number']);
+                if (!$ditchdetail) {
+                    return $this->renderError('渠道配置不存在');
+                }
                 $update['t_name'] = $ditchdetail['ditch_name'];
                 $update['t_number'] = $ditchdetail['ditch_id'];
                 $update['transfer'] = $data['transfer'];
@@ -1260,5 +1269,74 @@ class Inpack extends InpackModel
             $filter['pay_time'] = ["between time",[$startDate, date('Y-m-d',strtotime($endDate)+86400)]];        
         }
         return $this->where($filter)->sum('real_payment');
+    }
+    /**
+     * API 推送成功后的自动完成动作
+     * 
+     * 将订单标记为已发货（状态9），并同步包裹状态
+     * 
+     * @param int $id 集运单ID
+     * @param array $data 包含 t_order_sn, t_name, t_number, transfer
+     * @return bool
+     */
+    public function pushSuccessComplete($id, $data) {
+        $detail = $this->where(['id' => $id])->find();
+        if (!$detail) return false;
+        
+        $update = [
+            't_order_sn' => $data['t_order_sn'],
+            't_name'     => isset($data['t_name']) ? $data['t_name'] : '',
+            't_number'   => isset($data['t_number']) ? $data['t_number'] : '',
+            'transfer'   => isset($data['transfer']) ? $data['transfer'] : 0,
+            'status'     => 6,
+            'sendout_time' => getTime(),
+            'updated_time' => getTime()
+        ];
+        
+        // 计算预估到达/超期日期
+        $Line = (new Line());
+        $box = (new Package());
+        $linedetail = $Line->details($detail['line_id']);
+        $update['exceed_date'] = $linedetail['exceed_date']==0?0:(time()+$linedetail['exceed_date']*86400);
+
+        // 查找相关信息
+        $userData = (new UserModel)->where('user_id', $detail['member_id'])->find();
+        $noticesetting = SettingModel::getItem('notice', $detail['wxapp_id']);
+        $tplmsgsetting = SettingModel::getItem('tplMsg', $detail['wxapp_id']);
+
+        Db::startTrans();
+        try {
+            // 更新主单
+            $this->where(['id' => $id])->update($update);
+            
+            // 更新名下所有包裹状态为 9
+            $box->where('inpack_id', $id)->update(['status' => 9]);
+            
+            // 记录日志
+            if (isset($noticesetting['dosend']) && $noticesetting['dosend']['is_enable'] == 1) {
+                $des = str_ireplace('{code}', $data['t_order_sn'], $noticesetting['dosend']['describe']);
+                Logistics::addInpackLog($detail['order_sn'], $des, $data['t_order_sn']);
+            }
+
+            // 发送消息通知
+            $pack = $detail->toArray();
+            $pack['t_order_sn'] = $data['t_order_sn'];
+            $pack['userName'] = $userData ? $userData['nickName'] : '';
+            $pack['remark'] = '包裹已通过API自动发货';
+            $pack['total_free'] = $pack['free'] + $pack['pack_free'] + $pack['other_free'];
+            
+            if ($tplmsgsetting['is_oldtps'] == 1) {
+                $this->sendEnterMessage([$pack], 'payment');
+            } else {
+                Message::send('package.sendpack', $pack);
+            }
+
+            Db::commit();
+            return true;
+        } catch (\Exception $e) {
+            Db::rollback();
+            $this->error = $e->getMessage();
+            return false;
+        }
     }
 }

@@ -260,9 +260,18 @@
                         <button type="button" id="j-wuliu" class="am-btn am-btn-warning am-radius"><i class="iconfont icon-guojiwuliu"></i> 批量更新订单动态</button>
                         <?php endif;?>
                         
+                        <!--批量打印云面单-->
+                        <button type="button" id="j-batch-cloud-print" class="am-btn am-btn-secondary am-radius"><i class="iconfont icon-dayinji_o"></i> 批量打印云面单</button>
+
                         <!--批量打印面单-->
                         <?php if (checkPrivilege('tr_order/expressbillbatch')): ?>
                         <button type="button" id="j-batch-print" class="am-btn am-btn-warning am-radius"><i class="iconfont icon-dayinji_o"></i> 批量打印面单</button>
+                        <?php endif;?>
+
+                        
+                        <!--批量推送到渠道商-->
+                        <?php if (checkPrivilege('tr_order/sendtoqudaoshang')): ?>
+                        <button type="button" id="j-batch-push" class="am-btn am-btn-primary am-radius"><i class="iconfont icon-fasong"></i> 批量推送</button>
                         <?php endif;?>
                         
                         <!--加入拼团-->
@@ -375,8 +384,9 @@
                         
                                 <tr>
                                     <td class="am-text-middle">
-                                       <input name="checkIds" type="checkbox" value="<?= $item['id'] ?>"> 
+                                       <input name="checkIds" type="checkbox" value="<?= $item['id'] ?>" data-t-number="<?= $item['t_number'] ?>"> 
                                     </td>
+
                                     <td class="am-text-middle">
                                         系统单号：<?= $item['order_sn'] ?><br>
                                         <?php if ($item['inpack_type']==1): ?> 
@@ -2176,6 +2186,150 @@
         });
         
         /**
+         * 根据运输方式筛选渠道商
+         * @param {Array} ditchList - 完整的渠道商列表
+         * @param {String} transfer - 运输方式 ('1'=运输商, '0'=自有物流)
+         * @returns {Array} 筛选后的渠道商列表
+         */
+        function filterDitchByTransfer(ditchList, transfer) {
+            if (transfer == '1') {
+                // 运输商：暂时留空（因为用户已将所有渠道归为代理分类）
+                return [];
+            } else {
+                // 自有物流/渠道商：显示所有已集成的渠道类型
+                return ditchList.filter(function(item) {
+                    var type = parseInt(item.ditch_type);
+                    return [1, 2, 3, 4, 5].indexOf(type) !== -1;
+                });
+            }
+        }
+        
+        /**
+         * 批量推送到渠道商
+         */
+        $('#j-batch-push').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            
+            if (selectIds.length == 0) {
+                layer.alert('请先选择要推送的订单', { icon: 5 });
+                return;
+            }
+            
+            $.showModal({
+                title: '批量推送到渠道商',
+                area: '500px',
+                content: template('tpl-batch-push', data),
+                uCheck: true,
+                success: function ($content) {
+                    var $select = $content.find('#batch-push-ditch-select');
+                    
+                    // 先销毁模板中自动初始化的 selected 组件
+                    if ($select.data('amui.selected')) {
+                        $select.selected('destroy');
+                    }
+                    
+                    // 加载渠道商列表
+                    $.ajax({
+                        url: '<?= url('store/tr_order/getDitchList') ?>',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(result) {
+                            if (result.code === 1 && result.data && result.data.list) {
+                                var ditchList = result.data.list;
+                                
+                                // 保存完整的渠道商列表到 DOM 数据
+                                $select.data('fullDitchList', ditchList);
+                                
+                                // 根据默认选中的运输方式筛选渠道商
+                                var transfer = $content.find('input[name="transfer"]:checked').val() || '0';
+                                var filteredList = filterDitchByTransfer(ditchList, transfer);
+                                
+                                // 清空现有选项（保留第一个"请选择"）
+                                $select.find('option:not(:first)').remove();
+                                
+                                // 添加筛选后的渠道商选项
+                                $.each(filteredList, function(index, item) {
+                                    $select.append(
+                                        $('<option></option>')
+                                            .val(item.ditch_id)
+                                            .text(item.ditch_name)
+                                    );
+                                });
+                                
+                                // 手动初始化 amazeui selected 组件
+                                $select.selected({
+                                    searchBox: 1,
+                                    btnSize: 'sm',
+                                    placeholder: '请选择渠道商',
+                                    maxHeight: 400
+                                });
+                                
+                                // 监听运输方式变化
+                                $content.find('input[name="transfer"]').on('change', function() {
+                                    var newTransfer = $(this).val();
+                                    var fullList = $select.data('fullDitchList');
+                                    var newFilteredList = filterDitchByTransfer(fullList, newTransfer);
+                                    
+                                    // 销毁旧组件
+                                    $select.selected('destroy');
+                                    
+                                    // 更新选项
+                                    $select.find('option:not(:first)').remove();
+                                    $.each(newFilteredList, function(index, item) {
+                                        $select.append(
+                                            $('<option></option>')
+                                                .val(item.ditch_id)
+                                                .text(item.ditch_name)
+                                        );
+                                    });
+                                    
+                                    // 重新初始化 selected
+                                    $select.selected({
+                                        searchBox: 1,
+                                        btnSize: 'sm',
+                                        placeholder: '请选择渠道商',
+                                        maxHeight: 400
+                                    });
+                                });
+                            } else {
+                                layer.msg('加载渠道商列表失败', { icon: 2 });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            layer.msg('加载渠道商列表失败', { icon: 2 });
+                        }
+                    });
+                },
+                yes: function ($content) {
+                    var ditchId = $content.find('select[name="ditch_id"]').val();
+                    var async = $content.find('input[name="push_async"]').is(':checked');
+                    var transfer = $content.find('input[name="transfer"]:checked').val();
+                    
+                    if (!ditchId) {
+                        layer.msg('请选择渠道商', { icon: 2 });
+                        return false;
+                    }
+                    
+                    // 调用批量推送 JS 模块，传递运输方式参数
+                    OrderBatchPusher.pushWithUI(selectIds, ditchId, {
+                        async: async,
+                        transfer: transfer,
+                        onSuccess: function(data) {
+                            if (!async) {
+                                setTimeout(function() { window.location.reload(); }, 1500);
+                            }
+                        }
+                    });
+                    
+                    return true;
+                }
+            });
+        });
+        
+        /**
          * 批量打印面单
          */
         $('#j-batch-print').on('click', function () {
@@ -2281,6 +2435,70 @@
                 }
             });
         });
+
+        /**
+         * 批量打印云面单 (AmaueUI 版本)
+         */
+        $('#j-batch-cloud-print').on('click', function() {
+            // 1. 获取选中订单
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length === 0) {
+                layer.msg('请先选择要打印的订单', {icon: 5});
+                return;
+            }
+
+            // 2. 识别并分组渠道
+            var groups = {};
+            var noDitchCount = 0;
+            
+            // 遍历所有选中的 checkbox 获取 data-t-number
+            $('input[name="checkIds"]:checked').each(function() {
+                var orderId = $(this).val();
+                var ditchId = $(this).data('t-number');
+                
+                if (!ditchId || ditchId == 0) {
+                    noDitchCount++;
+                    return;
+                }
+                if (!groups[ditchId]) {
+                    groups[ditchId] = [];
+                }
+                groups[ditchId].push(orderId);
+            });
+
+            var keys = Object.keys(groups);
+            
+            // 3. 处理无法打印的情况
+            if (keys.length === 0) {
+                layer.alert('选中的订单尚未推送至渠道商，无打印信息。请先执行“发货”推送订单。', {icon: 7});
+                return;
+            }
+
+            // 4. 执行打印逻辑
+            if (keys.length === 1) {
+                // 单一渠道，直接打印
+                var ditchId = keys[0];
+                OrderBatchPrinter.printWithUI(groups[ditchId], ditchId);
+            } else {
+                // 多渠道，提示用户
+                var msg = '选中订单包含 ' + keys.length + ' 个不同渠道：<br>';
+                keys.forEach(function(dId) {
+                    msg += '- 渠道ID ' + dId + ' (' + groups[dId].length + '单)<br>';
+                });
+                if (noDitchCount > 0) {
+                    msg += '<br><span style="color:red">注：另有 ' + noDitchCount + ' 单未分配渠道被忽略。</span>';
+                }
+                msg += '<br>是否分派多个打印任务并行执行？';
+
+                layer.confirm(msg, {title: '批量打印确认', area: '400px'}, function(index) {
+                    layer.close(index);
+                    keys.forEach(function(ditchId) {
+                        OrderBatchPrinter.printWithUI(groups[ditchId], ditchId);
+                    });
+                });
+            }
+        });
+
         
         /**
          * 合并订单
@@ -2518,6 +2736,9 @@
                     } else if (res.data.mode === 'cainiao') {
                         // 菜鸟组件模式
                         printWithCainiao(res.data);
+                    } else if (res.data.mode === 'jd_cloud_print') {
+                        // 京东云打印模式
+                        printWithJdComponent(res.data);
                     }
                     
                     // 更新打印状态
@@ -2574,6 +2795,9 @@
                         if (res.data.mode === 'sf_plugin') {
                             // 顺丰插件模式 - 打印全部
                             printWithSfPlugin(res.data, true);  // 传递 true 表示打印全部
+                        } else if (res.data.mode === 'jd_cloud_print') {
+                            // 京东云打印模式 - 打印全部
+                            printWithJdComponent(res.data);
                         } else if (res.data.pdf_url) {
                             // PDF模式
                             window.open(res.data.pdf_url, '_blank');
@@ -2800,6 +3024,63 @@
             layer.msg('请先安装菜鸟打印组件', {icon: 0});
         }
     }
+    /**
+     * 京东云打印组件打印
+     * 通过 WebSocket 连接到本地打印服务
+     * @param {object} resData 响应数据
+     */
+    function printWithJdComponent(resData) {
+        var printRequest = resData.printRequest;
+        var sendResult = resData.send_result;
+        
+        console.log('京东打印请求:', printRequest);
+        console.log('服务端发送结果:', sendResult);
+        
+        // 如果服务端已经发送成功（通常是在本地开发环境或局域网环境）
+        if (sendResult && sendResult.success) {
+            layer.msg('打印指令已发送到本地组件 (服务端触发)', {icon: 1});
+            return;
+        }
+        
+        // 如果服务端发送失败，或者为了确保万无一失，前端再次通过 WebSocket 发送
+        var wsUrl = 'ws://127.0.0.1:9113';
+        var loadingIndex = layer.msg('正在连接本地打印组件...', {icon: 16, shade: 0.3, time: 0});
+        
+        try {
+            var socket = new WebSocket(wsUrl);
+            
+            socket.onopen = function() {
+                layer.close(loadingIndex);
+                console.log('京东打印组件 WebSocket 已连接');
+                socket.send(JSON.stringify(printRequest));
+                layer.msg('打印数据已成功推送到本地组件', {icon: 1});
+                
+                // 1秒后自动关闭连接
+                setTimeout(function() {
+                    socket.close();
+                }, 1000);
+            };
+            
+            socket.onerror = function(err) {
+                layer.close(loadingIndex);
+                console.error('WebSocket 错误:', err);
+                layer.msg('未能连接到京东打印组件，请确保组件已启动 (ws://127.0.0.1:9113)', {icon: 2, time: 5000});
+            };
+            
+            socket.onmessage = function(event) {
+                console.log('收到组件响应:', event.data);
+                try {
+                    var response = JSON.parse(event.data);
+                    // 处理组件返回的状态...
+                } catch(e) {}
+            };
+            
+        } catch (error) {
+            layer.close(loadingIndex);
+            console.error('WebSocket 初始化失败:', error);
+            layer.msg('连接打印组件失败: ' + error.message, {icon: 2});
+        }
+    }
 </script>
 
 <style>
@@ -2945,3 +3226,78 @@ function copyAllWaybills(element) {
     $temp.remove();
 }
 </script>
+
+<!-- 引入批量推送 JS -->
+<script src="assets/common/js/order-batch-pusher.js"></script>
+
+<!-- 引入批量打印 JS -->
+<script src="assets/common/js/order-batch-printer.js"></script>
+
+
+<!-- 批量推送模板 -->
+<script id="tpl-batch-push" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择订单数
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'> 共选中 {{ selectCount }} 个订单</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        运输方式
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <label class="am-radio-inline">
+                            <input type="radio" id="transfer-carrier" name="transfer" value="1" data-am-ucheck>
+                            运输商
+                        </label>
+                        <label class="am-radio-inline">
+                            <input type="radio" id="transfer-self" name="transfer" value="0" data-am-ucheck checked>
+                            自有物流（某些物流的代理）
+                        </label>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择渠道商
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <select name="ditch_id" id="batch-push-ditch-select">
+                            <option value="">请选择渠道商</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label">
+                        推送模式
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <label class="am-checkbox">
+                            <input type="checkbox" name="push_async" value="1"> 异步推送（后台执行）
+                        </label>
+                        <small class="am-text-muted">勾选后将在后台异步执行推送任务</small>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <div class="am-u-sm-12">
+                        <div class="am-alert am-alert-warning">
+                            <p><strong>提示：</strong></p>
+                            <ul style="margin:5px 0; padding-left:20px;">
+                                <li>批量推送将把选中的订单推送到同一个渠道商</li>
+                                <li>推送前请确认订单信息正确</li>
+                                <li>推送失败的订单可以重新推送</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
+

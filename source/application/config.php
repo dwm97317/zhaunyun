@@ -168,10 +168,10 @@ return [
         'type' => 'File',
         // 日志保存目录
         'path' => LOG_PATH,
-        // 日志记录级别
-        'level' => [],
+        // 日志记录级别 - 记录 info 和 error 级别
+        'level' => ['info', 'error'],
         // error和sql日志单独记录
-        'apart_level' => ['begin', 'error', 'sql', 'yoshop-info'],
+        'apart_level' => ['error'],
         // 日志大小
         'file_size' => 10485760, // 10MB
     ],
@@ -237,6 +237,10 @@ return [
     
     'en_key' => 'slowertyy9383764726',
     'wxapp_id' =>'10001',
+    
+    // 打印任务日志开关
+    'print_task_log_enabled' => true,  // false=关闭, true=开启
+    
     //分页配置
     'paginate' => [
         'type' => 'bootstrap',

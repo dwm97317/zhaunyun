@@ -397,6 +397,8 @@
 </div>
 
 <script src="//unpkg.com/layui@2.6.8/dist/layui.js"></script>
+<script src="/assets/common/js/order-batch-printer.js"></script>
+
 <script>
 layui.use(['form', 'laydate', 'jquery','table'], function(){
   var form = layui.form;
@@ -620,9 +622,13 @@ function getCurrentDate() {
             <button class="layui-btn layui-btn-sm layui-btn-danger" id="j-wuliu">
               <i class="layui-icon layui-icon-location"></i> 更新物流
             </button>
+            <button class="layui-btn layui-btn-sm layui-btn-primary" id="j-batch-cloud-print">
+              <i class="layui-icon layui-icon-print"></i> 批量打印云面单
+            </button>
             <button class="layui-btn layui-btn-sm" id="j-batch-print">
               <i class="layui-icon layui-icon-print"></i> 打印面单
             </button>
+
             <button class="layui-btn layui-btn-sm layui-btn-warm" id="j-pintuan">
               <i class="layui-icon layui-icon-group"></i> 加入拼团
             </button>
@@ -1948,6 +1954,74 @@ $('#j-batch-print').on('click', function() {
             layer.msg(errorMsg, {icon: 2, time: 3000});
         }
     });
+});
+
+
+/**
+ * 批量打印云面单 (新功能 - 调用 OrderBatchPrinter)
+ */
+$('#j-batch-cloud-print').on('click', function() {
+    // 1. 获取选中订单
+    var checkStatus = table.checkStatus('order-table');
+    var data = checkStatus.data;
+    
+    if (data.length === 0) {
+        layer.msg('请先选择要打印的订单', {icon: 5});
+        return;
+    }
+
+    // 2. 识别并分组渠道
+    var groups = {};
+    var noDitchCount = 0;
+    
+    data.forEach(function(item) {
+        var ditchId = item.t_number;
+        if (!ditchId || ditchId == 0) {
+            noDitchCount++;
+            return;
+        }
+        if (!groups[ditchId]) {
+            groups[ditchId] = [];
+        }
+        groups[ditchId].push(item.id);
+    });
+
+    var keys = Object.keys(groups);
+    
+    // 3. 处理无法打印的情况
+    if (keys.length === 0) {
+        layer.alert('选中的订单尚未推送至渠道商，无打印信息。请先执行“发货”推送订单。', {icon: 7});
+        return;
+    }
+
+    // 4. 执行打印逻辑
+    if (keys.length === 1) {
+        // 单一渠道，直接打印
+        var ditchId = keys[0];
+        OrderBatchPrinter.printWithUI(groups[ditchId], ditchId, {
+            onSuccess: function() {
+                // 成功后根据需要刷新（可选）
+                // table.reload('order-table');
+            }
+        });
+    } else {
+        // 多渠道，提示用户
+        var msg = '选中订单包含 ' + keys.length + ' 个不同渠道：<br>';
+        keys.forEach(function(dId) {
+            msg += '- 渠道ID ' + dId + ' (' + groups[dId].length + '单)<br>';
+        });
+        if (noDitchCount > 0) {
+            msg += '<br><span style="color:red">注：另有 ' + noDitchCount + ' 单未分配渠道被忽略。</span>';
+        }
+        msg += '<br>是否分派多个打印任务并行执行？';
+
+        layer.confirm(msg, {title: '批量打印确认', area: '400px'}, function(index) {
+            layer.close(index);
+            keys.forEach(function(ditchId) {
+                OrderBatchPrinter.printWithUI(groups[ditchId], ditchId);
+            });
+        });
+    }
 });
 
 

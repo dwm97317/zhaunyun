@@ -222,74 +222,269 @@ class OrderBatchPusher
     private static function pushSingleOrder($orderId, $ditchId, $extraParams = [])
     {
         try {
-            // 创建模拟请求对象
-            $request = Request::instance();
-            $request->param([
+            // 🔍 调试日志：开始推送单个订单
+            PrintLogger::info('批量推送', '开始推送单个订单', [
+                'order_id' => $orderId,
+                'ditch_id' => $ditchId,
+                'extra_params' => $extraParams
+            ]);
+            
+            // 构造请求参数
+            $requestParams = [
                 'id' => $orderId,
                 'ditch_id' => $ditchId,
                 'product_id' => isset($extraParams['product_id']) ? $extraParams['product_id'] : ''
+            ];
+            
+            // 🔍 调试日志：记录请求参数
+            PrintLogger::info('批量推送', '请求参数', $requestParams);
+            
+            // 保存原始全局变量
+            $originalGet = $_GET;
+            $originalPost = $_POST;
+            $originalRequest = $_REQUEST;
+            
+            // 设置全局参数
+            $_GET = $requestParams;
+            $_POST = $requestParams;
+            $_REQUEST = $requestParams;
+            
+            PrintLogger::info('批量推送', '全局参数已设置', [
+                'order_id' => $orderId,
+                '_GET' => $_GET,
+                '_POST' => $_POST
             ]);
             
             // 创建 TrOrder 控制器实例
-            $trOrder = new TrOrder($request);
+            PrintLogger::info('批量推送', '准备创建 TrOrder 实例', [
+                'order_id' => $orderId
+            ]);
+            
+            try {
+                // 🔧 优化：强制清除 ThinkPHP Request 单例缓存（确保读取最新的全局变量）
+                if (class_exists('\think\Request')) {
+                    $reflection = new \ReflectionClass('\think\Request');
+                    if ($reflection->hasProperty('instance')) {
+                        $instanceProperty = $reflection->getProperty('instance');
+                        $instanceProperty->setAccessible(true);
+                        $instanceProperty->setValue(null, null);
+                        
+                        PrintLogger::info('批量推送', 'Request 单例已清除', [
+                            'order_id' => $orderId
+                        ]);
+                    }
+                }
+                
+                $trOrder = new TrOrder();
+                PrintLogger::info('批量推送', 'TrOrder 实例创建成功', [
+                    'order_id' => $orderId,
+                    'class' => get_class($trOrder)
+                ]);
+            } catch (\Exception $instanceException) {
+                // 恢复全局变量
+                $_GET = $originalGet;
+                $_POST = $originalPost;
+                $_REQUEST = $originalRequest;
+                
+                PrintLogger::error('批量推送', '创建 TrOrder 实例失败', [
+                    'order_id' => $orderId,
+                    'exception' => $instanceException->getMessage(),
+                    'file' => $instanceException->getFile(),
+                    'line' => $instanceException->getLine()
+                ]);
+                throw $instanceException;
+            }
+            
+            // 🔍 调试日志：调用 sendtoqudaoshang 方法
+            PrintLogger::info('批量推送', '调用 TrOrder::sendtoqudaoshang', [
+                'order_id' => $orderId,
+                'ditch_id' => $ditchId
+            ]);
             
             // 调用现有的推送方法
-            $response = $trOrder->sendtoqudaoshang();
+            try {
+                $response = $trOrder->sendtoqudaoshang();
+                
+                // 🔍 调试日志：调用成功，记录响应
+                PrintLogger::info('批量推送', 'sendtoqudaoshang 调用成功', [
+                    'order_id' => $orderId,
+                    'response_exists' => isset($response),
+                    'response_is_null' => is_null($response),
+                    'response_type' => is_object($response) ? get_class($response) : gettype($response)
+                ]);
+                
+            } catch (\Exception $callException) {
+                // 恢复全局变量
+                $_GET = $originalGet;
+                $_POST = $originalPost;
+                $_REQUEST = $originalRequest;
+                
+                // 🔍 调试日志：调用异常
+                PrintLogger::error('批量推送', 'sendtoqudaoshang 调用异常', [
+                    'order_id' => $orderId,
+                    'exception' => $callException->getMessage(),
+                    'file' => $callException->getFile(),
+                    'line' => $callException->getLine()
+                ]);
+                throw $callException;
+            }
+            
+            // 恢复全局变量
+            $_GET = $originalGet;
+            $_POST = $originalPost;
+            $_REQUEST = $originalRequest;
+            
+            // 🔍 调试日志：记录响应类型
+            PrintLogger::info('批量推送', '响应类型', [
+                'order_id' => $orderId,
+                'response_type' => is_object($response) ? get_class($response) : gettype($response)
+            ]);
             
             // 解析响应
             if (is_object($response)) {
                 // 如果返回的是 Response 对象
                 $data = $response->getData();
                 
+                // 🔍 调试日志：记录响应数据
+                PrintLogger::info('批量推送', '响应数据（Response对象）', [
+                    'order_id' => $orderId,
+                    'data' => $data
+                ]);
+                
                 if (isset($data['code']) && $data['code'] == 1) {
-                    // 成功
-                    PrintLogger::success('批量推送', '订单推送成功', [
-                        'order_id' => $orderId,
-                        'tracking_number' => isset($data['data']['tracking_number']) ? $data['data']['tracking_number'] : ''
-                    ]);
+                    // 成功：检查嵌套的 data.ack
+                    $innerData = isset($data['data']) ? $data['data'] : [];
+                    $ack = isset($innerData['ack']) ? $innerData['ack'] : false;
                     
-                    return [
-                        'ack' => true,
-                        'tracking_number' => isset($data['data']['tracking_number']) ? $data['data']['tracking_number'] : '',
-                        'message' => isset($data['msg']) ? $data['msg'] : '推送成功'
-                    ];
+                    if ($ack === true || $ack === 'true') {
+                        $trackingNumber = isset($innerData['tracking_number']) ? $innerData['tracking_number'] : '';
+                        
+                        PrintLogger::success('批量推送', '订单推送成功', [
+                            'order_id' => $orderId,
+                            'tracking_number' => $trackingNumber
+                        ]);
+                        
+                        return [
+                            'ack' => true,
+                            'tracking_number' => $trackingNumber,
+                            'message' => isset($data['msg']) ? $data['msg'] : '推送成功'
+                        ];
+                    } else {
+                        // code=1 但 ack 不是 true
+                        $errorMsg = isset($innerData['message']) ? $innerData['message'] : '推送失败';
+                        
+                        PrintLogger::error('批量推送', '订单推送失败（ack=false）', [
+                            'order_id' => $orderId,
+                            'error' => $errorMsg,
+                            'inner_data' => $innerData
+                        ]);
+                        return false;
+                    }
                 } else {
                     // 失败
                     $errorMsg = isset($data['msg']) ? $data['msg'] : '推送失败';
-                    PrintLogger::error('批量推送', '订单推送失败', [
+                    
+                    // 🔍 调试日志：记录失败详情
+                    PrintLogger::error('批量推送', '订单推送失败（Response对象）', [
                         'order_id' => $orderId,
-                        'error' => $errorMsg
+                        'error' => $errorMsg,
+                        'full_data' => $data
                     ]);
                     return false;
                 }
             } elseif (is_array($response)) {
                 // 如果直接返回数组
-                if (isset($response['ack']) && ($response['ack'] === true || $response['ack'] === 'true')) {
-                    PrintLogger::success('批量推送', '订单推送成功', [
-                        'order_id' => $orderId,
-                        'tracking_number' => isset($response['tracking_number']) ? $response['tracking_number'] : ''
-                    ]);
-                    return $response;
+                
+                // 🔍 调试日志：记录数组响应
+                PrintLogger::info('批量推送', '收到数组响应', [
+                    'order_id' => $orderId,
+                    'response' => $response
+                ]);
+                
+                // 检查是否是 ThinkPHP 格式 {code, msg, data}
+                if (isset($response['code'])) {
+                    if ($response['code'] == 1) {
+                        // 成功：检查嵌套的 data.ack
+                        $innerData = isset($response['data']) ? $response['data'] : [];
+                        $ack = isset($innerData['ack']) ? $innerData['ack'] : false;
+                        
+                        if ($ack === true || $ack === 'true') {
+                            $trackingNumber = isset($innerData['tracking_number']) ? $innerData['tracking_number'] : '';
+                            
+                            PrintLogger::success('批量推送', '订单推送成功', [
+                                'order_id' => $orderId,
+                                'tracking_number' => $trackingNumber
+                            ]);
+                            
+                            return [
+                                'ack' => true,
+                                'tracking_number' => $trackingNumber,
+                                'message' => isset($response['msg']) ? $response['msg'] : '推送成功'
+                            ];
+                        } else {
+                            // code=1 但 ack 不是 true
+                            $errorMsg = isset($innerData['message']) ? $innerData['message'] : '推送失败';
+                            
+                            PrintLogger::error('批量推送', '订单推送失败（ack=false）', [
+                                'order_id' => $orderId,
+                                'error' => $errorMsg,
+                                'inner_data' => $innerData
+                            ]);
+                            return false;
+                        }
+                    } else {
+                        // code != 1，失败
+                        $errorMsg = isset($response['msg']) ? $response['msg'] : '推送失败';
+                        
+                        PrintLogger::error('批量推送', '订单推送失败（数组响应）', [
+                            'order_id' => $orderId,
+                            'error' => $errorMsg,
+                            'full_response' => $response
+                        ]);
+                        return false;
+                    }
                 } else {
-                    $errorMsg = isset($response['message']) ? $response['message'] : '推送失败';
-                    PrintLogger::error('批量推送', '订单推送失败', [
-                        'order_id' => $orderId,
-                        'error' => $errorMsg
-                    ]);
-                    return false;
+                    // 直接的 ack 格式（旧格式）
+                    if (isset($response['ack']) && ($response['ack'] === true || $response['ack'] === 'true')) {
+                        PrintLogger::success('批量推送', '订单推送成功', [
+                            'order_id' => $orderId,
+                            'tracking_number' => isset($response['tracking_number']) ? $response['tracking_number'] : ''
+                        ]);
+                        return $response;
+                    } else {
+                        $errorMsg = isset($response['message']) ? $response['message'] : '推送失败';
+                        
+                        PrintLogger::error('批量推送', '订单推送失败（直接格式）', [
+                            'order_id' => $orderId,
+                            'error' => $errorMsg,
+                            'full_response' => $response
+                        ]);
+                        return false;
+                    }
                 }
             } else {
+                // 🔍 调试日志：未知响应格式
                 PrintLogger::error('批量推送', '未知响应格式', [
                     'order_id' => $orderId,
-                    'response_type' => gettype($response)
+                    'response_type' => gettype($response),
+                    'response' => $response
                 ]);
                 return false;
             }
             
         } catch (\Exception $e) {
-            PrintLogger::error('批量推送', '推送异常', [
+            // 恢复全局变量（如果还没恢复）
+            if (isset($originalGet)) $_GET = $originalGet;
+            if (isset($originalPost)) $_POST = $originalPost;
+            if (isset($originalRequest)) $_REQUEST = $originalRequest;
+            
+            // 🔍 调试日志：记录异常
+            PrintLogger::error('批量推送', '推送订单异常', [
                 'order_id' => $orderId,
-                'error' => $e->getMessage(),
+                'ditch_id' => $ditchId,
+                'exception' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
             return false;
