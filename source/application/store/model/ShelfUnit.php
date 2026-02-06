@@ -1,0 +1,244 @@
+<?php
+namespace app\store\model;
+use think\Model;
+use app\common\model\ShelfUnit as ShelfUnitModel;
+use app\common\service\QrcodeService;
+use app\store\model\ShelfUnitItem;
+/**
+ * 线路模型
+ * Class Delivery
+ * @package app\common\model
+ */
+class ShelfUnit extends ShelfUnitModel
+{
+    public function getList($query){
+        return $this->setListQueryWhere($query)
+        ->alias('a')
+        ->paginate(30,false,[
+            'query'=>\request()->request()
+        ]);
+    }
+    
+    public function getAllList($query){
+        $ShelfUnitItem = new ShelfUnitItem;
+        return $this->setQueryWhere($query)->alias('a')
+        ->with(['shelf','user'])
+        ->join('shelf se', 'a.shelf_id = se.id',"LEFT")
+        ->join('user u', 'u.user_id = a.user_id',"LEFT")
+        ->paginate(1000,false,[
+            'query'=>\request()->request()
+        ])->each(function($item,$key) use ($ShelfUnitItem){
+            $item['shelfunititem'] = $ShelfUnitItem->where('shelf_unit_id',$item['shelf_unit_id'])->select();
+        });
+    }
+    
+    public function getAllunitList($query){
+        $ShelfUnitItem = new ShelfUnitItem;
+        return $this->setListQueryWhere($query)->alias('a')
+        ->with(['shelf','user'])
+        ->join('shelf se', 'a.shelf_id = se.id',"LEFT")
+        ->join('user u', 'u.user_id = a.user_id',"LEFT")
+        ->select()->each(function($item,$key) use ($ShelfUnitItem){
+            $item['shelfunititem'] = $ShelfUnitItem->where('shelf_unit_id',$item['shelf_unit_id'])->select();
+        });
+    }
+
+    public function setListQueryWhere($query){
+        return $this->where(['shelf_id'=>$query]);
+    }
+    
+    public function setQueryWhere($query){
+        // dump($query);die;
+        !empty($query['ware_no']) && $this->where('se.ware_no','=',$query['ware_no']);
+        !empty($query['shelf_ids']) && $this->where('a.shelf_id','in',$query['shelf_ids']);
+        !empty($query['shelf_id']) && $this->where('a.shelf_id','=',$query['shelf_id']);
+        !empty($query['user_id']) && $this->where('u.user_id','=',$query['user_id']);
+        !empty($query['user_code']) && $this->where('u.user_code','=',$query['user_code']);
+        !empty($query['shelf_unit_id']) && $this->where('a.shelf_unit_id','=',$query['shelf_unit_id']);
+        !empty($query['shelf_unit_ids']) && $this->where('a.shelf_unit_id','in',$query['shelf_unit_ids']);
+        !empty($query['search']) && $this->where('a.shelf_unit_no|a.shelf_unit_id','like','%'.$query['search'].'%');
+        
+        return $this;
+    }
+    
+    public function add($data){
+       // 表单验证
+       if (!$this->onValidate($data)) return false;
+       // 保存数据
+       $data['wxapp_id'] = self::$wxapp_id;
+       if ($this->allowField(true)->save($data)) {
+           return true;
+       }
+       return false;
+    }
+
+    
+    public function details($id){
+       return $this->with(['user'])->find($id);
+    }
+
+    /**
+     * 编辑记录
+     * @param $data
+     * @return bool|int
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+    public function edit($data)
+    {
+        // 表单验证
+        if (!$this->onValidate($data)) return false;
+        return $this->allowField(true)->save($data);
+    }
+    
+    // 获取货位数据
+    public function getWithShelf($query){
+        return $this->setQueryWhere($query)
+        ->with(['shelf','user'])
+        ->alias('a')
+        ->paginate(30,false,[
+            'query'=>\request()->request()
+        ]);
+    }
+    
+    // 重新生成二维码
+    public function resetCode($ids){
+        $list = $this->with('shelf')->where('shelf_unit_id','in',$ids)->select();
+        $qrcodeService = (new QrcodeService());
+        foreach ($list as $v){
+          
+            $update['shelf_unit_qrcode'] = $qrcodeService->createBarcode($v['shelf_unit_code'],$v['shelf']['barcode_type']);
+            $this->where(['shelf_unit_id'=>$v['shelf_unit_id']])->update($update);
+        } 
+        return true;
+    }
+    
+    public function onValidate($data){
+      if (!isset($data['shelf_unit_code']) || empty($data['shelf_unit_code'])) {
+         $this->error = '请输入货架名称';
+         return false;
+      }
+      if (!isset($data['shelf_unit_no']) || empty($data['shelf_unit_no'])) {
+        $this->error = '请输入货架编号';
+        return false;
+      }
+    //   $res = $this->where(['shelf_unit_no'=>$data['shelf_unit_no']])->find();
+    //   if ($res){
+    //       $this->error = '该货位编号已存在';
+    //       return false;
+    //   }
+      return true;
+    }
+    
+    // 删除货位存储
+    public function shelfUnitDataLog($content,$shelf_unit_id){
+        $_log = './storage/shelf/';
+        if (!is_dir($_log)){
+            mkdir($_log,0777);
+        }
+        $_log_file = $_log.'/'.$shelf_unit_id;
+        if (!file_exists($_log_file)){
+            file_put_contents($_log_file,$content);
+            return true;
+        }
+        $old = file_get_contents($_log_file);
+        file_put_contents($_log_file,$old."\r\n".$content);
+        return true;
+    }
+
+    // 生成货位数据
+    public function getShelfUnitData($data, $shelf, $type) {
+        $shelf_unit = [];
+        $qrcodeService = (new QrcodeService());
+        if($data['number_type']==10){
+            $K = 0;
+            for ($i = 1; $i <= $data['shelf_column']; $i++) {
+                for ($j = 1; $j <= $data['shelf_row']; $j++) {
+                    // Format numbers with leading zeros for single-digit numbers
+                    $formattedI = $i < 10 ? '0' . $i : $i;
+                    $formattedJ = $j < 10 ? '0' . $j : $j;
+                    if($data['shelf_column']==1){
+                        $shelf_unit[$K]['shelf_unit_no'] = $data['shelf_no'] . '-' . $formattedJ;
+                        $shelf_unit[$K]['shelf_unit_code'] = $data['shelf_no'] . '-' . $formattedJ;
+                        $shelf_unit[$K]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'] . '-' . $formattedJ, $type);
+                        $shelf_unit[$K]['shelf_id'] = $shelf;
+                        $shelf_unit[$K]['shelf_unit_floor'] = $i; // layer
+                        $shelf_unit[$K]['wxapp_id'] = self::$wxapp_id;
+                        $shelf_unit[$K]['is_nouser'] = $data['is_nouser'];
+                        $shelf_unit[$K]['is_normal'] = $data['is_normal'];
+                        $shelf_unit[$K]['is_big'] = $data['is_big'];
+                        $K++;
+                    }else{
+                        $shelf_unit[$K]['shelf_unit_no'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
+                        $shelf_unit[$K]['shelf_unit_code'] = $data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ;
+                        $shelf_unit[$K]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'] . '-' . $formattedI . '-' . $formattedJ, $type);
+                        $shelf_unit[$K]['shelf_id'] = $shelf;
+                        $shelf_unit[$K]['shelf_unit_floor'] = $i; // layer
+                        $shelf_unit[$K]['wxapp_id'] = self::$wxapp_id;
+                        $shelf_unit[$K]['is_nouser'] = $data['is_nouser'];
+                        $shelf_unit[$K]['is_normal'] = $data['is_normal'];
+                        $shelf_unit[$K]['is_big'] = $data['is_big'];
+                        $K++;
+                    }
+                }
+            }
+        }
+        if($data['number_type']==20){
+            $shelf_unit = [];
+            $allrang = $data['shelf_row']*$data['shelf_column'];
+            $qrcodeService = (new QrcodeService());
+            for ($i = 1; $i <= $allrang ; $i++){
+                //   dump(createQrcodeCode($data['shelf_no'].'S'.$i));die;
+                    $shelf_unit[$i]['shelf_unit_no'] = 'S'.$i;
+                    $shelf_unit[$i]['shelf_unit_code'] = $data['shelf_no'].'S'.$i;
+                    $shelf_unit[$i]['shelf_unit_qrcode'] = $qrcodeService->createBarcode($data['shelf_no'].'S'.$i,$type);
+                    $shelf_unit[$i]['shelf_id'] = $shelf;
+                    $shelf_unit[$i]['shelf_unit_floor'] = $i; //层数
+                    $shelf_unit[$i]['wxapp_id'] = self::$wxapp_id;
+            } 
+        }
+        
+        return $shelf_unit;
+    }  
+    
+    /**
+     * 软删除
+     * @return false|int
+     */
+    public function setDelete()
+    {
+        return $this->delete();
+    }
+    
+     // 关联货架
+    public function Shelf(){
+      return $this->belongsTo('app\store\model\Shelf','shelf_id')->field('id,shelf_no,shelf_name,barcode_type'); 
+    }
+    
+    public function user(){
+      return $this->belongsTo('app\store\model\User','user_id','user_id')->field('user_id,user_code,nickName,avatarUrl'); 
+    }
+    
+    // 根据货架移除货位
+    public function remove($shelf_id){
+        $shelf_unit = $this->where(['shelf_id'=>$shelf_id])->select();
+        if ($shelf_unit->isEmpty()){
+            return true;
+        }
+        $shelfunititem = new ShelfUnitItem();
+        $_count = 0;
+        foreach ($shelf_unit as $v){
+            // 查询货位是否存在数据
+            $_map = ['shelf_unit_id'=>$v['shelf_unit_id']];
+            $res = $shelfunititem->where($_map)->select();
+            if (!$res->isEmpty()){
+                 $content = var_export($res,true);
+                 $this->shelfUnitDataLog($content,$v['shelf_unit_id']);
+            }
+            $del = $shelfunititem->where($_map)->delete();
+            if ($del)
+                $_count++;
+        }
+        return $_count==count($shelf_unit)?true:false;
+    }
+}

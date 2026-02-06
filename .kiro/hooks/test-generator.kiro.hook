@@ -1,0 +1,47 @@
+{
+  "enabled": true,
+  "name": "Test Generator Local - Generador de Pruebas Automáticas",
+  "description": "Genera pruebas unitarias, de integración y E2E automáticamente (Hook Local)",
+  "version": "1.0",
+  "when": {
+    "type": "manual"
+  },
+  "parameters": {
+    "tipoTest": {
+      "type": "select",
+      "description": "Tipo de prueba",
+      "options": [
+        "Unit - Pruebas unitarias",
+        "Integration - Pruebas de integración",
+        "E2E - Pruebas end-to-end",
+        "API - Pruebas de API",
+        "Component - Pruebas de componentes"
+      ],
+      "default": "Unit - Pruebas unitarias",
+      "required": true
+    },
+    "archivo": {
+      "type": "string",
+      "description": "Archivo a testear",
+      "required": true
+    },
+    "framework": {
+      "type": "select",
+      "description": "Framework de testing",
+      "options": [
+        "Jest",
+        "Vitest",
+        "Mocha",
+        "Cypress",
+        "Playwright",
+        "Testing Library"
+      ],
+      "default": "Jest",
+      "required": true
+    }
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Eres un experto en testing y calidad de software.\n\n## 🎯 PARÁMETROS:\n- **Tipo:** {{tipoTest}}\n- **Archivo:** {{archivo}}\n- **Framework:** {{framework}}\n- **Proyecto:** Nequi\n\n## 🧪 GENERA PRUEBAS COMPLETAS:\n\n### 1. **ANÁLISIS DEL CÓDIGO**\nAnaliza el archivo especificado para identificar:\n- Funciones y métodos públicos\n- Casos de uso principales\n- Casos edge y errores\n- Dependencias y mocks necesarios\n- Estados y comportamientos\n\n### 2. **ESTRUCTURA DE PRUEBAS**\n\n#### **Pruebas Unitarias (Jest/Vitest)**\n```typescript\nimport { {función} } from './{archivo}';\n\ndescribe('{NombreClase/Módulo}', () => {\n  beforeEach(() => {\n    // Setup común\n  });\n\n  afterEach(() => {\n    // Cleanup\n  });\n\n  describe('{nombreFunción}', () => {\n    it('should {comportamiento esperado} when {condición}', () => {\n      // Arrange\n      const input = {datos de entrada};\n      const expected = {resultado esperado};\n\n      // Act\n      const result = {función}(input);\n\n      // Assert\n      expect(result).toBe(expected);\n    });\n\n    it('should throw error when {condición de error}', () => {\n      // Arrange\n      const invalidInput = {datos inválidos};\n\n      // Act & Assert\n      expect(() => {función}(invalidInput)).toThrow({error esperado});\n    });\n\n    it('should handle edge case: {caso específico}', () => {\n      // Test para casos límite\n    });\n  });\n});\n```\n\n#### **Pruebas de Integración**\n```typescript\nimport request from 'supertest';\nimport app from '../app';\n\ndescribe('Integration Tests - {Módulo}', () => {\n  beforeAll(async () => {\n    // Setup de base de datos de prueba\n  });\n\n  afterAll(async () => {\n    // Cleanup de base de datos\n  });\n\n  describe('POST /{endpoint}', () => {\n    it('should create {recurso} successfully', async () => {\n      const payload = {\n        // datos de prueba\n      };\n\n      const response = await request(app)\n        .post('/{endpoint}')\n        .send(payload)\n        .expect(201);\n\n      expect(response.body).toMatchObject({\n        // estructura esperada\n      });\n    });\n  });\n});\n```\n\n#### **Pruebas E2E (Cypress/Playwright)**\n```typescript\ndescribe('{Feature} E2E Tests', () => {\n  beforeEach(() => {\n    cy.visit('/{página}');\n  });\n\n  it('should complete {flujo principal} successfully', () => {\n    // Arrange\n    cy.get('[data-testid=\"input\"]').type('{valor}');\n    \n    // Act\n    cy.get('[data-testid=\"submit-button\"]').click();\n    \n    // Assert\n    cy.get('[data-testid=\"result\"]').should('contain', '{resultado esperado}');\n  });\n\n  it('should handle error state when {condición}', () => {\n    // Test de manejo de errores\n  });\n});\n```\n\n### 3. **CASOS DE PRUEBA ESENCIALES**\n\n#### ✅ **Happy Path**\n- Casos de uso principales\n- Flujos exitosos\n- Datos válidos\n\n#### ⚠️ **Edge Cases**\n- Valores límite\n- Datos vacíos/null\n- Casos extremos\n\n#### 🚨 **Error Handling**\n- Datos inválidos\n- Errores de red\n- Excepciones\n\n#### 🔄 **State Management**\n- Estados iniciales\n- Transiciones\n- Estados finales\n\n### 4. **MOCKS Y STUBS**\n```typescript\n// Mock de dependencias externas\njest.mock('{dependencia}', () => ({\n  {método}: jest.fn()\n}));\n\n// Mock de APIs\nconst mockApiCall = jest.fn();\nmockApiCall.mockResolvedValue({datos de respuesta});\n```\n\n### 5. **CONFIGURACIÓN DE TESTING**\n\n#### **Jest Configuration**\n```json\n{\n  \"testEnvironment\": \"node\",\n  \"collectCoverageFrom\": [\n    \"src/**/*.{js,ts}\",\n    \"!src/**/*.d.ts\"\n  ],\n  \"coverageThreshold\": {\n    \"global\": {\n      \"branches\": 80,\n      \"functions\": 80,\n      \"lines\": 80,\n      \"statements\": 80\n    }\n  }\n}\n```\n\n### 6. **COMANDOS DE EJECUCIÓN**\n```bash\n# Ejecutar pruebas\nnpm test\n\n# Ejecutar con coverage\nnpm run test:coverage\n\n# Ejecutar en modo watch\nnpm run test:watch\n\n# Ejecutar pruebas específicas\nnpm test -- --testNamePattern=\"{patrón}\"\n```\n\n### 7. **MÉTRICAS DE CALIDAD**\n- 📊 Coverage mínimo: 80%\n- 🎯 Casos de prueba por función: 3-5\n- ⚡ Tiempo de ejecución: < 100ms por test\n- 🔄 Tests independientes y determinísticos\n\nGenera pruebas completas, mantenibles y efectivas."
+  }
+}

@@ -1,0 +1,183 @@
+<?php
+
+namespace app\task\model;
+
+use app\common\model\User as UserModel;
+use app\task\model\user\GradeLog as GradeLogModel;
+use app\common\enum\user\grade\log\ChangeType as ChangeTypeEnum;
+
+/**
+ * 用户模型
+ * Class User
+ * @package app\task\model
+ */
+class User extends UserModel
+{
+    /**
+     * 获取用户信息
+     * @param $where
+     * @param array $with
+     * @return static|UserModel|null
+     * @throws \think\exception\DbException
+     */
+    public static function detail($where, $with = [])
+    {
+        return parent::detail($where, $with);
+    }
+
+    /**
+     * 查询满足会员等级升级条件的用户列表
+     * @param $upgradeGrade
+     * @param array $excludedUserIds
+     * @return false|\PDOStatement|string|\think\Collection
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function getUpgradeUserList($upgradeGrade, $excludedUserIds = [])
+    {
+        if (!empty($excludedUserIds)) {
+            $this->where('user.user_id', 'not in', $excludedUserIds);
+        }
+        return $this->alias('user')
+            ->field(['user.user_id', 'user.grade_id'])
+            ->join('user_grade grade', 'grade.grade_id = user.grade_id', 'LEFT')
+            ->where(function ($query) use ($upgradeGrade) {
+                $query->where('user.grade_id', '=', 0);
+                $query->whereOr('grade.weight', '<', $upgradeGrade['weight']);
+            })
+            ->where('user.expend_money', '>=', $upgradeGrade['upgrade']['expend_money'])
+            ->where('user.is_delete', '=', 0)
+            ->select();
+    }
+    
+    /**
+     * 获取可用的会员等级列表
+     * @param null $wxappId
+     * @param array $order 排序规则
+     * @return false|\PDOStatement|string|\think\Collection
+     */
+    public function getBirthdayList()
+    {
+        $today = date("m-d"); // 当前月份和日期，如 "05-20"
+        $nextMonth = date("m-d", strtotime("+30 days")); // 30天后的月份和日期，如 "06-19"
+       
+        // 如果没有跨年（如 05-20 < 06-19）
+        if ($today <= $nextMonth) {
+            return $this->whereRaw("DATE_FORMAT(birthday, '%m-%d') BETWEEN '{$today}' AND '{$nextMonth}'")
+                ->where('grade_id', '>', '0')
+                ->where('is_delete', '=', '0')
+                ->select();
+        } 
+        // 如果跨年（如 12-20 < 01-19）
+        else {
+            return $this->where(function($query) use ($today, $nextMonth) {
+                    $query->whereRaw("DATE_FORMAT(birthday, '%m-%d') >= '{$today}'") // 大于等于今天（12月）
+                        ->orWhereRaw("DATE_FORMAT(birthday, '%m-%d') <= '{$nextMonth}'"); // 或小于等于下个月（1月）
+                })
+                ->where('grade_id', '>', '0')
+                ->where('is_delete', '=', '0')
+                ->select();
+        }
+    }
+    
+    
+    /**
+     * 获取今天生日的会员列表
+     * @param null $wxappId
+     * @param array $order 排序规则
+     * @return false|\PDOStatement|string|\think\Collection
+     */
+    public function getVipBirthdayUserList()
+    {
+        $today = date("m-d"); // 当前月份和日期，如 "05-20"
+        
+        return $this->whereRaw("DATE_FORMAT(birthday, '%m-%d') = '{$today}'")
+            ->where('grade_id', '>', '0')
+            ->where('is_delete', '=', '0')
+            ->select();
+    }
+    
+    /**
+     * 查询会员时间到期的用户列表
+     * @param $upgradeGrade
+     * @param array $excludedUserIds
+     * @return false|\PDOStatement|string|\think\Collection
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function getVipendTimeUserList()
+    {
+        return $this->alias('user')
+            ->field(['user.user_id', 'user.grade_id'])
+            ->where('user.grade_time', '<=', time())
+            ->where('user.grade_time', '>',0)
+            ->where('user.is_delete', '=', 0)
+            ->select();
+    }
+    
+    /**
+     * 批量设置会员等级到期
+     * @param $data
+     * @return array|false
+     * @throws \Exception
+     */
+    public function setBatchVipGrade($data)
+    {
+        // 批量更新会员等级的数据
+        $userData = [];
+        // 批量更新会员等级变更记录的数据
+        $logData = [];
+        foreach ($data as $item) {
+            $userData[] = [
+                'user_id' => $item['user_id'],
+                'grade_id' => $item['new_grade_id'],
+                'grade_time'=>$item['grade_time'],
+            ];
+            $logData[] = [
+                'user_id' => $item['user_id'],
+                'old_grade_id' => $item['old_grade_id'],
+                'new_grade_id' => $item['new_grade_id'],
+                'change_type' => ChangeTypeEnum::AUTO_DOWNGRADE,
+            ];
+        }
+        // 批量更新会员等级
+        $status = $this->isUpdate()->saveAll($userData);
+        // 批量更新会员等级变更记录
+        (new GradeLogModel)->records($logData);
+        return $status;
+    }
+
+    /**
+     * 批量设置会员等级
+     * @param $data
+     * @return array|false
+     * @throws \Exception
+     */
+    public function setBatchGrade($data)
+    {
+        // 批量更新会员等级的数据
+        $userData = [];
+        // 批量更新会员等级变更记录的数据
+        $logData = [];
+        foreach ($data as $item) {
+            $userData[] = [
+                'user_id' => $item['user_id'],
+                'grade_id' => $item['new_grade_id'],
+            ];
+            $logData[] = [
+                'user_id' => $item['user_id'],
+                'old_grade_id' => $item['old_grade_id'],
+                'new_grade_id' => $item['new_grade_id'],
+                'change_type' => ChangeTypeEnum::AUTO_UPGRADE,
+            ];
+        }
+        // 批量更新会员等级
+        $status = $this->isUpdate()->saveAll($userData);
+        // 批量更新会员等级变更记录
+        (new GradeLogModel)->records($logData);
+        return $status;
+    }
+
+}

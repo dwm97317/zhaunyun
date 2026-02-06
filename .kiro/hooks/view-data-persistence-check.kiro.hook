@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "视图与数据持久化检查",
+  "description": "当编辑视图文件或控制器时，检查是否正确理解视图和数据持久化的概念，确保视图只负责展示，数据操作在控制器/模型层完成",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.php"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "检查刚编辑的文件是否遵循配置数据持久化原则：\n\n## 🎯 核心原则：配置必须可持久化\n\n**所有在视图中展示的配置项，必须支持从数据库中进行 CRUD 操作**\n\n### ✅ 正确做法：配置存储在数据库\n\n**示例场景**：顺丰打印配置\n- 打印选项（是否预览、打印机选择）→ 存储在 `yoshop_ditch.sf_print_options` (JSON)\n- 运单配置（模板编码、字段映射）→ 存储在 `yoshop_ditch.sf_waybill_config` (JSON)\n- API 配置（app_key、app_token）→ 存储在 `yoshop_ditch` 表字段\n\n**数据流**：\n```\n视图展示配置 ← 控制器读取 ← 数据库字段\n     ↓\n用户修改配置 → 控制器保存 → 数据库字段\n```\n\n### ❌ 错误做法：配置硬编码\n\n```php\n// ❌ 错误：硬编码在代码中\n$printOptions = [\n    'enable_preview' => true,\n    'default_printer' => 'HP LaserJet'\n];\n\n// ✅ 正确：从数据库读取\n$ditchInfo = Db::table('yoshop_ditch')->find($id);\n$printOptions = json_decode($ditchInfo['sf_print_options'], true);\n```\n\n## 🔍 检查清单\n\n### 1. 视图文件检查 (view/*.php)\n\n检查配置项是否来自数据库：\n- ✅ 配置通过 `$config` 变量传递（来自控制器）\n- ✅ 有对应的表单可以修改配置\n- ❌ 配置直接硬编码在视图中\n- ❌ 使用 PHP 常量定义配置\n\n**示例**：\n```php\n<!-- ✅ 正确：配置来自数据库 -->\n<input type=\"checkbox\" <?php echo $printOptions['enable_preview'] ? 'checked' : ''; ?>>\n\n<!-- ❌ 错误：硬编码 -->\n<input type=\"checkbox\" checked>\n```\n\n### 2. 控制器文件检查 (controller/*.php)\n\n检查是否实现了配置的 CRUD：\n- ✅ **读取 (Read)**：从数据库读取配置传递给视图\n- ✅ **创建 (Create)**：初始化默认配置并保存到数据库\n- ✅ **更新 (Update)**：接收表单提交，更新数据库配置\n- ✅ **删除 (Delete)**：支持重置或删除配置\n\n**必须检查的方法**：\n```php\n// 读取配置\npublic function edit() {\n    $config = Db::table('yoshop_ditch')->find($id);\n    return $this->fetch('edit', ['config' => $config]);\n}\n\n// 保存配置\npublic function save() {\n    $data = $this->request->post();\n    Db::table('yoshop_ditch')->where('id', $id)->update($data);\n}\n```\n\n### 3. 数据库字段检查\n\n使用 MCP MySQL 工具验证配置字段是否存在：\n```\nmcp_mysql_xinsuju_sql_query({\n  sql: \"SHOW COLUMNS FROM yoshop_ditch\"\n})\n```\n\n检查配置字段：\n- ✅ `sf_print_options` (TEXT/JSON) - 打印选项配置\n- ✅ `sf_waybill_config` (TEXT/JSON) - 运单配置\n- ✅ `app_key`, `app_token` - API 配置\n- ⚠️ 如果配置字段不存在，需要添加\n\n### 4. 配置格式检查\n\n**JSON 配置字段**：\n```php\n// ✅ 正确：使用 JSON 存储复杂配置\n$printOptions = [\n    'enable_preview' => true,\n    'enable_printer_select' => true,\n    'default_printer' => 'HP LaserJet Pro'\n];\n$jsonConfig = json_encode($printOptions);\nDb::table('yoshop_ditch')->update(['sf_print_options' => $jsonConfig]);\n\n// ✅ 正确：读取时解析 JSON\n$config = Db::table('yoshop_ditch')->find($id);\n$printOptions = json_decode($config['sf_print_options'], true);\n```\n\n## 📊 报告格式\n\n### 发现问题时：\n```\n❌ 配置硬编码问题\n文件: view/setting/ditch/edit.php\n问题: 第 45 行打印选项硬编码为 true\n当前: <input type=\"checkbox\" checked>\n建议: 从数据库读取配置\n修改: <input type=\"checkbox\" <?php echo $config['enable_preview'] ? 'checked' : ''; ?>>\n\n⚠️ 缺少配置保存功能\n文件: controller/setting/Ditch.php\n问题: 只有读取配置，没有保存方法\n建议: 添加 save() 方法处理表单提交\n\n⚠️ 数据库字段不存在\n表: yoshop_ditch\n问题: 缺少 sf_print_options 字段\n建议: 执行 ALTER TABLE 添加字段\n```\n\n### 没有问题时：\n```\n✅ 配置数据持久化正确\n- 配置从数据库读取\n- 支持通过界面修改\n- 修改后保存到数据库\n- 数据库字段存在且类型正确\n```\n\n## 🎯 重点检查场景\n\n1. **渠道配置** (`yoshop_ditch` 表)\n   - API 配置、打印选项、运单配置\n\n2. **系统设置** (`yoshop_setting` 表)\n   - 全局配置项\n\n3. **用户偏好** (用户相关表)\n   - 个性化设置\n\n## 注意事项\n- 如果文件不涉及配置，回复\"不涉及配置数据\"\n- 重点检查 view/setting/ 和 controller/setting/ 目录\n- 使用 MCP MySQL 工具验证数据库字段\n- 保持简洁，只报告关键问题"
+  }
+}

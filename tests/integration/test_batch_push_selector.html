@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>批量推送选择器测试</title>
+    <link rel="stylesheet" href="http://localhost:8080/assets/common/plugins/amazeui/css/amazeui.min.css">
+    <style>
+        body { padding: 20px; font-family: Arial, sans-serif; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; }
+        .test-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        .test-result { margin-top: 10px; padding: 10px; background: #f5f5f5; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>批量推送选择器测试</h1>
+    
+    <div class="test-section">
+        <div class="test-title">测试 1: 模拟 Delivery 页面 (后端直接传递数据)</div>
+        <div class="am-form-group">
+            <label>运输方式</label>
+            <div>
+                <label class="am-radio-inline">
+                    <input type="radio" name="test1_transfer" value="1" data-am-ucheck checked onchange="test1_onChange('c1')">
+                    运输商
+                </label>
+                <label class="am-radio-inline">
+                    <input type="radio" name="test1_transfer" value="0" data-am-ucheck onchange="test1_onChange('c2')">
+                    自有物流
+                </label>
+            </div>
+        </div>
+        
+        <div id="test1_c1" class="test1_c">
+            <label>承运商</label>
+            <select id="test1_carrier" data-am-selected="{searchBox: 1, maxHeight:300}">
+                <option value="">选择承运商</option>
+                <option value="SF">顺丰-SF</option>
+                <option value="ZTO">中通-ZTO</option>
+            </select>
+        </div>
+        
+        <div id="test1_c2" class="test1_c" style="display:none;">
+            <label>渠道商</label>
+            <select id="test1_ditch" data-am-selected="{searchBox: 1, maxHeight:300}">
+                <option value="">选择渠道商</option>
+                <option value="10001" data-ditch-type="1">浙江锦联国际物流-10001</option>
+                <option value="10016" data-ditch-type="1">DW-11</option>
+            </select>
+        </div>
+        
+        <div class="test-result">
+            <strong>预期结果:</strong> 选择器正常显示，可以选择选项<br>
+            <strong>实际结果:</strong> <span id="test1_result">等待测试...</span>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">测试 2: 模拟批量推送页面 (AJAX 动态加载)</div>
+        <button type="button" class="am-btn am-btn-primary" onclick="test2_openModal()">打开批量推送弹窗</button>
+        
+        <div class="test-result">
+            <strong>预期结果:</strong> 弹窗打开后，渠道商列表正常显示<br>
+            <strong>实际结果:</strong> <span id="test2_result">等待测试...</span>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">测试 3: 动态更新选项</div>
+        <button type="button" class="am-btn am-btn-secondary" onclick="test3_updateOptions()">动态更新选项</button>
+        <div style="margin-top:10px;">
+            <select id="test3_select">
+                <option value="">请选择</option>
+                <option value="1">选项1</option>
+                <option value="2">选项2</option>
+            </select>
+        </div>
+        
+        <div class="test-result">
+            <strong>预期结果:</strong> 点击按钮后，选项更新为新的列表<br>
+            <strong>实际结果:</strong> <span id="test3_result">等待测试...</span>
+        </div>
+    </div>
+    
+    <!-- 批量推送模板 -->
+    <script id="tpl-batch-push" type="text/template">
+        <div class="am-padding-xs">
+            <div class="am-form-group">
+                <label>运输方式</label>
+                <div>
+                    <label class="am-radio-inline">
+                        <input type="radio" name="transfer" value="1" data-am-ucheck>
+                        运输商
+                    </label>
+                    <label class="am-radio-inline">
+                        <input type="radio" name="transfer" value="0" data-am-ucheck checked>
+                        自有物流
+                    </label>
+                </div>
+            </div>
+            <div class="am-form-group">
+                <label>选择渠道商</label>
+                <select name="ditch_id" id="batch-push-ditch-select">
+                    <option value="">请选择渠道商</option>
+                </select>
+            </div>
+        </div>
+    </script>
+    
+    <script src="http://localhost:8080/assets/common/plugins/jquery/jquery.min.js"></script>
+    <script src="http://localhost:8080/assets/common/plugins/amazeui/js/amazeui.min.js"></script>
+    <script src="http://localhost:8080/assets/common/plugins/layer/layer.js"></script>
+    <script src="http://localhost:8080/assets/common/plugins/art-template/template-web.js"></script>
+    
+    <script>
+        // 测试 1: 运输方式切换
+        function test1_onChange(tab) {
+            $('.test1_c').hide();
+            $('#test1_' + tab).show();
+            $('#test1_result').html('<span class="success">✓ 切换成功</span>');
+        }
+        
+        // 测试 2: 模拟批量推送
+        function test2_openModal() {
+            var html = template('tpl-batch-push', {});
+            
+            layer.open({
+                type: 1,
+                title: '批量推送测试',
+                area: ['500px', '400px'],
+                content: html,
+                success: function(layero, index) {
+                    var $content = $(layero);
+                    var $select = $content.find('#batch-push-ditch-select');
+                    
+                    // 检查是否已初始化
+                    if ($select.data('amui.selected')) {
+                        $select.selected('destroy');
+                        console.log('销毁了旧实例');
+                    }
+                    
+                    // 模拟 AJAX 返回数据
+                    setTimeout(function() {
+                        var ditchList = [
+                            {ditch_id: 10001, ditch_name: '浙江锦联国际物流', ditch_type: 1},
+                            {ditch_id: 10016, ditch_name: 'DW', ditch_type: 1},
+                            {ditch_id: 10017, ditch_name: '3011', ditch_type: 1}
+                        ];
+                        
+                        // 添加选项
+                        $select.find('option:not(:first)').remove();
+                        $.each(ditchList, function(index, item) {
+                            $select.append(
+                                $('<option></option>')
+                                    .val(item.ditch_id)
+                                    .text(item.ditch_name)
+                            );
+                        });
+                        
+                        console.log('选项数量:', $select.find('option').length);
+                        
+                        // 手动初始化
+                        $select.selected({
+                            searchBox: 1,
+                            btnSize: 'sm',
+                            placeholder: '请选择渠道商',
+                            maxHeight: 400
+                        });
+                        
+                        console.log('组件已初始化');
+                        
+                        // 检查结果
+                        setTimeout(function() {
+                            var $btn = $content.find('.am-selected-btn');
+                            if ($btn.length > 0) {
+                                $('#test2_result').html('<span class="success">✓ 组件初始化成功，选项数量: ' + ditchList.length + '</span>');
+                            } else {
+                                $('#test2_result').html('<span class="error">✗ 组件初始化失败</span>');
+                            }
+                        }, 500);
+                        
+                    }, 500);
+                }
+            });
+        }
+        
+        // 测试 3: 动态更新选项
+        function test3_updateOptions() {
+            var $select = $('#test3_select');
+            
+            // 先初始化组件
+            if (!$select.data('amui.selected')) {
+                $select.selected({
+                    searchBox: 1,
+                    maxHeight: 300
+                });
+            }
+            
+            // 销毁旧组件
+            $select.selected('destroy');
+            
+            // 更新选项
+            $select.find('option:not(:first)').remove();
+            var newOptions = [
+                {value: 'a', text: '新选项A'},
+                {value: 'b', text: '新选项B'},
+                {value: 'c', text: '新选项C'}
+            ];
+            
+            $.each(newOptions, function(index, item) {
+                $select.append(
+                    $('<option></option>')
+                        .val(item.value)
+                        .text(item.text)
+                );
+            });
+            
+            // 重新初始化
+            $select.selected({
+                searchBox: 1,
+                maxHeight: 300
+            });
+            
+            $('#test3_result').html('<span class="success">✓ 选项已更新为: ' + newOptions.map(o => o.text).join(', ') + '</span>');
+        }
+        
+        // 页面加载完成后的检查
+        $(function() {
+            setTimeout(function() {
+                var test1_btn = $('#test1_carrier').next('.am-selected-btn');
+                if (test1_btn.length > 0) {
+                    $('#test1_result').html('<span class="success">✓ 自动初始化成功</span>');
+                } else {
+                    $('#test1_result').html('<span class="error">✗ 自动初始化失败</span>');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

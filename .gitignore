@@ -1,0 +1,23 @@
+.idea
+composer.lock
+*.log
+*.txt
+*.css.map
+.sass-cache
+web/excel
+web/html5
+web/uploads
+web/datascreen
+web/barcode
+web/lang
+
+# User Requested Exclusions
+*.md
+*.docx
+*.pdf
+test_*.php
+test_*.py
+test_*.ps1
+web/test_*.php
+temp_*.php
+*_old.php

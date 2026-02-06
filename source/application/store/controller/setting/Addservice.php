@@ -1,0 +1,83 @@
+<?php
+namespace app\store\controller\setting;
+
+use app\store\controller\Controller;
+use app\store\model\LineService;
+use app\store\model\LineCategory as LineCategoryModel;
+use app\store\model\Countries;
+
+/**
+ * 线路设置
+ * Class Delivery
+ * @package app\store\controller\setting
+ */
+class Addservice extends Controller
+{
+
+
+    /**
+     * 用户列表
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function index(){
+        $list = (new LineService())->getList([]);
+        // dump($list->toArray());die;
+        return $this->fetch('index', compact('list'));
+    }
+
+    /**
+     * 新增价格
+     */
+    public function add(){
+        if (!$this->request->isAjax()) {
+            $linecategory = LineCategoryModel::getALL();
+            $countryList = (new Countries())->getListAll();
+            return $this->fetch('add',compact('linecategory','countryList'));
+        }
+        // 新增记录
+        $model = new LineService();
+        if ($model->add($this->postData('line'))) {
+            return $this->renderSuccess('添加成功', url('setting.addservice/index'));
+        }
+        return $this->renderError($model->getError() ?: '添加失败');
+    }
+
+
+    /**
+     * 编辑打包服务
+     */
+    public function edit($id){
+        // 模板详情
+        $model = (new LineService())->details($id);
+        $model['rule'] = json_decode($model['rule'],true);
+        if (!$this->request->isAjax()) {
+            $linecategory = LineCategoryModel::getALL();
+            $countryList = (new Countries())->getListAll();
+            // dump($model);die;
+            return $this->fetch('edit', compact('model','linecategory','countryList'));
+        }
+        // 更新记录
+        if ($model->edit($this->postData('line'))) {
+            return $this->renderSuccess('更新成功', url('setting.addservice/index'));
+        }
+        return $this->renderError($model->getError() ?: '更新失败');
+    }
+
+/**
+     * 删除模板
+     * @param $delivery_id
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     * @throws \think\exception\PDOException
+     */
+    public function delete($id)
+    {
+        $model = (new LineService())->deletes($id);
+        if (!$model) {
+            return $this->renderError($model->getError() ?: '删除失败');
+        }
+        return $this->renderSuccess('删除成功');
+    }
+}

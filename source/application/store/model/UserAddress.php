@@ -1,0 +1,247 @@
+<?php
+
+namespace app\store\model;
+use think\Model;
+use app\common\model\UserAddress as UserAddressModel;
+use app\store\model\Setting as SettingModel;
+use think\Session;
+/**
+ * 用户收货地址模型
+ * Class UserAddress
+ * @package app\store\model
+ */
+class UserAddress extends UserAddressModel
+{
+    
+    /**
+     * 获取列表记录
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getList($user_id)
+    {
+        return $this
+            ->where('address_type',0)
+            ->where('user_id',$user_id)
+            ->paginate(15, false, [
+                'query' => request()->request()
+            ]);
+    }
+    
+    
+     /**
+     * 获取列表记录
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getDsList()
+    {
+        return $this->with(['countrydata'])
+            ->where('address_type',2)//获取代收点的地址
+            ->paginate(15, false, [
+                'query' => request()->request()
+            ]);
+    }
+    
+    /**
+     * 获取列表记录
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getAllDsList()
+    {
+        return $this->with(['countrydata'])
+            ->where('address_type',2)//获取代收点的地址
+            ->select();
+    }
+    
+    
+    /**
+     * 获取列表记录
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getAllList($user_id,$query)
+    {
+        // 检索查询条件
+        !empty($query) && $this->setWhere($query);
+        return $this
+            ->where('address_type',2)//获取代收点的地址
+            ->whereOr('user_id',$user_id)
+            // ->group('address_type',desc)//获取代收点的地址
+            ->paginate(15, false, [
+                'query' => request()->request()
+            ]);
+    }
+    
+    /**
+     * 获取列表记录（关联用户信息）
+     * @return \think\Paginator
+     * @throws \think\exception\DbException
+     */
+    public function getAll($query)
+    {
+        // 检索查询条件
+        !empty($query) && $this->setWhereAll($query);
+        return $this
+            ->with(['user'])
+            ->paginate(15, false, [
+                'query' => request()->request()
+            ]);
+    }
+    
+   /**
+     * 设置检索查询条件（增强搜索，支持用户ID、用户CODE、收件人、手机号、国家）
+     * @param $query
+     */
+    private function setWhereAll($query)
+    {
+        if (isset($query) && !empty($query)) {
+            $query = trim($query);
+            $this->where(function($q) use ($query) {
+                $q->whereOr('country', 'like', '%' . $query . '%')
+                  ->whereOr('name', 'like', '%' . $query . '%')
+                  ->whereOr('phone', 'like', '%' . $query . '%')
+                  ->whereOr('user_id', '=', $query)
+                  ->whereOr('user_id', 'in', function($subQuery) use ($query) {
+                      $subQuery->table('yoshop_user')
+                               ->where('user_code', 'like', '%' . $query . '%')
+                               ->whereOr('nickName', 'like', '%' . $query . '%')
+                               ->field('user_id');
+                  });
+            });
+        }
+    }
+    
+      /**
+     * 关联用户
+     */
+    public function user()
+    {
+        return $this->belongsTo('User', 'user_id', 'user_id')
+            ->field('user_id, user_code, nickName');
+    }
+    
+        /**
+     * 设置检索查询条件
+     * @param $query
+     */
+    private function setWhere($query)
+    {
+        if (isset($query) && !empty($query)) {
+            $this->where('country|name', 'like', '%' . trim($query) . '%');
+        }
+
+    }
+    
+    /**
+     * 新增记录
+     * @param $data
+     * @return bool
+     * @throws \Exception
+     */
+    public function add($data)
+    {
+        if (!$this->validateForm($data)) {
+            return false;
+        }
+        $data['wxapp_id'] = self::$wxapp_id;
+        return $this->allowField(true)->save($data);
+    }
+    
+    
+        /**
+     * 表单验证
+     * @param $data
+     * @param string $scene
+     * @return bool
+     */
+    private function validateForm($data)
+    {
+        if(!$data['phone']){
+            $this->error = '手机号不能为空';
+            return false;  
+        }
+        return true;
+    }
+    
+      /**
+     * 编辑记录
+     * @param $data
+     * @return false|int
+     */
+    public function edit($data)
+    {
+    
+        if (!$this->validateForm($data)) {
+            return false;
+        }
+        return $this->allowField(true)->save($data) !== false;
+    }
+    
+     /**
+     * 删除
+     * @return false|int
+     */
+    public function remove()
+    {
+        $res = $this->delete(); 
+          if(!$res){
+            $this->error = '删除失败';
+            return false;   
+          }
+        return true;   
+    }
+    
+    /**
+     * 详情
+     * @return false|int
+     */
+    public static function detail($id)
+    {
+         return self::find($id);
+    }
+    
+    /**
+     * 隐藏手机号
+     * @return 
+     * @throws \think\exception\DbException
+     */
+    public function getPhoneAttr($value){
+        if(empty($value)){
+            return '';
+        }
+        $store = Session::get('yoshop_store');
+        $setting = SettingModel::getItem('adminstyle');
+        if($setting['is_address_secret']==1 && $store['user']['is_super']==0){
+            return hide_mobile($value);
+        }else{
+            return $value;
+        }
+    }
+    
+    /**
+     * 地区名称
+     * @param $value
+     * @param $data
+     * @return array
+     */
+    public function getChineseRegionAttr($value, $data)
+    {
+        $setting = SettingModel::getItem('store',self::$wxapp_id);
+        $detail = $data['country'];
+        if($setting['address_setting']['is_province']==1){
+            $detail = $detail.$data['province'];
+        }
+        if($setting['address_setting']['is_city']==1){
+            $detail = $detail.$data['city'];
+        }
+        if($setting['address_setting']['is_region']==1){
+            $detail = $detail.$data['region'];
+        }
+        if($setting['address_setting']['is_detail']==1){
+            $detail = $detail.$data['detail'];
+        }
+        return $detail;
+    }
+}

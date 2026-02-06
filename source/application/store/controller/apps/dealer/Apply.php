@@ -1,0 +1,45 @@
+<?php
+
+namespace app\store\controller\apps\dealer;
+
+use app\store\controller\Controller;
+use app\store\model\dealer\Apply as ApplyModel;
+use app\store\model\Setting;
+/**
+ * 分销商申请
+ * Class Setting
+ * @package app\store\controller\apps\dealer
+ */
+class Apply extends Controller
+{
+    /**
+     * 分销商申请列表
+     * @param string $search
+     * @return mixed
+     * @throws \think\exception\DbException
+     */
+    public function index($search = '')
+    {
+        $model = new ApplyModel;
+        return $this->fetch('index', [
+            'list' => $model->getList($search),
+            'set' =>  Setting::detail('store')['values']['usercode_mode']
+        ]);
+    }
+
+    /**
+     * 分销商审核
+     * @param $apply_id
+     * @return array|bool
+     * @throws \think\exception\DbException
+     */
+    public function submit($apply_id)
+    {
+        $model = ApplyModel::detail($apply_id);
+        if ($model->submit($this->postData('apply'))) {
+            return $this->renderSuccess('操作成功');
+        }
+        return $this->renderError($model->getError() ?: '操作失败');
+    }
+
+}

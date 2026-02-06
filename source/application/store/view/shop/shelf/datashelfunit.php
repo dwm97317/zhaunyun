@@ -1,0 +1,351 @@
+<div class="row-content am-cf">
+    <div class="row">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
+            <div class="widget am-cf">
+                <div class="widget-head am-cf">
+                    <div class="widget-title am-cf">货位列表</div>
+                </div>
+                <div class="widget-body am-fr">
+                     <div class="page_toolbar am-margin-bottom-xs am-cf">
+                        <form class="toolbar-form" action="">
+                            <input type="hidden" name="s" value="/<?= $request->pathinfo() ?>">
+                             <div class="am-u-sm-12 am-u-md-12">
+                                <div class="am">
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractShopId = $request->get('shelf_id'); ?>
+                                        <select name="shelf_id"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '所属货架'}">
+                                            <option value=""></option>
+                                            <option value=" "
+                                                <?= $extractShopId === ' ' ? 'selected' : '' ?>>全部
+                                            </option>
+                                            <?php if (isset($list)): foreach ($list as $items): ?>
+                                                <option value="<?= $items['id'] ?>"
+                                                    <?= $items['id'] == $extractShopId ? 'selected' : '' ?>><?= $items['shelf_name'] ?>
+                                                </option>
+                                            <?php endforeach; endif; ?>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" class="am-form-field" name="express_num"
+                                                   placeholder="请输入快递单号" value="<?= $request->get('express_num') ?>">
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" class="am-form-field" name="user_id"
+                                                   placeholder="请输入用户ID/编号" value="<?= $request->get('user_id') ?>">
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" class="am-form-field" name="search"
+                                                   placeholder="请输入货位ID" value="<?= $request->get('search') ?>">
+                                            <div class="am-input-group-btn">
+                                                <button class="am-btn am-btn-default am-icon-search"
+                                                        type="submit"></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <button type="button" class="am-btn am-btn-default" style="height:33px;line-height:15px;" data-id="" onclick="tools.init(this)" data-mode='request' data-confirm=true data-confirm_text='请确认是否全部下架！' data-refresh=true data-url='<?= url('store/shelf_manager.index/deleteAllShelfUnit') ?>'>
+                                              <i class="am-icon-download"></i>
+                                              一键下架
+                                        </button>
+                                       
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="am-u-sm-12 am-u-md-6 am-u-lg-6">
+                        <div class="am-form-group">
+                            <div class="am-btn-toolbar">
+                                <?php if (checkPrivilege('shop.shelf/reset')): ?>
+                                <button type="button" id="j-created" class="am-btn am-btn-secondary am-radius">重置货位码</button>
+                                <?php endif; ?>
+                                <?php if (checkPrivilege('shop.shelf/download')): ?>
+                                <button type="button" id="j-download" class="am-btn am-btn-secondary am-radius">批量下载</button>
+                                <?php endif; ?>
+                                <?php if (checkPrivilege('shop.shelf/printshelf')): ?>
+                                <button type="button" id="j-print" class="am-btn am-btn-secondary am-radius">打印货位码</button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="am-u-sm-12">
+                        <table width="100%" class="am-table am-table-compact am-table-striped tpl-table-black ">
+                            <thead>
+                            <tr>
+                                <th><input id="checkAll" type="checkbox"></th>
+                                <th>货位ID</th>
+                                <th>货位编号</th>
+                                <th>所属货架</th>
+                                <th>规格</th>
+                                <th>专属用户</th>
+                                <th>货位码</th>
+                                <th>货位数据</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <?php $shelftype = [ 10=>'小',20=>'中',30=>'大',40=>'特殊' ]; ?>
+                            <tbody id="body">
+                            <?php if (count($data)>0): ?>
+                                <?php foreach ($data as $item): ?>
+                                    <tr>
+                                        <td class="am-text-middle">
+                                            <input name="checkIds" type="checkbox" value="<?= $item['shelf_unit_id'] ?>"> 
+                                        </td>
+                                        <td class="am-text-middle"><?= $item['shelf_unit_id'] ?></td>
+                                        <td class="am-text-middle"><?= $item['shelf_unit_no'] ?></td>
+                                        <td class="am-text-middle"><?= $item['shelf']['shelf_name'] ?></td>
+                                        <td class="am-text-middle"><?= $shelftype[$item['shelf_type']] ?></td>
+                                        <td class="am-text-middle">
+                                            <?= $item['user']['nickName'] ;?>
+                                            
+                                            <?php if($set['usercode_mode']['is_show']==1) :?>
+                                                 <span><?= $item['user']['user_code'] ?></span>
+                                            <?php endif;?>
+                                            <?php if($set['usercode_mode']['is_show']==0) :?>
+                                                 <span><?= $item['user']['user_id'] ?></span>
+                                            <?php endif;?>
+                                        </td>
+                                        <td class="am-text-middle">
+                                            <a target="_blank" href="/<?= $item['shelf_unit_qrcode'];?>">
+                                            <img width="30" height="30" src="/<?= $item['shelf_unit_qrcode'];?>" ></a>
+                                        </td>
+                                        <td class="am-text-middle">
+                                            <a href="<?= url('store/shop.shelf/viewShelfUnitPackages', ['shelf_unit_id' => $item['shelf_unit_id']]) ?>" style="color: #0e90d2;">
+                                                <?= count($item['shelfunititem']) ?> 
+                                            </a>
+                                        </td>
+                                        <td class="am-text-middle">
+                                            <div class="tpl-table-black-operation">
+                                                    <a href="<?= url('shop.shelf/editshelfunit',
+                                                        ['shelf_unit_id' => $item['shelf_unit_id']]) ?>">
+                                                        <i class="am-icon-pencil"></i> 编辑
+                                                    </a>
+                                             
+                                                <?php if (checkPrivilege('shelf_manager.index/deleteshelfunititem')): ?>
+                                                <?php if(isset($item['shelfunititem']) && !$item['shelfunititem']->isEmpty() ) :?>
+                                                    <a href="javascript:;"
+                                                       class="item-delete tpl-table-black-operation-del j-xiajia"
+                                                       data-id="<?= $item['shelf_unit_id'] ?>"
+                                                        <i class="am-icon-trash"></i> 全部下架
+                                                    </a>
+                                                <?php endif ;?>    
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" class="am-text-center">暂无记录</td>
+                                </tr>
+                            <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="am-u-lg-12 am-cf">
+                        <div class="am-fr"><?= $data->render() ?> </div>
+                        <div class="am-fr pagination-total am-margin-right">
+                            <div class="am-vertical-align-middle">总记录：<?= $data->total() ?></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+     $(function () {
+       checker = {
+          num:0, 
+          check:[],
+          init:function(){
+              this.check = document.getElementById('body').getElementsByTagName('input');
+              this.num = this.check.length;
+              this.bindEvent();
+          },
+          bindEvent:function(){
+              var that = this;
+              for(var i=0; i< this.check.length; i++){
+                  this.check[i].onclick = function(){
+                       var _check = that.isFullCheck();
+                       if (_check){
+                           document.getElementById('checkAll').checked = 'checked';
+                       }else{
+                           document.getElementById('checkAll').checked = '';
+                       }
+                  }
+              }
+              var  allCheck = document.getElementById('checkAll');
+              allCheck.onclick = function(){
+                  if (this.checked){
+                      that.setFullCheck();
+                  }else{
+                      that.setFullCheck('');
+                  }
+              }
+              
+          },
+          setFullCheck:function(checked='checked'){
+             for (var ik =0; ik<this.num; ik++){
+                  this.check[ik].checked = checked; 
+              } 
+          },
+          isFullCheck:function(){
+              var hasCheck = 0;
+              for (var k =0; k<this.num; k++){
+                   if (this.check[k].checked){
+                       hasCheck++;
+                   }
+              }
+              return hasCheck==this.num?true:false;
+          },
+          getCheckSelect:function(){
+              var selectIds = [];
+              for (var i=0;i<this.check.length;i++){
+                    if (this.check[i].checked){
+                       selectIds.push(this.check[i].value);
+                    }
+              }
+              return selectIds;
+          }
+       }
+        checker.init();
+        
+        $("#j-download").on('click',function(){
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择要导出的项目', {icon: 5});
+                return;
+            }
+            $.ajax({
+				type: 'post',
+				url: "<?= url('/store/shop.shelf/download') ?>",
+				data: {
+					selectId: selectIds
+				},
+				dataType: "json",
+				success: function(res) {
+					if (res.code == 1) {
+						console.log(res.url.file_name);
+						var a = document.createElement('a');
+						document.body.appendChild(a);
+						a.href = res.msg;
+						a.click();
+					}
+				}
+		   })
+        })
+     
+      $("#j-created").on('click',function(){
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择要生成二维码的项目', {icon: 5});
+                return;
+            }
+            $.ajax({
+				type: 'post',
+				url: "<?= url('/store/shop.shelf/reset') ?>",
+				data: {
+					selectId: selectIds
+				},
+				dataType: "json",
+				success: function(res) {
+					if (res.code == 1) {
+					    $.show_success('生成成功');
+					    setTimeout(()=>{
+					        window.location.reload();
+					    },1000);
+					}
+				}
+		   })
+        })
+        
+        $(".j-xiajia").on('click',function(){
+            var id = $(this).data();
+            console.log(id,8899)
+            $.ajax({
+				type: 'post',
+				url: "<?= url('store/shelf_manager.index/deleteShelfUnitItem') ?>",
+				data: {
+					id
+				},
+				dataType: "json",
+				success: function(res) {
+					if (res.code == 1) {
+                        window.location.reload();
+					}
+				}
+		   })
+        })
+        
+        /**
+         * 批量打印面单
+         */
+        $('#j-print').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+               layer.alert('请先选择货位', {icon: 5});
+                return;
+            }
+     
+            $.ajax({
+                type:"POST",
+                url:'<?= url('store/shop.shelf/printshelfunit') ?>',
+                data:{selectIds:selectIds},
+                dataType:"JSON",
+                success:function(result){
+                    if(result.code ===0){
+                       layer.alert(result.msg, {icon: 5});
+                       return; 
+                    }
+                     $.showModal({
+                        title: '打印预览',
+                        area: [375, '90%'],  // 使用百分比适应不同屏幕
+                        content: '<div style="overflow-y:auto;">' + result + '</div>',
+                        btn: ['打印', '取消'],
+                        success: function($content) {
+                            // 添加打印样式
+                            $content.find('table.container').css({
+                                'margin': '0 auto',
+                                'width': 'auto'
+                            });
+                        },
+                        yes: function(index, $content) {
+                            PrintDiv(result);
+                        }
+                    });
+                }
+            })
+            
+        });
+        
+        
+        
+        function PrintDiv(content) {
+            var win = window.open("");
+            win.document.write(content);
+            win.document.close();
+            //Chrome
+            if (navigator.userAgent.indexOf("Chrome") != -1) {
+                win.onload = function () {
+                    win.document.execCommand('print');
+                    win.close();
+                }
+            }
+            //Firefox
+            else {
+                win.print();
+                win.close();
+            }
+        }    
+     })
+     
+</script>
+

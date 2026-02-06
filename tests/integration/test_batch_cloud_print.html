@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>批量打印云面单功能测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>批量打印云面单功能测试</h1>
+    
+    <div class="section">
+        <h2>✅ 已完成的功能</h2>
+        <ul>
+            <li class="success">✓ 添加了"批量打印云面单"按钮（绿色按钮，在"批量打印面单"左边）</li>
+            <li class="success">✓ 创建了 <code>tpl-batch-cloud-print</code> 模板</li>
+            <li class="success">✓ 实现了渠道商选择功能（支持运输方式筛选）</li>
+            <li class="success">✓ 实现了标签尺寸选择（60mm / 100mm）</li>
+            <li class="success">✓ 实现了打印选项（打印全部包裹）</li>
+            <li class="success">✓ 实现了异步打印选项</li>
+            <li class="success">✓ 集成了 OrderBatchPrinter JS 模块</li>
+            <li class="success">✓ 修复了字段名匹配问题</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>📋 模板字段说明</h2>
+        <table border="1" cellpadding="5" cellspacing="0">
+            <tr>
+                <th>字段名</th>
+                <th>类型</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td>print_transfer</td>
+                <td>radio</td>
+                <td>运输方式（0=自有物流，1=运输商）</td>
+            </tr>
+            <tr>
+                <td>print_ditch_id</td>
+                <td>select</td>
+                <td>渠道商ID</td>
+            </tr>
+            <tr>
+                <td>label</td>
+                <td>radio</td>
+                <td>标签尺寸（60 / 100）</td>
+            </tr>
+            <tr>
+                <td>print_all</td>
+                <td>checkbox</td>
+                <td>是否打印全部包裹</td>
+            </tr>
+            <tr>
+                <td>print_async</td>
+                <td>checkbox</td>
+                <td>是否异步打印</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>🔄 运输方式筛选逻辑</h2>
+        <ul>
+            <li><strong>自有物流（transfer=0）</strong>：显示 ditch_type = 1 的渠道商</li>
+            <li><strong>运输商（transfer=1）</strong>：显示 ditch_type = 2,3,4,5 的渠道商</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>🔌 API 端点</h2>
+        <pre>POST /store/tr_order/orderbatchprinter
+
+参数：
+- order_ids: 订单ID数组
+- ditch_id: 渠道ID
+- label: 标签尺寸（60 / 100）
+- print_all: 是否打印全部包裹（0 / 1）
+- async: 是否异步执行（false / true）</pre>
+    </div>
+    
+    <div class="section">
+        <h2>🧪 测试步骤</h2>
+        <ol>
+            <li>访问订单列表页面：<code>http://localhost:8080/index.php?s=/store/tr_order/payed_list</code></li>
+            <li>选择一个或多个订单（勾选复选框）</li>
+            <li>点击"批量打印云面单"按钮（绿色按钮）</li>
+            <li>在弹窗中选择运输方式（默认：自有物流）</li>
+            <li>选择渠道商（下拉框会根据运输方式自动筛选）</li>
+            <li>选择标签尺寸（默认：60mm）</li>
+            <li>可选：勾选"打印全部包裹"</li>
+            <li>可选：勾选"异步打印"</li>
+            <li>点击"确定"按钮</li>
+            <li>观察打印结果</li>
+        </ol>
+    </div>
+    
+    <div class="section">
+        <h2>⚠️ 注意事项</h2>
+        <ul>
+            <li class="info">打印前请确认订单已推送到渠道商</li>
+            <li class="info">60mm 适用于热敏打印机，100mm 适用于 A4 打印机</li>
+            <li class="info">异步模式下，任务将在后台执行，可通过任务ID查询状态</li>
+            <li class="info">同步模式下，打印完成后会自动刷新页面</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>📝 相关文件</h2>
+        <ul>
+            <li><code>source/application/store/view/tr_order/index.php</code> - 前端页面和模板</li>
+            <li><code>source/application/store/controller/TrOrder.php</code> - 后端控制器（orderbatchprinter 方法）</li>
+            <li><code>web/assets/common/js/order-batch-printer.js</code> - 前端 JS 模块</li>
+            <li><code>source/application/common/service/OrderBatchPrinter.php</code> - 批量打印服务类</li>
+        </ul>
+    </div>
+</body>
+</html>

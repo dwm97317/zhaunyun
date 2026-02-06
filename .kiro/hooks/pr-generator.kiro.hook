@@ -1,0 +1,41 @@
+{
+  "enabled": true,
+  "name": "PR Generator Local - Generador Inteligente de Pull Requests",
+  "description": "Genera Pull Requests profesionales con descripción automática, análisis de cambios y checklist (Hook Local)",
+  "version": "1.0",
+  "when": {
+    "type": "manual"
+  },
+  "parameters": {
+    "titulo": {
+      "type": "string",
+      "description": "Título del Pull Request",
+      "required": true
+    },
+    "tipoChange": {
+      "type": "select",
+      "description": "Tipo de cambio",
+      "options": [
+        "Feature - Nueva funcionalidad",
+        "Bugfix - Corrección de error",
+        "Hotfix - Corrección urgente",
+        "Refactor - Refactorización",
+        "Docs - Documentación",
+        "Style - Cambios de estilo",
+        "Test - Pruebas",
+        "Chore - Mantenimiento"
+      ],
+      "default": "Feature - Nueva funcionalidad",
+      "required": true
+    },
+    "descripcionBreve": {
+      "type": "string",
+      "description": "Descripción breve de los cambios",
+      "required": true
+    }
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Eres un asistente especializado en generar Pull Requests profesionales para GitHub y Azure DevOps.\n\n## 🎯 INFORMACIÓN DEL CAMBIO:\n- **Título:** {{titulo}}\n- **Tipo:** {{tipoChange}}\n- **Descripción:** {{descripcionBreve}}\n- **Proyecto:** Nequi\n- **Autor:** Andres Felipe Montaña Rojas\n\n## 📋 GENERA UN PR COMPLETO CON:\n\n### 1. **TÍTULO OPTIMIZADO**\nFormato: [TIPO] Título descriptivo y claro\n\n### 2. **DESCRIPCIÓN ESTRUCTURADA**\n```markdown\n## 📝 Descripción\n{Descripción detallada de los cambios}\n\n## 🎯 Tipo de Cambio\n- [ ] 🆕 Nueva funcionalidad\n- [ ] 🐛 Corrección de bug\n- [ ] 🔥 Hotfix\n- [ ] ♻️ Refactorización\n- [ ] 📚 Documentación\n- [ ] 💄 Cambios de estilo\n- [ ] 🧪 Pruebas\n- [ ] 🔧 Mantenimiento\n\n## 🧪 Testing\n- [ ] Pruebas unitarias actualizadas\n- [ ] Pruebas de integración verificadas\n- [ ] Pruebas manuales realizadas\n\n## 📋 Checklist\n- [ ] El código sigue las convenciones del proyecto\n- [ ] Se han agregado pruebas para los nuevos cambios\n- [ ] Todas las pruebas pasan\n- [ ] La documentación ha sido actualizada\n- [ ] No hay conflictos de merge\n\n## 🔗 Enlaces Relacionados\n- Issue: #\n- Documentación: \n- Deploy: \n\n## 📸 Screenshots (si aplica)\n{Agregar capturas de pantalla si hay cambios visuales}\n```\n\n### 3. **ANÁLISIS AUTOMÁTICO**\n- Analiza los archivos modificados usando `git diff --name-only`\n- Identifica el impacto de los cambios\n- Sugiere reviewers apropiados\n- Detecta si necesita actualización de documentación\n\n### 4. **COMANDOS ÚTILES**\nProporciona comandos para:\n- Crear el PR: `gh pr create --title \"{{titulo}}\" --body-file pr-description.md`\n- Ver diferencias: `git diff main...HEAD`\n- Verificar tests: `npm test` o comando apropiado\n\nGenera un Pull Request profesional y completo."
+  }
+}

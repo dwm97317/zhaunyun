@@ -1,0 +1,48 @@
+{
+  "enabled": true,
+  "name": "Commit Helper Local - Asistente de Commits Profesionales",
+  "description": "Genera mensajes de commit siguiendo convenciones y mejores prácticas (Hook Local)",
+  "version": "1.0",
+  "when": {
+    "type": "manual"
+  },
+  "parameters": {
+    "tipoCommit": {
+      "type": "select",
+      "description": "Tipo de commit",
+      "options": [
+        "feat - Nueva funcionalidad",
+        "fix - Corrección de bug",
+        "docs - Documentación",
+        "style - Formato/estilo",
+        "refactor - Refactorización",
+        "test - Pruebas",
+        "chore - Mantenimiento",
+        "perf - Performance",
+        "ci - CI/CD",
+        "build - Build system"
+      ],
+      "default": "feat - Nueva funcionalidad",
+      "required": true
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripción breve de los cambios",
+      "required": true
+    },
+    "breaking": {
+      "type": "select",
+      "description": "¿Es un breaking change?",
+      "options": [
+        "No",
+        "Sí"
+      ],
+      "default": "No",
+      "required": true
+    }
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Eres un experto en Git y convenciones de commits profesionales.\n\n## 🎯 INFORMACIÓN DEL COMMIT:\n- **Tipo:** {{tipoCommit}}\n- **Descripción:** {{descripcion}}\n- **Breaking Change:** {{breaking}}\n- **Proyecto:** Nequi\n- **Autor:** Andres Felipe Montaña Rojas\n\n## 📝 GENERA COMMIT PROFESIONAL:\n\n### 1. **ANALIZA CAMBIOS**\nPrimero analiza los cambios pendientes:\n```bash\ngit status\ngit diff --cached\n```\n\n### 2. **FORMATO CONVENTIONAL COMMITS**\nGenera mensaje siguiendo la convención:\n\n```\n{tipo}({scope}): {descripción}\n\n{cuerpo detallado}\n\n{footer con breaking changes o referencias}\n```\n\n### 3. **ESTRUCTURA COMPLETA**\n\n#### **Título (máximo 50 caracteres)**\n- Formato: `{tipo}: {descripción imperativa}`\n- Ejemplo: `feat: add user authentication system`\n\n#### **Cuerpo (opcional, máximo 72 caracteres por línea)**\n- Explica el QUÉ y el POR QUÉ\n- No el CÓMO (eso está en el código)\n\n#### **Footer (opcional)**\n- Breaking changes: `BREAKING CHANGE: {descripción}`\n- Referencias: `Closes #123`, `Fixes #456`\n\n### 4. **EJEMPLOS POR TIPO**\n\n**Feature:**\n```\nfeat(auth): add JWT token validation\n\nImplement secure token validation for API endpoints\nto improve authentication security and user session management.\n\n- Add JWT middleware for route protection\n- Implement token refresh mechanism\n- Add comprehensive error handling\n\nCloses #123\n```\n\n**Bugfix:**\n```\nfix(api): resolve null pointer exception in user service\n\nFix crash when processing users with missing profile data\nby adding proper null checks and default values.\n\nFixes #456\n```\n\n**Breaking Change:**\n```\nfeat(api): update user endpoint response format\n\nBREAKING CHANGE: User API now returns nested user object\ninstead of flat structure. Update client code accordingly.\n\nBefore: { id: 1, name: \"John\" }\nAfter: { user: { id: 1, name: \"John\" } }\n```\n\n### 5. **COMANDOS SUGERIDOS**\n```bash\n# Commit con mensaje generado\ngit commit -m \"{mensaje generado}\"\n\n# O commit interactivo para mensaje largo\ngit commit\n# (se abrirá editor con mensaje pre-llenado)\n\n# Push después del commit\ngit push origin {branch-name}\n```\n\n### 6. **VALIDACIONES**\n- ✅ Mensaje claro y descriptivo\n- ✅ Sigue convención conventional commits\n- ✅ Incluye contexto necesario\n- ✅ Referencias a issues si aplica\n- ✅ Breaking changes documentados\n\nGenera un commit message profesional y completo."
+  }
+}

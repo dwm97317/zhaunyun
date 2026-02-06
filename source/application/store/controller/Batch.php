@@ -1,0 +1,611 @@
+<?php
+namespace app\store\controller;
+
+use app\store\model\Batch as BatchModel;
+use app\store\model\BatchTemplate as BatchTemplateModel;
+use app\store\model\BatchTemplateItem;
+use app\store\model\Setting;
+use app\store\model\store\Shop;
+use app\api\model\Setting as SettingModel;
+use app\store\model\Express as ExpressModel;
+use app\store\model\Ditch as DitchModel;
+use app\store\model\Inpack;
+use app\store\model\Package;
+use app\store\model\Track;
+use app\common\model\Logistics;
+/**
+ * 批次管理
+ * Class Forwarder
+ * @package app\store\controller
+ */
+class Batch extends Controller
+{
+    /**
+     * 后台批次首页
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function index()
+    {
+        // 当前用户菜单url
+        $model = new BatchModel;
+        $ExpressModel = new ExpressModel();
+        $BatchTemplateModel = new BatchTemplateModel;
+        $templatelist = $BatchTemplateModel->getAllList();
+        $track = $ExpressModel->getTypeList($type = 1);
+        $DitchModel = new DitchModel();
+        $tracklist = (new Track())->getAllList();
+        $ditchlist = $DitchModel->getAll();
+        $param = $this->request->param();
+        $param['status'] = 0;
+        $list = $model->getList($param);
+        $type = 0;
+        return $this->fetch('index', compact('list','type','templatelist','tracklist','ditchlist','track'));
+    }
+    
+    /**
+     * 获取未发货的批次
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function batchlist()
+    {
+        // 当前用户菜单url
+        $model = new BatchModel;
+        $list = $model->getAllwaitList();
+        $type = 0;
+        return $this->fetch('index', compact('list','type'));
+    }
+    
+    /**
+     * 批次物流模板
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function batchtemplate(){
+        $model = new BatchTemplateModel;
+        $list = $model->getList();
+        return $this->fetch('template', compact('list'));
+    }
+    
+    
+    
+    /**
+     * 获取批次内
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function batchvsinpack($id){
+         $Inpack = new Inpack;
+         $set = Setting::detail('store')['values']['address_setting'];
+         $map = $this->request->param();
+         $map['batch_id'] = $id;
+         $map['limitnum'] = 100;
+         $list = $Inpack->getList('all',$map);
+         return $this->fetch('orderlist', compact('list','set'));
+    }
+    
+    /**
+     * 获取批次内
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function batchvspack($id){
+         $Package = new Package;
+         $param = $this->request->param();
+         $set = Setting::detail('store')['values'];
+         $map = ['batch_id'=>$id,'limitnum'=>100];
+         $map = array_merge($param,$map);
+         $list = $Package->getList($map);
+         $type = 'all';
+         $countweight = $Package->getListSum($map);
+         return $this->fetch('packlist', compact('list','set','type','countweight'));
+    }
+    
+    /**
+     * 获取批次内物流节点
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function templateitem($template_id){
+         $BatchTemplateItem = new BatchTemplateItem;
+         $list = $BatchTemplateItem->getList(['template_id'=>$template_id]);
+         return $this->fetch('batch/template/item', compact('list','template_id'));
+    }
+    
+    /**
+     * 添加批次物流模板节点
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function addtemplateitem($template_id)
+    {
+        $model = new BatchTemplateItem;
+        if (!$this->request->isAjax()) {
+            return $this->fetch('batch/templateitem/add');
+        }
+        // 新增记录
+        if ($model->add($this->postData('batch'),$template_id)) {
+            return $this->renderSuccess('添加成功', url('/store/batch/templateitem'.'/template_id/'.$template_id));
+        }
+        return $this->renderError($model->getError() ?: '添加失败');
+    }
+    
+    public function edittemplateitem($id){
+        $detail = BatchTemplateItem::detail($id);
+        if (!$this->request->isAjax()) {
+            return $this->fetch('batch/templateitem/edit',compact('detail'));
+        }
+        // 新增记录
+        if ($detail->edit($this->postData('batch'))) {
+            return $this->renderSuccess('添加成功', url('/store/batch/templateitem'.'/template_id/'.$detail['template_id']));
+        }
+        return $this->renderError($detail->getError() ?: '添加失败');
+    }
+    
+    
+    /**
+     * 移除订单的批次号
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function yichu(){
+        $param = $this->request->param();
+        $Inpack = new Inpack;
+        $detial = $Inpack->details($param['id']);
+        $res = $detial->save(['batch_id'=>0]);
+        return $this->renderSuccess('移除成功');
+    }
+    
+    
+    /**
+     * 移除订单的批次号
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function yichupack(){
+        $param = $this->request->param();
+        $Package = new Package;
+        $detial = $Package->detail($param['id']);
+        $res = $detial->save(['batch_id'=>0,'status'=>2]);
+        return $this->renderSuccess('移除成功');
+    }
+    
+     /**
+     * 更新批次内的所有订单的物流轨迹
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function logistics(){
+        $param = $this->request->param();
+        $Track = new Track;
+        // dump($param);die;
+        $Inpack = new Inpack;
+        $Package = new Package;
+        $list = $Inpack->getList('all',['batch_id'=>$param['batch_id'],'limitnum'=>300]);
+        $packlist = $Package->getList(['batch_id'=>$param['batch_id'],'limitnum'=>300]);
+        // dump($packlist->toArray());die;
+        if(empty($param['logistics_describe'])){
+           $trackData = $Track::detail($param['track_id']);
+           $param['logistics_describe'] = $trackData['track_content'];
+        }
+        // dump($param);die;
+        if(!empty($list)){
+            foreach($list as $key =>$val){
+                Logistics::addInpackLogsPlus($val['order_sn'],$param['logistics_describe'],$param['created_time']);
+            }
+        }
+        
+        if(!empty($packlist)){
+           foreach($packlist as $key =>$val){
+                Logistics::add($val['id'],$param['logistics_describe']);
+            } 
+        }
+        return $this->renderSuccess('添加成功');
+    }
+    
+    /**
+     * 批量将集运订单加入到批次中
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function addtobatch(){
+        $model = new BatchModel;
+        $Inpack = new Inpack;
+        $param = $this->request->param();
+        $arr = explode(',',$param['selectIds']);
+        if(isset($param['batch_id']) && empty($param['batch_id'])){
+            return $this->renderError('请选择批次');
+        }
+        foreach ($arr as $key =>$val){
+            $Inpack->where('id',$val)->update(['batch_id'=>$param['batch_id']]);
+            (new Package())->where('inpack_id',$val)->update(['batch_id'=>$param['batch_id']]);
+        }
+        return $this->renderSuccess('加入批次成功');
+    }
+
+    /**
+     * 批量将包裹加入到批次中
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function addpacktobatch(){
+        $model = new BatchModel;
+        $Package = new Package;
+        $param = $this->request->param();
+        $arr = explode(',',$param['selectIds']);
+
+        if(isset($param['batch_id']) && empty($param['batch_id'])){
+            return $this->renderError('请选择批次');
+        }
+        foreach ($arr as $key =>$val){
+            $Package->where('id',$val)->update(['batch_id'=>$param['batch_id'],'status'=>7]);
+        }
+        return $this->renderSuccess('加入批次成功');
+    }
+    
+     /**
+     * 运送中
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function moving(){
+        $model = new BatchModel;
+        $Track = new Track;
+        $list = $model->getList(['status'=>1]);
+        $tracklist = $Track->getAllList();
+        $type = 1;
+        return $this->fetch('index', compact('list','type','tracklist'));
+    }
+    
+    /**
+     * 已达到
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public function reached(){
+        $model = new BatchModel;
+        $Track = new Track;
+        $list = $model->getList(['status'=>2]);
+        $tracklist = $Track->getAllList();
+        $type = 2;
+        return $this->fetch('index', compact('list','type','tracklist'));
+    }
+    
+    /**
+     * 添加批次
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function addbatch()
+    {
+        $model = new Shop;
+        $Batch = new BatchModel;
+        $list = $model->getAllList();
+        $ExpressModel = new ExpressModel();
+        $DitchModel = new DitchModel();
+        $track = $ExpressModel->getTypeList($type = 1);
+        $ditchlist = $DitchModel->getAll();
+        $set = SettingModel::getItem('store',$this->getWxappId());
+        //选择物流模板
+        $BatchTemplateModel = new BatchTemplateModel;
+        $templatelist = $BatchTemplateModel->getAllList();
+        if (!$this->request->isAjax()) {
+            return $this->fetch('add',compact('list','set','track','ditchlist','templatelist'));
+        }
+        // 新增记录
+        if ($Batch->addbatch($this->postData('batch'))) {
+            return $this->renderSuccess('添加成功', url('index'));
+        }
+        return $this->renderError($Batch->getError() ?: '添加失败');
+    }
+    
+    /**
+     * 添加批次物流模板
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function addbatchTemplate()
+    {
+        $model = new BatchTemplateModel;
+        if (!$this->request->isAjax()) {
+            return $this->fetch('batch/template/add');
+        }
+        // 新增记录
+        if ($model->add($this->postData('batch'))) {
+            return $this->renderSuccess('添加成功', url('batch/batchtemplate'));
+        }
+        return $this->renderError($Batch->getError() ?: '添加失败');
+    }
+    
+    
+    /**
+     * 编辑批次物流模板
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function editbatchTemplate($template_id)
+    {
+        $model = new BatchTemplateModel;
+        $detail = $model::detail($template_id);
+        if (!$this->request->isAjax()) {
+             return $this->fetch('batch/template/edit',compact('detail'));
+        }
+        // 新增记录
+        if ($detail->edit($this->postData('batch'))) {
+            return $this->renderSuccess('修改成功', url('batch/batchtemplate'));
+        }
+        return $this->renderError($Batch->getError() ?: '修改失败');
+    }
+    
+    /**
+     * 删除批次物流模板
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function deletebatchTemplate($template_id){
+      $model = BatchTemplateModel::detail($template_id);
+      if (!$model->delete()) {
+            return $this->renderError($model->getError() ?: '删除失败');
+        }
+        return $this->renderSuccess('删除成功');
+    }
+    
+    
+    
+    /**
+     * 删除批次物流模板
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function deletetemplateitem($id){
+      $model = BatchTemplateItem::detail($id);
+      if (!$model->delete()) {
+            return $this->renderError($model->getError() ?: '删除失败');
+        }
+        return $this->renderSuccess('删除成功');
+    }
+    
+    
+    /**
+     * 编辑批次
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function editbatch($batch_id)
+    {
+        $model = new Shop;
+        $Inpack = new Inpack;
+        $Batch = new BatchModel;
+        $package = new Package;
+        $list = $model->getAllList();
+        $set = SettingModel::getItem('store',$this->getWxappId());
+        $ExpressModel = new ExpressModel();
+        $DitchModel = new DitchModel();
+        $track = $ExpressModel->getTypeList($type = 1);
+        $ditchlist = $DitchModel->getAll();
+        $detail = $Batch::detail($batch_id);
+        $BatchTemplateModel = new BatchTemplateModel;
+        $templatelist = $BatchTemplateModel->getAllList();
+        if (!$this->request->isAjax()) {
+             return $this->fetch('edit',compact('list','detail','set','track','ditchlist','templatelist'));
+        }
+        $param = $this->postData('batch');
+       
+        // 新增记录
+        if ($detail->editbatch($param)){
+            return $this->renderSuccess('修改成功', url('index'));
+        }
+        return $this->renderError($Batch->getError() ?: '修改失败');
+    }
+    
+    /**
+     * 删除批次
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function deletebatch($batch_id){
+      $model = BatchModel::detail($batch_id);
+      if (!$model->setDelete()) {
+            return $this->renderError($model->getError() ?: '删除失败');
+        }
+        return $this->renderSuccess('删除成功');
+    }
+    
+    /**
+     * 状态变更
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function statuschange(){
+        $param = $this->request->param();
+        $batch_id = $param['batch_id'];
+        $status = $param['status'];
+        
+        // 验证参数
+        if (empty($batch_id) || !is_numeric($status) || $status < 0 || $status > 2) {
+            return $this->renderError('参数错误');
+        }
+        
+        $model = BatchModel::detail($batch_id);
+        if (!$model) {
+            return $this->renderError('批次不存在');
+        }
+        
+        // 检查状态是否相同
+        if ($model['status'] == $status) {
+            return $this->renderError('状态未发生变化');
+        }
+        
+        $Inpack = new Inpack;
+        $Package = new Package;
+        
+        // 根据新状态更新相关订单和包裹状态
+        if($status == 1){
+            // 运送中：将集运单和包裹都设置为已发货状态
+            $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($inpackdata)){
+                $Inpack->where('batch_id',$batch_id)->update(['status'=>6]);
+            }
+            $packdata = $Package->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($packdata)){
+                $Package->where('batch_id',$batch_id)->update(['status'=>9]);
+            }
+        }elseif($status == 2){
+            // 已到达：将集运单和包裹都设置为已到货状态
+            $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($inpackdata)){
+                $Inpack->where('batch_id',$batch_id)->update(['status'=>7]);
+            }
+            $packdata = $Package->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($packdata)){
+                $Package->where('batch_id',$batch_id)->update(['status'=>10]);
+            }
+        }
+        
+        // 更新批次状态
+        if ($model->save(['status' => $status])) {
+            $statusMap = [0 => '待发货', 1 => '运送中', 2 => '已到达'];
+            return $this->renderSuccess('状态已更新为：' . $statusMap[$status]);
+        }
+        
+        return $this->renderError('状态更新失败');
+    }
+    
+    /**
+     * 批次发货
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function shipment(){
+        $param = $this->request->param();
+        $batch_id = $param['batch_id'];
+        $transfer = $param['transfer'];
+        $carrier_value = $param['carrier_value'];
+        $express_no = $param['express_no'];
+        
+        // 验证参数
+        if (empty($batch_id) || empty($express_no) || empty($carrier_value)) {
+            return $this->renderError('参数不完整');
+        }
+        
+        $model = BatchModel::detail($batch_id);
+        if (!$model) {
+            return $this->renderError('批次不存在');
+        }
+        
+        // 检查批次状态
+        if ($model['status'] != 0) {
+            return $this->renderError('只有待发货状态的批次才能发货');
+        }
+        
+        $Inpack = new Inpack;
+        $Package = new Package;
+        
+        // 更新批次信息
+        $updateData = [
+            'transfer' => $transfer,
+            'express_no' => $express_no,
+            'status' => 1  // 更新为运送中状态
+        ];
+        $t_name = "";
+        // 根据运输方式设置承运商信息
+        if ($transfer == 1) {
+            $updateData['express'] = $carrier_value;
+            $express = (new ExpressModel())->where('express_code',$carrier_value)->find();
+            $t_name =  $express['express_name'];
+        } else {
+            $updateData['express'] = $carrier_value;
+            // 使用缓存获取渠道配置
+            $ditchdetail = \app\common\service\DitchCache::getConfig($carrier_value);
+            if (!$ditchdetail) {
+                return $this->renderError('渠道配置不存在');
+            }
+            $t_name = $ditchdetail['ditch_name'];
+        }
+        
+        // 更新批次
+        if ($model->save($updateData)) {
+            // 将集运单和包裹都设置为已发货状态
+            $inpackdata = $Inpack->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($inpackdata)){
+                $Inpack->where('batch_id',$batch_id)->update([
+                    'status'=>6,
+                    't_order_sn'=>$express_no,
+                    't_name'=>$t_name,
+                    't_number'=>$carrier_value,
+                    'transfer'=>$transfer
+                ]);
+            }
+            $packdata = $Package->where('batch_id',$batch_id)->where('is_delete',0)->find();
+            if(!empty($packdata)){
+                $Package->where('batch_id',$batch_id)->update(['status'=>9]);
+            }
+            
+            return $this->renderSuccess('发货成功，批次状态已更新为运送中');
+        }
+        
+        return $this->renderError('发货失败');
+    }
+    
+    /**
+     * 生成批次号
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function createbatchname()
+    {
+        $settingDate = SettingModel::getItem('batch',$this->getWxappId());
+        $a = $b = $c = '';
+        if($settingDate['firstword_mode']==1){
+            $a = $settingDate['firstword'];
+        }
+        if($settingDate['ftime_mode']==1){
+            $b = date("Ymd",time());
+        }
+        //0随机 1顺序
+        if($settingDate['random']==0){
+            $c = rand(10000,99999);
+        }else{
+            $model = new BatchModel;
+            $result = $model->order('batch_id DESC')->find();
+            if(empty($result)){
+                $result['batch_id'] = 10001;
+            }
+            $c = $result['batch_id'] + 1;
+        }
+        $batch = $a.$b.'-'.$c;
+        return $this->renderSuccess('获取成功','',$batch);
+    }
+    
+    /**
+     * 批次设置
+     * @return array|bool|mixed
+     * @throws \Exception
+     */
+    public function setting(){
+        $model = new setting();
+        if($this->request->isAjax()){
+          $postData = $this->postData('batchrule');
+          $model->edit('batch',$postData);
+          return $this->renderSuccess('修改成功');
+        }
+        $values = setting::getItem('batch',$this->getWxappId());
+       
+        return $this->fetch('batch/setting', compact('values'));
+    }
+    
+}

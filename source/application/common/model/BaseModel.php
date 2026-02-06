@@ -1,0 +1,199 @@
+<?php
+
+namespace app\common\model;
+
+use think\Model;
+use think\Request;
+use think\Session;
+
+/**
+ * 模型基类
+ * Class BaseModel
+ * @package app\common\model
+ */
+class BaseModel extends Model
+{
+    public static $wxapp_id;
+    public static $base_url;
+    public static $shop_id;
+    public static $line_id;
+    public static $country_id;
+    public static $clerk_id;
+
+    protected $alias = '';
+
+    /**
+     * 模型基类初始化
+     */
+    public static function init()
+    {
+        parent::init();
+        // 获取当前域名
+        self::$base_url = base_url();
+        // 后期静态绑定wxapp_id
+        self::bindWxappId();
+    }
+
+    /**
+     * 获取当前调用的模块名称
+     * 例如：admin, api, store, task
+     * @return string|bool
+     */
+    protected static function getCalledModule()
+    {
+        if (preg_match('/app\\\(\w+)/', get_called_class(), $class)) {
+            return $class[1];
+        }
+        return false;
+    }
+
+    /**
+     * 后期静态绑定类名称
+     * 用于定义全局查询范围的wxapp_id条件
+     * 子类调用方式:
+     *   非静态方法:  self::$wxapp_id
+     *   静态方法中:  $self = new static();   $self::$wxapp_id
+     */
+    private static function bindWxappId()
+    {
+        if ($module = self::getCalledModule()) {
+            $callfunc = 'set' . ucfirst($module) . 'WxappId';
+            method_exists(new self, $callfunc) && self::$callfunc();
+        }
+    }
+
+    /**
+     * 设置wxapp_id (store模块)
+     */
+    protected static function setStoreWxappId()
+    {
+        $session = Session::get('yoshop_store');
+        if (!empty($session)) {
+            self::$wxapp_id = isset($session['wxapp']['wxapp_id']) ? $session['wxapp']['wxapp_id'] : 0;
+            self::$shop_id =  isset($session['user']['shop_id']) ? $session['user']['shop_id'] : 0;
+            self::$line_id =  isset($session['user']['line_id'])?$session['user']['line_id']:'';
+            self::$country_id =  isset($session['user']['country_id'])?$session['user']['country_id']:'';
+            self::$clerk_id =  isset($session['user']['clerk_id'])?$session['user']['clerk_id']:'';
+        }
+    }
+
+    /**
+     * 设置wxapp_id (api模块)
+     */
+    protected static function setApiWxappId()
+    {
+        $request = Request::instance();
+        self::$wxapp_id = $request->param('wxapp_id');
+    }
+    
+    /**
+     * 设置wxapp_id (web模块)
+     */
+    protected static function setWebWxappId()
+    {
+        $request = Request::instance();
+        if(empty($request->param('wxappid'))){
+            $query = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+            $wxapp_id_en = substr($query, strpos($query, 'wxappid=') + 8);
+            self::$wxapp_id =  $wxapp_id_en;
+         
+        }
+        self::$wxapp_id = $request->param('wxappid');
+    }
+
+    /**
+     * 定义全局的查询范围
+     * @param \think\db\Query $query
+     */
+    protected function base($query)
+    {
+        if (empty(self::$wxapp_id)) {
+            $module = self::getCalledModule();
+            if ($module == 'store') {
+                $session = Session::get('yoshop_store');
+                if (!empty($session['wxapp']['wxapp_id'])) {
+                    self::$wxapp_id = $session['wxapp']['wxapp_id'];
+                }
+            }
+        }
+        
+        if (isset(self::$wxapp_id) && self::$wxapp_id > 0) {
+            $query->where($query->getTable() . '.wxapp_id', self::$wxapp_id);
+        }
+      
+        if (isset(self::$shop_id) && self::$shop_id !== '0') {
+            if($query->getTable() == 'yoshop_inpack' || $query->getTable() == 'yoshop_package'){
+                $query->whereIn($query->getTable() . '.storage_id', explode(',',self::$shop_id));
+            }
+        }
+        if (isset(self::$clerk_id) && self::$clerk_id !== '0' && self::$clerk_id !== '') {
+            if($query->getTable() == 'yoshop_user'){
+                $query->whereIn($query->getTable() . '.service_id', explode(',',self::$clerk_id));
+            }
+        }
+        // if (isset(self::$line_id) && self::$line_id !== '0') {
+        //     if($query->getTable() == 'yoshop_inpack' || $query->getTable() == 'yoshop_package'){
+        //         $query->whereIn($query->getTable() . '.line_id', explode(',',self::$line_id));
+        //     }
+        // }
+        // if (isset(self::$country_id) && self::$country_id !== '0') {
+        //     if($query->getTable() == 'yoshop_inpack' || $query->getTable() == 'yoshop_package'){
+        //         $query->whereIn($query->getTable() . '.country_id', explode(',',self::$country_id));
+        //     }
+        // }
+    }
+
+    /**
+     * 设置默认的检索数据
+     * @param $query
+     * @param array $default
+     * @return array
+     */
+    protected function setQueryDefaultValue(&$query, $default = [])
+    {
+        $data = array_merge($default, $query);
+        foreach ($query as $key => $val) {
+            if (empty($val) && isset($default[$key])) {
+                $data[$key] = $default[$key];
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * 设置基础查询条件（用于简化基础alias和field）
+     * @test 2019-4-25
+     * @param string $alias
+     * @param array $join
+     * @return BaseModel
+     */
+    public function setBaseQuery($alias = '', $join = [])
+    {
+        // 设置别名
+        $aliasValue = $alias ?: $this->alias;
+        $model = $this->alias($aliasValue)->field("{$aliasValue}.*");
+        // join条件
+        if (!empty($join)) : foreach ($join as $item):
+            $model->join($item[0], "{$item[0]}.{$item[1]}={$aliasValue}."
+                . (isset($item[2]) ? $item[2] : $item[1]));
+        endforeach; endif;
+        return $model;
+    }
+
+    /**
+     * 批量更新数据(支持带where条件)
+     * @param array $data [0 => ['data'=>[], 'where'=>[]]]
+     * @return \think\Collection
+     */
+    public function updateAll($data)
+    {
+        return $this->transaction(function () use ($data) {
+            $result = [];
+            foreach ($data as $key => $item) {
+                $result[$key] = self::update($item['data'], $item['where']);
+            }
+            return $this->toCollection($result);
+        });
+    }
+
+}

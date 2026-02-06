@@ -1,0 +1,239 @@
+think\model\Collection::__set_state(array(
+   'items' => 
+  array (
+    0 => 
+    app\store\model\ShelfUnitItem::__set_state(array(
+       'name' => 'shelf_unit_item',
+       'updateTime' => false,
+       'alias' => '',
+       'connection' => 
+      array (
+      ),
+       'parent' => NULL,
+       'query' => NULL,
+       'table' => NULL,
+       'class' => 'app\\store\\model\\ShelfUnitItem',
+       'error' => NULL,
+       'validate' => NULL,
+       'pk' => NULL,
+       'field' => 
+      array (
+      ),
+       'except' => 
+      array (
+      ),
+       'disuse' => 
+      array (
+      ),
+       'readonly' => 
+      array (
+      ),
+       'visible' => 
+      array (
+      ),
+       'hidden' => 
+      array (
+      ),
+       'append' => 
+      array (
+      ),
+       'data' => 
+      array (
+        'shelf_unit_item_id' => 4,
+        'shelf_unit_id' => 1,
+        'pack_id' => 14,
+        'wxapp_id' => 10001,
+      ),
+       'origin' => 
+      array (
+        'shelf_unit_item_id' => 4,
+        'shelf_unit_id' => 1,
+        'pack_id' => 14,
+        'wxapp_id' => 10001,
+      ),
+       'relation' => 
+      array (
+      ),
+       'auto' => 
+      array (
+      ),
+       'insert' => 
+      array (
+      ),
+       'update' => 
+      array (
+      ),
+       'autoWriteTimestamp' => true,
+       'createTime' => 'create_time',
+       'dateFormat' => 'Y-m-d H:i:s',
+       'type' => 
+      array (
+      ),
+       'isUpdate' => true,
+       'replace' => false,
+       'force' => false,
+       'updateWhere' => NULL,
+       'failException' => false,
+       'useGlobalScope' => true,
+       'batchValidate' => false,
+       'resultSetType' => 'collection',
+       'relationWrite' => NULL,
+    )),
+    1 => 
+    app\store\model\ShelfUnitItem::__set_state(array(
+       'name' => 'shelf_unit_item',
+       'updateTime' => false,
+       'alias' => '',
+       'connection' => 
+      array (
+      ),
+       'parent' => NULL,
+       'query' => NULL,
+       'table' => NULL,
+       'class' => 'app\\store\\model\\ShelfUnitItem',
+       'error' => NULL,
+       'validate' => NULL,
+       'pk' => NULL,
+       'field' => 
+      array (
+      ),
+       'except' => 
+      array (
+      ),
+       'disuse' => 
+      array (
+      ),
+       'readonly' => 
+      array (
+      ),
+       'visible' => 
+      array (
+      ),
+       'hidden' => 
+      array (
+      ),
+       'append' => 
+      array (
+      ),
+       'data' => 
+      array (
+        'shelf_unit_item_id' => 5,
+        'shelf_unit_id' => 1,
+        'pack_id' => 15,
+        'wxapp_id' => 10001,
+      ),
+       'origin' => 
+      array (
+        'shelf_unit_item_id' => 5,
+        'shelf_unit_id' => 1,
+        'pack_id' => 15,
+        'wxapp_id' => 10001,
+      ),
+       'relation' => 
+      array (
+      ),
+       'auto' => 
+      array (
+      ),
+       'insert' => 
+      array (
+      ),
+       'update' => 
+      array (
+      ),
+       'autoWriteTimestamp' => true,
+       'createTime' => 'create_time',
+       'dateFormat' => 'Y-m-d H:i:s',
+       'type' => 
+      array (
+      ),
+       'isUpdate' => true,
+       'replace' => false,
+       'force' => false,
+       'updateWhere' => NULL,
+       'failException' => false,
+       'useGlobalScope' => true,
+       'batchValidate' => false,
+       'resultSetType' => 'collection',
+       'relationWrite' => NULL,
+    )),
+    2 => 
+    app\store\model\ShelfUnitItem::__set_state(array(
+       'name' => 'shelf_unit_item',
+       'updateTime' => false,
+       'alias' => '',
+       'connection' => 
+      array (
+      ),
+       'parent' => NULL,
+       'query' => NULL,
+       'table' => NULL,
+       'class' => 'app\\store\\model\\ShelfUnitItem',
+       'error' => NULL,
+       'validate' => NULL,
+       'pk' => NULL,
+       'field' => 
+      array (
+      ),
+       'except' => 
+      array (
+      ),
+       'disuse' => 
+      array (
+      ),
+       'readonly' => 
+      array (
+      ),
+       'visible' => 
+      array (
+      ),
+       'hidden' => 
+      array (
+      ),
+       'append' => 
+      array (
+      ),
+       'data' => 
+      array (
+        'shelf_unit_item_id' => 7,
+        'shelf_unit_id' => 1,
+        'pack_id' => 17,
+        'wxapp_id' => 10001,
+      ),
+       'origin' => 
+      array (
+        'shelf_unit_item_id' => 7,
+        'shelf_unit_id' => 1,
+        'pack_id' => 17,
+        'wxapp_id' => 10001,
+      ),
+       'relation' => 
+      array (
+      ),
+       'auto' => 
+      array (
+      ),
+       'insert' => 
+      array (
+      ),
+       'update' => 
+      array (
+      ),
+       'autoWriteTimestamp' => true,
+       'createTime' => 'create_time',
+       'dateFormat' => 'Y-m-d H:i:s',
+       'type' => 
+      array (
+      ),
+       'isUpdate' => true,
+       'replace' => false,
+       'force' => false,
+       'updateWhere' => NULL,
+       'failException' => false,
+       'useGlobalScope' => true,
+       'batchValidate' => false,
+       'resultSetType' => 'collection',
+       'relationWrite' => NULL,
+    )),
+  ),
+))

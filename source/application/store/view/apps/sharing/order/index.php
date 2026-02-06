@@ -1,0 +1,624 @@
+<div class="row-content am-cf">
+    <div class="row">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
+            <div class="widget am-cf">
+                <div class="widget-head am-cf">
+                    <div class="widget-title am-cf">拼团列表</div>
+                </div>
+                <div class="widget-body am-fr">
+                    <!-- 状态Tab样式 -->
+                    <style>
+                        .status-tabs {
+                            display: flex !important;
+                            flex-wrap: wrap !important;
+                            gap: 8px !important;
+                            padding: 15px 0 !important;
+                            border-bottom: 1px solid #e8e8e8 !important;
+                            margin-bottom: 15px !important;
+                        }
+                        .status-tabs a.tab-item {
+                            display: inline-block !important;
+                            padding: 8px 20px !important;
+                            font-size: 14px !important;
+                            color: #666 !important;
+                            background: #f5f5f5 !important;
+                            border-radius: 20px !important;
+                            cursor: pointer !important;
+                            text-decoration: none !important;
+                            transition: all 0.3s ease !important;
+                            border: 1px solid transparent !important;
+                        }
+                        .status-tabs a.tab-item:hover {
+                            color: #1890ff !important;
+                            background: #e6f7ff !important;
+                            border-color: #91d5ff !important;
+                        }
+                        .status-tabs a.tab-item.active,
+                        .status-tabs a.tab-item.active:hover,
+                        .status-tabs a.tab-item.active:focus,
+                        .status-tabs a.tab-item.active:visited {
+                            color: #fff !important;
+                            background: #1890ff !important;
+                            background-image: linear-gradient(135deg, #1890ff 0%, #096dd9 100%) !important;
+                            border-color: #1890ff !important;
+                            box-shadow: 0 2px 6px rgba(24, 144, 255, 0.35) !important;
+                        }
+                        .status-tabs a.tab-item .tab-count {
+                            display: inline-block !important;
+                            min-width: 20px !important;
+                            height: 20px !important;
+                            line-height: 20px !important;
+                            padding: 0 6px !important;
+                            margin-left: 6px !important;
+                            font-size: 12px !important;
+                            background: rgba(0,0,0,0.15) !important;
+                            border-radius: 10px !important;
+                            text-align: center !important;
+                        }
+                        .status-tabs a.tab-item.active .tab-count {
+                            background: rgba(255,255,255,0.3) !important;
+                            color: #fff !important;
+                        }
+                    </style>
+                    <!-- 状态Tab -->
+                    <?php 
+                    // 兼容多种方式获取status参数
+                    $currentStatus = $request->param('status');
+                    if ($currentStatus === null || $currentStatus === '') {
+                        $currentStatus = $request->get('status');
+                    }
+                    // 判断是否有status参数
+                    $hasStatus = isset($_GET['status']) || isset($_REQUEST['status']) || $request->param('status') !== null;
+                    ?>
+                    <div class="status-tabs">
+                        <a class="tab-item <?= !$hasStatus ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>">全部 <span class="tab-count"><?= isset($statusCount['all']) ? $statusCount['all'] : 0 ?></span></a>
+                        <a class="tab-item <?= $hasStatus && $currentStatus == '0' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=0">待审核 <span class="tab-count"><?= isset($statusCount['status_0']) ? $statusCount['status_0'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentStatus == '1' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=1">开团中 <span class="tab-count"><?= isset($statusCount['status_1']) ? $statusCount['status_1'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentStatus == '5' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=5">已完结 <span class="tab-count"><?= isset($statusCount['status_5']) ? $statusCount['status_5'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentStatus == '3' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=3">已解散 <span class="tab-count"><?= isset($statusCount['status_3']) ? $statusCount['status_3'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentStatus == '2' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=2">已完成 <span class="tab-count"><?= isset($statusCount['status_2']) ? $statusCount['status_2'] : 0 ?></span></a>
+                        <a class="tab-item <?= $currentStatus == '4' ? 'active' : '' ?>" 
+                           href="<?= url('store/apps.sharing.order/index') ?>&status=4">已发货 <span class="tab-count"><?= isset($statusCount['status_4']) ? $statusCount['status_4'] : 0 ?></span></a>
+                    </div>
+                    <!-- 工具栏 -->
+                    <div class="page_toolbar am-margin-bottom-xs am-cf">
+                        <form class="toolbar-form" action="">
+                            <input type="hidden" name="s" value="/<?= $request->pathinfo() ?>">
+                            <div class="am-u-sm-12 am-u-md-12">
+                                <div class="am fl">
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" class="am-form-field" name="order_sn"
+                                                   placeholder="请输入单号" value="<?= $request->get('order_sn') ?>">
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractStatus = $request->get('status'); ?>
+                                        <select name="status"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '订单状态'}">
+                                            <option value=""></option>
+                                            <option value="-1,0,1,2,3"
+                                                <?= $extractStatus === '-1' ? 'selected' : '' ?>>全部
+                                            </option>
+                                            <option value="0"
+                                                <?= $extractStatus === '0' ? 'selected' : '' ?>>待审核
+                                            </option>
+                                            <option value="1"
+                                                <?= $extractStatus === '1' ? 'selected' : '' ?>>开团中
+                                            </option>
+                                            <option value="2"
+                                                <?= $extractStatus === '2' ? 'selected' : '' ?>>已完成
+                                            </option>
+                                            <option value="3"
+                                                <?= $extractStatus === '3' ? 'selected' : '' ?>>已解散
+                                            </option>
+                                            <option value="4"
+                                                <?= $extractStatus === '4' ? 'selected' : '' ?>>已发货
+                                            </option>
+                                            <option value="5"
+                                                <?= $extractStatus === '5' ? 'selected' : '' ?>>已完结
+                                            </option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractShopId = $request->get('extract_shop_id'); ?>
+                                        <select name="extract_shop_id"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '仓库名称'}">
+                                            <option value="-1"
+                                                <?= $extractShopId === '-1' ? 'selected' : '' ?>>全部
+                                            </option>
+                                            <?php if (isset($shopList)): foreach ($shopList as $item): ?>
+                                                <option value="<?= $item['shop_id'] ?>"
+                                                    <?= $item['shop_id'] == $extractShopId ? 'selected' : '' ?>><?= $item['shop_name'] ?>
+                                                </option>
+                                            <?php endforeach; endif; ?>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group tpl-form-border-form am-fl">
+                                        <input type="text" name="start_time"
+                                               class="am-form-field"
+                                               value="<?= $request->get('start_time') ?>" placeholder="请选择起始日期"
+                                               data-am-datepicker>
+                                    </div>
+                                    <div class="am-form-group tpl-form-border-form am-fl">
+                                        <input type="text" name="end_time"
+                                               class="am-form-field"
+                                               value="<?= $request->get('end_time') ?>" placeholder="请选择截止日期"
+                                               data-am-datepicker>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" class="am-form-field" name="user_id"
+                                                   placeholder="请输入用户ID" value="<?= $request->get('user_id') ?>">
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                           
+                                            <div class="am-input-group-btn">
+                                                <button class="am-btn am-btn-default am-icon-search"
+                                                        type="submit"></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </form>
+                    </div>
+                   <div class="page_toolbar am-margin-bottom-xs am-cf" style="margin-bottom:20px; margin-left:15px;">
+                            <div class="am-btn-group am-btn-group-xs">
+                            <?php if (checkPrivilege('apps.sharing.order/add')): ?>
+                                <a class="am-btn am-btn-default am-btn-success" href="<?= url('store/apps.sharing.order/add') ?>">
+                                    <span class="am-icon-plus"></span> 新增</a>
+                            <?php endif; ?>
+                            </div>
+                            <?php if (checkPrivilege('apps.sharing.order/changestatus')): ?>
+                            <button type="button" id="j-wuliu" class="am-btn am-btn-warning am-radius"> <i class="iconfont icon-guojiwuliu"></i>  更新拼团订单动态</button>
+                            <?php endif; ?>
+                    </div>
+                    <div class="am-scrollable-horizontal am-u-sm-12">
+                        <table width="100%" class="am-table am-table-compact am-table-striped
+                         tpl-table-black am-text-nowrap">
+                            <thead>
+                            <tr>
+                                <th><input id="checkAll" type="checkbox"></th>
+                                <th>拼团信息</th>
+                                <th>团长</th>
+                                <th>转运信息</th>
+                                <th>国家</th>
+                                <th>拼团地址</th>
+                                <th>状态</th>
+                                <th>时间</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="body">
+                            <?php if (!$list->isEmpty()): foreach ($list as $item): ?>
+                            <?php $status = [0=>'待审核',1=>'开团中',2=>'已完成',3=>'已解散',4=>'已发货',5=>'已完结']; ?>
+                                <tr>
+                                    <td class="am-text-middle">
+                                       <input name="checkIds" type="checkbox" value="<?= $item['order_id'] ?>"> 
+                                    </td>
+                                    <td class="am-text-middle">
+                                        <?= $item['order_sn'] ?><br>
+                                        <span style="font-size: 16px; font-weight: bold;"><?= $item['title'] ?></span><br>
+                                        <?php if ($item['inpack_id']!=0): ?> 
+                                        <span class="am-badge am-badge-secondary">国际运单号：<?= $item['inpack_id']; ?></span>
+                                        <?php endif ;?>
+                               
+                                    </td>
+                                    <td class="am-text-middle">
+                                        <?php if($setcode['is_show']==0) :?> 
+                                        用户ID:<?= $item['member_id']; ?> </br> 
+                                        <?php endif;?>
+                                        <?php if($setcode['is_show']==1) :?> 
+                                        <span>用户编号:<?= $item['user']['user_code']; ?></span></br>
+                                        <?php endif;?>
+                                        用户昵称:<?= $item['user']['nickName']; ?>
+                                    </td>
+                                    <td class="am-text-middle">
+                                        拼团线路：<?= $item['line']['name']; ?></br> 
+                                        仓库名称：<?= $item['storage']['shop_name']; ?></br></br> 
+                                        共有 <?= $item['count'] ?> 个集运单 </br>
+                                        <a href="<?= url('/store/apps.sharing.order/inpacklist', ['order_id' => $item['order_id']]) ?>">查看拼单明细</a></br>
+                                        <a href="<?= url('store/apps.sharing.order/participants', ['order_id' => $item['order_id']]) ?>">参与人员</a>
+                                    </td>
+                                    <td class="am-text-middle">国家ID:<?= $item['country_id']; ?> </br> 国家名称:<?= $item['country']['title']; ?></br></td>
+                                   <td class="am-text-middle">
+                                        用户ID:<?= $item['member_id']; ?> </br>
+                                        <?php if($setcode['is_show']!=0) :?> 
+                                            用户Code:<?= $item['user']['user_code']; ?>
+                                        <?php endif;?>
+                                        收件人:<?= $item['address']['name'] ?>
+                                        <span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['name'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        
+                                        电话:<?= $item['address']['phone'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['phone'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        <?php if ($set['is_identitycard']==1): ?> 
+                                        身份证:<?= $item['address']['identitycard'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['identitycard'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        <?php endif ;?>
+                                        <?php if ($set['is_clearancecode']==1): ?> 
+                                        通关代码:<?= $item['address']['clearancecode'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['clearancecode'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        <?php endif ;?>
+                                        寄往国家：<?= $item['address']['country'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['country'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        
+                                        <?php if ($set['is_province']==1): ?> 
+                                        省/州：<?= $item['address']['province'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['province'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        <?php endif ;?>
+                                        <?php if ($set['is_city']==1): ?> 
+                                        市：<?= $item['address']['city'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['city'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        <?php endif ;?>
+                                        <?php if ($set['is_street']==1): ?>
+                                        街道：<?= $item['address']['street']=='0'?'未填':$item['address']['street']?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['street'];?>" onclick="copyUrl2(this)">[复制]</span>
+                                        <?php endif ;?>
+                                        <?php if ($set['is_door']==1): ?> 
+                                        门牌：<?= $item['address']['door'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['door'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                         <?php endif ;?>
+                                        <?php if ($set['is_detail']==1): ?> 
+                                        详细地址：<?= $item['address']['detail'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['detail'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        <?php endif ;?>
+                                        <?php if ($set['is_code']==1): ?> 
+                                        邮编：<?= $item['address']['code']==0?'未填': $item['address']['code']?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['code'];?>" onclick="copyUrl2(this)">[复制]</span></br>
+                                        <?php endif ;?>
+                                        <?php if ($set['is_email']==1): ?> 
+                                        邮箱：<?= $item['address']['email']==0?'未填':$item['address']['email'] ?><span style="color:#ff6666;cursor:pointer" text="<?= $item['address']['email'];?>" onclick="copyUrl2(this)">[复制]</span>
+                                        <?php endif ;?>
+                                    </td>
+                                    <td class="am-text-middle"><?= $status[$item['status']['value']] ?></td>
+                                    <td class="am-text-middle">
+                                        开始时间：<?= date("Y-m-d",$item['start_time']); ?><br>
+                                        结束时间：<?= date("Y-m-d",$item['end_time']); ?>
+                                    </td>
+                                    
+                                    <td class="am-text-middle">
+                                        <div class="tpl-table-black-operation">
+                                            <?php if (checkPrivilege('apps.sharing.order/edit')): ?>
+                                            <a href="<?= url('store/apps.sharing.order/edit', ['order_id' => $item['order_id']]) ?>">
+                                                <i class="am-icon-pencil"></i> 编辑
+                                            </a>
+                                            <?php endif; ?>
+                                            <?php if (checkPrivilege('apps.sharing.order/delete')): ?>
+                                            <a href="javascript:void(0);"
+                                               class="item-delete tpl-table-black-operation-del"
+                                               data-id="<?= $item['order_id'] ?>">
+                                                <i class="am-icon-trash"></i> 删除
+                                            </a>
+                                            <?php endif; ?>
+                                            
+                                            
+                                            <?php if (checkPrivilege('apps.sharing.order/delivery')): ?>
+                                            <?php if (in_array($item['status']['value'],[1,2]) && $item['status']['value'] != 3): ?>
+                                             <a href="<?= url('apps.sharing.order/delivery', ['id' => $item['order_id']]) ?>">
+                                                <i class="iconfont icon-baoguo_fahuo_o"></i> 发货
+                                            </a>
+                                            <?php endif; ?>
+                                            <?php endif; ?>
+                                            <?php if (checkPrivilege('apps.sharing.order/completeOrder')): ?>
+                                            <?php if ($item['status']['value'] == 4): ?>
+                                            <a class="complete-order" href="javascript:void(0);" data-id="<?= $item['order_id'] ?>">
+                                                <i class="am-icon-check-circle"></i> 已完结
+                                            </a>
+                                            <?php endif; ?>
+                                            <?php endif; ?>
+                                             <?php if ($item['is_verify'] != 1): ?>
+                                            <a class="shenhe-order" href="javascript:void(0);" data-id="<?= $item['order_id'] ?>">
+                                                <i class="am-icon-check"></i> 审核
+                                            </a>
+                                            <?php endif; ?>
+                                            
+                                            <?php if ($item['status']['value'] == 1): ?>
+                                            <a class="end-order" href="javascript:void(0);" data-id="<?= $item['order_id'] ?>">
+                                                <i class="am-icon-stop"></i> 结束拼团
+                                            </a>
+                                            <a class="disband-order" href="javascript:void(0);" data-id="<?= $item['order_id'] ?>">
+                                                <i class="am-icon-close"></i> 解散拼团
+                                            </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; else: ?>
+                                <tr>
+                                    <td colspan="11" class="am-text-center">暂无记录</td>
+                                </tr>
+                            <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="am-u-lg-12 am-cf">
+                        <div class="am-fr"><?= $list->render() ?> </div>
+                        <div class="am-fr pagination-total am-margin-right">
+                            <div class="am-vertical-align-middle">总记录：<?= $list->total() ?></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script id="tpl-wuliu" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包裹数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'> 共选中 {{ selectCount }} 包裹</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        输入物流状态
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <input type="text" name="logistics_describe" value="">
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择物流时间
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <input type="text"  name="created_time" placeholder="请选择起始日期" value="<?php echo date("Y-m-d H:i:s",time()) ?>" id="datetimepicker" class="am-form-field">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
+<script id="tpl-status-order" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        审核结果
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <label class="am-radio-inline">
+                            <input type="radio" name="verify[status]" value="1" data-am-ucheck checked>
+                            通过
+                        </label>
+                        <label class="am-radio-inline">
+                            <input type="radio" name="verify[status]" value="2" data-am-ucheck>
+                            不通过
+                        </label>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label">
+                        拒绝原因
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <textarea name="verify[reason]" rows="3" placeholder="如选择不通过，请填写拒绝原因"></textarea>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
+
+<script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
+<script>
+ $(function () {
+        // 删除元素
+        var url = "<?= url('store/apps.sharing.order/orderdelete') ?>";
+        $('.item-delete').delete('id', url);
+         /**
+         * 拼团订单审核操作
+         */
+        $('.shenhe-order').on('click', function(){
+            var $tabs, data = $(this).data();
+            $.showModal({
+                title: '拼团订单审核'
+                , area: '460px'
+                , content: template('tpl-status-order', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('store/apps.sharing.order/verifyOrder') ?>',
+                        data: {
+                            id: data.id
+                        }
+                    });
+                    return true;
+                }
+            });
+        });
+        
+        /**
+         * 结束拼团
+         */
+        $('.end-order').on('click', function(){
+            var data = $(this).data();
+            layer.confirm('确定要结束该拼团吗？', {icon: 3, title: '提示'}, function(index){
+                $.ajax({
+                    url: '<?= url('store/apps.sharing.order/endOrder') ?>',
+                    type: 'POST',
+                    data: {id: data.id},
+                    dataType: 'json',
+                    success: function(res){
+                        if(res.code == 1){
+                            layer.msg(res.msg, {icon: 1}, function(){
+                                location.reload();
+                            });
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('操作失败', {icon: 2});
+                    }
+                });
+                layer.close(index);
+            });
+        });
+        
+        /**
+         * 解散拼团
+         */
+        $('.disband-order').on('click', function(){
+            var data = $(this).data();
+            layer.confirm('确定要解散该拼团吗？解散后相关包裹和集运单将被解除关联。', {icon: 3, title: '提示'}, function(index){
+                $.ajax({
+                    url: '<?= url('store/apps.sharing.order/disbandOrder') ?>',
+                    type: 'POST',
+                    data: {id: data.id},
+                    dataType: 'json',
+                    success: function(res){
+                        if(res.code == 1){
+                            layer.msg(res.msg, {icon: 1}, function(){
+                                location.reload();
+                            });
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('操作失败', {icon: 2});
+                    }
+                });
+                layer.close(index);
+            });
+        });
+        
+        /**
+         * 已完结拼团
+         */
+        $('.complete-order').on('click', function(){
+            var data = $(this).data();
+            layer.confirm('确定要将该拼团标记为已完结吗？', {icon: 3, title: '提示'}, function(index){
+                $.ajax({
+                    url: '<?= url('store/apps.sharing.order/completeOrder') ?>',
+                    type: 'POST',
+                    data: {id: data.id},
+                    dataType: 'json',
+                    success: function(res){
+                        if(res.code == 1){
+                            layer.msg(res.msg, {icon: 1}, function(){
+                                location.reload();
+                            });
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('操作失败', {icon: 2});
+                    }
+                });
+                layer.close(index);
+            });
+        });
+        
+
+        
+        
+       checker = {
+          num:0, 
+          check:[],
+          init:function(){
+              this.check = document.getElementById('body').getElementsByTagName('input');
+              this.num = this.check.length;
+              this.bindEvent();
+          },
+          bindEvent:function(){
+              var that = this;
+              for(var i=0; i< this.check.length; i++){
+                  this.check[i].onclick = function(){
+                       var _check = that.isFullCheck();
+                       if (_check){
+                           document.getElementById('checkAll').checked = 'checked';
+                       }else{
+                           document.getElementById('checkAll').checked = '';
+                       }
+                  }
+              }
+              
+              var  allCheck = document.getElementById('checkAll');
+              allCheck.onclick = function(){
+                  if (this.checked){
+                      that.setFullCheck();
+                  }else{
+                      that.setFullCheck('');
+                  }
+              }
+              
+          },
+          setFullCheck:function(checked='checked'){
+             for (var ik =0; ik<this.num; ik++){
+                  this.check[ik].checked = checked; 
+              } 
+          },
+          isFullCheck:function(){
+              var hasCheck = 0;
+              for (var k =0; k<this.num; k++){
+                   if (this.check[k].checked){
+                       hasCheck++;
+                   }
+              }
+              return hasCheck==this.num?true:false;
+          },
+          getCheckSelect:function(){
+              var selectIds = [];
+              for (var i=0;i<this.check.length;i++){
+                    if (this.check[i].checked){
+                       selectIds.push(this.check[i].value);
+                    }
+              }
+              return selectIds;
+          }
+       }
+       
+       checker.init();
+       
+                 /**
+         * 批量手动更新物流信息
+         */
+        $('#j-wuliu').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+               layer.alert('请先选择拼团订单', {icon: 5});
+                return;
+            }
+            if (selectIds.length>1){
+               layer.alert('只能选择一个订单', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            $.showModal({
+                title: '批量更新订单动态'
+                , area: '460px'
+                , content: template('tpl-wuliu', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('apps.sharing.order/alllogistics') ?>',
+                        data: {
+                            selectIds:data.selectId
+                        }
+                    });
+                    return true;
+                }
+            });
+        });      
+ });
+    
+</script>
+

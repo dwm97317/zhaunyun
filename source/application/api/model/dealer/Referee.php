@@ -1,0 +1,131 @@
+<?php
+
+namespace app\api\model\dealer;
+
+use app\common\model\dealer\Referee as RefereeModel;
+use app\api\model\User as UserModel;
+use app\api\model\UserCoupon;
+
+/**
+ * 分销商推荐关系模型
+ * Class Apply
+ * @package app\api\model\dealer
+ */
+class Referee extends RefereeModel
+{
+    /**
+     * 隐藏字段
+     * @var array
+     */
+    protected $hidden = [];
+
+    /**
+     * 创建推荐关系
+     * @param $user_id
+     * @param $referee_id
+     * @return bool
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    public static function createRelation($user_id, $referee_id)
+    {
+        // 分销商基本设置
+        $setting = Setting::getItem('basic');
+        // 是否开启分销功能
+        if (!$setting['is_open']) {
+            return false;
+        }
+        // 自分享
+        if ($user_id == $referee_id) {
+            return false;
+        }
+        // # 记录一级推荐关系
+        // 判断当前用户是否已存在推荐关系
+        if (self::isExistReferee($user_id)) {
+            return false;
+        }
+        // 判断推荐人是否为分销商
+        if (!User::isDealerUser($referee_id)) {
+            return false;
+        }
+        // 新增关系记录
+        $model = new self;
+        $model->add($referee_id, $user_id, 1);
+        //根据分销模式来决定是赠送优惠券还是积分
+        //积分分销
+        if(isset($setting['modal']) && (in_array(20,$setting['modal']) || in_array(30,$setting['modal']))){
+            $count = $model->where('dealer_id',$referee_id)->where('is_settle',0)->count();
+            if($count >= $setting['give_num'] && in_array(30,$setting['modal'])){
+                 (new UserCoupon())->receive(User::detail($referee_id), $setting['give_coupon']);
+                 $model->where('dealer_id', $referee_id)->where('is_settle', 0)->limit($setting['give_num'])->update(['is_settle' => 1]);
+            }
+            if($count >= $setting['give_pnum'] && in_array(20,$setting['modal'])){
+                 UserModel::detail($referee_id)->setIncPoints($setting['give_point'], '邀请新人奖励');
+                 $model->where('dealer_id', $referee_id)->where('is_settle_point', 0)->limit($setting['give_num'])->update(['is_settle_point' => 1]);
+            }
+            
+        }
+        
+        // # 记录二级推荐关系
+        if ($setting['level'] >= 2) {
+            // 二级分销商id
+            $referee_2_id = self::getRefereeUserId($referee_id, 1, true);
+            // 新增关系记录
+            $referee_2_id > 0 && $model->add($referee_2_id, $user_id, 2);
+        }
+        // # 记录三级推荐关系
+        if ($setting['level'] == 3) {
+            // 三级分销商id
+            $referee_3_id = self::getRefereeUserId($referee_id, 2, true);
+            // 新增关系记录
+            $referee_3_id > 0 && $model->add($referee_3_id, $user_id, 3);
+        }
+        return true;
+    }
+
+
+    /**
+     * 新增关系记录
+     * @param $dealer_id
+     * @param $user_id
+     * @param int $level
+     * @return bool
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
+    private function add($dealer_id, $user_id, $level = 1)
+    {
+        // 新增推荐关系
+        $wxapp_id = self::$wxapp_id;
+        $create_time = time();
+        
+        $this->insert(compact('dealer_id', 'user_id', 'level', 'wxapp_id', 'create_time'));
+       
+        // 记录分销商成员数量
+        User::setMemberInc($dealer_id, $level);
+        return true;
+    }
+    
+    // 分销成员数量统计
+    public function countRefferUser($dealer_id,$filter='all'){
+       $that = $this;
+       if ($filter=='today'){
+           $beginToday=mktime(0,0,0,date('m'),date('d'),date('Y'));
+           $endToday=mktime(0,0,0,date('m'),date('d')+1,date('Y'))-1;
+           $that = $that->whereBetween('create_time',[$beginToday,$endToday]);    
+       }      
+       return $that->where(['dealer_id'=>$dealer_id])->count();    
+    }
+
+    /**
+     * 是否已存在推荐关系
+     * @param $user_id
+     * @return bool
+     * @throws \think\exception\DbException
+     */
+    private static function isExistReferee($user_id)
+    {
+        return !!self::get(['user_id' => $user_id]);
+    }
+
+}

@@ -1,0 +1,43 @@
+<?php
+
+namespace app\common\model;
+
+/**
+ * 包裹图片模型
+ * Class GoodsImage
+ * @package app\common\model
+ */
+class PackageImage extends BaseModel
+{
+    protected $name = 'package_image';
+    protected $updateTime = false;
+
+    /**
+     * 关联文件库
+     * @return \think\model\relation\BelongsTo
+     */
+    public function file()
+    {
+        return $this->belongsTo('UploadFile', 'image_id', 'file_id')
+            ->bind(['file_path', 'file_name', 'file_url']);
+    }
+    
+    /**
+     * 关联文件库
+     * @return \think\model\relation\BelongsTo
+     */
+    public function filepackage()
+    {
+        return $this->belongsTo('UploadFile', 'image_id', 'file_id');
+    }
+    
+    /**
+     * 关联文件库
+     * @return \think\model\relation\BelongsTo
+     */
+    public function package()
+    {
+        return $this->belongsTo('Package', 'package_id', 'id');
+    }
+
+}

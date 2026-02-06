@@ -1,0 +1,1794 @@
+<div class="row-content am-cf">
+    <div class="row">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
+            <div class="widget am-cf">
+                <div class="widget-head am-cf">
+                    <div class="widget-title am-cf">包裹列表<small style="padding-left:10px;color:#1686ef">(提示：需要导出某个用户所有包裹，可先通过id搜索该用户，然后点导出（无需勾选），勾选后只导出勾选部分的信息)</small></div>
+                    <div id="datatotal"  style="margin-top:30px;">
+                        
+                    </div>
+                    
+                </div>
+                <div class="widget-body am-fr">
+                    <!-- 工具栏 -->
+                    <div class="page_toolbar am-margin-bottom-xs am-cf">
+                        <form class="toolbar-form" action="">
+                            <input type="hidden" name="s" value="/<?= $request->pathinfo() ?>">
+                             <div class="am-u-sm-12 am-u-md-12">
+                                <div class="am">
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractpageno = $request->get('limitnum'); ?>
+                                        <select name="limitnum"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '显示条数'}">
+                                            <?php if(isset($adminstyle['pageno'])): ?>
+                                            <option value="<?= $adminstyle['pageno']['inpack'] ?>" <?=  $adminstyle['pageno']['inpack'] == 500 ? 'selected' : '' ?>>系统默认<?= $adminstyle['pageno']['inpack'] ?>条</option>
+                                            <?php endif;?>
+                                            <option value="15" <?= $extractpageno == 15 ? 'selected' : '' ?> >显示15条</option>
+                                            <option value="30" <?= $extractpageno == 30 ? 'selected' : '' ?>>显示30条</option>
+                                            <option value="50" <?= $extractpageno == 50 ? 'selected' : '' ?>>显示50条</option>
+                                            <option value="100" <?= $extractpageno == 100 ? 'selected' : '' ?>>显示100条</option>
+                                            <option value="200" <?= $extractpageno== 200 ? 'selected' : '' ?>>显示200条</option>
+                                            <option value="500" <?= $extractpageno == 500 ? 'selected' : '' ?>>显示500条</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <?php if ($type=='all'): ?>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractStatus = $request->get('status'); ?>
+                                        <select name="status"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '包裹状态'}" onchange="document.getElementsByClassName('toolbar-form')[0].submit()">
+                                            <option value=""></option>
+                                            <option value=" "
+                                                <?= $extractStatus === '' ? 'selected' : '' ?>>全部
+                                            </option>
+                                            <option value="1"
+                                                <?= $extractStatus === '1' ? 'selected' : '' ?>>未入库
+                                            </option>
+                                            <option value="2"
+                                                <?= $extractStatus === '2' ? 'selected' : '' ?>>已入库
+                                            </option>
+                                            <option value="9"
+                                                <?= $extractStatus === '9' ? 'selected' : '' ?>>已发货
+                                            </option>
+                                            <option value="10"
+                                                <?= $extractStatus === '10' ? 'selected' : '' ?>>已收货
+                                            </option>
+                                            <option value="11"
+                                                <?= $extractStatus === '11' ? 'selected' : '' ?>>已完成
+                                            </option>
+                                            <option value="-1"
+                                                <?= $extractStatus === '-1' ? 'selected' : '' ?>>问题件
+                                            </option>
+                                            <option value="12"
+                                                <?= $extractStatus === '12' ? 'selected' : '' ?>>在库包裹
+                                            </option>
+                                            <option value="13"
+                                                <?= $extractStatus === '13' ? 'selected' : '' ?>>已发货包裹
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <?php endif;?>
+                                    <?php if ($store['user']['is_super']==1): ?>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractShopId = $request->get('extract_shop_id'); ?>
+                                        <select name="extract_shop_id"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '仓库名称'}">
+                                            <option value=""></option>
+                                            <option value=" "
+                                                <?= $extractShopId === ' ' ? 'selected' : '' ?>>全部
+                                            </option>
+                                            <?php if (isset($shopList)): foreach ($shopList as $item): ?>
+                                                <option value="<?= $item['shop_id'] ?>"
+                                                    <?= $item['shop_id'] == $extractShopId ? 'selected' : '' ?>><?= $item['shop_name'] ?>
+                                                </option>
+                                            <?php endforeach; endif; ?>
+                                        </select>
+                                    </div>
+                                    <?php endif;?>
+                                    <!--录入来源 [1小程序录入 2平台录入 3 代购同步 4 批量导入 5 PC端预报 6 拼团预报] 7预约取件 8仓管录入-->
+                                    <div class="am-form-group am-fl">
+                                        <select name="source"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '包裹来源'}">
+                                            <option value="">包裹来源</option>
+                                            <option value="1">小程序录入</option>
+                                            <option value="2">平台录入</option>
+                                            <option value="4">批量导入</option>
+                                            <option value="5">H5端预报</option>
+                                            <option value="6">拼团预报</option>
+                                            <option value="7">预约取件</option>
+                                            <option value="8">仓管录入</option>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractscan = $request->get('is_scan'); ?>
+                                        <select name="is_scan"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '是否查验出库'}">
+                                            <option <?= $extractscan === '' ? 'selected' : '' ?> value="">是否查验出库</option>
+                                            <option <?= $extractscan === '0' ? 'selected' : '' ?> value="0">全部</option>
+                                            <option <?= $extractscan === '1' ? 'selected' : '' ?> value="1">未查验</option>
+                                            <option <?= $extractscan === '2' ? 'selected' : '' ?> value="2">已查验</option>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractTopid = $request->get('top_id'); ?>
+                                        <select onchange="changecategory(this)" name="top_id"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '顶级分类'}">
+                                            <option value=""></option>
+                                            <option value=""
+                                                <?= $extractTopid === ' ' ? 'selected' : '' ?>>全部
+                                            </option>
+                                            <?php if (count($topcategory)>0): foreach ($topcategory as $item): ?>
+                                            <option value="<?= $item['category_id'] ?>" <?= $item['category_id'] == $extractTopid ? 'selected' : '' ?>><?= $item['name'] ?></option>
+                                            <?php endforeach; endif; ?>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractclassid = $request->get('class_id'); ?>
+                                        <select name="class_id" id="Packcategory"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '包裹分类'}">
+                                            <option value=""></option>
+                                            <option value=""
+                                                <?= $extractclassid === ' ' ? 'selected' : '' ?>>全部
+                                            </option>
+                                            <?php if (isset($category) && count($category)>0): foreach ($category as $item): ?>
+                                            <option value="<?= $item['category_id'] ?>" <?= $item['category_id'] == $extractclassid ? 'selected' : '' ?>><?= $item['name'] ?></option>
+                                            <?php endforeach; endif; ?>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extractshelfId = $request->get('shelf_id'); ?>
+                                        <select name="shelf_id"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '所在货架'}">
+                                            <option value=" "
+                                                <?= $extractshelfId === ' ' ? 'selected' : '' ?>>所在货架
+                                            </option>
+                                            <?php if (isset($shelf)): foreach ($shelf as $items): ?>
+                                                <option value="<?= $items['id'] ?>"
+                                                    <?= $items['id'] == $extractshelfId ? 'selected' : '' ?>><?= $items['shelf_name'] ?>
+                                                </option>
+                                            <?php endforeach; endif; ?>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extracttimetype = $request->get('time_type'); ?>
+                                        <select name="time_type"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '时间类型'}">
+                                            <option value="entering_warehouse_time" <?= $extracttimetype == 'entering_warehouse_time' ? 'selected' : '' ?>>入库时间</option>
+                                            <option value="created_time" <?= $extracttimetype == 'created_time' ? 'selected' : '' ?>>预报时间</option>
+                                            <option value="scan_time" <?= $extracttimetype == 'scan_time' ? 'selected' : '' ?>>扫码查验时间</option>
+                                             
+    
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group tpl-form-border-form am-fl">
+                                        <input style="padding:6px 5px;" autocomplete="off" type="text" name="start_time"
+                                               class="am-form-field"
+                                               value="<?= $request->get('start_time') ?>" placeholder="请选择起始日期"
+                                               data-am-datepicker>
+                                    </div>
+                                    <div class="am-form-group tpl-form-border-form am-fl">
+                                        <input style="padding:6px 5px;" autocomplete="off" type="text" name="end_time"
+                                               class="am-form-field"
+                                               value="<?= $request->get('end_time') ?>" placeholder="请选择截止日期"
+                                               data-am-datepicker>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" style="width:60px;" class="am-form-field" name="min-weight"
+                                                   placeholder="重量" value="<?= $request->get('min-weight') ?>">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="am-form-group am-fl" style="padding: 1px;">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" style="width:60px;" class="am-form-field" name="max-weight"
+                                                   placeholder="重量" value="<?= $request->get('max-weight') ?>">
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl" style="padding: 1px;">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <textarea cols="200" rows="2"  class="am-form-field" name="express_num"
+                                                   placeholder="可输入多个快递单号,按换车换行" value="<?= $request->get('express_num') ?>"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl" style="padding: 1px;">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" style="width:200px;" class="am-form-field" name="likesearch"
+                                                   placeholder="请输入包裹单号（模糊搜索）" value="<?= $request->get('likesearch') ?>">
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php $extracttimetype = $request->get('search_type'); ?>
+                                        <select name="search_type"
+                                                data-am-selected="{btnSize: 'sm', placeholder: '请选择查询类型'}">
+                                            <option value="all" <?= $extracttimetype == 'all' ? 'selected' : '' ?>>模糊查询</option>
+                                            <option value="member_id" <?= $extracttimetype == 'member_id' ? 'selected' : '' ?>>用户ID</option>
+                                            <option value="user_code" <?= $extracttimetype == 'user_code' ? 'selected' : '' ?>>用户CODE</option>
+                                            <option value="user_mark" <?= $extracttimetype == 'user_mark' ? 'selected' : '' ?>>用户唛头</option>
+                                            <option value="nickName" <?= $extracttimetype == 'nickName' ? 'selected' : '' ?>>用户昵称</option>
+                                            <option value="mobile" <?= $extracttimetype == 'mobile' ? 'selected' : '' ?>>手机号</option>
+                                        </select>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <div class="am-input-group am-input-group-sm tpl-form-border-form">
+                                            <input type="text" class="am-form-field" name="search"
+                                                   placeholder="请输入用户昵称/ID/CODE/唛头" value="<?= $request->get('search') ?>">
+                                            <div class="am-input-group-btn">
+                                                <button class="am-btn am-btn-default am-icon-search"
+                                                        type="submit"></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="am-form-group am-fl">
+                                        <?php if ($packlists!=''): ?>
+                                            <span style="height:30px;line-height: 26px;font-size: 1.2rem;" class="am-badge am-badge-danger">未找到的包裹(<?= $i ?>)：<?= $packlists ?></span>
+                                        <?php endif;?>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="page_toolbar am-margin-bottom-xs am-cf" style="margin-bottom:20px; margin-left:15px;">
+                        <!--代用户打包-->
+                        <?php if (checkPrivilege('package.index/inpack')): ?>
+                        <?php if($type=='uninpack'): ?>
+                        <button type="button" id="j-inpack" class="am-btn am-btn-secondary am-radius"><i class="iconfont icon-hebing "></i> 代用户打包</button>
+                        <?php endif;?>
+                        <?php endif;?>
+                        <!--修改所属用户-->
+                        <?php if (checkPrivilege('package.index/changeuser')): ?>
+                        <button type="button" id="j-upuser" class="am-btn am-btn-success am-radius"><i class="iconfont icon-yonghu "></i> 修改所属用户</button>
+                        <?php endif;?>
+                        <!--修改包裹类型-->
+                        <?php if (checkPrivilege('package.index/changetype')): ?>
+                        <button type="button" id="j-changetype" class="am-btn am-btn-secondary am-radius"><i class="iconfont icon-dingwei"></i> 修改包裹类型</button>
+                        <?php endif;?>
+                        <!--修改包裹位置-->
+                        <?php if (checkPrivilege('package.index/changeshelf')): ?>
+                        <button type="button" id="j-change" class="am-btn am-btn-warning am-radius"><i class="iconfont icon-dingwei"></i> 修改包裹位置</button>
+                        <?php endif;?>
+                        <!--标记为问题件-->
+                        <?php if (checkPrivilege('package.index/seterrors')): ?>
+                        <?php if($type!='errors' && $type!='deletepack'): ?>
+                        <button type="button" id="j-error" class="am-btn am-btn-danger am-radius"><i class="iconfont icon-htmal5icon27 "></i> 标记为问题件</button>
+                        <?php endif;endif;?>
+                        <!--批量删除-->
+                        <?php if (checkPrivilege('package.index/deleteall')): ?>
+                        <?php if($type!='deletepack'): ?>
+                        <button type="button" id="j-deleteall" class="am-btn am-btn-danger am-radius"><i class="iconfont am-icon-trash"></i> 批量删除</button>
+                        <?php endif;?>
+                        <?php endif;?>
+                        <?php if($type=='deletepack'): ?>
+                        <button type="button" id="j-backall" class="am-btn am-btn-danger am-radius"><i class="iconfont am-icon-trash"></i> 批量还原</button>
+                        <?php endif;?>
+                        <?php if($type=='errors'): ?>
+                        <button type="button" id="j-backnormal" class="am-btn am-btn-danger am-radius"><i class="iconfont am-icon-trash"></i> 还原为正常件</button>
+                        <?php endif;?>
+                        <!--导出-->
+                        <?php if (checkPrivilege('package.index/loaddingoutexcel')): ?>
+                        <button type="button" id="j-export" class="am-btn am-btn-default am-radius"><i class="iconfont icon-daochu am-margin-right-xs"></i>导出</button>
+                        <?php endif;?>
+                         <!--加入批次-->
+                        <?php if (checkPrivilege('batch/addpacktobatch')): ?>
+                        <button type="button" id="j-batch" class="am-btn am-btn-secondary am-radius"><i class="iconfont icon-pintuan"></i> 加入批次</button>
+                        <?php endif;?>
+                        <!--复制单号-->
+                        <button type="button" id="j-copy-express" class="am-btn am-btn-primary am-radius"><i class="iconfont icon-fuzhi am-margin-right-xs"></i>一键复制单号</button>
+                    </div>
+                    <div class="am-scrollable-horizontal am-u-sm-12" style="overflow-x: auto; position: relative;">
+                        <table width="100%" class="am-table am-table-compact am-table-striped
+                         tpl-table-black am-text-nowrap fixed-column-table">
+                            <thead>
+                            <tr>
+                                <th><input id="checkAll" type="checkbox" ></th>
+                                <th>包裹ID</th>
+                                <th width='300'>包裹单号/快递单号</th>
+                                <th>用户昵称</th>
+                                <th>仓库/货架</th>
+                                <th>运往国家</th>
+                                <th>包裹信息</th>
+                                <th>状态</th>
+                                <th>时间</th>
+                                <th>备注</th>
+                                <th class="fixed-operation">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="body">
+                            <?php if (!$list->isEmpty()): foreach ($list as $item): ?>
+                             <?php $status = [ 0=>'问题件',1=>'未入库',2=>'已入库',3=>'已上货架',4=>'待打包',5=>'待支付',6=>'已支付',7=>'已加入批次',8=>'已打包',9=>'已发货',10=>'已收货',11=>'已完成','-1'=>'问题件',''=>'无状态']   ; ?>
+                             <?php $taker_status = [1=>'待认领',2=>'已认领',3=>'已丢弃']; ?>
+                         
+                             <?php $source = [1=>'小程序预报',2=>'从平台录入','3'=>'代购单同步',4=>'批量导入','5'=>'网页端录入','6'=>'拼团','7'=>'预约取件','8'=>'仓管录入',9=>'API录入',10=>'抽盲盒']; ?>
+                                <tr>
+                                    <td class="am-text-middle">
+                                       <input name="checkIds" type="checkbox" value="<?= $item['id'] ?>"> 
+                                    </td>
+                                    <td class="am-text-middle"><?= $item['id'] ?></td>
+                                    <td class="am-text-middle">
+                                        <span class="am-badge <?= $item['pack_type']==0?'am-badge-success':'am-badge-secondary' ?>">
+                                            <?= $item['pack_type']==0?"拼邮":"直邮"   ?>
+                                        </span>
+                                        <a href="javascript:;" onclick="getlog(this)" value="<?= $item['express_num'] ?>" > 
+                                            <?= $item['express_num'] ?> 
+                                        </a>
+                                        <span style="color:#ff6666;cursor:pointer" text="<?= $item['express_num'];?>" onclick="copyUrl2(this)">[复制]</span> 
+                                        <?= $item['express_name']?$item['express_name']:'' ?> </br> 
+                                        <?php if($item['batch'] && $item['batch']['batch_id']) :?>
+                                            所属批次：<a href="<?= url('store/batch/index', ['batch_id' => $item['batch']['batch_id']]) ?>">
+                                            <?= $item['batch']['batch_name'] ?></a><br>
+                                        <?php endif;?>
+                                        <?php if($item['inpack_id'] && $item['inpack']['order_sn']) :?>
+                                            所属订单：<a href="<?= url('store/trOrder/orderdetail', ['id' => $item['inpack']['id']]) ?>">
+                                            <?= $item['inpack']['order_sn'] ?></a><br>
+                                        <?php endif;?>
+                                        
+                                        <span class="am-badge am-badge-secondary"><?= $source[$item['source']]?></span></br>
+                                        
+                                        <?php if (!$item['category_attr']->isEmpty()): foreach ($item['category_attr'] as $attr): ?>
+                                              <span class="am-badge am-badge-success"><?= $attr['class_name']?></span> </br>
+                                        <?php endforeach;endif; ?>
+                                        <?php if(isset($adminstyle['is_usermark']) && $adminstyle['is_usermark']==1 && $item['usermark'] ) :?>
+                                             唛头：<?= $item['usermark']; ?></br>
+                                        <?php endif;?>
+                                    </td>
+                                    <td class="am-text-middle">
+                                        <?= $item['nickName'] ?></br>
+                                     <?php if($set['usercode_mode']['is_show']!=1 ) :?>
+                                    [ID:] <?= $item['member_id'] ?></br>
+                                    <?php endif;?>
+                                    <?php if($set['usercode_mode']['is_show']!=0 ) :?>
+                                    <span>[Code:] <?= $item['user_code'] ?></span>
+                                    <?php endif;?>
+                                    </td>
+                                    <td class="am-text-middle">
+                                        <?= $item['shop_name'] ?></br>
+                                        <?php if($item['shelfunititem'] && $item['shelfunititem']['shelfunit']) :?>
+                                            货架：<span style="color:#ff6666;cursor:pointer"><?= $item['shelfunititem']['shelfunit']['shelf']['shelf_no'].' - '.$item['shelfunititem']['shelfunit']['shelf_unit_no'] ?></span><br>
+                                        <?php endif;?>
+                                        <?= $item['is_shelf']==1?'已上架':"未上架" ?>
+                                    </td>
+                                    <td class="am-text-middle"><?= $item['title'] ?></td>
+                                    <td class="am-text-middle">
+                                        重量(<?= $set['weight_mode']['unit'] ?>):<?= $item['weight'] ?></br>
+                                        体积(立方m³):<?= !empty($item['volume'])?$item['volume']:0 ?></br>
+                                        
+                                        价值(<?= $set['price_mode']['unit'] ?>):<?= $item['price'] ?></br>
+                                        包裹数:<?= $item['num'] ?></br>
+                                        
+                                    </td>
+                                    <td class="am-text-middle">
+                                        包裹状态:<?= $status[$item['a_status']];?></br>
+                                        认领状态:<?= $taker_status[$item['is_take']];?></br>
+                                        查验状态:<?= $item['is_scan']==1?"未查验":"已查验" ;?></br>
+                                    </td>
+                                    <td class="am-text-middle">
+                                        预报时间:<?= $item['created_time'] ?></br>
+                                        更新时间:<?= $item['updated_time'] ?></br>
+                                        <?php if (!empty($item['entering_warehouse_time'])): ?>
+                                        入库时间:<?= $item['entering_warehouse_time'] ?></br>
+                                        <?php endif; ?>
+                                        <?php if (!empty($item['scan_time'])): ?>
+                                        查验时间:<?= $item['scan_time'] ?></br>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="am-text-middle">
+                                        <?= !empty($item['remark']) ? htmlspecialchars($item['remark']) : '-' ?>
+                                        </br>
+                                        <?= !empty($item['admin_remark']) ? htmlspecialchars($item['admin_remark']) : '-' ?>
+                                    </td>
+                                    <td class="am-text-middle fixed-operation">
+                                        <div class="tpl-table-black-operation">
+                                            <!--编辑-->
+                                            <?php if (checkPrivilege('package.index/edit')): ?>
+                                            <a href="<?= url('store/package.index/edit', ['id' => $item['id']]) ?>">
+                                                <i class="am-icon-pencil"></i> 编辑
+                                            </a>
+                                            <?php endif;?>
+                                            <!--详情-->
+                                            <?php if (checkPrivilege('package.report/item')): ?>
+                                            <a href="<?= url('store/package.report/item', ['id' => $item['id']]) ?>">
+                                                <i class="iconfont icon-xiangqing"></i> 详情
+                                            </a>
+                                            <?php endif;?>
+                                            <!--删除-->
+                                            <?php if (checkPrivilege('package.index/delete')): ?>
+                                            <?php if($type!='deletepack'): ?>
+                                             <a href="javascript:void(0);" class="item-delete tpl-table-black-operation-del"
+                                               data-id="<?= $item['id'] ?>"> <i class="am-icon-trash"></i> 删除
+                                             </a>
+                                             <?php endif; ?>
+                                             <?php endif; ?>
+                                        </div>
+                                        <div class="tpl-table-black-operation" style="margin-top:10px;">
+                                           <?php if (!empty($item['packageimage'])): ?>
+                                            <a href="javascript:void(0);" class="view-images tpl-table-black-operation-green" 
+                                               data-images='<?= $item['packageimage'] ?>'>
+                                                <i class="iconfont icon-xiangqing"></i> 图片预览
+                                            </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; else: ?>
+                                <tr>
+                                    <td colspan="12" class="am-text-center">暂无记录</td>
+                                </tr>
+                            <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="am-u-lg-12 am-cf">
+                        <div class="am-fr"><?= $list->render() ?> </div>
+                        <div class="am-fr pagination-total am-margin-right">
+                            <div class="am-vertical-align-middle">总记录：<?= $list->total() ?></div>
+                            <div style="margin-left:10px;" class="am-vertical-align-middle">总重量(<?= $set['weight_mode']['unit'] ?>)：<?= $countweight ?></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script id="tpl-user-item" type="text/template">
+    {{ each $data }}
+    <div class="file-item">
+        <a href="{{ $value.avatarUrl }}" title="{{ $value.nickName }} (ID:{{ $value.user_id }})" target="_blank">
+            <img src="{{ $value.avatarUrl }}">
+        </a>
+        <input type="hidden" name="package[user_id]" value="{{ $value.user_id }}">
+    </div>
+    {{ /each }}
+</script>
+<!-- 模板：修改会员等级 -->
+<script id="tpl-inpack" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包裹数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'> 共选中 {{ selectCount }} 包裹</p>
+                    </div>
+                </div>
+            </div>
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择线路
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                     <select name="inpack[line_id]"
+                                data-am-selected="{btnSize: 'sm', placeholder: '请选择线路'}">
+                        <?php foreach ($line as $item): ?>
+                                <option value="<?= $item['id'] ?>"><?= $item['name'] ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <?php if (count($packageService)>0): ?>
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包装服务
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                      <select name="inpack[id]" data-am-selected="{btnSize: 'sm', placeholder: '请选择线路'}">
+                       <option value="">-- 请选择包装服务 --</option>
+                        <?php foreach ($packageService as $item): ?>
+                                <option value="<?= $item['id'] ?>"><?= $item['name'] ?></option>
+                            <?php endforeach; ?>
+                            </select>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择用户地址
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                      <select id="storeAddress" name="inpack[address_id]"
+                                data-am-selected="{btnSize: 'sm', placeholder: '请选择自提点'}">
+                                <option value="-1">不选择则使用用户自填的默认地址</option>
+                             <?php foreach ($storeAddress as $item): ?>
+                                <option value="<?= $item['address_id'] ?>">
+                               【自提点】 <?= $item['name'] ?>-<?= $item['country'] ?>-<?= $item['city'] ?>-<?= $item['phone'] ?>
+                                </option>
+                            <?php endforeach; ?>
+                            </select>
+                        <div class="am-block">
+                            <small><a target="_blank" href="<?= url('store/user/address') ?>">新增用户地址</a></small>
+                        </div>
+                    </div>
+                    
+                    
+                </div>
+            </div>
+             <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label"> 管理员备注 </label>
+                    <div class="am-u-sm-8 am-u-end">
+                                <textarea rows="2" name="grade[remark]" placeholder="请输入管理员备注"
+                                          class="am-field-valid"></textarea>
+                    </div>
+                </div>
+        </form>
+    </div>
+</script>
+
+<script id="tpl-grade" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包裹数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'> 共选中 {{ selectCount }} 包裹</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择用户
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                         <div class="widget-become-goods am-form-file am-margin-top-xs">
+                                        <button type="button"
+                                                class="j-selectUser upload-file am-btn am-btn-secondary am-radius" onclick="doSelectUser()">
+                                            <i class="am-icon-cloud-upload"></i> 选择用户
+                                        </button>
+                                        <div class="user-list uploader-list am-cf">
+                                        </div>
+                                        <div class="am-block">
+                                            <small>选择后不可更改</small>
+                                        </div>
+                                    </div>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+</script>
+
+<script id="tpl-errors" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包裹数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                       <p class='am-form-static'> 共选中 {{ selectCount }} 包裹</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        标记原因
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                         <textarea rows="2" name="error[remark]" placeholder="请输入标记原因 如 包裹 长时间未入库"
+                                          class="am-field-valid"></textarea>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+</script>
+
+<script id="tpl-shelf" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="" id="shelf-form">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包裹数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'><span class="am-badge am-badge-success">{{ selectCount }}</span> 个包裹</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择仓库
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="shelf[shop_id]" id="shelf-shop-id"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择仓库', maxHeight: 400}" 
+                                            data-select_type='shelf'>
+                                        <option value="">请选择仓库</option>
+                                        <?php if (isset($shopList) && !$shopList->isEmpty()):
+                                            foreach ($shopList as $item): ?>
+                                                <option value="<?= $item['shop_id'] ?>"><?= $item['shop_name'] ?></option>
+                                            <?php endforeach; endif; ?>
+                                    </select>
+                                    <small class="am-form-text am-text-warning">选择仓库后会自动加载该仓库下的货架</small>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label">
+                        选择货架
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                         <select id="select-shelf" 
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请先选择仓库', maxHeight: 400}" 
+                                            data-select_type='shelf_unit' disabled>
+                                        <option value="">请先选择仓库</option>
+                                    </select>
+                                    <small class="am-form-text am-text-warning">选择货架后会自动加载该货架下的货位</small>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label">
+                        选择货位
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                         <select id="select_shelf_unit" name="shelf[shelf_unit]"
+                                            data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请先选择货架', maxHeight: 400}" disabled>
+                                        <option value="">请先选择货架</option>
+                                    </select>
+                                    <small class="am-form-text am-text-muted">货位为可选，不选择则只更新仓库和货架</small>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <div class="am-u-sm-8 am-u-end am-u-sm-offset-3">
+                        <div class="am-alert am-alert-warning" style="margin-bottom: 0;">
+                            <i class="am-icon-info-circle"></i> 提示：至少需要选择仓库，货架和货位为可选
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-batch" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择集运单数
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'> 共选中 {{ selectCount }} 订单</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择批次
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                          <select name="batch_id"
+                                data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" onchange="getSelectData(this)" data-select_type='shelf'>
+                            <option value="">请选择</option>
+                            <?php if (isset($batchlist) && !$batchlist->isEmpty()):
+                                foreach ($batchlist as $item): ?>
+                                    <option value="<?= $item['batch_id'] ?>"><?= $item['batch_name'] ?> - <?= $item['batch_no'] ?></option>
+                                <?php endforeach; endif; ?>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-log" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+                <div class="am-form-group">
+                    <div class="am-u-sm-12">
+                    <table class="am-table">
+                        <thead>
+                            <tr class="am-primary">
+                                <th>操作时间</th>
+                                <th>轨迹内容</th>
+                                <th>操作人</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{each data value}}
+                                <tr class="am-success">
+                                    <td>{{ value.created_time }}</td>
+                                    <td>{{ value.logistics_describe }}</td>
+                                    <td>{{ value.clerk?value.clerk.real_name:'' }}</td>
+                                </tr>
+                            {{/each}}  
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+<script id="tpl-packtype" type="text/template">
+    <div class="am-padding-xs am-padding-top">
+        <form class="am-form tpl-form-line-form" method="post" action="">
+            <div class="am-tab-panel am-padding-0 am-active">
+               <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择包裹数量
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <p class='am-form-static'> 共选中 {{ selectCount }} 包裹</p>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">
+                        选择仓库
+                    </label>
+                    <div class="am-u-sm-8 am-u-end">
+                      <select name="package[shop_id]"
+                                data-am-selected="{searchBox: 1, btnSize: 'sm', placeholder:'请选择', maxHeight: 400}" onchange="getSelectData(this)" data-select_type='shelf'>
+                            <option value="">请选择</option>
+                            <?php if (isset($shopList) && !$shopList->isEmpty()):
+                                foreach ($shopList as $item): ?>
+                                    <option value="<?= $item['shop_id'] ?>"><?= $item['shop_name'] ?></option>
+                                <?php endforeach; endif; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="am-form-group">
+                    <label class="am-u-sm-3 am-form-label form-require">包裹类型</label>
+                    <div class="am-u-sm-8 am-u-end">
+                        <label class="am-radio-inline">
+                            <input type="radio" name="package[pack_type]" value="0" data-am-ucheck checked>
+                            拼邮
+                        </label>
+                        <label class="am-radio-inline">
+                            <input type="radio" name="package[pack_type]" value="1" data-am-ucheck>
+                            直邮
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+<script src="assets/store/js/select.data.js?v=<?= $version ?>"></script>
+<script>
+    function getlog(_this){
+        var number = _this.getAttribute('value');
+        console.log(3434);
+        $.ajax({
+			type: 'post',
+			url: "<?= url('store/package.Index/getlog') ?>",
+			data: {number: number},
+			dataType: "json",
+			success: function(res) {
+				if (res.code == 1) {
+				    console.log(res.data,87);
+        				$.showModal({
+                         title: '物流信息'
+                        , area: '800px'
+                        , content: template('tpl-log', res.data)
+                        , uCheck: false
+                        , success: function (index) {}
+                        ,yes: function (index) {window.location.reload();}
+                    });
+				}
+			}
+		})
+    } 
+    
+document.addEventListener('DOMContentLoaded', function() {
+    // 页面加载完成后执行
+    fetchDataAndRender();
+});
+
+function fetchDataAndRender() {
+    // 模拟从后台获取数据
+    $.ajax({
+        type:'post',
+        url:"<?= url('store/package.index/gettotal') ?>",
+        data:{
+            
+        },
+        dataType:"json",
+        success:function(res){
+              if (res.code==1){
+                  renderData(res.data);
+              }else{
+                  layer.alert(res.msg, {icon: 5});
+              } 
+        }
+    })
+}
+
+function renderData(datatotal) {
+    const userList = document.getElementById('datatotal');
+    userList.innerHTML = ''; // 清空现有内容
+    userList.innerHTML = `
+    <span style="line-height:30px;"  class="am-badge am-badge-warning">今日入库（个数/重量）：
+        ${datatotal.todayin}/${datatotal.todayin_weight}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-warning">今日出库（个数/重量）：
+        ${datatotal.todayout}/${datatotal.todayout_weight}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-success">昨日入库（个数/重量）：
+        ${datatotal.yesin}/${datatotal.yesin_weight}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-success">昨日出库（个数/重量）：
+        ${datatotal.yesout}/${datatotal.yesout_weight}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-success">未入库（已预报）：
+        ${datatotal.report}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-danger">在库中（个数/重量）：
+        ${datatotal.instore}/${datatotal.instore_weight}
+    </span>
+    <span style="line-height:30px;"  class="am-badge am-badge-success">已发货（个数/重量）：
+        ${datatotal.other}/${datatotal.other_weight}
+    </span>`;
+}    
+    
+</script>
+<script>
+    var _render = false;
+    var getSelectData = function(_this){
+        if (_render){
+            return;
+        }
+        var sType = _this.getAttribute('data-select_type');
+        if (!sType || !_this.value) {
+            return;
+        }
+        
+        var api_group = {
+            'shelf': '<?= url('store/shelf_manager.index/getShelf')?>',
+            'shelf_unit': '<?= url('store/shelf_manager.index/getshelf_unit')?>'
+        };
+        
+        var $selected, data, $nextSelect;
+        
+        if (sType == 'shelf'){
+            $selected = $('#select-shelf');
+            $nextSelect = $('#select_shelf_unit');
+            data = {'shop_id': _this.value};
+            
+            // 清空货架和货位选项
+            $selected.html('<option value="">加载中...</option>').prop('disabled', true);
+            $nextSelect.html('<option value="">请先选择货架</option>').prop('disabled', true);
+            
+            // 重新初始化am-selected
+            if ($selected.data('amui.selected')) {
+                $selected.selected('destroy');
+            }
+        }
+        
+        if (sType == 'shelf_unit'){
+            $selected = $('#select_shelf_unit');
+            data = {'shelf_id': _this.value};
+            
+            // 清空货位选项
+            $selected.html('<option value="">加载中...</option>').prop('disabled', true);
+            
+            // 重新初始化am-selected
+            if ($selected.data('amui.selected')) {
+                $selected.selected('destroy');
+            }
+        }
+        
+        _render = true;
+        
+        $.ajax({
+            type: "GET",
+            url: api_group[sType],
+            data: data,
+            dataType: 'json',
+            beforeSend: function() {
+                // 可以在这里添加加载提示
+            },
+            success: function(res){
+                if (res.code != 1) {
+                    layer.msg(res.msg || '加载失败', {icon: 2});
+                    if (sType == 'shelf') {
+                        $selected.html('<option value="">加载失败，请重试</option>');
+                    } else {
+                        $selected.html('<option value="">加载失败，请重试</option>');
+                    }
+                    _render = false;
+                    return;
+                }
+                
+                if (sType == 'shelf'){
+                    var _data = res.data.shelf || [];
+                    var html = '<option value="">请选择货架</option>';
+                    
+                    if (_data.length > 0) {
+                        for (var i = 0; i < _data.length; i++){
+                            html += '<option value="' + _data[i]['id'] + '">' + _data[i]['shelf_name'] + '</option>';
+                        }
+                    } else {
+                        html = '<option value="">该仓库暂无货架</option>';
+                    }
+                    
+                    $selected.html(html).prop('disabled', false);
+                    
+                    // 刷新am-selected组件
+                    if ($selected.data('amui.selected')) {
+                        $selected.selected('refresh');
+                    } else {
+                        // 如果还没有初始化，则重新初始化
+                        $selected.selected({
+                            searchBox: 1,
+                            btnSize: 'sm',
+                            placeholder: sType == 'shelf' ? '请选择货架' : '请选择货位',
+                            maxHeight: 400
+                        });
+                    }
+                } else {
+                    var _data = res.data.shelfunit || [];
+                    var html = '<option value="">请选择货位（可选）</option>';
+                    
+                    if (_data.length > 0) {
+                        for (var i = 0; i < _data.length; i++){
+                            html += '<option value="' + _data[i]['shelf_unit_id'] + '">' + _data[i]['shelf_unit_no'] + '</option>';
+                        }
+                    } else {
+                        html = '<option value="">该货架暂无货位</option>';
+                    }
+                    
+                    $selected.html(html).prop('disabled', false);
+                    
+                    // 刷新am-selected组件
+                    if ($selected.data('amui.selected')) {
+                        $selected.selected('refresh');
+                    } else {
+                        // 如果还没有初始化，则重新初始化
+                        $selected.selected({
+                            searchBox: 1,
+                            btnSize: 'sm',
+                            placeholder: '请选择货位',
+                            maxHeight: 400
+                        });
+                    }
+                }
+                
+                setTimeout(function() {
+                    _render = false;
+                }, 100);
+            },
+            error: function() {
+                layer.msg('网络错误，请重试', {icon: 2});
+                if (sType == 'shelf') {
+                    $selected.html('<option value="">加载失败，请重试</option>');
+                } else {
+                    $selected.html('<option value="">加载失败，请重试</option>');
+                }
+                _render = false;
+            }
+        });
+    }
+
+    $(function () {
+       checker = {
+          num:0, 
+          check:[],
+          init:function(){
+              this.check = document.getElementById('body').getElementsByTagName('input');
+              this.num = this.check.length;
+              this.bindEvent();
+          },
+          bindEvent:function(){
+              var that = this;
+              for(var i=0; i< this.check.length; i++){
+                  this.check[i].onclick = function(){
+                       var _check = that.isFullCheck();
+                       if (_check){
+                           document.getElementById('checkAll').checked = 'checked';
+                       }else{
+                           document.getElementById('checkAll').checked = '';
+                       }
+                  }
+              }
+              
+              var  allCheck = document.getElementById('checkAll');
+              allCheck.onclick = function(){
+                  if (this.checked){
+                      that.setFullCheck();
+                  }else{
+                      that.setFullCheck('');
+                  }
+              }
+              
+          },
+          setFullCheck:function(checked='checked'){
+             for (var ik =0; ik<this.num; ik++){
+                  this.check[ik].checked = checked; 
+              } 
+          },
+          isFullCheck:function(){
+              var hasCheck = 0;
+              for (var k =0; k<this.num; k++){
+                   if (this.check[k].checked){
+                       hasCheck++;
+                   }
+              }
+              return hasCheck==this.num?true:false;
+          },
+          getCheckSelect:function(){
+              var selectIds = [];
+              for (var i=0;i<this.check.length;i++){
+                    if (this.check[i].checked){
+                       selectIds.push(this.check[i].value);
+                    }
+              }
+              return selectIds;
+          }
+       }
+       
+       checker.init();
+       
+        // 选择用户
+        $('.j-selectUser').click(function () {
+            alert(222);
+            var $userList = $('.user-list');
+            $.selectData({
+                title: '选择用户',
+                uri: 'user/lists',
+                dataIndex: 'user_id',
+                done: function (data) {
+                    var user = [data[0]];
+                    $userList.html(template('tpl-user-item', user));
+                }
+            });
+        });
+        /**
+         * 代用户打包
+         */
+        $('#j-inpack').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+               layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            var options = [] ;
+            $.ajax({
+                type:'post',
+                url:"<?= url('store/package.index/seachuserAddress') ?>",
+                data:{
+                    selectIds:data.selectId,
+                },
+                dataType:"json",
+                success:function(res){
+                      if (res.code==1){
+                          for(var i=0;i<res.data.total;i++){
+                              options[i] = "<option value ='"+ res.data.data[i].address_id+"'>"+"【用户地址】" +  res.data.data[i].name +'-'+ res.data.data[i].country +'-'+ res.data.data[i].city +'-'+ res.data.data[i].phone +"</option>"; 
+                          }
+			              $("#storeAddress").append(options);
+                          console.log($('#storeAddress'));
+                      }else{
+                          layer.alert(res.msg, {icon: 5});
+                      } 
+                }
+            })
+            
+           
+            $.showModal({
+                title: '用户打包'
+                , area: '520px'
+                , content: template('tpl-inpack', data)
+                , uCheck: true
+                , success: function ($content) {
+                    $tabs = $content.find('.j-tabs');
+                    $tabs.tabs({noSwipe: 1});
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('/store/package.index/inpack') ?>',
+                        data: {
+                            selectIds:data.selectId,
+                        }
+                    });
+                    return true;
+                }
+            });
+        });
+
+        /**
+         * 修改会员
+         */
+        $('#j-upuser').on('click', function () {
+             var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            $.showModal({
+                title: '修改会员'
+                , area: '460px'
+                , content: template('tpl-grade', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('/store/package.index/changeUser') ?>',
+                        data: {selectIds:data.selectId}
+                    });
+                    return true;
+                }
+            });
+        });
+        
+          /**
+         * 修改会员
+         */
+        $('#j-error').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            $.showModal({
+                title: '标记为问题件'
+                , area: '460px'
+                , content: template('tpl-errors', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('/store/package.index/setErrors') ?>',
+                        data: {selectIds:data.selectId},
+                    });
+                    return true;
+                }
+            });
+        });
+        
+         /**
+         * 修改包裹位置
+         */
+        $('#j-change').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length == 0){
+                layer.alert('请先选择要修改位置的包裹', {icon: 5, title: '提示'});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            
+            $.showModal({
+                title: '修改包裹位置 <small style="color:#999;">(已选择 ' + data.selectCount + ' 个包裹)</small>'
+                , area: ['650px', '550px']
+                , content: template('tpl-shelf', data)
+                , uCheck: true
+                , success: function ($content) {
+                    // 等待am-selected初始化完成后再绑定事件
+                    setTimeout(function() {
+                        // 绑定仓库选择事件
+                        var $shopSelect = $content.find('#shelf-shop-id');
+                        if ($shopSelect.length) {
+                            // 使用事件委托，确保能捕获到am-selected的变化
+                            $shopSelect.on('change', function() {
+                                var shopId = $(this).val();
+                                var $shelfSelect = $content.find('#select-shelf');
+                                var $shelfUnitSelect = $content.find('#select_shelf_unit');
+                                
+                                if (shopId) {
+                                    getSelectData(this);
+                                } else {
+                                    // 清空下级选项
+                                    $shelfSelect.html('<option value="">请先选择仓库</option>').prop('disabled', true);
+                                    $shelfUnitSelect.html('<option value="">请先选择货架</option>').prop('disabled', true);
+                                    if ($shelfSelect.data('amui.selected')) {
+                                        $shelfSelect.selected('refresh');
+                                    }
+                                    if ($shelfUnitSelect.data('amui.selected')) {
+                                        $shelfUnitSelect.selected('refresh');
+                                    }
+                                }
+                            });
+                        }
+                        
+                        // 绑定货架选择事件
+                        var $shelfSelect = $content.find('#select-shelf');
+                        if ($shelfSelect.length) {
+                            $shelfSelect.on('change', function() {
+                                var shelfId = $(this).val();
+                                var $shelfUnitSelect = $content.find('#select_shelf_unit');
+                                
+                                if (shelfId) {
+                                    getSelectData(this);
+                                } else {
+                                    // 清空货位选项
+                                    $shelfUnitSelect.html('<option value="">请先选择货架</option>').prop('disabled', true);
+                                    if ($shelfUnitSelect.data('amui.selected')) {
+                                        $shelfUnitSelect.selected('refresh');
+                                    }
+                                }
+                            });
+                        }
+                    }, 100);
+                }
+                , yes: function ($content) {
+                    var $form = $content.find('form');
+                    var shopId = $form.find('select[name="shelf[shop_id]"]').val();
+                    var shelfId = $form.find('#select-shelf').val();
+                    var shelfUnitId = $form.find('select[name="shelf[shelf_unit]"]').val();
+                    
+                    // 表单验证：至少需要选择仓库
+                    if (!shopId) {
+                        layer.msg('请至少选择仓库', {icon: 2, time: 2000});
+                        return false;
+                    }
+                    
+                    // 如果选择了货架但没有选择货位，给出提示（但不阻止提交）
+                    if (shelfId && !shelfUnitId) {
+                        // 货位是可选的，所以这里不阻止提交
+                    }
+                    
+                    // 提交表单
+                    $form.myAjaxSubmit({
+                        url: '<?= url('/store/package.index/changeShelf') ?>',
+                        data: {selectIds: data.selectId},
+                        beforeSubmit: function() {
+                            layer.load(2, {time: 10*1000});
+                        },
+                        success: function(res) {
+                            layer.closeAll('loading');
+                        }
+                    });
+                    return true;
+                }
+            });
+        });
+        
+         /**
+         * 修改包裹位置
+         */
+        $('#j-changetype').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            $.showModal({
+                title: '修改包裹类型'
+                , area: '460px'
+                , content: template('tpl-packtype', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('/store/package.index/changetype') ?>',
+                        data: {selectIds:data.selectId},
+                    });
+                    return true;
+                }
+            });
+        });
+        
+        /**
+         * 加入批次
+         */
+        $('#j-batch').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length==0){
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            data.selectCount = selectIds.length;
+            console.log(data.selectId)
+            $.showModal({
+                title: '将包裹加入到批次中'
+                , area: '460px'
+                , content: template('tpl-batch', data)
+                , uCheck: true
+                , success: function ($content) {
+                }
+                , yes: function ($content) {
+                    $content.find('form').myAjaxSubmit({
+                        url: '<?= url('store/batch/addpacktobatch') ?>',
+                        data: {selectIds:data.selectId},
+                    });
+                    return true;
+                }
+            });
+        });
+        
+        /**
+         * 批量删除
+         */
+        $('#j-deleteall').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            var hedanurl = "<?= url('store/package.index/deleteall') ?>";
+            if (selectIds.length==0){
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            console.log();
+            layer.confirm('请确定是否批量删除选中包裹', {title: '批量删除包裹'}
+                    , function (index) {
+                        $.post(hedanurl,{selectId:data.selectId}, function (result) {
+                            result.code === 1 ? $.show_success(result.msg, result.url)
+                                : $.show_error(result.msg);
+                        });
+                        layer.close(index);
+                    });
+        });
+        
+        /**
+         * 批量还原
+         */
+        $('#j-backall').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            var hedanurl = "<?= url('store/package.index/backall') ?>";
+            if (selectIds.length==0){
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            console.log();
+            layer.confirm('请确定是否批量还原选中包裹状态', {title: '批量还原包裹'}
+                    , function (index) {
+                        $.post(hedanurl,{selectId:data.selectId}, function (result) {
+                            result.code === 1 ? $.show_success(result.msg, result.url)
+                                : $.show_error(result.msg);
+                        });
+                        layer.close(index);
+                    });
+        });
+        
+        $('#j-backnormal').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            var hedanurl = "<?= url('store/package.index/backtoNormalall') ?>";
+            if (selectIds.length==0){
+                layer.alert('请先选择包裹', {icon: 5});
+                return;
+            }
+            data.selectId = selectIds.join(',');
+            console.log();
+            layer.confirm('请确定是否批量还原选中包裹状态', {title: '还原成包裹'}
+                    , function (index) {
+                        $.post(hedanurl,{selectId:data.selectId}, function (result) {
+                            result.code === 1 ? $.show_success(result.msg, result.url)
+                                : $.show_error(result.msg);
+                        });
+                        layer.close(index);
+                    });
+        });
+        
+
+        /**
+         * 导出包裹
+         */
+        $('#j-export').on('click', function () {
+            var $tabs, data = $(this).data();
+            var selectIds = checker.getCheckSelect();
+            var serializeObj={};
+            var fordata = $(".toolbar-form").serializeArray().forEach(function(item){
+                if(item.name !='s'){
+                   serializeObj[item.name]=item.value;
+                }
+                
+            });
+            // if(isEmpty(serializeObj['search']) && selectIds.length==0){
+            //         layer.alert('请先选择包裹或者搜索后再点导出', {icon: 5});
+            //         return;
+            // }
+            $.ajax({
+                type:'post',
+                url:"<?= url('store/package.index/loaddingOutExcel') ?>",
+                data:{
+                    selectId:selectIds,
+                    seach:serializeObj
+                },
+                dataType:"json",
+                success:function(res){
+                      if (res.code==1){
+                          console.log(res.url.file_name);
+                        var a = document.createElement('a');
+                        document.body.appendChild(a);
+                        a.href = res.url.file_name;
+                        a.click();
+                      } 
+                }
+            })
+        });
+
+        /**
+         * 复制单号
+         */
+        $('#j-copy-express').on('click', function () {
+            var selectIds = checker.getCheckSelect();
+            if (selectIds.length == 0) {
+                layer.alert('请先选择要复制的包裹', {icon: 5});
+                return;
+            }
+            
+            // 获取所有选中行的快递单号
+            var expressNums = [];
+            var $checkboxes = $('#body input[name="checkIds"]:checked');
+            
+            $checkboxes.each(function() {
+                var $row = $(this).closest('tr');
+                // 从该行中找到包含快递单号的a标签，优先获取value属性，如果没有则获取文本内容
+                var $expressLink = $row.find('td:eq(2) a[onclick="getlog(this)"]');
+                if ($expressLink.length > 0) {
+                    // 优先使用value属性，如果没有则使用文本内容
+                    var expressNum = $expressLink.attr('value');
+                    if (!expressNum || expressNum.trim() === '') {
+                        expressNum = $expressLink.text().trim();
+                    }
+                    // 清理可能的换行符和多余空格
+                    expressNum = expressNum.replace(/\s+/g, ' ').trim();
+                    if (expressNum && expressNums.indexOf(expressNum) === -1) {
+                        expressNums.push(expressNum);
+                    }
+                }
+            });
+            
+            if (expressNums.length === 0) {
+                layer.alert('未找到快递单号', {icon: 5});
+                return;
+            }
+            
+            // 将单号用换行符连接
+            var expressText = expressNums.join('\n');
+            
+            // 复制到剪贴板
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                // 使用现代 Clipboard API
+                navigator.clipboard.writeText(expressText).then(function() {
+                    layer.msg('已复制 ' + expressNums.length + ' 个快递单号', {icon: 1, time: 2000});
+                }).catch(function(err) {
+                    // 如果 Clipboard API 失败，使用备用方法
+                    fallbackCopyText(expressText, expressNums.length);
+                });
+            } else {
+                // 使用备用方法
+                fallbackCopyText(expressText, expressNums.length);
+            }
+        });
+        
+        /**
+         * 备用复制方法（兼容旧浏览器）
+         */
+        function fallbackCopyText(text, count) {
+            var textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    layer.msg('已复制 ' + count + ' 个快递单号', {icon: 1, time: 2000});
+                } else {
+                    layer.alert('复制失败，请手动复制', {icon: 5});
+                }
+            } catch (err) {
+                layer.alert('复制失败，请手动复制', {icon: 5});
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        /**
+         * 注册操作事件
+         * @type {jQuery|HTMLElement}
+         */
+        var $dropdown = $('.j-opSelect');
+        $dropdown.dropdown();
+        
+        // 删除元素
+        var url = "<?= url('store/package.index/delete') ?>";
+        $('.item-delete').delete('id', url);
+    });
+    
+     function doSelectUser(){
+           var $userList = $('.user-list');
+            $.selectData({
+                title: '选择用户',
+                uri: 'user/lists',
+                dataIndex: 'user_id',
+                done: function (data) {
+                    var user = [data[0]];
+                    console.log(user,98999);
+                    $userList.html(template('tpl-user-item', user));
+                }
+            });
+    }
+    
+    function changecategory(_this){
+        var categoryid = _this.value;
+        console.log(_this.value);
+        $.ajax({
+            type:'post',
+            url:"<?= url('store/package.index/changecategory') ?>",
+            data:{
+                categoryid:categoryid
+            },
+            dataType:"json",
+            success:function(res){
+                  if (res.code==1){
+                    var $selected = $("#Packcategory");
+                    $selected.html('');
+                    var cate = res.data;
+       
+                    for (var i=0;i<cate.length;i++){
+                        $selected.append('<option value="' + cate[i]['category_id'] +'" >' + cate[i]['name'] + '</option>');
+                    }
+                    // $("#Packcategory").html();
+                  } 
+            }
+        })
+    }
+    
+    function isEmpty(val){
+          let valType = Object.prototype.toString.call(val);
+          let isEmpty = false;
+          switch (valType) {
+            case "[object Undefined]":
+            case "[object Null]":
+              isEmpty = true;
+              break;
+            case "[object Array]":
+              case "[object String]":
+                try {
+                    isEmpty = val + "" === "null" || val + "" === "undefined" || val.length <= 0 ||  val.split("").length <= 0 ? true : false;
+                  } catch (error) {
+                    isEmpty = false;
+                  };
+                  break;
+            case "[object Object]":
+              try {
+                let temp = JSON.stringify(val);
+                isEmpty = temp + "" === "null" || temp + "" === "undefined" || temp === "{}" ? true : false;
+              } catch (error) {
+                isEmpty = false;
+              }
+              break;
+            case "[object Number]":
+              isEmpty = val + "" === "NaN" || val + "" === "Infinity" ? true : false;
+              break;
+            default:
+              isEmpty = false;
+              break;
+          }
+          return isEmpty;
+        }
+
+</script>
+<!-- 图片预览模态框模板 -->
+<script id="tpl-image-preview" type="text/template">
+    <div class="am-modal am-modal-no-btn image-preview-wrapper" tabindex="-1" id="image-preview-modal">
+        <div class="am-modal-dialog">
+            <div class="am-modal-hd">
+                图片预览 (共{{ images.length }}张)
+                <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+            </div>
+            <div class="am-modal-bd image-content" style="max-height: 80vh; overflow-y: auto;">
+                <div class="image-gallery" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    {{each images item}}
+                    <div class="image-item" style="flex: 0 0 calc(25% - 10px); box-sizing: border-box;">
+                        <img class="preview-image" 
+                             src="{{ item.file_path }}" 
+                             style="max-width: 100%; max-height: 200px; cursor: pointer;"
+                             data-original="{{ item.file_path }}"
+                             alt="包裹图片">
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<!-- Viewer.js CSS -->
+<link rel="stylesheet" href="assets/store/css/viewer.min.css">
+
+<!-- Viewer.js JS -->
+<script src="assets/store/js/viewer.min.js"></script>
+<script>
+$(function() {
+    // 图片预览点击事件
+    $('.view-images').on('click', function(e) {
+        e.stopPropagation(); // 阻止事件冒泡
+        
+        var images = $(this).data('images');
+        
+        // 渲染模态框
+        var modalHtml = template('tpl-image-preview', {images: images});
+        $('body').append(modalHtml);
+        
+        // 显示模态框
+        var $modal = $('#image-preview-modal');
+        $modal.modal({
+            closeViaDimmer: false
+        });
+        
+        // 初始化Viewer.js
+        var gallery = new Viewer(document.querySelector('.image-gallery'), {
+            inline: false,
+            button: true,
+            navbar: true,
+            title: false,
+            toolbar: {
+                zoomIn: 1,
+                zoomOut: 1,
+                oneToOne: 1,
+                reset: 1,
+                prev: 1,
+                play: 0,
+                next: 1,
+                rotateLeft: 1,
+                rotateRight: 1,
+                flipHorizontal: 1,
+                flipVertical: 1,
+            },
+            viewed() {
+                gallery.zoomTo(1);
+            }
+        });
+        
+        // 点击模态框空白区域关闭
+        $modal.on('click', function(e) {
+            // 检查点击的是否是模态框内容区域以外的部分
+            if ($(e.target).hasClass('image-preview-wrapper')) {
+                $modal.modal('close');
+            }
+        });
+        
+        // 点击图片时不关闭模态框
+        $('.image-content').on('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // 模态框关闭时清理
+        $modal.on('closed.modal.amui', function() {
+            gallery.destroy();
+            $(this).remove();
+        });
+    });
+});
+</script>
+<style>
+    /* 模态框样式 */
+    .image-preview-wrapper {
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+    
+    .image-preview-wrapper .am-modal-dialog {
+        background: white;
+        border-radius: 5px;
+        max-width: 90%;
+        max-height: 90vh;
+        overflow: hidden;
+    }
+    
+    /* 图片网格样式 */
+    .image-gallery {
+        padding: 10px;
+    }
+    
+    .image-item {
+        transition: all 0.3s ease;
+    }
+    
+    .image-item:hover {
+        transform: scale(1.03);
+    }
+    
+    .preview-image {
+        border: 1px solid #eee;
+        border-radius: 3px;
+    }
+    
+    /* 关闭按钮样式 */
+    .am-close-spin {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 24px;
+        color: #666;
+    }
+    
+    /* 固定列样式 */
+    .fixed-column-table {
+        position: relative;
+    }
+    
+    /* 固定列基础样式 - 操作列固定在右侧 */
+    .fixed-operation {
+        position: sticky;
+        right: 0;
+        z-index: 10;
+        background-color: #fff;
+        min-width: 180px;
+        width: 180px;
+        box-shadow: -2px 0 4px rgba(0,0,0,0.1);
+        padding: 8px 12px !important;
+    }
+    
+    /* 表头固定列样式 */
+    .fixed-column-table thead th.fixed-operation {
+        background-color: #f5f5f5 !important;
+        z-index: 11;
+    }
+    
+    /* 斑马纹表格的固定列背景色 */
+    .fixed-column-table tbody tr:nth-child(even) .fixed-operation {
+        background-color: #f9f9f9;
+    }
+    
+    .fixed-column-table tbody tr:nth-child(odd) .fixed-operation {
+        background-color: #fff;
+    }
+    
+    /* 鼠标悬停时保持背景色 */
+    .fixed-column-table tbody tr:hover .fixed-operation {
+        background-color: #e8f4f8 !important;
+    }
+    
+    /* 确保表格可以横向滚动 */
+    .am-scrollable-horizontal {
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* 确保固定列不会超出其容器 */
+    .fixed-column-table {
+        table-layout: auto;
+    }
+    
+    /* 给非固定列添加足够的空间 */
+    .fixed-column-table tbody td:not(.fixed-operation),
+    .fixed-column-table thead th:not(.fixed-operation) {
+        min-width: 100px;
+    }
+    
+    /* 优化滚动条样式 */
+    .am-scrollable-horizontal::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .am-scrollable-horizontal::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    .am-scrollable-horizontal::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+    
+    .am-scrollable-horizontal::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+</style>
