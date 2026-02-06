@@ -297,15 +297,23 @@ class OrderBatchPrinter
                 
                 if (isset($data['code']) && $data['code'] == 1) {
                     // 成功 - 返回完整的打印数据（包含所有字段）
+                    $printData = isset($data['data']) ? $data['data'] : null;
+                    
+                    // 增强打印数据：添加打印机配置
+                    if ($printData) {
+                        $printData = self::enhancePrintDataWithPrinterConfig($printData, $ditchId);
+                    }
+                    
                     PrintLogger::success('批量打印', '订单打印成功', [
                         'order_id' => $orderId,
-                        'has_data' => isset($data['data'])
+                        'has_data' => isset($data['data']),
+                        'mode' => isset($printData['mode']) ? $printData['mode'] : 'unknown'
                     ]);
                     
-                    // 返回完整的 data 字段（包含 mode, data, partnerID, env, printOptions 等）
+                    // 返回完整的 data 字段（包含 mode, data, partnerID, env, printOptions, 打印机配置等）
                     return [
                         'success' => true,
-                        'print_data' => isset($data['data']) ? $data['data'] : null,
+                        'print_data' => $printData,
                         'message' => isset($data['msg']) ? $data['msg'] : '打印成功'
                     ];
                 } else {
@@ -320,15 +328,23 @@ class OrderBatchPrinter
             } elseif (is_array($response)) {
                 // 如果直接返回数组
                 if (isset($response['code']) && $response['code'] == 1) {
+                    $printData = isset($response['data']) ? $response['data'] : null;
+                    
+                    // 增强打印数据：添加打印机配置
+                    if ($printData) {
+                        $printData = self::enhancePrintDataWithPrinterConfig($printData, $ditchId);
+                    }
+                    
                     PrintLogger::success('批量打印', '订单打印成功', [
                         'order_id' => $orderId,
-                        'has_data' => isset($response['data'])
+                        'has_data' => isset($response['data']),
+                        'mode' => isset($printData['mode']) ? $printData['mode'] : 'unknown'
                     ]);
                     
-                    // 返回完整的 data 字段（包含 mode, data, partnerID, env, printOptions 等）
+                    // 返回完整的 data 字段（包含 mode, data, partnerID, env, printOptions, 打印机配置等）
                     return [
                         'success' => true,
-                        'print_data' => isset($response['data']) ? $response['data'] : null,
+                        'print_data' => $printData,
                         'message' => isset($response['msg']) ? $response['msg'] : '打印成功'
                     ];
                 } else {
@@ -355,6 +371,74 @@ class OrderBatchPrinter
             ]);
             return false;
         }
+    }
+    
+    /**
+     * 增强打印数据：添加打印机配置
+     * 
+     * @param array $printData 原始打印数据
+     * @param int $ditchId 渠道ID
+     * @return array 增强后的打印数据
+     */
+    private static function enhancePrintDataWithPrinterConfig($printData, $ditchId)
+    {
+        if (!is_array($printData) || !isset($printData['mode'])) {
+            return $printData;
+        }
+        
+        // 获取渠道配置
+        $ditchConfig = DitchCache::getConfig($ditchId);
+        if (!$ditchConfig) {
+            return $printData;
+        }
+        
+        $mode = $printData['mode'];
+        
+        // 顺丰快递：解析 sf_print_options
+        if ($mode === 'sf_plugin') {
+            $sfPrintOptions = [];
+            if (!empty($ditchConfig['sf_print_options'])) {
+                $decoded = json_decode($ditchConfig['sf_print_options'], true);
+                if (is_array($decoded)) {
+                    $sfPrintOptions = $decoded;
+                    PrintLogger::info('批量打印', '顺丰打印机配置已加载', [
+                        'ditch_id' => $ditchId,
+                        'default_printer' => isset($decoded['default_printer']) ? $decoded['default_printer'] : 'N/A',
+                        'enable_select_printer' => isset($decoded['enable_select_printer']) ? $decoded['enable_select_printer'] : false
+                    ]);
+                } else {
+                    PrintLogger::warning('批量打印', '顺丰打印配置解析失败', [
+                        'ditch_id' => $ditchId,
+                        'raw_value' => $ditchConfig['sf_print_options']
+                    ]);
+                }
+            }
+            $printData['sfPrintOptions'] = $sfPrintOptions;
+        }
+        
+        // 京东快递：解析 jd_print_config
+        elseif ($mode === 'jd_cloud_print') {
+            $jdPrintConfig = [];
+            if (!empty($ditchConfig['jd_print_config'])) {
+                $decoded = json_decode($ditchConfig['jd_print_config'], true);
+                if (is_array($decoded)) {
+                    $jdPrintConfig = $decoded;
+                    PrintLogger::info('批量打印', '京东打印机配置已加载', [
+                        'ditch_id' => $ditchId,
+                        'printName' => isset($decoded['printName']) ? $decoded['printName'] : 'N/A',
+                        'orderType' => isset($decoded['orderType']) ? $decoded['orderType'] : 'N/A'
+                    ]);
+                } else {
+                    PrintLogger::warning('批量打印', '京东打印配置解析失败', [
+                        'ditch_id' => $ditchId,
+                        'raw_value' => $ditchConfig['jd_print_config']
+                    ]);
+                }
+            }
+            $printData['jdPrintConfig'] = $jdPrintConfig;
+        }
+        
+        return $printData;
     }
     
     /**

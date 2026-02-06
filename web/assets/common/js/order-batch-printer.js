@@ -250,11 +250,24 @@ const OrderBatchPrinter = {
                         console.log('[批量打印] SCPPrint 实例已创建');
                     }
                     
+                    // 读取渠道配置的打印机设置
+                    var sfPrintOptions = printData.sfPrintOptions || {};
+                    var defaultPrinter = sfPrintOptions.default_printer || '';
+                    var enableSelectPrinter = sfPrintOptions.enable_select_printer || false;
+                    
                     // 构建打印选项
                     var enablePreview = printOptions.enable_preview || false;
                     var sdkOptions = {
                         lodopFn: enablePreview ? 'PREVIEW' : 'PRINT'
                     };
+                    
+                    // 如果配置了默认打印机且启用了打印机选择
+                    if (defaultPrinter && enableSelectPrinter) {
+                        sdkOptions.printerName = defaultPrinter;
+                        console.log('[批量打印] 顺丰使用指定打印机:', defaultPrinter);
+                    } else {
+                        console.log('[批量打印] 顺丰使用默认打印机');
+                    }
                     
                     console.log('[批量打印] 调用 SCPPrint.print()');
                     
@@ -321,8 +334,22 @@ const OrderBatchPrinter = {
                     return;
                 }
                 
+                // 读取渠道配置的打印机设置
+                var jdPrintConfig = printData.jdPrintConfig || {};
+                var printName = jdPrintConfig.printName || '';
+                
                 // 直接通过 WebSocket 连接到本地京东打印组件
                 var printRequest = printData.printRequest;
+                
+                // 如果配置了打印机名称，添加到打印请求
+                if (printName) {
+                    printRequest.parameters = printRequest.parameters || {};
+                    printRequest.parameters.printName = printName;
+                    console.log('[批量打印] 京东使用指定打印机:', printName);
+                } else {
+                    console.log('[批量打印] 京东使用默认打印机');
+                }
+                
                 console.log('[批量打印] 京东打印请求:', printRequest);
                 
                 // 尝试连接到本地京东打印组件
