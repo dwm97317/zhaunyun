@@ -305,19 +305,38 @@ const OrderBatchPrinter = {
                 console.log('[批量打印] 京东打印请求:', printRequest);
                 
                 // 尝试连接到本地京东打印组件
-                var socket = new WebSocket('ws://127.0.0.1:9113');
+                var wsUrl = 'ws://127.0.0.1:9113';
+                console.log('[批量打印] 尝试连接:', wsUrl);
+                
+                var socket = new WebSocket(wsUrl);
                 var loadingIndex = layer.load(1, {shade: [0.3, '#000']});
+                var connectionTimeout = setTimeout(function() {
+                    if (socket.readyState !== WebSocket.OPEN) {
+                        layer.close(loadingIndex);
+                        socket.close();
+                        console.error('[批量打印] WebSocket 连接超时');
+                        layer.msg('连接京东打印组件超时，请检查组件是否已启动', {icon: 2, time: 5000});
+                    }
+                }, 5000); // 5秒超时
                 
                 socket.onopen = function() {
+                    clearTimeout(connectionTimeout);
                     layer.close(loadingIndex);
                     console.log('[批量打印] 京东打印组件 WebSocket 已连接');
                     socket.send(JSON.stringify(printRequest));
                     layer.msg('打印数据已成功推送到本地组件', {icon: 1});
+                    
+                    // 1秒后自动关闭连接
+                    setTimeout(function() {
+                        socket.close();
+                    }, 1000);
                 };
                 
                 socket.onerror = function(err) {
+                    clearTimeout(connectionTimeout);
                     layer.close(loadingIndex);
                     console.error('[批量打印] WebSocket 错误:', err);
+                    console.error('[批量打印] WebSocket readyState:', socket.readyState);
                     layer.msg('未能连接到京东打印组件，请确保组件已启动 (ws://127.0.0.1:9113)', {icon: 2, time: 5000});
                 };
                 
