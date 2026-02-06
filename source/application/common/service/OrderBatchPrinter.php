@@ -290,11 +290,13 @@ class OrderBatchPrinter
                 $data = $response->getData();
                 
                 if (isset($data['code']) && $data['code'] == 1) {
-                    // 成功
+                    // 成功 - 返回完整的打印数据（包含所有字段）
                     PrintLogger::success('批量打印', '订单打印成功', [
-                        'order_id' => $orderId
+                        'order_id' => $orderId,
+                        'has_data' => isset($data['data'])
                     ]);
                     
+                    // 返回完整的 data 字段（包含 mode, data, partnerID, env, printOptions 等）
                     return [
                         'success' => true,
                         'print_data' => isset($data['data']) ? $data['data'] : null,
@@ -313,8 +315,11 @@ class OrderBatchPrinter
                 // 如果直接返回数组
                 if (isset($response['code']) && $response['code'] == 1) {
                     PrintLogger::success('批量打印', '订单打印成功', [
-                        'order_id' => $orderId
+                        'order_id' => $orderId,
+                        'has_data' => isset($response['data'])
                     ]);
+                    
+                    // 返回完整的 data 字段（包含 mode, data, partnerID, env, printOptions 等）
                     return [
                         'success' => true,
                         'print_data' => isset($response['data']) ? $response['data'] : null,
