@@ -2478,7 +2478,9 @@
             if (keys.length === 1) {
                 // 单一渠道，直接打印
                 var ditchId = keys[0];
-                OrderBatchPrinter.printWithUI(groups[ditchId], ditchId);
+                OrderBatchPrinter.printWithUI(groups[ditchId], ditchId, {
+                    print_all: 1  // 批量打印默认打印全部包裹（母单+子单）
+                });
             } else {
                 // 多渠道，提示用户
                 var msg = '选中订单包含 ' + keys.length + ' 个不同渠道：<br>';
@@ -2493,7 +2495,9 @@
                 layer.confirm(msg, {title: '批量打印确认', area: '400px'}, function(index) {
                     layer.close(index);
                     keys.forEach(function(ditchId) {
-                        OrderBatchPrinter.printWithUI(groups[ditchId], ditchId);
+                        OrderBatchPrinter.printWithUI(groups[ditchId], ditchId, {
+                            print_all: 1  // 批量打印默认打印全部包裹（母单+子单）
+                        });
                     });
                 });
             }
