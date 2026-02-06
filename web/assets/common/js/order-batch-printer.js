@@ -206,6 +206,7 @@ const OrderBatchPrinter = {
             console.log('[批量打印] 处理打印数据:', {
                 mode: printData.mode,
                 has_data: !!printData.data,
+                has_printRequest: !!printData.printRequest,
                 has_partnerID: !!printData.partnerID
             });
             
