@@ -28,7 +28,7 @@ class Inpack extends Controller
 
         $printOptions = [
             'label' => isset($params['label']) ? $params['label'] : 60,
-            'print_all' => isset($params['print_all']) ? $params['print_all'] : 0,
+            'print_all' => 1,  // 批量打印强制打印全部包裹（母单+子单）
             'async' => $async,
             'priority' => isset($params['priority']) ? $params['priority'] : 5,
             'waybill_no' => isset($params['waybill_no']) ? $params['waybill_no'] : ''
