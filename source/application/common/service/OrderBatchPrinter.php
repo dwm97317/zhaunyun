@@ -250,16 +250,21 @@ class OrderBatchPrinter
             $params = [
                 'id' => $orderId,
                 'label' => isset($printOptions['label']) ? $printOptions['label'] : 60,
-                'print_all' => isset($printOptions['print_all']) ? $printOptions['print_all'] : 1,  // 默认打印全部
+                'print_all' => isset($printOptions['print_all']) ? (int)$printOptions['print_all'] : 1,  // 默认打印全部，强制转换为整数
                 'waybill_no' => isset($printOptions['waybill_no']) ? $printOptions['waybill_no'] : ''
             ];
+            
+            // 清除可能存在的旧参数（避免被覆盖）
+            // TP5.1 的 Request 对象会缓存参数，需要先清除
+            $request->get(['id' => null, 'label' => null, 'print_all' => null, 'waybill_no' => null]);
+            $request->post(['id' => null, 'label' => null, 'print_all' => null, 'waybill_no' => null]);
             
             // 使用 bind 设置参数，这是 TP5.1 中动态添加参数的推荐方式
             foreach ($params as $key => $val) {
                 $request->bind($key, $val);
             }
             
-            // 兼容性补充：同时设置到 get 和 post 中
+            // 兼容性补充：同时设置到 get 和 post 中（使用整数值）
             $request->get($params);
             $request->post($params);
 
