@@ -292,11 +292,38 @@ const OrderBatchPrinter = {
             } else if (printData.mode === 'jd_cloud_print') {
                 // 京东云打印模式
                 console.log('[批量打印] 京东打印模式');
-                if (typeof window.jdCloudPrint === 'function') {
-                    window.jdCloudPrint(printData.printRequest);
-                } else {
-                    console.error('[批量打印] 京东云打印插件未加载');
+                
+                // 检查是否有 printRequest 数据
+                if (!printData.printRequest) {
+                    console.error('[批量打印] 缺少 printRequest 数据');
+                    layer.msg('京东打印数据不完整', {icon: 0});
+                    return;
                 }
+                
+                // 直接通过 WebSocket 连接到本地京东打印组件
+                var printRequest = printData.printRequest;
+                console.log('[批量打印] 京东打印请求:', printRequest);
+                
+                // 尝试连接到本地京东打印组件
+                var socket = new WebSocket('ws://127.0.0.1:9113');
+                var loadingIndex = layer.load(1, {shade: [0.3, '#000']});
+                
+                socket.onopen = function() {
+                    layer.close(loadingIndex);
+                    console.log('[批量打印] 京东打印组件 WebSocket 已连接');
+                    socket.send(JSON.stringify(printRequest));
+                    layer.msg('打印数据已成功推送到本地组件', {icon: 1});
+                };
+                
+                socket.onerror = function(err) {
+                    layer.close(loadingIndex);
+                    console.error('[批量打印] WebSocket 错误:', err);
+                    layer.msg('未能连接到京东打印组件，请确保组件已启动 (ws://127.0.0.1:9113)', {icon: 2, time: 5000});
+                };
+                
+                socket.onclose = function() {
+                    console.log('[批量打印] WebSocket 连接已关闭');
+                };
             } else if (printData.mode === 'pdf_url') {
                 // PDF URL 模式：打开新窗口
                 console.log('[批量打印] PDF URL 模式');
