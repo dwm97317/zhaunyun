@@ -525,13 +525,24 @@ class Zto
      */
     public function cloudPrint($order_id, $options = [])
     {
+        // 📝 记录云打印开始
+        \app\common\service\PrintLogger::printTask('ZTO', '开始云打印流程', [
+            'order_id' => $order_id,
+            'options' => $options
+        ]);
+        
         // 1. 获取订单信息（使用 getExpressData 加载完整的关联数据）
         $inpackModel = new \app\store\model\Inpack();
         $order = $inpackModel->getExpressData($order_id);
         if (!$order) {
             $this->error = '订单不存在';
+            \app\common\service\PrintLogger::error('ZTO', '订单不存在', ['order_id' => $order_id]);
             return false;
         }
+        
+        \app\common\service\PrintLogger::info('ZTO', '订单数据加载成功', [
+            'order_id' => $order_id
+        ]);
         
         // 转换为数组
         $orderArray = is_object($order) ? $order->toArray() : $order;
@@ -540,12 +551,12 @@ class Zto
         $printStatus = isset($orderArray['print_status_jhd']) ? (int)$orderArray['print_status_jhd'] : 0;
         $isRepetition = ($printStatus === 1); // 如果已打印成功过，则为原单重打
         
-        // 记录原单重打判断日志
-        \think\Log::info('ZTO Cloud Print - Repetition Check: ' . json_encode([
+        // 📝 记录原单重打判断
+        \app\common\service\PrintLogger::info('ZTO', '打印状态检查', [
             'order_id' => $order_id,
             'print_status_jhd' => $printStatus,
             'is_repetition' => $isRepetition
-        ], JSON_UNESCAPED_UNICODE));
+        ]);
         
         // 将原单重打标识传递给 buildPrintInfo
         $orderArray['_is_repetition'] = $isRepetition;
@@ -571,8 +582,13 @@ class Zto
         
         if (empty($waybillNo)) {
             $this->error = '运单号不存在';
+            \app\common\service\PrintLogger::error('ZTO', '运单号不存在', ['order_id' => $order_id]);
             return false;
         }
+        
+        \app\common\service\PrintLogger::info('ZTO', '运单号获取成功', [
+            'waybill_no' => $waybillNo
+        ]);
         
         // 3. 获取打印机配置
         $printerConfig = \app\common\library\zto\ZtoConfig::getPrinterConfig($this->config);
@@ -581,11 +597,22 @@ class Zto
         $validation = \app\common\library\zto\ZtoConfig::validatePrinterConfig($printerConfig);
         if (!$validation['valid']) {
             $this->error = '打印机配置错误: ' . implode(', ', $validation['errors']);
+            \app\common\service\PrintLogger::error('ZTO', '打印机配置错误', [
+                'errors' => $validation['errors']
+            ]);
             return false;
         }
         
+        \app\common\service\PrintLogger::success('ZTO', '打印机配置验证通过', [
+            'printChannel' => $printerConfig['printChannel']
+        ]);
+        
         // 4. 解析打印模式
         $printMode = isset($options['print_mode']) ? $options['print_mode'] : 'mother';
+        
+        \app\common\service\PrintLogger::info('ZTO', '打印模式', [
+            'print_mode' => $printMode
+        ]);
         
         // 5. 构建打印数据
         $printInfos = [];
@@ -603,13 +630,20 @@ class Zto
                     $printInfos[] = $this->buildPrintInfo($orderArray, $childWaybillNo);
                 }
             }
+            
+            \app\common\service\PrintLogger::info('ZTO', '构建打印数据（全部）', [
+                'total_count' => count($printInfos),
+                'mother_waybill' => $waybillNo
+            ]);
         } else {
             // 打印单个运单（母单或子单）
             $printInfos[] = $this->buildPrintInfo($orderArray, $waybillNo);
+            
+            \app\common\service\PrintLogger::info('ZTO', '构建打印数据（单个）', [
+                'waybill_no' => $waybillNo,
+                'print_mode' => $printMode
+            ]);
         }
-        
-        // 记录打印数据用于调试
-        \think\Log::info('ZTO Cloud Print - Print Infos: ' . json_encode($printInfos, JSON_UNESCAPED_UNICODE));
         
         // 6. 构建请求参数
         $requestData = [
@@ -638,68 +672,37 @@ class Zto
         $digest = \app\common\library\zto\ZtoAuth::generateDigest($body, $appSecret);
         $headers = \app\common\library\zto\ZtoAuth::buildHeaders($appKey, $digest);
         
-        // 🔍 调试日志：记录完整的 API 请求数据
-        \think\Log::info('ZTO Cloud Print - API Request: ' . json_encode([
-            'url' => $url,
-            'app_key' => substr($appKey, 0, 8) . '***', // 只显示前8位
-            'digest' => substr($digest, 0, 16) . '***', // 只显示前16位
-            'headers' => array_map(function($h) {
-                // 隐藏敏感信息
-                if (strpos($h, 'x-companyid') !== false || strpos($h, 'x-appkey') !== false) {
-                    $parts = explode(':', $h, 2);
-                    if (count($parts) === 2) {
-                        return $parts[0] . ': ' . substr(trim($parts[1]), 0, 8) . '***';
-                    }
-                }
-                return $h;
-            }, $headers),
-            'request_body' => $requestData, // 完整的请求体（已解析为数组）
-            'request_body_json' => $body, // JSON 字符串格式
+        // 📝 记录 API 请求
+        \app\common\service\PrintLogger::apiRequest('ZTO', $url, [
+            'printChannel' => $requestData['printChannel'],
+            'printInfos_count' => count($requestData['printInfos']),
             'request_size' => strlen($body) . ' bytes'
-        ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        ]);
         
         $resp = $this->client->post($url, $body, $headers);
         if ($resp === false) {
             $this->error = $this->client->getError() ?: '请求失败';
             
-            // 🔍 调试日志：记录请求失败
-            \think\Log::error('ZTO Cloud Print - Request Failed: ' . json_encode([
+            // 📝 记录请求失败
+            \app\common\service\PrintLogger::apiResponse('ZTO', false, [
                 'error' => $this->error,
                 'url' => $url
-            ], JSON_UNESCAPED_UNICODE));
+            ]);
             
             return false;
         }
-        
-        // 🔍 调试日志：记录原始响应
-        \think\Log::info('ZTO Cloud Print - Raw Response: ' . json_encode([
-            'response_length' => strlen($resp) . ' bytes',
-            'response_preview' => substr($resp, 0, 500) . (strlen($resp) > 500 ? '...' : ''),
-            'response_full' => $resp
-        ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         
         $data = $this->client->parseResponse($resp);
         if ($data === false) {
             $this->error = $this->client->getError();
             
-            // 🔍 调试日志：记录解析失败
-            \think\Log::error('ZTO Cloud Print - Parse Failed: ' . json_encode([
-                'error' => $this->error,
-                'raw_response' => $resp
-            ], JSON_UNESCAPED_UNICODE));
+            // 📝 记录解析失败
+            \app\common\service\PrintLogger::error('ZTO', '响应解析失败', [
+                'error' => $this->error
+            ]);
             
             return false;
         }
-        
-        // 🔍 调试日志：记录解析后的响应数据
-        \think\Log::info('ZTO Cloud Print - Parsed Response: ' . json_encode([
-            'success' => isset($data['status']) ? $data['status'] : 'N/A',
-            'message' => isset($data['message']) ? $data['message'] : 'N/A',
-            'statusCode' => isset($data['statusCode']) ? $data['statusCode'] : 'N/A',
-            'has_result' => isset($data['result']),
-            'result_type' => isset($data['result']) ? gettype($data['result']) : 'N/A',
-            'full_data' => $data
-        ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         
         // 8. 处理响应
         $success = $this->client->isSuccess($data);
@@ -707,14 +710,11 @@ class Zto
         
         $result = isset($data['result']) && is_array($data['result']) ? $data['result'] : [];
         
-        // 🔍 调试日志：记录处理后的结果
-        \think\Log::info('ZTO Cloud Print - Processed Result: ' . json_encode([
-            'success' => $success,
+        // 📝 记录 API 响应
+        \app\common\service\PrintLogger::apiResponse('ZTO', $success, [
             'message' => $message,
-            'result_count' => is_array($result) ? count($result) : 0,
-            'result_keys' => is_array($result) ? array_keys($result) : [],
-            'result_data' => $result
-        ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+            'result_count' => is_array($result) ? count($result) : 0
+        ]);
         
         // 🔧 打印成功后更新打印状态
         if ($success) {
@@ -724,13 +724,16 @@ class Zto
                     'updated_time' => date('Y-m-d H:i:s')
                 ]);
                 
-                \think\Log::info('ZTO Cloud Print - Status Updated: ' . json_encode([
+                \app\common\service\PrintLogger::success('ZTO', '打印状态更新成功', [
                     'order_id' => $order_id,
                     'print_status_jhd' => 1
-                ], JSON_UNESCAPED_UNICODE));
+                ]);
             } catch (\Exception $e) {
                 // 更新状态失败不影响打印结果返回
-                \think\Log::error('ZTO Cloud Print - Status Update Failed: ' . $e->getMessage());
+                \app\common\service\PrintLogger::warning('ZTO', '打印状态更新失败', [
+                    'order_id' => $order_id,
+                    'error' => $e->getMessage()
+                ]);
             }
         }
         

@@ -650,8 +650,12 @@ class TrOrder extends Controller
      */
     public function getProductList(){
         $param = $this->request->param();
-        $DitchModel = new DitchModel();
-        $ditchdetail = $DitchModel::detail($param['ditch_no']);
+        
+        // 使用缓存获取渠道配置
+        $ditchdetail = \app\common\service\DitchCache::getConfig($param['ditch_no']);
+        if (!$ditchdetail) {
+            return $this->renderError('渠道配置不存在');
+        }
       
         if($ditchdetail['ditch_no']==10004){
             if(!empty($ditchdetail['product_json'])){
@@ -680,13 +684,82 @@ class TrOrder extends Controller
     public function sendtoqudaoshang()
     {   
         $param = $this->request->param();
+        
+        // 🔍 调试日志：记录方法调用
+        \app\common\service\PrintLogger::info('推送到渠道商', '开始执行 sendtoqudaoshang', [
+            'params' => $param,
+            'has_id' => isset($param['id']),
+            'id_value' => isset($param['id']) ? $param['id'] : 'NOT_SET'
+        ]);
+        
+        // 检查必需参数
+        if (!isset($param['id']) || empty($param['id'])) {
+            \app\common\service\PrintLogger::error('推送到渠道商', '缺少订单ID参数', [
+                'params' => $param
+            ]);
+            return $this->renderError('订单ID不能为空');
+        }
+        
+        if (!isset($param['ditch_id']) || empty($param['ditch_id'])) {
+            \app\common\service\PrintLogger::error('推送到渠道商', '缺少渠道ID参数', [
+                'params' => $param
+            ]);
+            return $this->renderError('渠道ID不能为空');
+        }
+        
         $Inpack =new Inpack;
         $DitchModel = new DitchModel();
         $settingDate = SettingModel::getItem('adminstyle',$this->getWxappId());
-        $detail = Inpack::details($param['id']);
+        
+        \app\common\service\PrintLogger::info('推送到渠道商', '准备加载订单详情', [
+            'order_id' => $param['id']
+        ]);
+        
+        try {
+            $detail = Inpack::details($param['id']);
+            
+            if (!$detail) {
+                \app\common\service\PrintLogger::error('推送到渠道商', '订单不存在', [
+                    'order_id' => $param['id']
+                ]);
+                return $this->renderError('订单不存在');
+            }
+        } catch (\Exception $e) {
+            \app\common\service\PrintLogger::error('推送到渠道商', '加载订单详情失败', [
+                'order_id' => $param['id'],
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $this->renderError('加载订单详情失败：' . $e->getMessage());
+        }
+        
+        // 🔍 调试日志：记录订单详情
+        \app\common\service\PrintLogger::info('推送到渠道商', '订单详情已加载', [
+            'order_id' => $param['id'],
+            'order_sn' => $detail['order_sn'] ?? '',
+            'storage_id' => $detail['storage_id'] ?? ''
+        ]);
+        
         $shopname = ShopModel::detail($detail['storage_id']);
         $address = (new UserAddress())->where(['address_id'=>$detail['address_id']])->find();
-        $ditchdetail = $DitchModel::detail($param['ditch_id']);
+        
+        // 使用缓存获取渠道配置
+        $ditchdetail = \app\common\service\DitchCache::getConfig($param['ditch_id']);
+        if (!$ditchdetail) {
+            \app\common\service\PrintLogger::error('推送到渠道商', '渠道配置不存在', [
+                'ditch_id' => $param['ditch_id']
+            ]);
+            return $this->renderError('渠道配置不存在');
+        }
+        
+        // 🔍 调试日志：记录渠道信息
+        \app\common\service\PrintLogger::info('推送到渠道商', '渠道配置已加载', [
+            'ditch_id' => $param['ditch_id'],
+            'ditch_no' => $ditchdetail['ditch_no'],
+            'ditch_name' => $ditchdetail['ditch_name'] ?? '',
+            'ditch_type' => $ditchdetail['ditch_type'] ?? 0
+        ]);
+        
         $countrydetail = (new Countries())->where('id',$detail['address']['country_id'])->find();
         $result = [];
 
@@ -752,9 +825,11 @@ class TrOrder extends Controller
             $Hualei =  new Hualei(['key'=>$ditchdetail['app_key'],'token'=>$ditchdetail['app_token'],'apiurl'=>$ditchdetail['api_url']]);
             $result = $Hualei->createOrderApi($data);
             if($result['ack']==true){
-                $detail->save([
-                    't_order_sn'=>$result['tracking_number'],
-                    't_order_id'=>$result['order_id']
+                $detail->pushSuccessComplete($param['id'], [
+                    't_order_sn' => $result['tracking_number'],
+                    't_name'     => $ditchdetail['ditch_name'],
+                    't_number'   => $ditchdetail['ditch_id'],
+                    'transfer'   => 0
                 ]);
             }
         }
@@ -991,13 +1066,12 @@ class TrOrder extends Controller
                 
                 $result = $Zto->createOrder($data);
                 if (isset($result['ack']) && $result['ack'] === 'true') {
-                    $saveData = [
-                        't_order_id' => isset($result['order_id']) ? $result['order_id'] : '',
-                    ];
-                    if(isset($result['tracking_number']) && $result['tracking_number'] !== ''){
-                        $saveData['t_order_sn'] = $result['tracking_number'];
-                    }
-                    $detail->save($saveData);
+                    $detail->pushSuccessComplete($param['id'], [
+                        't_order_sn' => isset($result['tracking_number']) ? $result['tracking_number'] : '',
+                        't_name'     => $ditchdetail['ditch_name'],
+                        't_number'   => $ditchdetail['ditch_id'],
+                        'transfer'   => 0
+                    ]);
                 }
             } else {
                 // === 多包裹独立下单模式 ===
@@ -1028,7 +1102,12 @@ class TrOrder extends Controller
                         if ($index === 0) {
                             $firstWaybillNo = $tn;
                              // 仅保存第一个作为显示，不覆盖
-                            $detail->save(['t_order_sn' => $tn]);
+                            $detail->pushSuccessComplete($param['id'], [
+                                't_order_sn' => $tn,
+                                't_name'     => $ditchdetail['ditch_name'],
+                                't_number'   => $ditchdetail['ditch_id'],
+                                'transfer'   => 0
+                            ]);
                         }
                         $resultsLog[] = "箱" . ($index+1) . "成功";
                         $subTrackingNumbers[] = ['id' => $box['id'], 'tn' => $tn];
@@ -1096,11 +1175,12 @@ class TrOrder extends Controller
                 
                 $result = $Sf->createOrder($data);
                 if (isset($result['ack']) && $result['ack'] === 'true') {
-                    $saveData = ['t_order_id' => isset($result['order_id']) ? $result['order_id'] : ''];
-                    if(isset($result['tracking_number']) && $result['tracking_number'] !== ''){
-                        $saveData['t_order_sn'] = $result['tracking_number'];
-                    }
-                    $detail->save($saveData);
+                    $detail->pushSuccessComplete($param['id'], [
+                        't_order_sn' => isset($result['tracking_number']) ? $result['tracking_number'] : '',
+                        't_name'     => $ditchdetail['ditch_name'],
+                        't_number'   => $ditchdetail['ditch_id'],
+                        'transfer'   => 0
+                    ]);
                 }
             } else {
                 // === 多包裹 (子母单) 模式 ===
@@ -1144,7 +1224,12 @@ class TrOrder extends Controller
                         // 如果是母单，更新主表并记录母单号
                         if ($isMother) {
                             $motherWaybillNo = $tn;
-                            $detail->save(['t_order_sn' => $tn]);
+                            $detail->pushSuccessComplete($param['id'], [
+                                't_order_sn' => $tn,
+                                't_name'     => $ditchdetail['ditch_name'],
+                                't_number'   => $ditchdetail['ditch_id'],
+                                'transfer'   => 0
+                            ]);
                         }
                     } else {
                         $hasError = true;
@@ -1290,8 +1375,13 @@ class TrOrder extends Controller
                         $tn = $res['data']['waybillCode'];
                         $this->writeJdOrderLog("✅ 下单成功: waybill={$tn}");
                         
-                        $detail->save(['t_order_sn' => $tn]);
-                        $this->writeJdOrderLog("✅ 运单号已保存到订单");
+                        $detail->pushSuccessComplete($param['id'], [
+                            't_order_sn' => $tn,
+                            't_name'     => $ditchdetail['ditch_name'],
+                            't_number'   => $ditchdetail['ditch_id'],
+                            'transfer'   => 0
+                        ]);
+                        $this->writeJdOrderLog("✅ 运单号及承运商信息已保存到订单");
                         
                         $result = [
                             'ack' => 'true',
@@ -1361,8 +1451,13 @@ class TrOrder extends Controller
                                 
                                 if ($isMother) {
                                     $motherWaybillNo = $tn;
-                                    $detail->save(['t_order_sn' => $tn]);
-                                    $this->writeJdOrderLog("✅ 母单运单号已保存: {$tn}");
+                                    $detail->save([
+                                        't_order_sn' => $tn,
+                                        't_name' => $ditchdetail['ditch_name'],
+                                        't_number' => $ditchdetail['ditch_id'],
+                                        'transfer' => 0
+                                    ]);
+                                    $this->writeJdOrderLog("✅ 母单运单号及承运商信息已保存: {$tn}");
                                 }
                             } else {
                                 $hasError = true;
@@ -1439,8 +1534,13 @@ class TrOrder extends Controller
                             $motherWaybillNo = $res['data']['waybillCode'];
                             $this->writeJdOrderLog("✅ 子母件下单成功: mother_waybill={$motherWaybillNo}");
                             
-                            $detail->save(['t_order_sn' => $motherWaybillNo]);
-                            $this->writeJdOrderLog("✅ 母单运单号已保存");
+                            $detail->pushSuccessComplete($param['id'], [
+                                't_order_sn' => $motherWaybillNo,
+                                't_name'     => $ditchdetail['ditch_name'],
+                                't_number'   => $ditchdetail['ditch_id'],
+                                'transfer'   => 0
+                            ]);
+                            $this->writeJdOrderLog("✅ 母单运单号及承运商信息已保存");
                             
                             // 获取子单号列表（如果API返回）
                             $subWaybills = [];
@@ -3914,10 +4014,10 @@ class TrOrder extends Controller
  
     // 渲染标签模板B
     public function label40($data){
-        $DitchModel = new DitchModel();
         if(!empty($data['t_number'])){
-            $ditchdetail = $DitchModel::detail($data['t_number']);
-            if($ditchdetail['ditch_no']==10004){
+            // 使用缓存获取渠道配置
+            $ditchdetail = \app\common\service\DitchCache::getConfig($data['t_number']);
+            if($ditchdetail && $ditchdetail['ditch_no']==10004){
                 $Hualei =  new Hualei([
                     'key'=>$ditchdetail['app_key'],
                     'token'=>$ditchdetail['app_token'],
@@ -7122,7 +7222,15 @@ public function expressBillbatch() {
             $label = $this->request->param('label', 60);
             $printAll = $this->request->param('print_all', 0);  // 新增：是否打印全部包裹
             
+            // 📝 记录请求开始
+            \app\common\service\PrintLogger::printTask('getPrintTask', '开始处理打印任务', [
+                'order_id' => $id,
+                'waybill_no' => $waybillNo,
+                'print_all' => $printAll
+            ]);
+            
             if (empty($id)) {
+                \app\common\service\PrintLogger::error('getPrintTask', '订单ID为空');
                 return $this->renderError('订单ID不能为空');
             }
             
@@ -7131,8 +7239,14 @@ public function expressBillbatch() {
             $data = $inpack->getExpressData($id);
             
             if (!$data) {
+                \app\common\service\PrintLogger::error('getPrintTask', '订单不存在', ['order_id' => $id]);
                 return $this->renderError('订单不存在');
             }
+            
+            \app\common\service\PrintLogger::info('getPrintTask', '订单数据加载成功', [
+                'order_id' => $id,
+                'order_sn' => $data['order_sn'] ?? ''
+            ]);
             
             // 检查运单号（仅在非打印全部模式下需要）
             if (!$printAll) {
@@ -7181,13 +7295,13 @@ public function expressBillbatch() {
             $tNumber = isset($data['t_number']) ? $data['t_number'] : '';
             $tName = isset($data['t_name']) ? $data['t_name'] : '';
             
-            // 记录调试日志
-            \think\Log::info('getPrintTask - 订单信息: ' . json_encode([
+            // 📝 记录订单信息
+            \app\common\service\PrintLogger::info('getPrintTask', '订单渠道信息', [
                 'order_id' => $id,
                 't_number' => $tNumber,
                 't_name' => $tName,
                 't_order_sn' => $data['t_order_sn']
-            ], JSON_UNESCAPED_UNICODE));
+            ]);
             
             // 查找对应的渠道配置
             $ditchModel = new \app\common\model\Ditch();
@@ -7195,7 +7309,8 @@ public function expressBillbatch() {
             
             // 优先通过 t_number 查找 (t_number 实际存储的是 ditch_id)
             if (!empty($tNumber)) {
-                $ditchConfig = $ditchModel->where('ditch_id', $tNumber)->find();
+                // 使用缓存获取渠道配置
+                $ditchConfig = \app\common\service\DitchCache::getConfig($tNumber);
                 
                 // 如果没找到,尝试通过 ditch_no 查找
                 if (!$ditchConfig) {
@@ -7208,14 +7323,19 @@ public function expressBillbatch() {
                 $ditchConfig = $ditchModel->where('ditch_name', 'like', '%' . $tName . '%')->find();
             }
             
-            // 记录渠道配置查找结果
-            \think\Log::info('getPrintTask - 渠道配置查找结果: ' . json_encode([
-                'found' => !empty($ditchConfig),
-                'ditch_id' => $ditchConfig ? $ditchConfig['ditch_id'] : null,
-                'ditch_name' => $ditchConfig ? $ditchConfig['ditch_name'] : null,
-                'ditch_type' => $ditchConfig ? $ditchConfig['ditch_type'] : null,
-                'status' => $ditchConfig ? $ditchConfig['status'] : null
-            ], JSON_UNESCAPED_UNICODE));
+            // 📝 记录渠道配置查找结果
+            if ($ditchConfig) {
+                \app\common\service\PrintLogger::success('getPrintTask', '渠道配置查找成功', [
+                    'ditch_id' => $ditchConfig['ditch_id'],
+                    'ditch_name' => $ditchConfig['ditch_name'],
+                    'ditch_type' => $ditchConfig['ditch_type']
+                ]);
+            } else {
+                \app\common\service\PrintLogger::warning('getPrintTask', '未找到渠道配置', [
+                    't_number' => $tNumber,
+                    't_name' => $tName
+                ]);
+            }
             
             // 判断渠道类型
             // ditch_type: 1=普通渠道, 2=中通快递, 3=中通管家, 4=顺丰速运
@@ -7254,23 +7374,22 @@ public function expressBillbatch() {
                     ->find();
             }
             
-            // 记录渠道判断结果
-            \think\Log::info('getPrintTask - 渠道判断结果: ' . json_encode([
+            // 📝 记录渠道判断结果
+            \app\common\service\PrintLogger::info('getPrintTask', '渠道类型判断', [
                 'is_sf' => $isSf,
                 'is_zto' => $isZto,
                 'is_jd' => $isJd,
                 'has_config' => !empty($ditchConfig)
-            ], JSON_UNESCAPED_UNICODE));
+            ]);
             
             if ($isZto && $ditchConfig) {
                 // 使用中通云打印
-                \think\Log::info('getPrintTask - 使用中通云打印: ' . json_encode([
+                \app\common\service\PrintLogger::printTask('ZTO', '开始中通云打印', [
                     'order_id' => $id,
                     'ditch_id' => $ditchConfig['ditch_id'],
                     'ditch_name' => $ditchConfig['ditch_name'],
-                    'ditch_type' => isset($ditchConfig['ditch_type']) ? $ditchConfig['ditch_type'] : 'N/A',
                     'print_all' => $printAll
-                ], JSON_UNESCAPED_UNICODE));
+                ]);
                 
                 // 转换数据库字段名到 Zto 类期望的配置键名
                 $ditchArray = is_object($ditchConfig) ? $ditchConfig->toArray() : (array)$ditchConfig;
@@ -7312,27 +7431,36 @@ public function expressBillbatch() {
                 }
                 
                 // 调用中通云打印接口
+                \app\common\service\PrintLogger::apiRequest('ZTO', '调用云打印接口', [
+                    'print_mode' => $printMode,
+                    'waybill_no' => $waybillNo
+                ]);
+                
                 $result = $zto->cloudPrint($id, [
                     'print_mode' => $printMode,
                     'waybill_no' => $waybillNo,
                     'sellerMessage' => isset($data['seller_message']) ? $data['seller_message'] : (isset($data['remark']) ? $data['remark'] : '')
                 ]);
                 
-                // 记录调用结果
-                \think\Log::info('getPrintTask - 中通云打印调用结果: ' . json_encode([
-                    'success' => $result !== false && isset($result['success']) && $result['success'],
-                    'message' => isset($result['message']) ? $result['message'] : 'N/A',
-                    'has_data' => isset($result['data']),
-                    'error' => $result === false ? $zto->getError() : null
-                ], JSON_UNESCAPED_UNICODE));
-                
+                // 📝 记录调用结果
                 if ($result === false) {
+                    \app\common\service\PrintLogger::apiResponse('ZTO', false, [
+                        'error' => $zto->getError()
+                    ]);
                     return $this->renderError('获取中通云打印数据失败: ' . $zto->getError());
                 }
                 
                 if (!$result['success']) {
+                    \app\common\service\PrintLogger::apiResponse('ZTO', false, [
+                        'message' => $result['message']
+                    ]);
                     return $this->renderError('中通云打印失败: ' . $result['message']);
                 }
+                
+                \app\common\service\PrintLogger::apiResponse('ZTO', true, [
+                    'message' => $result['message'],
+                    'has_data' => isset($result['data'])
+                ]);
                 
                 // 返回中通云打印结果
                 // 中通云打印返回的是打印成功/失败列表，前端需要根据这个结果显示
@@ -7976,6 +8104,13 @@ public function expressBillbatch() {
      */
     private function writeJdOrderLog($message)
     {
+        // 日志开关：设置为 false 关闭日志
+        $enableLog = false;
+        
+        if (!$enableLog) {
+            return;
+        }
+        
         $logDir = dirname(dirname(dirname(dirname(__DIR__)))) . '/logs/jd';
         
         // 确保目录存在
@@ -8146,21 +8281,28 @@ public function expressBillbatch() {
             
             $this->writeJdDebugLog("✅ 报文已发送");
             
-            // 读取响应（可选）
+            // 读取响应报文
             $responseData = '';
-            stream_set_timeout($socket, 2);
+            stream_set_timeout($socket, 3);
+            
+            // 读取 WebSocket 帧数据
+            $frameData = '';
             while (!feof($socket)) {
-                $data = fread($socket, 1024);
-                if ($data === false || $data === '') {
+                $chunk = fread($socket, 1024);
+                if ($chunk === false || $chunk === '') {
                     break;
                 }
-                $responseData .= $data;
+                $frameData .= $chunk;
             }
             
             fclose($socket);
             
-            if (!empty($responseData)) {
-                $this->writeJdDebugLog("收到响应: " . substr($responseData, 0, 100) . "...");
+            // 解析 WebSocket 帧
+            if (!empty($frameData)) {
+                $responseData = $this->parseWebSocketFrame($frameData);
+                $this->writeJdDebugLog("✅ 收到响应: " . substr($responseData, 0, 200) . "...");
+            } else {
+                $this->writeJdDebugLog("⚠️ 未收到响应数据");
             }
             
             return [
@@ -8177,6 +8319,60 @@ public function expressBillbatch() {
                 'response' => null
             ];
         }
+    }
+
+    /**
+     * 解析 WebSocket 数据帧
+     * @param string $frameData WebSocket 帧数据
+     * @return string 解析后的报文内容
+     */
+    private function parseWebSocketFrame($frameData)
+    {
+        if (empty($frameData)) {
+            return '';
+        }
+        
+        // 跳过第一个字节（FIN + opcode）
+        $offset = 1;
+        
+        // 读取长度信息
+        $lengthByte = ord($frameData[$offset]);
+        $offset++;
+        
+        $isMasked = ($lengthByte & 0x80) !== 0;
+        $length = $lengthByte & 0x7F;
+        
+        if ($length === 126) {
+            $length = (ord($frameData[$offset]) << 8) | ord($frameData[$offset + 1]);
+            $offset += 2;
+        } elseif ($length === 127) {
+            $length = 0;
+            for ($i = 0; $i < 8; $i++) {
+                $length = ($length << 8) | ord($frameData[$offset + $i]);
+            }
+            $offset += 8;
+        }
+        
+        // 读取掩码（如果有）
+        $mask = '';
+        if ($isMasked) {
+            $mask = substr($frameData, $offset, 4);
+            $offset += 4;
+        }
+        
+        // 提取报文内容
+        $payload = substr($frameData, $offset, $length);
+        
+        // 解掩码
+        if ($isMasked) {
+            $unmasked = '';
+            for ($i = 0; $i < $length; $i++) {
+                $unmasked .= chr(ord($payload[$i]) ^ ord($mask[$i % 4]));
+            }
+            $payload = $unmasked;
+        }
+        
+        return $payload;
     }
 
     /**
@@ -8224,5 +8420,179 @@ public function expressBillbatch() {
         $frame .= $masked;
         
         return $frame;
+    }
+    
+    /**
+     * 获取渠道商列表（用于批量推送）
+     * 
+     * @return \think\response\Json
+     * @throws \think\exception\DbException
+     */
+    /**
+     * 获取可推送的渠道商列表
+     * 返回支持批量推送的渠道商类型：自有物流、中通快递、中通管家、顺丰速运、京东物流
+     * 
+     * @return \think\response\Json
+     */
+    public function getDitchList()
+    {
+        try {
+            $ditchModel = new \app\store\model\Ditch();
+            
+            // 查询所有启用的渠道商（不筛选类型，让前端根据运输方式筛选）
+            $list = $ditchModel
+                ->where('status', '=', 0)
+                ->where('wxapp_id', '=', $this->getWxappId())
+                ->order('sort', 'asc')
+                ->field('ditch_id, ditch_name, ditch_no, ditch_type')
+                ->select();
+            
+            return $this->renderSuccess('获取成功', '', [
+                'list' => $list
+            ]);
+            
+        } catch (\Exception $e) {
+            return $this->renderError('获取渠道商列表失败: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * 批量推送订单到渠道商
+     * 
+     * @return \think\response\Json
+     */
+    public function orderbatchpusher()
+    {
+        try {
+            $params = $this->request->param();
+            
+            // 🔍 调试日志：记录接收到的参数
+            \app\common\service\PrintLogger::info('批量推送', '接收参数', $params);
+            
+            // 验证参数
+            if (empty($params['order_ids'])) {
+                \app\common\service\PrintLogger::error('批量推送', '参数错误：订单ID为空');
+                return $this->renderError('请选择要推送的订单');
+            }
+            
+            if (empty($params['ditch_id'])) {
+                \app\common\service\PrintLogger::error('批量推送', '参数错误：渠道商ID为空');
+                return $this->renderError('请选择渠道商');
+            }
+            
+            // 转换订单ID为数组
+            $orderIds = is_array($params['order_ids']) 
+                ? $params['order_ids'] 
+                : explode(',', $params['order_ids']);
+            
+            $ditchId = (int)$params['ditch_id'];
+            
+            // 🔧 修复：正确处理 async 参数（字符串 "false" 应该转为 false）
+            $async = false;
+            if (isset($params['async'])) {
+                if (is_bool($params['async'])) {
+                    $async = $params['async'];
+                } elseif (is_string($params['async'])) {
+                    $async = ($params['async'] === 'true' || $params['async'] === '1');
+                } else {
+                    $async = (bool)$params['async'];
+                }
+            }
+            
+            // 🔍 调试日志：记录处理后的参数
+            \app\common\service\PrintLogger::info('批量推送', '处理后参数', [
+                'order_ids' => $orderIds,
+                'ditch_id' => $ditchId,
+                'async' => $async
+            ]);
+            
+            // 额外参数
+            $extraParams = [
+                'async' => $async
+            ];
+            
+            if (isset($params['priority'])) {
+                $extraParams['priority'] = (int)$params['priority'];
+            }
+            
+            if (isset($params['product_id'])) {
+                $extraParams['product_id'] = $params['product_id'];
+            }
+            
+            // 运输方式参数
+            if (isset($params['transfer'])) {
+                $extraParams['transfer'] = $params['transfer'];
+            }
+            
+            // 🔍 调试日志：记录额外参数
+            \app\common\service\PrintLogger::info('批量推送', '额外参数', $extraParams);
+            
+            // 调用批量推送服务
+            \app\common\service\PrintLogger::info('批量推送', '开始调用 OrderBatchPusher::push');
+            $result = \app\common\service\OrderBatchPusher::push(
+                $orderIds,
+                $ditchId,
+                $extraParams
+            );
+            
+            // 🔍 调试日志：记录推送结果
+            \app\common\service\PrintLogger::info('批量推送', '推送结果', $result);
+            
+            if ($result['error_count'] > 0 && $result['success_count'] == 0) {
+                // 全部失败
+                \app\common\service\PrintLogger::error('批量推送', '全部失败', $result);
+                return $this->renderError('批量推送失败', [
+                    'data' => $result
+                ]);
+            } else {
+                // 全部成功或部分成功
+                \app\common\service\PrintLogger::success('批量推送', '推送完成', $result);
+                return $this->renderSuccess($result, '批量推送完成');
+            }
+            
+        } catch (\Exception $e) {
+            // 🔍 调试日志：记录异常
+            \app\common\service\PrintLogger::error('批量推送', '异常', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $this->renderError('批量推送异常: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * 异步任务队列操作
+     * 
+     * @return \think\response\Json
+     */
+    public function asynctaskqueue()
+    {
+        try {
+            $action = $this->request->param('action');
+            
+            switch ($action) {
+                case 'getTaskStatus':
+                    $taskId = (int)$this->request->param('task_id');
+                    if (empty($taskId)) {
+                        return $this->renderError('任务ID不能为空');
+                    }
+                    
+                    $status = \app\common\service\AsyncTaskQueue::getTaskStatus($taskId);
+                    if ($status) {
+                        return $this->renderSuccess($status);
+                    } else {
+                        return $this->renderError('任务不存在');
+                    }
+                    break;
+                    
+                default:
+                    return $this->renderError('不支持的操作');
+            }
+            
+        } catch (\Exception $e) {
+            return $this->renderError('操作失败: ' . $e->getMessage());
+        }
     }
 }
