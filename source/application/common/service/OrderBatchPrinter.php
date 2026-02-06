@@ -246,10 +246,11 @@ class OrderBatchPrinter
             $request = Request::instance();
             
             // TP5.1 中设置参数的正确方式
+            // 批量打印时默认使用 print_all=1（打印全部包裹，包括子母单）
             $params = [
                 'id' => $orderId,
                 'label' => isset($printOptions['label']) ? $printOptions['label'] : 60,
-                'print_all' => isset($printOptions['print_all']) ? $printOptions['print_all'] : 0,
+                'print_all' => isset($printOptions['print_all']) ? $printOptions['print_all'] : 1,  // 默认打印全部
                 'waybill_no' => isset($printOptions['waybill_no']) ? $printOptions['waybill_no'] : ''
             ];
             
