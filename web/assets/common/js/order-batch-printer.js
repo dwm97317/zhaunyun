@@ -284,10 +284,31 @@ const OrderBatchPrinter = {
             } else if (printData.mode === 'zto_cloud_print') {
                 // 中通云打印模式
                 console.log('[批量打印] 中通打印模式');
-                if (typeof window.do_print === 'function') {
-                    window.do_print(printData.data);
+                
+                // 中通云打印是服务端直接调用API完成的，前端只需要显示结果
+                if (printData.data && printData.data.printResults) {
+                    var results = printData.data.printResults;
+                    var successCount = 0;
+                    var failCount = 0;
+                    
+                    results.forEach(function(result) {
+                        if (result.success) {
+                            successCount++;
+                        } else {
+                            failCount++;
+                        }
+                    });
+                    
+                    if (failCount === 0) {
+                        console.log('[批量打印] 中通打印全部成功');
+                        layer.msg('中通打印成功 (' + successCount + '个)', {icon: 1});
+                    } else {
+                        console.warn('[批量打印] 中通打印部分失败:', {success: successCount, fail: failCount});
+                        layer.msg('中通打印完成: 成功' + successCount + '个, 失败' + failCount + '个', {icon: 0, time: 5000});
+                    }
                 } else {
-                    console.error('[批量打印] 中通云打印插件未加载');
+                    console.error('[批量打印] 中通打印数据格式错误');
+                    layer.msg('中通打印数据格式错误', {icon: 2});
                 }
             } else if (printData.mode === 'jd_cloud_print') {
                 // 京东云打印模式
