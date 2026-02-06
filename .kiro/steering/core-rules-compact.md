@@ -39,7 +39,33 @@ tags: [core, essential]
 - 验证测试结果，直到通过为止
 - **示例**: `curl http://localhost:8080/tests/test_example.php`
 
+### 7. Kiro Powers 自动选用规则
+根据用户指令关键词自动激活对应的 Power：
 
+**Postman Power** - API 测试和集合管理
+- 关键词: postman, api, testing, collections, rest, http, automation
+- 用途: 创建工作区、集合、环境，运行 API 测试
+
+**Terraform Power** - 基础设施即代码
+- 关键词: terraform, hashicorp, infrastructure, iac, hcp, providers, modules, registry
+- 用途: 管理 Terraform 注册表、提供商、模块、策略
+
+**Power Builder** - 构建自定义 Power
+- 关键词: kiro power, power builder, build power, create power, mcp power, power documentation
+- 用途: 创建和测试新的 Kiro Powers
+
+**Requirements Analyst** - 需求工程
+- 关键词: requirements, PRD, user stories, MoSCoW, FURPS+
+- 用途: 6 阶段需求工程流程（发现→分类→分析→澄清→验证→规范）
+
+**Spec-Kit Power** - SDD 方法论
+- 关键词: specification, SDD, requirements, planning, implementation, TDD, 功能规格, 需求文档, 技术设计
+- 用途: 10 个工作流（Steering, Specify, Clarify, Plan, Tasks, Implement, Analyze, Checklist, Sync, Discover）
+
+**使用方式**:
+1. 识别关键词 → 自动激活对应 Power
+2. 先 activate 了解能力 → 再 use 执行工具
+3. 使用 readSteering 获取详细指南
 
 ## 📚 详细规则
 
