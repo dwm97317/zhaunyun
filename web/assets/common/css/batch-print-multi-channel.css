@@ -1,0 +1,229 @@
+/**
+ * 批量多渠道打印 - 样式表
+ * 
+ * Feature: batch-multi-order-auto-channel-print
+ */
+
+/* 批量打印按钮 */
+#batchPrintBtn {
+    transition: all 0.3s ease;
+}
+
+#batchPrintBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#batchPrintBtn:not(:disabled):hover {
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
+}
+
+/* 加载状态 */
+#batchPrintBtn.loading {
+    position: relative;
+}
+
+#batchPrintBtn.loading::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    top: 50%;
+    right: 10px;
+    margin-top: -7px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 模态框样式 */
+#batchPrintResultModal {
+    z-index: 1000;
+}
+
+#batchPrintResultModal .am-modal-dialog {
+    width: 90%;
+    max-width: 800px;
+}
+
+#batchPrintResultModal .am-modal-bd {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+/* 统计摘要 */
+.batch-print-summary {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.batch-print-summary > div {
+    flex: 1;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.batch-print-summary .summary-label {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+.batch-print-summary .summary-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+}
+
+.batch-print-summary .summary-success .summary-value {
+    color: #0066cc;
+}
+
+.batch-print-summary .summary-failed .summary-value {
+    color: #cc0000;
+}
+
+/* 详细结果表格 */
+.batch-print-details {
+    margin: 20px 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.batch-print-details table {
+    font-size: 12px;
+    margin-bottom: 0;
+}
+
+.batch-print-details th {
+    background: #f9f9f9;
+    font-weight: bold;
+    padding: 8px;
+}
+
+.batch-print-details td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.batch-print-details tr:hover {
+    background: #f9f9f9;
+}
+
+.batch-print-details .status-success {
+    color: #0066cc;
+    font-weight: bold;
+}
+
+.batch-print-details .status-failed {
+    color: #cc0000;
+    font-weight: bold;
+}
+
+/* 渠道分解统计 */
+.batch-print-breakdown {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.batch-print-breakdown h5 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.batch-print-breakdown-items {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.batch-print-breakdown-item {
+    flex: 1;
+    min-width: 150px;
+    padding: 12px;
+    background: #f9f9f9;
+    border-radius: 4px;
+    border-left: 3px solid #0066cc;
+}
+
+.batch-print-breakdown-item.channel-sf {
+    border-left-color: #ff6600;
+}
+
+.batch-print-breakdown-item.channel-zto {
+    border-left-color: #00cc00;
+}
+
+.batch-print-breakdown-item.channel-jd {
+    border-left-color: #ff0000;
+}
+
+.batch-print-breakdown-item-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.batch-print-breakdown-item-stat {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #666;
+}
+
+.batch-print-breakdown-item-stat .stat-success {
+    color: #0066cc;
+}
+
+.batch-print-breakdown-item-stat .stat-failed {
+    color: #cc0000;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    #batchPrintResultModal .am-modal-dialog {
+        width: 95%;
+    }
+
+    .batch-print-summary {
+        flex-direction: column;
+    }
+
+    .batch-print-breakdown-items {
+        flex-direction: column;
+    }
+
+    .batch-print-breakdown-item {
+        min-width: auto;
+    }
+}
+
+/* 复选框样式增强 */
+input[name="checkIds"] {
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+input[name="checkIds"]:hover {
+    transform: scale(1.1);
+}
+
+#checkAll {
+    cursor: pointer;
+}
+
+/* 选中行高亮 */
+tr:has(input[name="checkIds"]:checked) {
+    background-color: #f0f9ff !important;
+}

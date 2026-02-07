@@ -59,4 +59,54 @@ class Inpack extends Controller
 
         return $this->renderError('无效请求');
     }
+
+    /**
+     * 批量打印多渠道订单（自动渠道检测）
+     * 
+     * POST /store/inpack/batchPrint
+     * 请求体: {
+     *   'order_ids': ['id1', 'id2', 'id3']
+     * }
+     * 
+     * @return array 打印结果
+     */
+    public function batchPrint()
+    {
+        try {
+            // 获取请求参数
+            $params = $this->request->post();
+            $orderIds = isset($params['order_ids']) ? (array)$params['order_ids'] : [];
+
+            // 验证参数
+            if (empty($orderIds)) {
+                return $this->renderError('未选择订单');
+            }
+
+            // 验证订单ID格式（必须是数字或字符串）
+            $validOrderIds = [];
+            foreach ($orderIds as $orderId) {
+                if (!empty($orderId)) {
+                    $validOrderIds[] = $orderId;
+                }
+            }
+
+            if (empty($validOrderIds)) {
+                return $this->renderError('订单ID无效');
+            }
+
+            // 调用批量打印服务
+            $result = OrderBatchPrinter::batchPrintMultiChannel($validOrderIds);
+
+            // 返回结果
+            if ($result['success']) {
+                return $this->renderSuccess('批量打印完成', '', $result);
+            } else {
+                return $this->renderSuccess('批量打印完成（部分失败）', '', $result);
+            }
+
+        } catch (\Exception $e) {
+            // 异常处理
+            return $this->renderError('批量打印异常: ' . $e->getMessage());
+        }
+    }
 }

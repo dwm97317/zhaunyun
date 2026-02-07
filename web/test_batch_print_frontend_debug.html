@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>批量打印运单 - 前端调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { color: #333; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f4f4f4; padding: 10px; border: 1px solid #ddd; overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        table th, table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        table th { background-color: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <h1>批量打印运单 - 前端调试工具</h1>
+    <p>此页面用于诊断批量打印运单只生成一个面单的问题</p>
+    <hr>
+
+    <div class="test-section">
+        <h2>测试1: 模拟订单列表复选框</h2>
+        <p>模拟订单列表中的复选框结构</p>
+        <div id="body">
+            <label><input type="checkbox" id="checkAll"> 全选</label><br><br>
+            <label><input type="checkbox" name="checkIds" value="69411"> 订单 69411</label><br>
+            <label><input type="checkbox" name="checkIds" value="69412"> 订单 69412</label><br>
+            <label><input type="checkbox" name="checkIds" value="69413"> 订单 69413</label><br>
+            <label><input type="checkbox" name="checkIds" value="69414"> 订单 69414</label><br>
+            <label><input type="checkbox" name="checkIds" value="69415"> 订单 69415</label><br>
+        </div>
+        <br>
+        <button onclick="testChecker()">测试 checker 对象</button>
+        <button onclick="testGetCheckSelect()">测试 getCheckSelect()</button>
+        <div id="test1-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试2: 旧版 checker 实现（有BUG）</h2>
+        <p>使用旧版实现（获取所有input标签）</p>
+        <button onclick="initOldChecker()">初始化旧版 checker</button>
+        <button onclick="testOldChecker()">测试旧版 checker</button>
+        <div id="test2-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试3: 新版 checker 实现（已修复）</h2>
+        <p>使用新版实现（只获取name="checkIds"的复选框）</p>
+        <button onclick="initNewChecker()">初始化新版 checker</button>
+        <button onclick="testNewChecker()">测试新版 checker</button>
+        <div id="test3-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试4: 对比测试</h2>
+        <button onclick="compareCheckers()">对比旧版和新版</button>
+        <div id="test4-result"></div>
+    </div>
+
+    <script>
+        var checker = null;
+        var oldChecker = null;
+        var newChecker = null;
+
+        // 旧版 checker 实现（有BUG）
+        function initOldChecker() {
+            oldChecker = {
+                num: 0,
+                check: [],
+                init: function() {
+                    // BUG: 获取所有input标签，包括非复选框的input
+                    this.check = document.getElementById('body').getElementsByTagName('input');
+                    this.num = this.check.length;
+                    this.bindEvent();
+                },
+                bindEvent: function() {
+                    var that = this;
+                    for(var i=0; i< this.check.length; i++){
+                        this.check[i].onclick = function(){
+                            var _check = that.isFullCheck();
+                            if (_check){
+                                document.getElementById('checkAll').checked = 'checked';
+                            }else{
+                                document.getElementById('checkAll').checked = '';
+                            }
+                        }
+                    }
+                    
+                    var allCheck = document.getElementById('checkAll');
+                    allCheck.onclick = function(){
+                        if (this.checked){
+                            that.setFullCheck();
+                        }else{
+                            that.setFullCheck('');
+                        }
+                    }
+                },
+                setFullCheck: function(checked='checked'){
+                    for (var ik =0; ik<this.num; ik++){
+                        this.check[ik].checked = checked;
+                    }
+                },
+                isFullCheck: function(){
+                    var hasCheck = 0;
+                    for (var k =0; k<this.num; k++){
+                        if (this.check[k].checked){
+                            hasCheck++;
+                        }
+                    }
+                    return hasCheck==this.num?true:false;
+                },
+                getCheckSelect: function(){
+                    var selectIds = [];
+                    for (var i=0;i<this.check.length;i++){
+                        if (this.check[i].checked){
+                            selectIds.push(this.check[i].value);
+                        }
+                    }
+                    return selectIds;
+                }
+            };
+            oldChecker.init();
+            document.getElementById('test2-result').innerHTML = '<p class="success">旧版 checker 已初始化</p>';
+        }
+
+        // 新版 checker 实现（已修复）
+        function initNewChecker() {
+            newChecker = {
+                num: 0,
+                check: [],
+                init: function() {
+                    // 修复: 只获取name="checkIds"的复选框
+                    this.check = document.querySelectorAll('input[name="checkIds"]');
+                    this.num = this.check.length;
+                    this.bindEvent();
+                },
+                bindEvent: function() {
+                    var that = this;
+                    for(var i=0; i< this.check.length; i++){
+                        this.check[i].onclick = function(){
+                            var _check = that.isFullCheck();
+                            if (_check){
+                                document.getElementById('checkAll').checked = 'checked';
+                            }else{
+                                document.getElementById('checkAll').checked = '';
+                            }
+                        }
+                    }
+                    
+                    var allCheck = document.getElementById('checkAll');
+                    allCheck.onclick = function(){
+                        if (this.checked){
+                            that.setFullCheck();
+                        }else{
+                            that.setFullCheck('');
+                        }
+                    }
+                },
+                setFullCheck: function(checked='checked'){
+                    for (var ik =0; ik<this.num; ik++){
+                        this.check[ik].checked = checked;
+                    }
+                },
+                isFullCheck: function(){
+                    var hasCheck = 0;
+                    for (var k =0; k<this.num; k++){
+                        if (this.check[k].checked){
+                            hasCheck++;
+                        }
+                    }
+                    return hasCheck==this.num?true:false;
+                },
+                getCheckSelect: function(){
+                    var selectIds = [];
+                    for (var i=0;i<this.check.length;i++){
+                        if (this.check[i].checked){
+                            selectIds.push(this.check[i].value);
+                        }
+                    }
+                    return selectIds;
+                }
+            };
+            newChecker.init();
+            document.getElementById('test3-result').innerHTML = '<p class="success">新版 checker 已初始化</p>';
+        }
+
+        function testChecker() {
+            var result = '<h3>Checker 对象信息:</h3>';
+            result += '<p>checker.num: ' + (checker ? checker.num : 'checker未初始化') + '</p>';
+            result += '<p>checker.check.length: ' + (checker ? checker.check.length : 'checker未初始化') + '</p>';
+            
+            if (checker && checker.check.length > 0) {
+                result += '<h4>checker.check 数组内容:</h4><ul>';
+                for (var i = 0; i < checker.check.length; i++) {
+                    result += '<li>Index ' + i + ': type=' + checker.check[i].type + 
+                              ', name=' + checker.check[i].name + 
+                              ', value=' + checker.check[i].value + '</li>';
+                }
+                result += '</ul>';
+            }
+            
+            document.getElementById('test1-result').innerHTML = result;
+        }
+
+        function testGetCheckSelect() {
+            if (!checker) {
+                document.getElementById('test1-result').innerHTML = '<p class="error">请先初始化 checker</p>';
+                return;
+            }
+            
+            // 全选
+            document.getElementById('checkAll').click();
+            
+            var selectIds = checker.getCheckSelect();
+            var result = '<h3>getCheckSelect() 测试结果:</h3>';
+            result += '<p>返回的ID数量: ' + selectIds.length + '</p>';
+            result += '<p>返回的ID列表: ' + JSON.stringify(selectIds) + '</p>';
+            
+            if (selectIds.length === 5) {
+                result += '<p class="success">✓ 正确返回了5个订单ID</p>';
+            } else {
+                result += '<p class="error">✗ 错误! 应该返回5个ID，实际返回了 ' + selectIds.length + ' 个</p>';
+            }
+            
+            document.getElementById('test1-result').innerHTML = result;
+        }
+
+        function testOldChecker() {
+            if (!oldChecker) {
+                document.getElementById('test2-result').innerHTML = '<p class="error">请先初始化旧版 checker</p>';
+                return;
+            }
+            
+            // 取消所有选择
+            document.getElementById('checkAll').checked = false;
+            oldChecker.setFullCheck('');
+            
+            // 全选
+            document.getElementById('checkAll').click();
+            
+            var selectIds = oldChecker.getCheckSelect();
+            var result = '<h3>旧版 checker 测试结果:</h3>';
+            result += '<p>oldChecker.num: ' + oldChecker.num + '</p>';
+            result += '<p>oldChecker.check.length: ' + oldChecker.check.length + '</p>';
+            result += '<p>返回的ID数量: ' + selectIds.length + '</p>';
+            result += '<p>返回的ID列表: ' + JSON.stringify(selectIds) + '</p>';
+            
+            if (selectIds.length === 5) {
+                result += '<p class="success">✓ 正确返回了5个订单ID</p>';
+            } else {
+                result += '<p class="error">✗ BUG确认! 应该返回5个ID，实际返回了 ' + selectIds.length + ' 个</p>';
+                result += '<p class="warning">原因: 旧版获取了所有input标签（包括checkAll），导致数组混乱</p>';
+            }
+            
+            document.getElementById('test2-result').innerHTML = result;
+        }
+
+        function testNewChecker() {
+            if (!newChecker) {
+                document.getElementById('test3-result').innerHTML = '<p class="error">请先初始化新版 checker</p>';
+                return;
+            }
+            
+            // 取消所有选择
+            document.getElementById('checkAll').checked = false;
+            newChecker.setFullCheck('');
+            
+            // 全选
+            document.getElementById('checkAll').click();
+            
+            var selectIds = newChecker.getCheckSelect();
+            var result = '<h3>新版 checker 测试结果:</h3>';
+            result += '<p>newChecker.num: ' + newChecker.num + '</p>';
+            result += '<p>newChecker.check.length: ' + newChecker.check.length + '</p>';
+            result += '<p>返回的ID数量: ' + selectIds.length + '</p>';
+            result += '<p>返回的ID列表: ' + JSON.stringify(selectIds) + '</p>';
+            
+            if (selectIds.length === 5) {
+                result += '<p class="success">✓ 正确返回了5个订单ID - BUG已修复!</p>';
+            } else {
+                result += '<p class="error">✗ 仍然有问题，返回了 ' + selectIds.length + ' 个ID</p>';
+            }
+            
+            document.getElementById('test3-result').innerHTML = result;
+        }
+
+        function compareCheckers() {
+            if (!oldChecker || !newChecker) {
+                document.getElementById('test4-result').innerHTML = '<p class="error">请先初始化旧版和新版 checker</p>';
+                return;
+            }
+            
+            // 取消所有选择
+            document.getElementById('checkAll').checked = false;
+            oldChecker.setFullCheck('');
+            newChecker.setFullCheck('');
+            
+            // 全选
+            document.getElementById('checkAll').click();
+            
+            var oldSelectIds = oldChecker.getCheckSelect();
+            var newSelectIds = newChecker.getCheckSelect();
+            
+            var result = '<h3>对比测试结果:</h3>';
+            result += '<table>';
+            result += '<tr><th>项目</th><th>旧版</th><th>新版</th><th>状态</th></tr>';
+            result += '<tr><td>check数组长度</td><td>' + oldChecker.check.length + '</td><td>' + newChecker.check.length + '</td><td>' + 
+                      (oldChecker.check.length === newChecker.check.length ? '<span class="success">相同</span>' : '<span class="error">不同</span>') + '</td></tr>';
+            result += '<tr><td>返回ID数量</td><td>' + oldSelectIds.length + '</td><td>' + newSelectIds.length + '</td><td>' + 
+                      (oldSelectIds.length === newSelectIds.length ? '<span class="success">相同</span>' : '<span class="error">不同</span>') + '</td></tr>';
+            result += '<tr><td>返回的ID</td><td>' + JSON.stringify(oldSelectIds) + '</td><td>' + JSON.stringify(newSelectIds) + '</td><td>' + 
+                      (JSON.stringify(oldSelectIds) === JSON.stringify(newSelectIds) ? '<span class="success">相同</span>' : '<span class="error">不同</span>') + '</td></tr>';
+            result += '</table>';
+            
+            result += '<h4>结论:</h4>';
+            if (newSelectIds.length === 5 && oldSelectIds.length !== 5) {
+                result += '<p class="success">✓ 新版修复了BUG，正确返回了所有订单ID</p>';
+                result += '<p class="warning">旧版的问题: 使用 getElementsByTagName(\'input\') 获取了所有input标签，包括checkAll复选框，导致数组索引混乱</p>';
+                result += '<p class="success">新版的修复: 使用 querySelectorAll(\'input[name="checkIds"]\') 只获取订单复选框</p>';
+            } else if (newSelectIds.length === 5 && oldSelectIds.length === 5) {
+                result += '<p class="success">两个版本都正确返回了5个ID</p>';
+            } else {
+                result += '<p class="error">两个版本都有问题</p>';
+            }
+            
+            document.getElementById('test4-result').innerHTML = result;
+        }
+
+        // 页面加载时自动初始化
+        window.onload = function() {
+            initOldChecker();
+            initNewChecker();
+            checker = newChecker; // 默认使用新版
+        };
+    </script>
+</body>
+</html>

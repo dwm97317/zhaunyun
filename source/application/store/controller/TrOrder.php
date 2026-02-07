@@ -5421,27 +5421,84 @@ class TrOrder extends Controller
 ';
     }
    
-    // 批量打印面单 [生成pdf]
+    // 批量打印运单 [生成pdf]
 public function expressBillbatch() {
     try {
+        // 引入日志服务
+        $logger = \app\common\service\PrintLogger::class;
+        
+        // 1. 记录接收到的原始参数
         $selectIds = $this->postData("selectIds");
+        $logger::info('批量打印', '接收到selectIds参数', [
+            'raw_value' => $selectIds,
+            'type' => gettype($selectIds),
+            'is_empty' => empty($selectIds)
+        ]);
+        
         if (empty($selectIds)) {
+            $logger::error('批量打印', '参数为空', ['selectIds' => $selectIds]);
             return $this->renderError("未选择任何订单");
         }
 
-        // 如果selectIds是字符串，转换为数组
+        // 2. 记录参数转换过程
+        $originalSelectIds = $selectIds;
+        
+        // 处理参数：可能是字符串，也可能是数组
         if (is_string($selectIds)) {
+            // 字符串：直接分割
             $selectIds = explode(',', $selectIds);
-            $selectIds = array_filter($selectIds); // 过滤空值
+            $selectIds = array_filter($selectIds);
+            $logger::info('批量打印', '字符串转数组', [
+                'original' => $originalSelectIds,
+                'after_explode' => $selectIds,
+                'count' => count($selectIds)
+            ]);
+        } elseif (is_array($selectIds)) {
+            // 数组：检查第一个元素是否包含逗号（说明是逗号分隔的字符串）
+            if (count($selectIds) === 1 && is_string($selectIds[0]) && strpos($selectIds[0], ',') !== false) {
+                // 数组中只有一个元素，且是逗号分隔的字符串，需要分割
+                $selectIds = explode(',', $selectIds[0]);
+                $selectIds = array_filter($selectIds);
+                $logger::info('批量打印', '数组元素是字符串，需要分割', [
+                    'original' => $originalSelectIds,
+                    'after_explode' => $selectIds,
+                    'count' => count($selectIds)
+                ]);
+            } else {
+                // 数组中是多个元素，直接使用
+                $logger::info('批量打印', '参数已是数组', [
+                    'value' => $selectIds,
+                    'count' => count($selectIds)
+                ]);
+            }
         }
         
         if (empty($selectIds)) {
+            $logger::error('批量打印', '转换后参数为空', ['selectIds' => $selectIds]);
             return $this->renderError("未选择任何订单");
         }
 
+        // 3. 记录查询订单数据
+        $logger::info('批量打印', '开始查询订单数据', [
+            'order_ids' => $selectIds,
+            'count' => count($selectIds)
+        ]);
+        
         $inpack = new Inpack();
         $data = $inpack->getExpressBatchData($selectIds);
+        
+        // 4. 记录查询结果
+        $dataArray = is_array($data) ? $data : $data->toArray();
+        $logger::info('批量打印', '订单数据查询完成', [
+            'requested_count' => count($selectIds),
+            'returned_count' => count($data),
+            'order_ids' => array_column($dataArray, 'id')
+        ]);
+        
         if (empty($data)) {
+            $logger::error('批量打印', '未找到订单数据', [
+                'requested_ids' => $selectIds
+            ]);
             return $this->renderError("未找到订单数据");
         }
 
@@ -5449,7 +5506,18 @@ public function expressBillbatch() {
         $generatorSVG = new \Picqer\Barcode\BarcodeGeneratorSVG();
         $htmlArray = [];
 
+        // 5. 记录开始处理每个订单
+        $logger::info('批量打印', '开始生成HTML片段', [
+            'order_count' => count($data)
+        ]);
+        
+        $processedCount = 0;
         foreach ($data as $order) {
+            $processedCount++;
+            $logger::info('批量打印', "处理订单 {$processedCount}/{count($data)}", [
+                'order_id' => $order['id'],
+                'order_sn' => $order['order_sn'] ?? 'N/A'
+            ]);
             $order['setting'] = $setting;
             // 生成条形码并移除XML声明（HTML中嵌入SVG时不需要XML声明）
             $barcodeSvg = $generatorSVG->getBarcode($order['order_sn'], $generatorSVG::TYPE_CODE_128, 2, 50);
@@ -5504,11 +5572,31 @@ public function expressBillbatch() {
             }
 
             // 渲染模板
-            $htmlArray[] = $this->template20($order);
+            $htmlFragment = $this->template20($order);
+            $htmlArray[] = $htmlFragment;
+            
+            // 6. 记录每个订单的HTML生成
+            $logger::info('批量打印', "订单HTML生成完成 {$processedCount}/{count($data)}", [
+                'order_id' => $order['id'],
+                'html_length' => strlen($htmlFragment)
+            ]);
         }
+
+        // 7. 记录HTML片段汇总
+        $logger::info('批量打印', 'HTML片段生成完成', [
+            'total_fragments' => count($htmlArray),
+            'expected_count' => count($data),
+            'fragments_match' => count($htmlArray) === count($data)
+        ]);
 
         // 构建完整的HTML文档
         $htmlContent = implode('<hr style="page-break-after: always; border: none; margin: 0;">', $htmlArray);
+        
+        // 8. 记录HTML拼接结果
+        $logger::info('批量打印', 'HTML内容拼接完成', [
+            'total_length' => strlen($htmlContent),
+            'fragment_count' => count($htmlArray)
+        ]);
         
         // 确保HTML内容本身是UTF-8编码
         if (!mb_check_encoding($htmlContent, 'UTF-8')) {
@@ -5532,6 +5620,12 @@ public function expressBillbatch() {
 </html>';
         
         // 使用mPDF生成PDF - 对中文支持很好
+        // 9. 记录开始PDF生成
+        $logger::info('批量打印', '开始生成PDF', [
+            'html_length' => strlen($html),
+            'order_count' => count($data)
+        ]);
+        
         // 检查mPDF类是否存在（支持 mPDF 6.x 和 7.x）
         $mpdfClass = null;
         $mpdfVersion = null;
@@ -5654,6 +5748,11 @@ public function expressBillbatch() {
             // 写入HTML内容
             $mpdf->WriteHTML($html);
             
+            // 10. 记录HTML写入完成
+            $logger::info('批量打印', 'HTML内容已写入mPDF', [
+                'mpdf_version' => $mpdfVersion
+            ]);
+            
             // 确保excel目录存在
             $excelDir = WEB_PATH . DIRECTORY_SEPARATOR . 'excel';
             if (!is_dir($excelDir)) {
@@ -5666,8 +5765,22 @@ public function expressBillbatch() {
             $filename = rand(100000, 999999) . '.pdf';
             $filePath = $excelDir . DIRECTORY_SEPARATOR . $filename;
             
+            // 11. 记录PDF保存
+            $logger::info('批量打印', '开始保存PDF文件', [
+                'filename' => $filename,
+                'filepath' => $filePath
+            ]);
+            
             // 输出到文件（mPDF 7.x 使用字符串 'F' 表示保存到文件）
             $mpdf->Output($filePath, 'F');
+            
+            // 12. 记录PDF保存完成
+            $fileSize = file_exists($filePath) ? filesize($filePath) : 0;
+            $logger::info('批量打印', 'PDF文件保存完成', [
+                'filename' => $filename,
+                'filesize' => $fileSize,
+                'filesize_kb' => round($fileSize / 1024, 2) . 'KB'
+            ]);
             
             $pdfOutput = file_get_contents($filePath);
             if ($pdfOutput === false) {
@@ -5679,9 +5792,24 @@ public function expressBillbatch() {
         }
 
         $pdfUrl = base_url() . '/excel/' . $filename;
+        
+        // 13. 记录最终成功
+        $dataArray = is_array($data) ? $data : $data->toArray();
+        $logger::success('批量打印', '批量打印运单完成', [
+            'order_count' => count($data),
+            'order_ids' => array_column($dataArray, 'id'),
+            'pdf_url' => $pdfUrl,
+            'filename' => $filename
+        ]);
+        
         return $this->renderSuccess('面单生成成功', '', ['url' => $pdfUrl]);
         
     } catch (\Exception $e) {
+        // 记录异常
+        $logger::error('批量打印', '批量打印运单失败', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
         return $this->renderError("生成面单失败: " . $e->getMessage());
     }
 }

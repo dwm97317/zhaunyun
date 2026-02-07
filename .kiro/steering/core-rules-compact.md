@@ -11,6 +11,7 @@ tags: [core, essential]
 
 ### 1. 语言规则
 - 中文输入 → 英文处理 → 中文回复
+- 所有的回答必须使用中文，所有的生成的文档，注释必须使用中文
 
 ### 2. 数据库规则
 - **永远先验证，再编码**
@@ -18,9 +19,16 @@ tags: [core, essential]
 - 不要假设字段名和类型
 
 ### 3. 文件组织
-- 测试 → `web/tests/`
-- 文档 → `web/docs/`
-- 临时 → `web/temp/`
+- 测试 → `tests/` (PHPUnit 单元测试)
+- 临时测试脚本 → `web/` (通过 HTTP 访问)
+- 文档 → `docs/`
+- 临时文件 → `web/temp/`
+
+**PHPUnit 测试框架**：
+- 已安装：PHPUnit 9.6.34
+- 配置文件：`source/phpunit.xml`
+- 运行测试：`cd source && vendor/bin/phpunit`
+- 测试文件命名：`*Test.php`（放在 `tests/` 目录）
 
 ### 4. 开发优先
 - 专注代码实现
@@ -32,14 +40,67 @@ tags: [core, essential]
 - 搜索文件内容时使用 `grepSearch`，不要使用 bash grep
 - `grepSearch` 已针对系统优化，性能更好
 
-### 6. ThinkPHP 测试脚本规则
-- 项目部署在 `localhost:8080`
-- 测试脚本位于 `web/tests/`
-- 写完测试脚本后使用 curl 命令运行
+### 6. 测试方法规则
+- **首选 PHPUnit 命令行（推荐）**: 直接运行 `php think test`
+- **备选方案**: 使用 curl 访问测试脚本
+  - 项目部署在 `localhost:8080`
+  - 测试脚本位于 `web/tests/`
+  - **示例**: `curl http://localhost:8080/tests/test_example.php`
 - 验证测试结果，直到通过为止
-- **示例**: `curl http://localhost:8080/tests/test_example.php`
 
-### 7. Kiro Powers 自动选用规则
+### 7. 测试请求封装（处理权限）
+当编写独立测试脚本需要处理 Token/Session 时，使用以下封装方法：
+
+```php
+/**
+ * 通用测试请求封装 - 处理 Token 和 Session
+ * 
+ * @param string $url 请求 URL
+ * @param array $data 请求数据
+ * @param string $token 认证 Token（可选）
+ * @param string $sessionId Session ID（可选）
+ * @return array 解析后的响应数据
+ */
+function sendTestRequest($url, $data = [], $token = '', $sessionId = '') {
+    $ch = curl_init();
+    $headers = ['Content-Type: application/json'];
+    
+    // 传递 Token
+    if ($token) {
+        $headers[] = 'token: ' . $token; // 根据项目实际 Header 名称修改
+    }
+    
+    // 传递 Session
+    if ($sessionId) {
+        curl_setopt($ch, CURLOPT_COOKIE, 'PHPSESSID=' . $sessionId);
+    }
+    
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    
+    $response = curl_exec($ch);
+    curl_close($ch);
+    
+    return json_decode($response, true);
+}
+
+// 使用示例
+$result = sendTestRequest(
+    'http://localhost:8080/api/test',
+    ['id' => 1],
+    'my-secret-token'
+);
+```
+
+**使用场景**：
+- 测试需要认证的 API 接口
+- 测试需要登录状态的功能
+- 模拟用户请求进行集成测试
+
+### 8. Kiro Powers 自动选用规则
 根据用户指令关键词自动激活对应的 Power：
 
 **Postman Power** - API 测试和集合管理

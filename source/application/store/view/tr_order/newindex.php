@@ -1890,7 +1890,7 @@ $('#j-batch').on('click', function() {
 });
 
 /**
- * 批量打印面单 (优化版-处理PDF路径)
+ * 批量打印运单 (优化版-处理PDF路径)
  */
 $('#j-batch-print').on('click', function() {
     // 1. 获取选中订单

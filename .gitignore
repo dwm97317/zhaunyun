@@ -11,6 +11,18 @@ web/datascreen
 web/barcode
 web/lang
 
+# 忽略所有以 . 开头的文件夹（除了 .git 和 .gitignore）
+.*
+!.gitignore
+!.git
+!.htaccess
+!.user.ini
+
+# Composer dependencies
+vendor/
+source/vendor/
+temp_pack/source/vendor/
+
 # User Requested Exclusions
 *.md
 *.docx

@@ -470,4 +470,450 @@ class OrderBatchPrinter
         
         return RetryHelper::getRecommendedConfig('default');
     }
+    
+    /**
+     * 批量打印多渠道订单（自动渠道检测）
+     * 
+     * 功能：选择多个订单，系统自动识别每个订单的快递渠道，并将打印请求发送到相应的云打印API
+     * 
+     * @param array $orderIds 订单ID数组
+     * @return array 打印结果
+     *   - success: 整体是否成功（至少一个订单成功）
+     *   - total: 总订单数
+     *   - successful: 成功数量
+     *   - failed: 失败数量
+     *   - results: 每个订单的详细结果 [
+     *       {
+     *         'order_id': 订单ID,
+     *         'channel': 渠道名称 (sf/zto/jd/unknown),
+     *         'status': 'success'|'failed',
+     *         'message': 消息,
+     *         'error': 错误信息（失败时）
+     *       }
+     *     ]
+     *   - channel_breakdown: 各渠道统计 {
+     *       'sf': {'total': int, 'success': int, 'failed': int},
+     *       'zto': {'total': int, 'success': int, 'failed': int},
+     *       'jd': {'total': int, 'success': int, 'failed': int}
+     *     }
+     */
+    public static function batchPrintMultiChannel(array $orderIds)
+    {
+        $startTime = microtime(true);
+        
+        // 验证输入
+        if (empty($orderIds)) {
+            return [
+                'success' => false,
+                'total' => 0,
+                'successful' => 0,
+                'failed' => 0,
+                'results' => [],
+                'channel_breakdown' => [],
+                'error' => '未选择订单'
+            ];
+        }
+        
+        PrintLogger::info('批量多渠道打印', '开始批量多渠道打印', [
+            'total_orders' => count($orderIds),
+            'order_ids' => $orderIds
+        ]);
+        
+        // 1. 从数据库查询订单数据
+        $inpackModel = new \app\store\model\Inpack();
+        $orders = $inpackModel->whereIn('id', $orderIds)->select();
+        
+        if (!$orders || count($orders) === 0) {
+            PrintLogger::error('批量多渠道打印', '订单不存在', ['order_ids' => $orderIds]);
+            return [
+                'success' => false,
+                'total' => count($orderIds),
+                'successful' => 0,
+                'failed' => count($orderIds),
+                'results' => [],
+                'channel_breakdown' => [],
+                'error' => '订单不存在'
+            ];
+        }
+        
+        // 转换为数组
+        $ordersArray = [];
+        foreach ($orders as $order) {
+            $ordersArray[] = is_object($order) ? $order->toArray() : $order;
+        }
+        
+        // 2. 检测渠道
+        $channelMap = self::detectChannels($ordersArray);
+        
+        PrintLogger::info('批量多渠道打印', '渠道检测完成', [
+            'channel_map' => $channelMap
+        ]);
+        
+        // 3. 按渠道分组
+        $groups = self::groupOrdersByChannel($ordersArray, $channelMap);
+        
+        PrintLogger::info('批量多渠道打印', '订单分组完成', [
+            'sf_count' => count($groups['sf']),
+            'zto_count' => count($groups['zto']),
+            'jd_count' => count($groups['jd']),
+            'unknown_count' => count($groups['unknown'])
+        ]);
+        
+        // 4. 处理每个渠道组
+        $allResults = [];
+        
+        // 处理顺丰订单
+        if (!empty($groups['sf'])) {
+            $sfResults = self::processChannelGroup('sf', $groups['sf']);
+            $allResults = array_merge($allResults, $sfResults);
+        }
+        
+        // 处理中通订单
+        if (!empty($groups['zto'])) {
+            $ztoResults = self::processChannelGroup('zto', $groups['zto']);
+            $allResults = array_merge($allResults, $ztoResults);
+        }
+        
+        // 处理京东订单
+        if (!empty($groups['jd'])) {
+            $jdResults = self::processChannelGroup('jd', $groups['jd']);
+            $allResults = array_merge($allResults, $jdResults);
+        }
+        
+        // 处理未知渠道订单（标记为失败）
+        if (!empty($groups['unknown'])) {
+            foreach ($groups['unknown'] as $order) {
+                $allResults[] = [
+                    'order_id' => $order['id'],
+                    'channel' => 'unknown',
+                    'status' => 'failed',
+                    'message' => '无法识别快递渠道',
+                    'error' => '订单未配置有效的快递渠道'
+                ];
+            }
+        }
+        
+        // 5. 聚合结果
+        $finalResult = self::aggregateResults($allResults);
+        
+        $elapsedTime = round(microtime(true) - $startTime, 2);
+        $finalResult['elapsed_time'] = $elapsedTime;
+        
+        PrintLogger::success('批量多渠道打印', '批量多渠道打印完成', [
+            'total' => $finalResult['total'],
+            'successful' => $finalResult['successful'],
+            'failed' => $finalResult['failed'],
+            'elapsed_time' => $elapsedTime . 's'
+        ]);
+        
+        return $finalResult;
+    }
+    
+    /**
+     * 检测每个订单的渠道
+     * 
+     * @param array $orders 订单数组
+     * @return array 订单ID => 渠道名称的映射 ['order_id' => 'sf'|'zto'|'jd'|'unknown']
+     */
+    private static function detectChannels(array $orders)
+    {
+        $channelMap = [];
+        
+        foreach ($orders as $order) {
+            $orderId = $order['id'];
+            $ditchId = isset($order['t_number']) ? (int)$order['t_number'] : 0;
+            
+            if ($ditchId <= 0) {
+                // 没有配置渠道
+                $channelMap[$orderId] = 'unknown';
+                PrintLogger::warning('批量多渠道打印', '订单未配置渠道', [
+                    'order_id' => $orderId
+                ]);
+                continue;
+            }
+            
+            // 获取渠道配置
+            $ditchConfig = DitchCache::getConfig($ditchId);
+            if (!$ditchConfig) {
+                $channelMap[$orderId] = 'unknown';
+                PrintLogger::warning('批量多渠道打印', '渠道配置不存在', [
+                    'order_id' => $orderId,
+                    'ditch_id' => $ditchId
+                ]);
+                continue;
+            }
+            
+            // 根据 ditch_type 判断渠道
+            $ditchType = isset($ditchConfig['ditch_type']) ? (int)$ditchConfig['ditch_type'] : 0;
+            
+            if ($ditchType === 4) {
+                $channelMap[$orderId] = 'sf';
+            } elseif ($ditchType === 2 || $ditchType === 3) {
+                $channelMap[$orderId] = 'zto';
+            } elseif ($ditchType === 5) {
+                $channelMap[$orderId] = 'jd';
+            } else {
+                $channelMap[$orderId] = 'unknown';
+                PrintLogger::warning('批量多渠道打印', '未知的渠道类型', [
+                    'order_id' => $orderId,
+                    'ditch_id' => $ditchId,
+                    'ditch_type' => $ditchType
+                ]);
+            }
+        }
+        
+        return $channelMap;
+    }
+    
+    /**
+     * 按渠道分组订单
+     * 
+     * @param array $orders 订单数组
+     * @param array $channelMap 渠道映射
+     * @return array 分组结果 ['sf' => [...], 'zto' => [...], 'jd' => [...], 'unknown' => [...]]
+     */
+    private static function groupOrdersByChannel(array $orders, array $channelMap)
+    {
+        $groups = [
+            'sf' => [],
+            'zto' => [],
+            'jd' => [],
+            'unknown' => []
+        ];
+        
+        foreach ($orders as $order) {
+            $orderId = $order['id'];
+            $channel = isset($channelMap[$orderId]) ? $channelMap[$orderId] : 'unknown';
+            
+            $groups[$channel][] = $order;
+        }
+        
+        return $groups;
+    }
+    
+    /**
+     * 处理单个渠道组的订单
+     * 
+     * @param string $channel 渠道名称 (sf/zto/jd)
+     * @param array $orders 该渠道的订单数组
+     * @return array 处理结果数组
+     */
+    private static function processChannelGroup($channel, array $orders)
+    {
+        $results = [];
+        $channelUnavailable = false;
+        $channelUnavailableReason = '';
+        
+        PrintLogger::info('批量多渠道打印', "开始处理{$channel}渠道订单", [
+            'channel' => $channel,
+            'count' => count($orders)
+        ]);
+        
+        // 先检查渠道是否可用（通过检查第一个订单）
+        if (!empty($orders)) {
+            $firstOrder = $orders[0];
+            $ditchId = isset($firstOrder['t_number']) ? (int)$firstOrder['t_number'] : 0;
+            
+            try {
+                $ditchConfig = DitchCache::getConfig($ditchId);
+                if (!$ditchConfig) {
+                    $channelUnavailable = true;
+                    $channelUnavailableReason = '渠道配置不存在';
+                }
+            } catch (\Exception $e) {
+                $channelUnavailable = true;
+                $channelUnavailableReason = '渠道配置加载失败: ' . $e->getMessage();
+            }
+        }
+        
+        // 如果渠道完全不可用，将所有订单标记为失败
+        if ($channelUnavailable) {
+            PrintLogger::error('批量多渠道打印', "渠道{$channel}不可用", [
+                'channel' => $channel,
+                'reason' => $channelUnavailableReason,
+                'order_count' => count($orders)
+            ]);
+            
+            foreach ($orders as $order) {
+                $results[] = [
+                    'order_id' => $order['id'],
+                    'channel' => $channel,
+                    'status' => 'failed',
+                    'message' => '渠道不可用',
+                    'error' => $channelUnavailableReason
+                ];
+            }
+            
+            return $results;
+        }
+        
+        // 渠道可用，处理每个订单
+        foreach ($orders as $order) {
+            $orderId = $order['id'];
+            $ditchId = isset($order['t_number']) ? (int)$order['t_number'] : 0;
+            
+            try {
+                // 实例化对应的 Ditch 类
+                $ditchConfig = DitchCache::getConfig($ditchId);
+                if (!$ditchConfig) {
+                    throw new \Exception('渠道配置不存在');
+                }
+                
+                $ditchClass = null;
+                if ($channel === 'sf') {
+                    $ditchClass = new \app\common\library\Ditch\Sf($ditchConfig);
+                } elseif ($channel === 'zto') {
+                    $ditchClass = new \app\common\library\Ditch\Zto($ditchConfig);
+                } elseif ($channel === 'jd') {
+                    $ditchClass = new \app\common\library\Ditch\Jd($ditchConfig);
+                }
+                
+                if (!$ditchClass) {
+                    throw new \Exception('无法实例化渠道类');
+                }
+                
+                // 调用 cloudPrint 方法
+                // 注意：Sf 和 Jd 的 cloudPrint 方法签名可能不同，需要适配
+                $printResult = null;
+                
+                if ($channel === 'sf') {
+                    // 顺丰：printlabelParsedData($order_id, $options)
+                    $waybillNo = isset($order['t_order_sn']) ? $order['t_order_sn'] : '';
+                    $printResult = $ditchClass->printlabelParsedData($orderId, [
+                        'waybill_no' => $waybillNo,
+                        'print_mode' => 'mother'
+                    ]);
+                } elseif ($channel === 'zto') {
+                    // 中通：cloudPrint($order_id, $options)
+                    $printResult = $ditchClass->cloudPrint($orderId, [
+                        'print_mode' => 'mother'
+                    ]);
+                } elseif ($channel === 'jd') {
+                    // 京东：jdcloudprint($orderId, $waybillCode)
+                    $waybillCode = isset($order['t_order_sn']) ? $order['t_order_sn'] : '';
+                    if (empty($waybillCode)) {
+                        throw new \Exception('京东运单号不存在');
+                    }
+                    $printResult = $ditchClass->jdcloudprint($orderId, $waybillCode);
+                }
+                
+                // 判断打印是否成功
+                if ($printResult === false) {
+                    // 失败
+                    $errorMsg = method_exists($ditchClass, 'getError') ? $ditchClass->getError() : '打印失败';
+                    
+                    $results[] = [
+                        'order_id' => $orderId,
+                        'channel' => $channel,
+                        'status' => 'failed',
+                        'message' => '打印失败',
+                        'error' => $errorMsg
+                    ];
+                    
+                    PrintLogger::error('批量多渠道打印', '订单打印失败', [
+                        'order_id' => $orderId,
+                        'channel' => $channel,
+                        'error' => $errorMsg
+                    ]);
+                } else {
+                    // 成功
+                    $results[] = [
+                        'order_id' => $orderId,
+                        'channel' => $channel,
+                        'status' => 'success',
+                        'message' => '打印任务已发送',
+                        'error' => null
+                    ];
+                    
+                    PrintLogger::success('批量多渠道打印', '订单打印成功', [
+                        'order_id' => $orderId,
+                        'channel' => $channel
+                    ]);
+                }
+                
+            } catch (\Exception $e) {
+                // 捕获异常，区分不同类型的错误
+                $errorMsg = $e->getMessage();
+                $errorType = '打印异常';
+                
+                // 识别错误类型
+                if (strpos($errorMsg, 'timeout') !== false || strpos($errorMsg, '超时') !== false) {
+                    $errorType = '网络超时';
+                } elseif (strpos($errorMsg, 'auth') !== false || strpos($errorMsg, '认证') !== false || 
+                         strpos($errorMsg, 'token') !== false || strpos($errorMsg, 'permission') !== false) {
+                    $errorType = 'API认证失败';
+                } elseif (strpos($errorMsg, 'connect') !== false || strpos($errorMsg, '连接') !== false) {
+                    $errorType = '网络连接失败';
+                }
+                
+                $results[] = [
+                    'order_id' => $orderId,
+                    'channel' => $channel,
+                    'status' => 'failed',
+                    'message' => $errorType,
+                    'error' => $errorMsg
+                ];
+                
+                PrintLogger::error('批量多渠道打印', '订单打印异常', [
+                    'order_id' => $orderId,
+                    'channel' => $channel,
+                    'error_type' => $errorType,
+                    'error' => $errorMsg,
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        }
+        
+        return $results;
+    }
+    
+    /**
+     * 聚合所有渠道的打印结果
+     * 
+     * @param array $allResults 所有结果数组
+     * @return array 聚合后的结果
+     */
+    private static function aggregateResults(array $allResults)
+    {
+        $total = count($allResults);
+        $successful = 0;
+        $failed = 0;
+        
+        // 渠道分解统计
+        $channelBreakdown = [
+            'sf' => ['total' => 0, 'success' => 0, 'failed' => 0],
+            'zto' => ['total' => 0, 'success' => 0, 'failed' => 0],
+            'jd' => ['total' => 0, 'success' => 0, 'failed' => 0]
+        ];
+        
+        foreach ($allResults as $result) {
+            $channel = $result['channel'];
+            $status = $result['status'];
+            
+            if ($status === 'success') {
+                $successful++;
+            } else {
+                $failed++;
+            }
+            
+            // 更新渠道统计
+            if (isset($channelBreakdown[$channel])) {
+                $channelBreakdown[$channel]['total']++;
+                if ($status === 'success') {
+                    $channelBreakdown[$channel]['success']++;
+                } else {
+                    $channelBreakdown[$channel]['failed']++;
+                }
+            }
+        }
+        
+        return [
+            'success' => $successful > 0,
+            'total' => $total,
+            'successful' => $successful,
+            'failed' => $failed,
+            'results' => $allResults,
+            'channel_breakdown' => $channelBreakdown
+        ];
+    }
 }

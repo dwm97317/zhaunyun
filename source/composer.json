@@ -51,5 +51,8 @@
     "allow-plugins": {
       "topthink/think-installer": true
     }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.0"
   }
 }

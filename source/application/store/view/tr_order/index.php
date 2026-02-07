@@ -263,9 +263,9 @@
                         <!--批量打印云面单-->
                         <button type="button" id="j-batch-cloud-print" class="am-btn am-btn-secondary am-radius"><i class="iconfont icon-dayinji_o"></i> 批量打印云面单</button>
 
-                        <!--批量打印面单-->
+                        <!--批量打印运单-->
                         <?php if (checkPrivilege('tr_order/expressbillbatch')): ?>
-                        <button type="button" id="j-batch-print" class="am-btn am-btn-warning am-radius"><i class="iconfont icon-dayinji_o"></i> 批量打印面单</button>
+                        <button type="button" id="j-batch-print" class="am-btn am-btn-warning am-radius"><i class="iconfont icon-dayinji_o"></i> 批量打印运单</button>
                         <?php endif;?>
 
                         
@@ -1405,7 +1405,8 @@
           num:0, 
           check:[],
           init:function(){
-              this.check = document.getElementById('body').getElementsByTagName('input');
+              // 修复：只获取name="checkIds"的复选框，而不是所有input标签
+              this.check = document.querySelectorAll('input[name="checkIds"]');
               this.num = this.check.length;
               this.bindEvent();
           },
@@ -2330,7 +2331,7 @@
         });
         
         /**
-         * 批量打印面单
+         * 批量打印运单
          */
         $('#j-batch-print').on('click', function () {
             var selectIds = checker.getCheckSelect();
@@ -2437,7 +2438,7 @@
         });
 
         /**
-         * 批量打印云面单 (AmaueUI 版本)
+         * 批量打印云面单 (支持多渠道自动识别)
          */
         $('#j-batch-cloud-print').on('click', function() {
             // 1. 获取选中订单
@@ -2482,7 +2483,7 @@
                     print_all: 1  // 批量打印默认打印全部包裹（母单+子单）
                 });
             } else {
-                // 多渠道，提示用户
+                // 多渠道，提供两种打印方式
                 var msg = '选中订单包含 ' + keys.length + ' 个不同渠道：<br>';
                 keys.forEach(function(dId) {
                     msg += '- 渠道ID ' + dId + ' (' + groups[dId].length + '单)<br>';
@@ -2490,15 +2491,45 @@
                 if (noDitchCount > 0) {
                     msg += '<br><span style="color:red">注：另有 ' + noDitchCount + ' 单未分配渠道被忽略。</span>';
                 }
-                msg += '<br>是否分派多个打印任务并行执行？';
+                msg += '<br><br><strong>选择打印方式：</strong>';
 
-                layer.confirm(msg, {title: '批量打印确认', area: '400px'}, function(index) {
-                    layer.close(index);
-                    keys.forEach(function(ditchId) {
-                        OrderBatchPrinter.printWithUI(groups[ditchId], ditchId, {
-                            print_all: 1  // 批量打印默认打印全部包裹（母单+子单）
+                layer.open({
+                    type: 1,
+                    title: '批量打印确认',
+                    area: '500px',
+                    content: '<div style="padding:20px;">' + msg + '<br><br>' +
+                             '<button id="btn-multi-channel-print" class="am-btn am-btn-primary am-btn-sm" style="margin-right:10px;">多渠道自动打印</button>' +
+                             '<button id="btn-separate-print" class="am-btn am-btn-secondary am-btn-sm">分别打印</button>' +
+                             '</div>',
+                    btn: [],
+                    success: function(layero, index) {
+                        // 多渠道自动打印
+                        $('#btn-multi-channel-print').on('click', function() {
+                            layer.close(index);
+                            
+                            // 使用新的多渠道打印功能
+                            OrderBatchPrinter.printMultiChannel(selectIds, {
+                                onSuccess: function(data) {
+                                    console.log('多渠道打印完成', data);
+                                },
+                                onError: function(error) {
+                                    console.error('多渠道打印失败', error);
+                                }
+                            });
                         });
-                    });
+                        
+                        // 分别打印
+                        $('#btn-separate-print').on('click', function() {
+                            layer.close(index);
+                            
+                            // 按渠道分别打印
+                            keys.forEach(function(ditchId) {
+                                OrderBatchPrinter.printWithUI(groups[ditchId], ditchId, {
+                                    print_all: 1
+                                });
+                            });
+                        });
+                    }
                 });
             }
         });
@@ -3087,6 +3118,9 @@
     }
 </script>
 
+<!-- 引入批量多渠道打印 CSS -->
+<link rel="stylesheet" href="assets/common/css/batch-print-multi-channel.css">
+
 <style>
     tbody tr:nth-child(2n){
         background: #fff !important;
@@ -3236,7 +3270,6 @@ function copyAllWaybills(element) {
 
 <!-- 引入批量打印 JS -->
 <script src="assets/common/js/order-batch-printer.js"></script>
-
 
 <!-- 批量推送模板 -->
 <script id="tpl-batch-push" type="text/template">

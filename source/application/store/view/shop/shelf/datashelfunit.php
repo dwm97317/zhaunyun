@@ -285,7 +285,7 @@
         })
         
         /**
-         * 批量打印面单
+         * 批量打印运单
          */
         $('#j-print').on('click', function () {
             var $tabs, data = $(this).data();

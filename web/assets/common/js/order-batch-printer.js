@@ -1,10 +1,12 @@
 /**
  * 批量打印工具 - 前端调用模块
  * 
- * 功能：将多个集运订单批量打印（同一个渠道商）
+ * 功能：
+ * 1. 将多个集运订单批量打印（同一个渠道商）
+ * 2. 批量多渠道自动打印（自动识别快递渠道）
  * 
  * @author System
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 const OrderBatchPrinter = {
@@ -12,6 +14,11 @@ const OrderBatchPrinter = {
      * API 端点配置
      */
     apiEndpoint: '/store/inpack/orderbatchprinter',
+    
+    /**
+     * 多渠道打印 API 端点
+     */
+    multiChannelEndpoint: '/store/inpack/batchPrint',
     
     /**
      * 批量打印订单（同步模式）
@@ -30,6 +37,54 @@ const OrderBatchPrinter = {
             ditch_id: ditchId,
             async: false,
             ...options
+        });
+    },
+    
+    /**
+     * 批量多渠道打印（自动识别快递渠道）
+     * 
+     * @param {Array<number>} orderIds - 订单ID数组
+     * @param {Object} options - 打印选项
+     * @param {Function} options.onSuccess - 成功回调
+     * @param {Function} options.onError - 失败回调
+     * @returns {Promise<Object>} 打印结果
+     */
+    printMultiChannel: function(orderIds, options = {}) {
+        const self = this;
+        
+        return $.ajax({
+            url: this.multiChannelEndpoint,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                order_ids: orderIds
+            }),
+            dataType: 'json'
+        }).done(function(response) {
+            if (response.code === 0 && response.data) {
+                const data = response.data;
+                
+                // 显示结果摘要
+                const msg = `批量打印完成！总数: ${data.total}, 成功: ${data.successful}, 失败: ${data.failed}`;
+                layer.msg(msg, {
+                    icon: data.failed > 0 ? 0 : 1,
+                    time: 3000
+                });
+                
+                if (options.onSuccess) {
+                    options.onSuccess(data);
+                }
+            } else {
+                layer.msg(response.msg || '批量打印失败', { icon: 2 });
+                if (options.onError) {
+                    options.onError(response);
+                }
+            }
+        }).fail(function(xhr, status, error) {
+            layer.msg('网络错误: ' + error, { icon: 2 });
+            if (options.onError) {
+                options.onError({ error: error });
+            }
         });
     },
     
@@ -297,27 +352,51 @@ const OrderBatchPrinter = {
             } else if (printData.mode === 'zto_cloud_print') {
                 // 中通云打印模式
                 console.log('[批量打印] 中通打印模式');
+                console.log('[批量打印] 中通打印数据:', printData);
                 
                 // 中通云打印是服务端直接调用API完成的，前端只需要显示结果
-                if (printData.data && printData.data.printResults) {
-                    var results = printData.data.printResults;
-                    var successCount = 0;
-                    var failCount = 0;
+                // 后端返回格式: { mode: 'zto_cloud_print', data: {...中通API返回的result...} }
+                if (printData.data) {
+                    var ztData = printData.data;
                     
-                    results.forEach(function(result) {
-                        if (result.success) {
-                            successCount++;
-                        } else {
-                            failCount++;
-                        }
+                    // 中通API返回的数据结构：
+                    // {
+                    //   printSuccessList: ['运单号1', '运单号2', ...],
+                    //   printErrorList: [{billCode: '运单号', errorMsg: '错误信息'}, ...]
+                    // }
+                    var successList = ztData.printSuccessList || [];
+                    var errorList = ztData.printErrorList || [];
+                    
+                    var successCount = successList.length;
+                    var failCount = errorList.length;
+                    
+                    console.log('[批量打印] 中通打印结果:', {
+                        success: successCount,
+                        fail: failCount,
+                        successList: successList,
+                        errorList: errorList
                     });
                     
-                    if (failCount === 0) {
+                    if (failCount === 0 && successCount > 0) {
                         console.log('[批量打印] 中通打印全部成功');
                         layer.msg('中通打印成功 (' + successCount + '个)', {icon: 1});
+                    } else if (successCount > 0 && failCount > 0) {
+                        console.warn('[批量打印] 中通打印部分失败');
+                        var errorMsg = '中通打印完成: 成功' + successCount + '个, 失败' + failCount + '个';
+                        if (errorList.length > 0) {
+                            errorMsg += '<br>失败原因: ' + errorList[0].errorMsg;
+                        }
+                        layer.msg(errorMsg, {icon: 0, time: 5000});
+                    } else if (failCount > 0) {
+                        console.error('[批量打印] 中通打印全部失败');
+                        var errorMsg = '中通打印失败';
+                        if (errorList.length > 0) {
+                            errorMsg += ': ' + errorList[0].errorMsg;
+                        }
+                        layer.msg(errorMsg, {icon: 2, time: 5000});
                     } else {
-                        console.warn('[批量打印] 中通打印部分失败:', {success: successCount, fail: failCount});
-                        layer.msg('中通打印完成: 成功' + successCount + '个, 失败' + failCount + '个', {icon: 0, time: 5000});
+                        console.warn('[批量打印] 中通打印无结果');
+                        layer.msg('中通打印无结果', {icon: 0});
                     }
                 } else {
                     console.error('[批量打印] 中通打印数据格式错误');

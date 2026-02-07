@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>前端 Checker 对象调试工具</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 5px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; }
+        button { padding: 10px 20px; margin: 5px; font-size: 14px; cursor: pointer; }
+        .code-block { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        #output { background: #f4f4f4; padding: 15px; border: 1px solid #ddd; min-height: 200px; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        table th, table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        table th { background-color: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <h1>前端 Checker 对象调试工具</h1>
+    <p>这个工具帮助你诊断批量打印运单的前端问题</p>
+    <hr>
+
+    <div class="test-section">
+        <h2>使用说明</h2>
+        <ol>
+            <li>打开订单列表页面（例如：待发货订单列表）</li>
+            <li>打开浏览器开发者工具（按F12）</li>
+            <li>切换到"Console"（控制台）标签</li>
+            <li>复制下面的代码并粘贴到控制台中执行</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>诊断代码</h2>
+        <div class="code-block">
+<pre>
+// ========== 批量打印运单前端诊断工具 ==========
+
+console.log('========== 开始诊断 ==========');
+
+// 1. 检查 checker 对象是否存在
+if (typeof checker === 'undefined') {
+    console.error('❌ checker 对象不存在！');
+} else {
+    console.log('✓ checker 对象存在');
+    
+    // 2. 检查 checker.check 数组
+    console.log('checker.check.length:', checker.check.length);
+    console.log('checker.num:', checker.num);
+    
+    // 3. 检查复选框数量
+    var checkboxes = document.querySelectorAll('input[name="checkIds"]');
+    console.log('页面上的复选框数量:', checkboxes.length);
+    
+    // 4. 比较数量
+    if (checker.check.length !== checkboxes.length) {
+        console.error('❌ checker.check 数量与实际复选框数量不匹配！');
+        console.error('   checker.check.length:', checker.check.length);
+        console.error('   实际复选框数量:', checkboxes.length);
+    } else {
+        console.log('✓ 复选框数量匹配');
+    }
+    
+    // 5. 检查 checker.check 数组的内容
+    console.log('checker.check 数组内容:');
+    for (var i = 0; i < Math.min(5, checker.check.length); i++) {
+        var elem = checker.check[i];
+        console.log('  [' + i + ']', {
+            type: elem.type,
+            name: elem.name,
+            value: elem.value,
+            checked: elem.checked
+        });
+    }
+    if (checker.check.length > 5) {
+        console.log('  ... 还有', (checker.check.length - 5), '个元素');
+    }
+    
+    // 6. 检查是否有非checkbox元素
+    var nonCheckboxCount = 0;
+    for (var i = 0; i < checker.check.length; i++) {
+        if (checker.check[i].type !== 'checkbox') {
+            nonCheckboxCount++;
+        }
+    }
+    if (nonCheckboxCount > 0) {
+        console.error('❌ checker.check 中包含', nonCheckboxCount, '个非checkbox元素！');
+    } else {
+        console.log('✓ checker.check 中所有元素都是checkbox');
+    }
+    
+    // 7. 测试全选功能
+    console.log('\n========== 测试全选功能 ==========');
+    var checkAllBtn = document.getElementById('checkAll');
+    if (checkAllBtn) {
+        console.log('✓ 找到全选按钮');
+        
+        // 点击全选
+        checkAllBtn.click();
+        
+        // 等待一下让事件处理完成
+        setTimeout(function() {
+            var selectIds = checker.getCheckSelect();
+            console.log('全选后获取的ID数量:', selectIds.length);
+            console.log('全选后获取的ID:', selectIds);
+            
+            if (selectIds.length === 0) {
+                console.error('❌ 全选后没有获取到任何ID！');
+            } else if (selectIds.length === 1) {
+                console.warn('⚠ 全选后只获取到1个ID，这可能是问题所在！');
+            } else {
+                console.log('✓ 全选后获取到', selectIds.length, '个ID');
+            }
+            
+            // 取消全选
+            checkAllBtn.click();
+        }, 100);
+    } else {
+        console.error('❌ 未找到全选按钮');
+    }
+}
+
+console.log('========== 诊断完成 ==========');
+console.log('\n如果发现问题，请按以下步骤操作：');
+console.log('1. 如果 checker.check 数量不对，说明 checker.init() 方法有问题');
+console.log('2. 如果包含非checkbox元素，说明选择器有问题');
+console.log('3. 如果全选后只获取到1个ID，说明 getCheckSelect() 方法有问题');
+console.log('4. 清除浏览器缓存并刷新页面（Ctrl+Shift+R 或 Ctrl+F5）');
+</pre>
+        </div>
+        <button onclick="copyCode()">复制代码</button>
+    </div>
+
+    <div class="test-section">
+        <h2>常见问题和解决方案</h2>
+        <table>
+            <tr>
+                <th>问题</th>
+                <th>原因</th>
+                <th>解决方案</th>
+            </tr>
+            <tr>
+                <td>checker.check 数量不对</td>
+                <td>checker.init() 方法选择器错误</td>
+                <td>检查 checker.init() 方法，确保使用 <code>document.querySelectorAll('input[name="checkIds"]')</code></td>
+            </tr>
+            <tr>
+                <td>包含非checkbox元素</td>
+                <td>选择器选中了其他input元素</td>
+                <td>修改选择器，只选择 name="checkIds" 的复选框</td>
+            </tr>
+            <tr>
+                <td>全选后只获取到1个ID</td>
+                <td>getCheckSelect() 方法有问题</td>
+                <td>检查 getCheckSelect() 方法的循环逻辑</td>
+            </tr>
+            <tr>
+                <td>修改后仍然有问题</td>
+                <td>浏览器缓存了旧的JavaScript代码</td>
+                <td>清除浏览器缓存并强制刷新（Ctrl+Shift+R 或 Ctrl+F5）</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>修复后的 checker 对象代码</h2>
+        <p>如果诊断发现问题，可以使用以下修复后的代码：</p>
+        <div class="code-block">
+<pre>
+checker = {
+    num: 0, 
+    check: [],
+    init: function() {
+        // 修复：只获取name="checkIds"的复选框
+        this.check = document.querySelectorAll('input[name="checkIds"]');
+        this.num = this.check.length;
+        this.bindEvent();
+    },
+    bindEvent: function() {
+        var that = this;
+        for(var i=0; i< this.check.length; i++){
+            this.check[i].onclick = function(){
+                var _check = that.isFullCheck();
+                if (_check){
+                    document.getElementById('checkAll').checked = 'checked';
+                }else{
+                    document.getElementById('checkAll').checked = '';
+                }
+            }
+        }
+        
+        var allCheck = document.getElementById('checkAll');
+        allCheck.onclick = function(){
+            if (this.checked){
+                that.setFullCheck();
+            }else{
+                that.setFullCheck('');
+            }
+        }
+    },
+    setFullCheck: function(checked='checked'){
+        for (var ik =0; ik<this.num; ik++){
+            this.check[ik].checked = checked; 
+        } 
+    },
+    isFullCheck: function(){
+        var hasCheck = 0;
+        for (var k =0; k<this.num; k++){
+            if (this.check[k].checked){
+                hasCheck++;
+            }
+        }
+        return hasCheck==this.num?true:false;
+    },
+    getCheckSelect: function(){
+        var selectIds = [];
+        for (var i=0;i<this.check.length;i++){
+            if (this.check[i].checked){
+                selectIds.push(this.check[i].value);
+            }
+        }
+        return selectIds;
+    }
+}
+
+// 重新初始化
+checker.init();
+console.log('✓ checker 对象已重新初始化');
+console.log('checker.check.length:', checker.check.length);
+</pre>
+        </div>
+        <button onclick="copyFixCode()">复制修复代码</button>
+    </div>
+
+    <script>
+        function copyCode() {
+            var code = document.querySelector('.code-block pre').textContent;
+            navigator.clipboard.writeText(code).then(function() {
+                alert('代码已复制到剪贴板！\n\n请打开订单列表页面，按F12打开控制台，粘贴并执行。');
+            }, function() {
+                alert('复制失败，请手动复制代码');
+            });
+        }
+
+        function copyFixCode() {
+            var codeBlocks = document.querySelectorAll('.code-block pre');
+            var code = codeBlocks[codeBlocks.length - 1].textContent;
+            navigator.clipboard.writeText(code).then(function() {
+                alert('修复代码已复制到剪贴板！\n\n请打开订单列表页面，按F12打开控制台，粘贴并执行。');
+            }, function() {
+                alert('复制失败，请手动复制代码');
+            });
+        }
+    </script>
+</body>
+</html>
