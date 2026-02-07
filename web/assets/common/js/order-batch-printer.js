@@ -61,15 +61,24 @@ const OrderBatchPrinter = {
             }),
             dataType: 'json'
         }).done(function(response) {
-            if (response.code === 0 && response.data) {
+            // code: 0=全部成功, 1=部分成功, -1=全部失败
+            if ((response.code === 0 || response.code === 1) && response.data) {
                 const data = response.data;
                 
                 // 显示结果摘要
-                const msg = `批量打印完成！总数: ${data.total}, 成功: ${data.successful}, 失败: ${data.failed}`;
-                layer.msg(msg, {
-                    icon: data.failed > 0 ? 0 : 1,
-                    time: 3000
-                });
+                let msg, icon;
+                if (data.failed === 0) {
+                    msg = `批量打印成功！总数: ${data.total}`;
+                    icon = 1;
+                } else if (data.successful > 0) {
+                    msg = `批量打印部分成功！总数: ${data.total}, 成功: ${data.successful}, 失败: ${data.failed}`;
+                    icon = 0;
+                } else {
+                    msg = `批量打印失败！总数: ${data.total}, 失败: ${data.failed}`;
+                    icon = 2;
+                }
+                
+                layer.msg(msg, { icon: icon, time: 3000 });
                 
                 if (options.onSuccess) {
                     options.onSuccess(data);
@@ -262,7 +271,9 @@ const OrderBatchPrinter = {
                 mode: printData.mode,
                 has_data: !!printData.data,
                 has_printRequest: !!printData.printRequest,
-                has_partnerID: !!printData.partnerID
+                has_partnerID: !!printData.partnerID,
+                data_type: typeof printData.data,
+                data_keys: printData.data ? Object.keys(printData.data) : null
             });
             
             // 根据打印模式调用对应的打印方法
@@ -292,6 +303,9 @@ const OrderBatchPrinter = {
                         partnerID: partnerID,
                         env: env,
                         has_printData: !!sfPrintData,
+                        printData_type: typeof sfPrintData,
+                        printData_keys: sfPrintData ? Object.keys(sfPrintData) : null,
+                        printData_sample: sfPrintData ? JSON.stringify(sfPrintData).substring(0, 200) : null,
                         printOptions: printOptions
                     });
                     

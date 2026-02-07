@@ -776,6 +776,13 @@ class OrderBatchPrinter
                 // 注意：Sf 和 Jd 的 cloudPrint 方法签名可能不同，需要适配
                 $printResult = null;
                 
+                PrintLogger::info('批量多渠道打印', "准备调用{$channel}打印方法", [
+                    'order_id' => $orderId,
+                    'channel' => $channel,
+                    'ditch_id' => $ditchId,
+                    'waybill_no' => isset($order['t_order_sn']) ? $order['t_order_sn'] : ''
+                ]);
+                
                 if ($channel === 'sf') {
                     // 顺丰：printlabelParsedData($order_id, $options)
                     $waybillNo = isset($order['t_order_sn']) ? $order['t_order_sn'] : '';
@@ -783,10 +790,24 @@ class OrderBatchPrinter
                         'waybill_no' => $waybillNo,
                         'print_mode' => 'mother'
                     ]);
+                    
+                    PrintLogger::info('批量多渠道打印', "顺丰打印方法返回", [
+                        'order_id' => $orderId,
+                        'result_type' => gettype($printResult),
+                        'result_is_array' => is_array($printResult),
+                        'result_keys' => is_array($printResult) ? array_keys($printResult) : null
+                    ]);
                 } elseif ($channel === 'zto') {
                     // 中通：cloudPrint($order_id, $options)
                     $printResult = $ditchClass->cloudPrint($orderId, [
                         'print_mode' => 'mother'
+                    ]);
+                    
+                    PrintLogger::info('批量多渠道打印', "中通打印方法返回", [
+                        'order_id' => $orderId,
+                        'result_type' => gettype($printResult),
+                        'result_is_array' => is_array($printResult),
+                        'result_keys' => is_array($printResult) ? array_keys($printResult) : null
                     ]);
                 } elseif ($channel === 'jd') {
                     // 京东：jdcloudprint($orderId, $waybillCode)
@@ -795,6 +816,13 @@ class OrderBatchPrinter
                         throw new \Exception('京东运单号不存在');
                     }
                     $printResult = $ditchClass->jdcloudprint($orderId, $waybillCode);
+                    
+                    PrintLogger::info('批量多渠道打印', "京东打印方法返回", [
+                        'order_id' => $orderId,
+                        'result_type' => gettype($printResult),
+                        'result_is_array' => is_array($printResult),
+                        'result_keys' => is_array($printResult) ? array_keys($printResult) : null
+                    ]);
                 }
                 
                 // 判断打印是否成功
